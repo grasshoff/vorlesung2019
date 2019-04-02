@@ -1,6 +1,6 @@
 # vorlesung2019
 
-Dieses Verzeichnis enthält alle Materialien zur "Grundzüge einer algorithmischen Wissenschaftstheorie", gehalten im Sommersemester 2019 von Gerd Graßhoff. Die Materialien sind zum nacharbeiten der Vorlesung gedacht, alle weiteren Nutzungen sind mit dem Urheber zu vereinbaren.
+Dieses Verzeichnis enthält alle Materialien zur "Grundzüge einer algorithmischen Wissenschaftstheorie", gehalten im Sommersemester 2019 von Gerd Graßhoff. Die Materialien sind zur Vorbereitung und Nacharbeiten der Vorlesung, alle weiteren Nutzungen sind mit dem Urheber zu vereinbaren.
 
 ## Kopieren des github auf einen lokalen Rechner 
 
