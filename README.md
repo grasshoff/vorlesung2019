@@ -1,1 +1,9 @@
 # vorlesung2019
+
+Dieses Verzeichnis enthält alle Materialien zur "Grundzüge einer algorithmischen Wissenschaftstheorie", gehalten im Sommersemester 2019 von Gerd Graßhoff. Die Materialien sind zum nacharbeiten der Vorlesung gedacht, alle weiteren Nutzungen sind mit dem Urheber zu vereinbaren.
+
+## cloning a github 
+
+Um dieses Verzeichnis auf einen lokalen Rechner zu kopieren, verfahre man so:
+
+https://git-scm.com/book/en/v2/Git-Basics-Getting-a-Git-Repository
