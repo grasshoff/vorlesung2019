@@ -7,3 +7,7 @@ Dieses Verzeichnis enthält alle Materialien zur "Grundzüge einer algorithmisch
 Um dieses Verzeichnis auf einen lokalen Rechner zu kopieren, verfahre man so:
 
 https://git-scm.com/book/en/v2/Git-Basics-Getting-a-Git-Repository
+
+In diesem Fall:
+
+git clone https://github.com/grasshoff/vorlesung2019.git
