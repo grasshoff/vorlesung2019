@@ -1,0 +1,1598 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-11T12:27+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Habitability Classification of Exoplanets: A Machine Learning Insight</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Suryoday</forename><surname>Basak</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Surbhi</forename><surname>Agrawal</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><roleName>Abhijit</roleName><forename type="first">Snehanshu</forename><surname>Saha</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jeremiel</forename><surname>Theophilus</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Kakoli</forename><surname>Bora</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Gouri</forename><surname>Deshpande</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jayant</forename><surname>Murthy</surname></persName>
+						</author>
+						<author>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">University of Texas at Arlington</orgName>
+								<orgName type="institution" key="instit2">PES University</orgName>
+								<address>
+									<country>South Campus</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<affiliation key="aff1">
+								<orgName type="department">Indian Institute of Astrophysics</orgName>
+								<orgName type="institution">University of Calgary</orgName>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Habitability Classification of Exoplanets: A Machine Learning Insight</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>machine learning</term>
+					<term>exoplanets</term>
+					<term>habitability</term>
+					<term>elastic gini coefficient</term>
+					<term>thermal suitability score</term>
+				</keywords>
+			</textClass>
+			<abstract>
+				<p>We explore the efficacy of machine learning (ML) in characterizing exoplanets into different classes. The source of the data used in this work is University of Puerto Rico&apos;s Planetary Habitability Laboratory&apos;s Exoplanets Catalog (PHL-EC). We perform a detailed analysis of the structure of the data and propose methods that can be used to effectively categorize new exoplanet samples. Our contributions are two fold. We elaborate on the results obtained by using ML algorithms by stating the accuracy of each method used and propose the best paradigm to automate the task of exoplanet classification. The exploration led to the development of new methods fundamental and relevant to the context of the problem and beyond. Data exploration and experimentation methods also result in the development of a general data methodology and a set of best practices which can be used for exploratory data analysis experiments.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>For hundreds of years, astronomers and philosophers have considered the possibility that the Earth is a very rare case of a planet as it harbors life. This is partly because so far, missions exploring specific planets like Mars and Venus have found no traces of life. However, over the past two decades, discoveries of exoplanets have poured in by the hundreds and the rate at which exoplanets are being discovered is increasing. The inference from this is that planets around stars are a rule rather than an exception with the actual number of planets exceeding the number of stars in our galaxy by orders of magnitude ( <ref type="bibr" target="#b33">Strigari et al., 2012</ref>). Scientists are now discussing the conditions, circumstances, and various possibilities that can lead to the emergence of life ( <ref type="bibr" target="#b0">Bains and Schulze-Makuch, 2016)</ref> order to find interesting samples from the massive ongoing growth in the data, a sophisticated computational pipeline should be developed which can quickly and efficiently classify exoplanets based on habitability classes.</p><p>The process of discovery of exoplanets is rather complex as the size of exoplanets is small compared to other types of stellar objects such as stars, galaxies, quasars, etc. which can be discovered with greater ease. Given </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Data</head><p>Combined with stellar data from the Hipparcos catalog <ref type="bibr">(Méndez, 2011a)</ref>, the PHL-EC dataset <ref type="bibr" target="#b18">(Méndez, 2018;</ref><ref type="bibr" target="#b31">Schulze-Makuch et al., 2011</ref>) consists of a total of 68 features (of which 13 are categorical and 55 are continuous valued) and more than 3800 confirmed exoplanets (at the time of writing of this paper). The PHL-EC consists of observed as well as derived attributes. Hence, it presents interesting challenges from the analysis point of view.</p><p>There are six classes in the dataset, of which we can use three in our analysis as they are sufficiently large in size.</p><p>These are namely non-habitable, mesoplanet, and psychroplanet classes. These three classes or types of planets can be described on the basis of their thermal properties as follows:</p><p>1. Mesoplanets: The planetary bodies whose sizes lie between Mercury and Ceres falls under this category (smaller than Mercury and larger than Ceres). These are also referred to as M-planets. These planets have mean global surface temperature between 0 • C to 50 • C, a necessary condition for complex terrestrial life.</p><p>These are generally referred as Earth-like planets.</p><p>2. Psychroplanets: These planets have mean global surface temperature between -50 • C to 0 • C. Hence, the temperature is colder than optimal for sustenance of terrestrial life.</p><p>3. Non-Habitable: Planets other than mesoplanets and psychroplanets do not have thermal properties required to sustain life.</p><p>The remaining three classes in the data are those of thermoplanet, hypopsychroplanet and hyperthermoplanet.</p><p>However, at the time of writing this paper, the number of samples in each of these classes is too small (each class has less than 3 samples) to reliably take them into consideration for an ML-based exploration.</p><p>The catalog includes important features like atmospheric type, mass, radius, surface temperature, escape velocity, earth's similarity index, flux, orbital velocity etc. As a first step, data from PHL-EC is pre-processed. An important challenge in the dataset is that a total of about 1% of the data is missing (with a majority being of the feature P. Max Mass) and in order to overcome this, we used a simple method of substituting the missing data using the class-wise mean of the respective feature, (except for P. Max Mass, which we dropped as a field). Many columns in the data (we shall hereon address these appropriately as features) are naturally inter-correlated. Certain attributes from the database namely P.NameKepler (planet's name), Sname HD and Sname Hid (name of parent star), S.constellation (name of constellation), Stype (type of parent star), P.SPH (planet standard primary habitability), P.interior ESI (interior earth similarity index), P.surface ESI (surface earth similarity index), P.disc method (method of discovery of planet), P.disc year (year of discovery of planet), P. Max Mass, P. Min Mass, P.inclination and P.Hab Moon (flag indicating planet's potential as a habitable exomoons) were removed as these attributes do not contribute to the nature of classification of habitability of a planet. Interior ESI and surface ESI, however, together contribute to habitability, but since the dataset directly provides P.ESI, these two features were neglected.</p><p>Following this, the ML approaches were used on the processed dataset. In all, 45 features were used. The data flow diagram of the entire system is depicted in <ref type="figure" target="#fig_0">Figure 1</ref>. The online data source for the current work is available at http://phl.upr.edu/projects/habitable-exoplanets-catalog/data/database.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Contributions</head><p>Our contribution are largely of two kinds:</p><p>1. Application of Existing Methods in Machine Learning: We use existing families of classifiers and data processing methods which are popular in literature. The purpose of this is twofold: first, to explore how the well known and well tested methods can be used to automate the classification of exoplanets and second, to set a performance baseline for new methods that will be subsequently developed for the same tasks.</p><p>2. Novel Methods of Characterization and Classification: Based on the nuances in the dataset and the problem statement, and the results of existing methods, we have developed new methods to classify and characterize samples of exoplanets. These are the SVM-KNN based oversampling method, the elastic Gini splitting criteria, and the Thermal Suitability Score. To establish efficacy and relevance of the proposed methods, results are compared with, where ever appropriate, the existing methods in literature.</p><p>The transition from one item to the other is effortless as demonstrated later in the manuscript. The effort was initially meant at exploring different classification algorithms in the study of automated discrimination of habitability.</p><p>The exercise evolved into writing novel methods as the authors felt strong reasons to improve upon the existing ones, in the context of the problem. In all the results that we have reported, we have related the performance of the different classifiers to the nature and structure of the data. The algorithms are not treated as 'black-boxes' and are thoroughly examined for the purpose of determining the appropriateness of application to the PHL-EC dataset.</p><p>The working principles of each classifier we have tried are not the same and we have provided justification for the results obtained.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Application of Existing Methods in Machine Learning</head><p>We briefly describe methods popular in literature that we have used.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">Existing Methods Used</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.1.">Machine Learning Algorithms</head><p>The following are the ML classification algorithms were used in the current work.</p><p>a. Probabilistic Classifiers: Gaussian Na¨ıveNa¨ıve Bayes evaluates the classification labels based on class-conditional probabilities with class apriori probabilities <ref type="bibr" target="#b24">(Rish, 2001)</ref>. GNB works on the assumptions that the features are independent of each other and that they all come from a Gaussian distribution.</p><p>b. Instance-Based Classifiers: The k-nearest neighbor classifier is an instance-based classifier where the distance between the neighbors in the input space is used as a measure for categorization ( <ref type="bibr" target="#b19">Mohanchandra et al., 2015)</ref>.</p><p>Here, k is the number of nearest neighbors which are considered for automated classification: the class with the largest number of instances within the nearest k neighbors is predicted as the class of a test sample. We considered k to be 3 while the weights are assigned uniform values.</p><p>c. Hard-Boundary Classifiers: The working principle of support vector machines is to construct hard-boundaries which are n-dimensional hyperplanes, between the samples of different classes <ref type="bibr" target="#b34">(Vapnik and Chervonenkis, 1964;</ref><ref type="bibr" target="#b9">Cortes and Vapnik, 1995)</ref>. Here, n is the dimensionality of the feature space of the data as fed to the machine.</p><p>We tried SVM without a kernel, and with a radial basis kernel <ref type="bibr" target="#b4">(Boser et al., 1992</ref>).</p><p>d. The parameters setup for linear discriminant analysis classifier was implemented by the decomposition strategy similar to SVM ( <ref type="bibr" target="#b10">Duda et al., 2001)</ref>. No shrinkage metric was specified and no class prior probabilities were assigned.</p><p>e. Tree-Based Classifiers: Decision trees build tree based data structures by using a criterion, namely information gain (or simply, gain) <ref type="bibr" target="#b23">(Quinlan, 1986)</ref>. The discrimination which leads to the best value of gain is used to develop a rule; should the rule not result in a perfect discrimination of the data (which is often a consequence of accepting the best rule), then the criterion is recursively applied to the partitions in the data created by the previous rule.</p><p>A random forest is an ensemble of many decision trees <ref type="bibr" target="#b6">(Breiman, 2001</ref>) and gradient boosted decision trees are further sophisticated as they do not consider the data in their raw form but use a functional approximation prior to discrimination <ref type="bibr" target="#b11">(Friedman, 2000</ref>). The splitting criteria that we used were Gini and elastic Gini (discussed in Section 5.2)</p><p>We address the complexity and attribute correlations in the dataset in a two-fold manner: by considering all the features in the dataset in one set of automated classification experiments, and by considering only the basic observables of mass and radius in another set of experiments. The accuracies of either set of experiments are presented and discussed.</p><p>The existing methods were implemented using the scikit-learn module in python <ref type="bibr" target="#b21">(Pedregosa et al., 2011)</ref>, except GBDTs, which was implemented using XGBoost <ref type="bibr" target="#b8">(Chen and Guestrin, 2016</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.2.">Artificial Balancing by Undersampling</head><p>In order to mitigate the effects of bias introduced in the data which permeates to the results, we randomly down-sampled the non-habitable class for each test run as it has a dominating number of samples over the other two classes in the data. We call this process undersampling as the fundamental idea is to experiment with datasets which do not suffer from biases.</p><p>Since the number of psychroplanets and mesoplanets are smaller and comparable in magnitude, we consider all these samples for each run of the experiment, and we randomly sample 5%-10% of the non-habitable samples. The classification methods are then applied to a balanced dataset so constructed. The balancing and classification is repeated many times so that the results finally obtained are representative of the average-case classification. Thus, the results we report in Sections 4.2 and 5.4 is the average of many classification and testing runs, and each run was done on a dataset with a smaller, random sample of non-habitable planets.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.3.">Synthetic Oversampling Using Parzen Window Estimation</head><p>Another approach to handle the effects of bias due to the non-habitable class is an artificial data augmentation or oversampling. Here, we try to artificially add samples to the classes with lesser number of samples. Essentially, the paradigm of choice is to analyze the class-wise distribution of the data and to generate reasonable samples which reflect the general properties of their respective classes.</p><p>As a part of this approach, we estimate the density of the data by approximating a distribution function empirically -we do not assume that the numeric values in the data samples are drawn from a standard probability distribution. The method we use for this is known as window estimation. This approach was developed by Rosenblatt and Parzen <ref type="bibr" target="#b25">(Rosenblatt, 1956;</ref><ref type="bibr" target="#b20">Parzen, 1962)</ref>. In a broader sense, window estimation is a method of kernel density estimation (KDE).</p><p>Here we augment variables from the top 85% of the features based on their importance as determined by random forest classifiers ( <ref type="table" target="#tab_1">Table 5)</ref>. The experiments using KDE is done in the same manner as the experiments using undersampling.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.">Results</head><p>The classification algorithms are tested after a method of handling class-imbalance has been used on the data.</p><p>In order to evaluate the classifiers, we present the confusion matrices for each classifier after preprocessing. The confusion matrices can quantitatively indicate the proportion of instances of each class that are classified correctly or incorrectly. The (i, j) th entry in a confusion matrix indicates the percentage of the times a sample belonging to the i th is classified by an algorithm into the j th class. For a comparison baseline, we also present the results with no undersampling or data augmentation (Appendix A).</p><p>1. Artificial Balancing by Undersampling: After artificially balancing the dataset, the experiments were performed with different feature sets. In the first set of experiments, all the features after the removal of the unimportant features were used. This feature set is expansive and the classification algorithms are expected to find the best patterns from this data. In the second set of experiments, we use only mass and radius as features and this is more reflective of the classification being done without surface temperature.</p><p>2. Synthetic Oversampling Using Kernel Density Estimation: KDE was used to generate 1000 psychroplanet and mesoplanet samples. After the data was generated, the classifiers were trained and tested. Here too, the experiments were done separately using the entire feature set, and only mass and radius.</p><p>The results are presented in <ref type="table" target="#tab_9">Table 1</ref>. The results are to be interpreted for each method of oversampling with the feature set used to test the classifiers. The results are promising and indicate that ML can be used to effectively categorize new discoveries of planets.</p><p>However, as these are general methods which can be applied to various datasets, there are no aspects to the above methods that are cut out specifically for datasets which broadly have the same nuances as the PHL-EC dataset.</p><p>Hence, in the next section, we elaborate on methods that we developed with the PHL-EC dataset in mind.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Novel Methods of Characterization and Classification</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1.">Synthetic Oversampling by Assuming a Distribution in the Data and SVM-KNN</head><p>Assuming a distribution in data is a common approach in different simulations in physics. For our experiments, we assume that the Surface Temperature follows a Poisson distribution <ref type="bibr" target="#b28">(Sale, 2015)</ref>. We randomly sample the remaining features as entire feature vectors from the original dataset; having estimated the value of surface temperature based on the distribution, we concatenate it with random feature vectors of the remaining parameters of samples from the same class. We use SVM-KNN ( <ref type="bibr" target="#b22">Peng et al., 2013)</ref> to ensure the purity in the class-belongingness of the synthetic samples generated by altering or rectifying the class of the synthetic samples which represent a different class. The steps in the algorithm are as follows:</p><p>Step 1: The best boundary between the psychroplanets and mesoplanets are found using SVM with a linear kernel.</p><p>Step 2: The distribution of either class is estimated as a Poisson distribution:</p><formula xml:id="formula_0">P r(X) = e −λ λ x x! (1)</formula><p>Step 3: Using the boundary determined in Step 1, an artificial data point is analyzed to determine if it satisfies the boundary conditions: if a data point generated for one class falls within the boundary of the respective class, the data point is kept in it's labeled class in the artificial dataset.</p><p>Step 4: If a data point crosses the boundary of its respective class, then a K-NN based verification is applied. If 3 out of the nearest 5 neighbors belongs to the class to which the data point is supposed to belong, then the data point is kept in the artificially augmented dataset.</p><p>Step 5: If the conditions in Steps 3 and 4 both fail, then the respective data point's class label is changed so that it belongs to the class whose properties it corresponds to better.</p><p>Step 6: Steps 3, 4 and 5 are repeated for all the artificial data points generated, in sequence.</p><p>It is important to note that SVM and KNN are used here, along with density estimation, to rectify the classbelongingness (class labels) of artificially generated random samples and not as classifiers. If an artificially generated random sample is generated such that it does not conform to the general properties of the respective class (which can be either mesoplanets or psychroplanets), the class label of the respective sample is simply changed such that it may belong to the class of habitability whose properties it exhibits better. The strength of using this as a rectification mechanism lies in the fact that artificially generated points which are near the boundary of the classes stand a chance to be rectified so that they might belong to the class they better represent. Moreover, due to the density estimation, points can be generated over an entire region of the feature space, rather than augmenting based on individual samples. This aspect of the simulation is the cornerstone of the novelty of this approach: in comparison to existing approaches as SMOTE (Synthetic Minority Oversampling Technique) ( <ref type="bibr" target="#b7">Chawla et al., 2002</ref>), the oversampling does not depend on individual samples in the data.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2.">Elastic Splitting Criteria for Decision Trees</head><p>An interesting observation that can be made from the data is that the non-habitable class of exoplanets has a more expansive distribution in the feature space while the classes of mesoplanets and psychroplanets occupy a small range. This bias is more difficult to handle than a class-proportion bias as a small variance in some classes could easily be confused with the more distributed class, or be less representative to a classifier. Traditionally, splitting criteria for decision trees do not account for this and provide an equitable representation to all classes. However, taking into consideration structure and spread of the data, we try to assign elastic exponential parameters to all the probabilities in the Gini impurity index to develop an asymmetric representation for a split ( <ref type="bibr" target="#b36">Zighed et al., 2010</ref>). Our intention is to adjust the bias towards the mesoplanet and psychroplanet classes so that the final results obtained are more efficacious.</p><p>The elastic splitting criteria is given by:</p><formula xml:id="formula_1">I(p 1 , p 2 , ..., p n ) = k 1 − n c=1 p αi i G = I N − I L − I R (2)</formula><p>where I is the impurity of a node <ref type="bibr" target="#b23">(Quinlan, 1986)</ref>, n is the number of classes in the dataset, p i is the probability of finding an instance of the i th class in a node, α i is the elasticity associated with the i t h class in the data. In order to ascertain the best split in a node in a decision tree, the gain G is used and I N , I L and I R represent the impurity of the parent node and potential left and right child nodes after a split, respectively. In our implementation, we have taken k = 5 so that this criteria is backward compatible with other existing libraries. The new addition to this splitting criteria are the elasticities α i which are constants that skew the response of the splitting criteria based on our preference and are supplied to the algorithm as parameters. The skewed response is visualized in <ref type="figure" target="#fig_2">Figure 2</ref>.</p><p>What is clear is that for any α i &gt; 1, the functional form of I is concave, which is a condition for a function to be used as a splitting criteria <ref type="bibr" target="#b5">(Breiman, 1996)</ref>. The first and second partial derivatives of I(p 1 , p 2 , ..., p n ) are:</p><formula xml:id="formula_2">∂I ∂p i = −α i p αi−1 i ∂I ∂p j ∂p i =      −α i (α i − 1)p αi−2 i , if i = j 0, if i = j (3)</formula><p>The Hessian matrix of I(p 1 , p 2 , ..., p n ) consequently is:</p><formula xml:id="formula_3">H(I(p 1 , p 2 , ..., p n )) =         −α 1 (α 1 − 1)p α1−2 1 0 . . . 0 0 −α 2 (α 2 − 1)p α2−2 2 . . . 0 . . . . . . . . . . . . 0 0 . . . −α n (α n − 1)p αn−2 n         (4)</formula><p>We briefly justify the concavity from the Hessian matrix by dealing with a 3-class scenario as this is relevant to our work. For a function to be concave, its Hessian matrix must be symmetric and negative definite. This implies  that the odd numbered primary minors must be negative and the even numbered primary minors must be positive</p><p>. Let D i represent the i th primary minor. In the Hessian matrix of the elastic Gini, we have:</p><formula xml:id="formula_4">D 1 = −α 1 (α 1 − 1)p α1−2 1 D 2 = α 1 (α 1 − 1)p α1−2 1 × α 2 (α 2 − 1)p α2−2 2 D 3 = −α 1 (α 1 − 1)p α1−2 1 × α 2 (α 2 − 1)p α2−2 2 × α n (α n − 1)p αn−2 n (5)</formula><p>D 1 and D 3 can be negative and D 2 can be positive iff α i &gt; 1∀i. Thus, following this condition, the function is concave, and we ensure in our computer program that we supply elasticities that are strictly greater than 1.</p><p>We implemented this method using the anytree module in the Python programming language running on a</p><p>Linux-based OS on a computer with a 2.2GHz, dual-core, Core-i3 processor.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.3.">Understanding Surface Temperature Based Discrimination of Exoplanets Based on Machine Learning</head><p>After ascertaining the effectiveness of ML algorithms for the automatic classification of exoplanets, we developed a method to quantify the potential of a planet to be habitable, based on surface temperature alone, by developing a metric which is entirely data-driven. We call this the Thermal Suitability Score (TSS) because we develop it by using the mean surface temperature of a planet (and features extracted from the surface temperature)</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.3.1.">Thermal Suitability Score</head><p>The Thermal Suitability Score (TSS) is a score which, in addition to providing a notion of similarity to Earth in terms of surface temperature, provides a habitability classification of an exoplanet. The formulation of this method is based on SVMs. As a part of this method, two classes are used based on the optimistic sample of potentially habitable exoplanets by PHL <ref type="bibr">(Méndez, 2018)</ref>. The two classes are those of potentially habitable and non-habitable exoplanets. The TSS is determined by first finding the maximum separating hyperplane between the classes in the data, which acts as a discriminator, and using the distance from the hyperplane as the key characteristic. The metric is then developed by normalizing this distance by dividing by the distance of the Earth's feature vector from the hyperplane.</p><p>The goal of this model is a to find score that can instantly help us discriminate between potentially habitable and non-habitable planets by finding one boundary between two classes in the data. This is a hybrid approach where a model outputs a number and a sign, the number indicating similarity to earth and the sign indicating the class. In this light, Surface Temperature is one of the only features which can be used to develop the metric because S. Temp (and the related features of flux and distance from parent star) are the only features based on which the habitable and non-habitable samples are reasonably linearly separable.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.3.2.">Formulation of the Optimization Problem</head><p>The SVM quadratic optimization problem <ref type="bibr" target="#b34">(Vapnik and Chervonenkis, 1964)</ref>, which is the basis of the TSS, is</p><p>given as:</p><formula xml:id="formula_5">min λ 1 2 λ T (yy T K)λ − λ subject to − λ ≤ 0, y · λ = 0 (6)</formula><p>where y is the list of class labels corresponding to samples in the data, λ is the set of Lagrange multipliers, and K is the Gram matrix, which is given as:</p><formula xml:id="formula_6">K(x 1 , ..., x m ) =         x 1 · x 1 x 1 · x 2 . . . x 1 · x m x 2 · x 1 x 2 · x 2 . . . x 2 · x m . . . . . . . . . . . . x 3 · x 1 x 3 · x 2 . . . x 3 · x m        <label>(7)</label></formula><p>where x i represents the i th sample in the data.</p><p>After the optimization problem has been solved and the support vectors have been found, the weight and bias:</p><p>the variables w and b are determined by:</p><formula xml:id="formula_7">w = m i=1 λ i y i x i b = 1 m m i=1 y i − w · x i (8)</formula><p>where m is the number of samples in the dataset.</p><p>The features used in this method are of the following form:</p><formula xml:id="formula_8">x = (T, |T − 1|)<label>(9)</label></formula><p>where |·| represents the absolute value function and T is the surface temperature in Earth units. Together, these two features give us a data representation of the surface temperature and the similarity of the surface temperature of the planet to that of the Earth's. This implies that the Earth's feature vector is (1, 0) and the consequence of this is that in the feature space, the distance of Earth from the maximum separating hyperplane is the maximum. In addition to this, as a consequence of the discrimination done by the hyperplane, the output of the method is positive for potentially habitable samples (and non-habitable samples whose surface temperatures are near the hyperplane) and it is negative for non-habitable samples. Let the distance of the Earth from the maximum separating hyperplane be represented as d. The final expression for the score is thus given as:</p><formula xml:id="formula_9">T SS = y · w · x + b d<label>(10)</label></formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.3.3.">Feature Extraction: What are the Model Parameters?</head><p>We use a parameter in addition to the value of the surface temperature of the exoplanets: the absolute value of the difference between the surface temperature of the exoplanet and the surface temperature of the Earth, whose value in EU is 1. Thus, the model inputs become ordered pairs of the type (T, abs(T − 1)). A data implication of extracting a feature this way is that the value of abs(T − 1) is 0 for Earth, an aspect central to the scoring mechanism of the model. From a physical viewpoint, we now have a representation of a planet's surface temperature in comparison to</p><p>Earth. From a computational viewpoint, we have an added dimension in the dataset which will help us effectively separate and score the potentially habitable planets from the non-habitable planets using a single hyperplane in a 2D space.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.3.4.">Overlap Between Classes</head><p>In the SVM formulation for a linearly inseparable dataset <ref type="bibr" target="#b34">(Vapnik and Chervonenkis, 1964)</ref>, there is a minimization of a classification error which provides the best boundary between the classes in the data. However, in this method, we do not want to find a best-case boundary of separation, but would like to be inclusive of the habitable samples which are manually labeled by the PHL-EC as we consider them to be reliable points of judgment of habitability. Hence, we find the convex hull of the habitable samples and exclude the non-habitable samples within this convex hull prior to finding a separating hyperplane. By doing this, we get a perfect separation between the two classes, and we proceed to find the optimal separating hyperplane. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.3.5.">A Geometric Interpretation of the Method and Proof of Maximum Value</head><p>Let the feature vectors be denoted as <ref type="bibr">(T, g(T )</ref>), where</p><formula xml:id="formula_10">g(x) =      L 1 = −T + 1, ∀T &lt; 1 L 2 = T − 1, ∀T &gt; 1 (11) g(T)</formula><p>is nothing but an expansion of the absolute value function. L 1 and L 2 may be considered as two lines which intersect at (0, 1). Let the separating hyperplane be denoted by H. As we know that a separating hyperplane in a 2D space is a line, L 1 , L 2 and H may be considered to form a triangular region if the angle made b H with respect to L 1 and with respect to L 2 is zero. This is proven below.</p><p>Let the angle between H and L 1 and L 2 be θ 1 and θ 2 respectively. If sinθ 1 &gt; 0 and sinθ 2 &gt; 0, then we can say that H is not parallel or collinear with respect to L 1 and L 2 respectively. If sinθ 1 and sinθ 2 are both greater than 0 then H intersects with both L 1 and L 2 .</p><p>The slope of L 1 is −1 and the slope of L 2 is 1. Let the angle between L 1 and L 2 be given by θ 3 . Then,</p><formula xml:id="formula_11">θ 3 = arctan −1 − (1) 1 + (−1)(1) = arctan −2 0 = π 2<label>(12)</label></formula><p>Thus, considering the points of intersection of H with L 1 and L 2 being A = (x 1 , y 1 ) and B = (x 2 , y 2 ), and considering O = (1, 0), we can assert that a triangular region is formed by OAB. Also, from Equation 12, we know that OAB is a right angled triangle. Let us consider the side OA. Here, O and A are the end points. On this line segment, we know that point O is the greatest distance away from point A. This is proved by contradiction.</p><p>Let us assume that on this line segment, O is not at the greatest distance away from A. Let there be a point O on OA such that it lies between O and A and is at a greater distance away from A than O. We know that for any point K between O and A,</p><formula xml:id="formula_12">|OA| = |AK| + |KO|<label>(13)</label></formula><p>Hence, for the point O ,</p><formula xml:id="formula_13">|AO| = |AO | + |O O| ⇒ |AO | = |AO| − |O O| ⇒ |AO | &lt; |AO|<label>(14)</label></formula><p>However, this contradicts the premise that there can be a point O on the line segment OA for which |O A| &gt; |OA|. This implies that on line segment OA the greatest distance between any two points on the line is the distance between the endpoints O and A and this is the length of the line. This further implies that there can be no point on OA apart from O for which |A O|sinθ 1 &gt; |AO|sinθ 1 .</p><p>Keeping in mind the geometric representation as shown in <ref type="figure" target="#fig_5">Figure 5</ref>, we see that the distance between O and AB, which actually represents the segment of the hyperplane included in the triangular region OAB, is given by |AO|sinθ 1 . The same can be proven by taking into consideration side OB instead of OA.</p><p>Thus, in the context of the problem, in the feature space, Earth is the furthest away from the maximum separating hyperplane and the distance of any planet with feature vector not equal to (0, 1) from H will be less than that of Earth.</p><p>Thus, finally, the conditions that arise which allow this model to be used as a metric is that the separating hyperplane should not be collinear or parallel to any of the sides of the triangular region formed by OAB. While solving the problem, we find that this condition is satisfied by the data. We find w = <ref type="bibr">[−392.011, −2487.989]</ref>, b = 923.011 and d = 531.0002. The solution of the problem was programmed in Python3.6 with the library CVXOPT, which is a library for convex optimization.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.4.">Results of New Methods of Classification</head><p>These results are presented in the same way as in <ref type="table" target="#tab_9">Table 1</ref>, with confusion matrices for classification methods.</p><p>Additionally, we present the results of TSS by presenting a representative sample of the scores. 2. Decision Trees and Random Forests with the Elastic Gini Splitting Criteria: We incorporate the elastic Gini criteria into decision trees and random forests and present the results in the <ref type="table" target="#tab_3">Table 3.</ref> 3. Values of Thermal Suitability Scores: We present the TSS of a sample of potentially habitable and nonhabitable exoplanets in order to compare how the metric behaves for different exoplanets, and to understand the relevance of the scores. The samples of TSS is presented in <ref type="table" target="#tab_4">Table 4</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.5.">Results of Thermal Suitability Score Function</head><p>For the sake of clarity, we have included two sets of TSS values (shown in <ref type="table" target="#tab_4">Table 4</ref>), one for potentially habitable exoplanets, and the other for non-habitable exoplanets as we have proven that the values of the scores can be positive and negative facilitating perfect discrimination between classes.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">Discussion</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.1.">The need for Training Classifiers on Balanced Datasets</head><p>Predominantly in the case of metric classifiers, an imbalanced training set can lead to misclassification. The classes which are underrepresented in the training set might not be classified as well as the dominating class. In the PHL-EC dataset, the non-habitable category is over 1000 times as large in terms of the number of samples compared to the mesoplanet and psychroplanet classes. Upon inspection of the confusion matrices of the classification done using all the features and the datasets without balancing, we can see that the results are biased and almost every sample will be classified as a non-habitable sample.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.2.">Order of Importance of Features</head><p>In any large dataset, it is natural for certain features to contribute more towards defining the characteristics of the entities in that set. In other words, certain features contribute more towards class belongingness than certain others. As a part of the experiments, the we wanted to observe which features are more important. The ranks of features and the percentage importance for random forests and for GBDTs (using XGBoost) are presented in       .  </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Random</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.3.">Results Using Different Feature Sets</head><p>In <ref type="table" target="#tab_2">Tables 1, 2 and 3</ref> where we have presented the results of all the classification runs, we see that the accuracies of classifiers on the restricted feature set of mass and radius only are generally lower compared to when the entire feature set is used. As the different classes of habitability are based on thermal properties, naturally, surface temperature emerges as the most important feature. Thus, most of the classifiers work well when all the features are used. However, when only the fundamental features of mass and radius are used to train the classifiers, the accuracies fall. Considerably robust are the tree-based classifiers of decision trees, random forests and gradient boosted decision trees, whose performance is good even when the restricted feature set is used.</p><p>Another interesting observation is that the classifiers are better at classifying the non-habitable samples. This is more pronounced when only mass and radius are used as features. Geometrically, mesoplanets and psychroplanets occupy a narrow band of values along every feature, especially surface temperature. The features of non-habitable samples comprise of a larger range of values. This is why a probabilistic classifier such as Gaussian Na¨ıveNa¨ıve Bayes', or hard-boundary classifiers SVM and LDA, and instance-based classifier KNN make a lot of wrong predictions when the restricted feature set is used. The non-habitable class is more distributed in the feature space, and an appropriate proportion of samples is required to ascertain correct classifications.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.4.">Results After Artificially Augmenting Data Samples</head><p>The artificial data samples provide a more representative distribution of samples of each class. Naturally, the performance of all the classifiers are better.</p><p>In particular, the greatest increase in the accuracies is that of the KNN classifier. As KNN entirely depends on the geometric closeness of the test samples to training samples, with larger and less sparse training sets, the performance is improved. The performance of the tree-based classifiers is also improved and brought close to perfect.</p><p>Using a combination of undersampling of the non-habitable class and oversampling of the mesoplanet and psychroplanet classes, and the restrictive feature set of only mass and radius, we see that random forests provide the best results.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.5.">Reason for Impressive Performance of Tree-Based Classifiers and Varying Performance of SVM</head><p>In the dataset, the classes are defined based on surface temperature. Upon training an SVM with all the features, the best boundaries between classes based on surface temperature are discovered. Upon inspection of the results, we see that SVM performs well when surface temperature is also included as a feature in the dataset. However, when SVM with a linear kernel is trained using only mass and radius, the accuracy suffers, whereas SVM with a radial basis kernel performs very poorly when the entire feature set is used, and fairly well when it is trained using mass and radius along an artificially augmented data samples. When only mass and radius are used as features, the different classes are not separated by strong boundaries and are cluttered as shown in 6. For such type of data, an SVM may not be an ideal classifier. The data is cluttered and is bound to create problems for any classifier. Clearly, no simple set of hyperplanes can separate the classes and hence, SVM fails when only these two features are used. However, the tree-based classifiers perform substantially better because they partition the feature space multiple times to find different ranges where the samples geometrically fall into.</p><p>However, the classification of samples in the overlapping regions of the different classes can be addressed using tree-based classifiers as they employ recursive space partitioning <ref type="bibr" target="#b23">(Quinlan, 1986)</ref>. This paradigm finds subspaces which correspond to different classes in the data; based on the class of the subspace a test sample geometrically falls into, the class is appropriately assigned to it. Decision trees work entirely based on this principle and random forests are an improvement over decision trees ( <ref type="bibr" target="#b15">Khaidem et al., 2016</ref>) wherein subsets of all the data points and features are sampled to build multiple tree classifiers whose predictions are aggregated (this principle is known as bootstrap aggregation or bagging). Gradient boosted decision trees (GBDT) employ further improvements over random forests where the data is modeled using a regressor function in every node of a tree learner.</p><p>It is observed that in general, under every type of experiment, the tree-based classifiers perform considerably better than the other classifiers.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.6.">Performance Improvement Using Elastic Gini Splitting Criteria in Decision Trees</head><p>Naturally, the inquisition arises to further build up on decision trees to bolster the performance. Asymmetricity in ML approaches treats different classes with different priorities. This is often a useful thing as various critical systems may be able to afford a false positive, but not a false negative. For a scientist, stumbling upon a planet which is predicted as habitable but turns out to be non-habitable might be something that can be easily looked over, but if a planet is found to be non-habitable by a machine but in reality it is habitable, it could cost science a lot of time until the right kind of discovery is finally made.</p><p>The right paradigm of informatics sciences is to introduce to standard methods as much domain-knowledge as possible. The splitting criteria in a decision tree is at the heart of its functioning. Hence, if the criteria could address the bias directly, it would be beneficial to finding the appropriate results. By developing the eleastic Gini criteria, we could introduce to the system a mechanism to counter the sample bias in the data. The elasticities are effectively priorities which are assigned to the system on a class-wise basis -the lower an elasicity for a class (while keeping to the permissible range), the higher the classification priority assigned to it.</p><p>Often, accuracies are not enough to ascertain the performance of classifiers -the numerical values of the overall accuracy using any of the methods on this dataset turned out to be extremely high. The high accuracies were a result of the sample bias -upon an examination of the confusion matrices, it became evident that the spatial distribution and geometry played an important role in determining the right method for the task.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.7.">Inference from the Thermal Suitability Score (TSS)</head><p>This is a metric which is developed using ML and appropriate feature extraction. The method takes our current knowledge and uses it to discriminate and gauge the potential of incoming samples. Although optimization-based approaches have been proposed by <ref type="bibr" target="#b3">(Bora et al., 2016)</ref> and ( <ref type="bibr" target="#b26">Saha et al., 2017)</ref>, an optimization of an error function in a habitability metric has not been explored before. As it is inherently based on ML, we can increase the number of parameters as long as the notion of linear separability is maintained.</p><p>The value of this metric can only be less than 1 for all planets whose surface temperature are not equal to 1 (in EU). The consequence of this is that the value of TSS for only the Earth is equal to 1, and at this point in time, every other planet (which is a part of the PHL-EC) has a TSS of less than one. In addition to that, the hard-boundary aspect of SVMs is used to provide results which are negative for non-habitable planets. Conclusively, the negative sign is an out-of-the-box indicator that a planet may not be thermally suitable for habitability. Samples close to the hyperplane may be ambiguous or erroneous; in this model, the hyperplane itself does not perfectly divide the dataset into perfect class-wise partitions, but provides a best-case discriminator. Some of the salient features of TSS are:</p><p>1. Unidirectional Similarity Values: The value of this metric can only be less than 1 for all planets whose S. Temp values are different from Earth. It doesn't matter if the value is greater or lesser: if it is different, then the value is below that of Earth.</p><p>2. Positive and Negative Values: Notice that in <ref type="table" target="#tab_4">Table 4</ref>, in most places, the sign of the TSS has matched the CDHS class of the corresponding planet (except for one case) ( <ref type="bibr" target="#b26">Saha et al., 2017)</ref>, where class 5 of the CDHS () has a negative score and class 6 has a positive score. Negative represents non-habitable, and from what we know of the planets in the TRAPPIST-1 system with negative values of TSS, they're not potentially habitable.</p><p>3. Learning from Example: This is a metric which is developed using ML and appropriate feature extraction.</p><p>The method takes our current knowledge and uses it to discriminate and gauge the potential of incoming samples. <ref type="figure" target="#fig_3">Figures 3 and 4</ref>, we see that the distribution of the habitable samples in the feature space is not symmetric, but there exists a skewness. As a consequence of this, the separating hyperplane is not parallel to the x-axis. However, by thus using the separating hyperplane as a reference boundary, we can equitably judge the samples notwithstanding their respective surface temperatures being lesser than or greater than that of Earth.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Tackling Skewness: From</head><p>5. Scalable: As it is inherently based on ML, we can increase the number of parameters as long as the notion of linear separability is maintained.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>6.</head><p>No Planet can have an Ambiguous Score: Technically, points on the hyperplane will have a TSS value of zero. As there are no planets which themselves lie on the maximum margin hyperplane, no planet may have a zero value.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.">Conclusion and Future Work</head><p>This paper presents the effectiveness of using machine learning to explore the problem of habitability classification of exoplanets. The novelty of the work lies in the appropriate exploration of the PHL-EC dataset and usage of automated classification methods that was hitherto not investigated in the existing literature. The work is a detailed investigation on exploratory data analysis involving algorithmic improvisations and machine learning methods applied to the PHL-EC dataset, bolstered by a comprehensive understanding of these methods (as documented in the appendices). The inferences drawn fortify the usage of these methods.</p><p>The dataset is unique and is a combination of both derived and fundamental planetary parameters. The derived features provide a rich representation of the exoplanets' characteristics. The accuracy of various machine learning algorithms used on the PHL-EC dataset has been computed and tabulated. Random forest, decision trees, and</p><p>XGBoost perform the best with the highest class-wise accuracies closely followed by SVM; the new elastic Gini splitting criteria allows us to introduce nuances in the dataset for analysis and helps us to further improve decision trees for the task. Despite the sample bias due to the non-habitable class, we were able to achieve remarkable accuracies with classification algorithms by performing undersampling and synthetic data augmentation on the data. This goes to show that a careful study of the nature and trends of the data is a must, and simple solutions may often suffice. In addition to the implementation of classification, we have incorporated the default ideas of separability of classes in the dataset to develop the TSS which can indicate the potential habitability of an exoplanet based on the similarity of the of the exoplanet's surface temperature to the surface temperature of Earth.</p><p>The outcomes of the best classifiers coupled with the feature ranking and habitability metrics (TSS as well as other metrics like CDHS) allows us to take a data-centric view of the characterization of exoplanets which can match the inferences built based on the physical study. The methods all have proofs of convergence and scalability and hence, in the future, they may be extended to incorporate newer and more relevant discoveries. As the data acquisition technology goes on improving, we will be able to incorporate new and more reliable parameters into our models and this will facilitate the efficacy of our approaches.</p><p>Exoplanets are frequently discovered and categorizing them manually is an arduous task. As data are collected, gradually adding to the volume of existing data, automatic annotation methods, along with viable strategies for discovery <ref type="bibr" target="#b30">(Schulze-Makuch and Bains, 2018)</ref>, would eventually provide an advantage in terms of the required processing time and effort. Thus, in the future, a continuation of the present work would be directed towards achieving a sustainable and automated discrimination system for efficient and accurate analysis of different exoplanet databases. From a methodological point of view, the elastic Gini criteria can be used in decision trees, the TSS can be expanded by incorporating other features, and neural networks with activation functions inspired by the functional forms of the current methods and current data challenges can be developed for extensive analysis. We have described a novel neural network activation function in Appendix C inspired by our understanding of TSS. The current work, in addition to the methodological exposition, also builds on a "best-practices pipeline" for data-driven tasks.</p><p>We end this section with a note on the correct usage of ML and artificial intelligence in habitability classification of exoplanets. We do not intend to inspire any notions of automata taking over subtle and sensitive tasks such as discovering habitable worlds in the universe. Rather, we emphasize that the current work should be used to facilitate and reinforce the process of discovery and the inferences drawn be used to bolster our knowledge in the areas of exoplanet discovery.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8.">Acknowledgements</head><p>We would like to thank the Department of Science and Technology of India for supporting our research by providing us with resources to conduct our experiments. The project reference number is: EMR/2016/005687.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Appendix A. Effects of Imbalance in the Dataset</head><p>In <ref type="table" target="#tab_9">Table A</ref>.6, we have presented the results of classification done without undersampling of the non-habitable class or synthetic augmentation of the mesoplanet and psychroplanet classes. In most of the results, there's a preference towards classification of a larger number of samples as non-habitable (after the classifier has been trained).</p><p>Thus, the methods of balancing that can be effectively used for ensuring an equitable representation of all the classes in the dataset, consequently resulting in better classification accuracies.     belong to the psychroplanet class but belongs to the mesoplanet class: note that these three points cross the boundary between the two classes as set by an SVM. The blue portion may contain points which belong to only the mesoplanet class and the yellow portion may contain points which belong only to the psychroplanet class, but these three points are non-conforming according to the boundary imposed. Hence, in order to ascertain the correct labels, these three points are subjected to a K-NN based rectification. In <ref type="figure">Figure B</ref>.7(c), the points in the dataset are plotted after being subjected to K-NN with k = 5 and class labels are rectified as is necessary to uphold the purity of either class. The three previously non-conforming points are determined to actually belong to the class of psychroplanets, and hence their class-belongingness is changed. <ref type="bibr">Figure B.7(d)</ref> shows that the boundary between the two classes is altered by incorporating the rectified class-belongingness of the previously non-conforming points.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Algorithm</head><p>In this figure, it is to be noted that all the points are conforming, and there are no points which belong to the region of the wrong class.</p><p>This procedure was run many times on the artificially generated data to estimate the number of iterations and the time required for each iteration until the resulting dataset was devoid of any non-conforming data points. As to the general properties of the class to which it is labeled to belong.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Appendix B.2. Generating Data Empirically</head><p>In Section ??, a technique to estimate the probability density function of a sequence of random variables, called KDE (using Parzen-window estimation), was briefly described. We elaborate on the method and validate the method by performing a density estimation on random numbers generated from several known analytic continuous (c) The three non-conforming data points' class belongingness rectified using K-NN. Now they belong to the class of psychroplanets, as their properties better reflect those of psychroplanets.</p><p>(d) In the successive iteration, the boundary between the two classes has been adjusted to accommodate the three rectified points better. Now it is evident that the regions of the two classes (blue for mesoplanets and yellow for psychroplanets) comprise wholly of points that reflect the properties of the classes they truly belong to.  and discrete distributions. As a part of this exercise, we have presented goodness-of-fit scores for the estimated distributions. In addition to that, we have also plotted the graphs of the data points for a visualization of the density (generated using the standard analytic distributions as well as a Parzen-window estimate of those distributions).</p><p>We provide evidence of the working of Parzen-window estimation for different standard continuous and discrete probability distributions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Appendix B.2.1. An Analytical Exposition of Density Exploration</head><p>Let X = x 1 , x 2 , . . . , x n be a sequence of independent and identically distributed multivariate random variables having d dimensions. The window function used is a variation of the uniform kernel defined on the set R d as follows: </p><formula xml:id="formula_14">φ(u) =      1 u j ≤ 1 2 ∀j ∈ {1, 2, . . . , d}</formula><formula xml:id="formula_15">l j = min{(a − b) 2 ∀ a, b ∈ f j } u j = max{(a − b) 2 ∀ a, b ∈ f j }, (B.2)</formula><p>the edge length h j is given by,</p><formula xml:id="formula_16">h j = c u j + 2l j 3 (B.3)</formula><p>where c is a scale factor.</p><p>Let x ∈ R d be a random variable at which the density needs to be estimated. For the estimate, another vector u is generated whose elements are given by:</p><formula xml:id="formula_17">u j = x j − x ij h j ∀j ∈ {1, 2, . . . , d} (B.4)</formula><p>The density estimate is then given by the following relationship:</p><formula xml:id="formula_18">p(x ) = 1 n d i=1 h i n i=1 φ(u) (B.5) Appendix B.2.2</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>. Generating Synthetic Samples From the Estimated Empirical Distribution</head><p>Traditionally, random numbers are generated from an analytic density function by inversion sampling. However, this would not work on a numeric density function unless the quantile function is numerically approximated by the density function. In order to avoid this, a form of rejection sampling has been used.</p><p>Let r be a d-dimensional random vector with each component drawn from a uniform distribution between the minimum and maximum value of that component in the original data. Once the density, p(r) is estimated by Equation (B.5), the probability is approximated to:</p><formula xml:id="formula_19">P r(r) = p(r) d j=1 h j (B.6)</formula><p>To either accept or reject the sample r, another random number is generated from a uniform distribution within the range [0, 1). If this number is greater than the probability estimated by Equation (B.6), then the sample is accepted. Otherwise, it is rejected.</p><p>For the PHL-EC dataset, synthetic data was generated for the mesoplanet and psychroplanet classes using this method by taking c = 4 for mesoplanets and c = 3 for psychroplanets (in Equation (B.5)). 1000 samples were then generated for each class using rejection sampling on the density estimate. In this method, the bounding mechanism was not used and the samples were drawn out of the estimated density. Here, the top 85% of the features by importance were considered to estimate the probability density, and hence the boundary between the two classes using SVM was not constructed. The values of the remaining features were copied from the naturally occurring data points and shuffled between the artificially augmented data points in the same way as in the method described in Section 5.1). The advantage of using this method is that it may be used to estimate a distribution which resembles more closely the actual distribution of the data. However, this process is a little more complex than assuming a standard probability distribution in the data. Nonetheless, this is an inherently unassuming method and can accommodate distributions in data which are otherwise difficult to describe using the commonly used methods for describing the density of data.  </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Rayleigh</head><p>For multivariate continuous random variables, however, the test was performed on the normal density for which the mean and covariance were explicitly set to the following values:</p><formula xml:id="formula_20">µ = {0.5, −0.2} Z =   2.0 0.3 0.3 0.5   (B.7)</formula><p>For each distribution, 10000 samples were generated and then used to estimate the original analytic distribution function. For the univariate case, the actual and estimated probability density were calculated over the range -5</p><p>to 5 by stepping at 0.1 and for multivariate, the same was done over the range (-1, -1) to (1, 1) by stepping at 0.1.</p><p>The mean squared error was calculated and has been presented in <ref type="table" target="#tab_9">Table B</ref> The discrete probability distributions used for testing KDE and their parameters were:</p><p>1. Binomial (n=30, p=0.5)</p><p>2. Poisson (µ=5) These distributions were tested by generating 10000 samples each, which were then used to estimate the mass function of the original distribution. Once the mass function was estimated, 10000 random samples were drawn from the estimated distribution using rejection sampling. Further, for the binomial distribution, the probabilities were estimated for integers from 5 to 25, both inclusive, while for the Poisson distribution, the probabilities were estimated for integers in the range 0 to 16, both inclusive. Once these expected and observed values were generated, a chi-squared test was performed and the results have been laid out in <ref type="table" target="#tab_9">Table B</ref>.8. The frequency graphs for both observed and expected values are presented in <ref type="figure">Figure B</ref>.11.</p><p>In the cases of both discrete and continuous distributions, it is evident that KDE's performance is reasonable for generating data points. A small MSE or Chi-squared score is desirable as this represents a small deviation   of artificially generated points from the actual distribution of the data. Thus, in experiments which require the estimation of the distribution of data, KDE is a candidate whose efficacy may be compared with the common methods of assuming a probability density using well established probability densities.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Appendix C. Future Work: Activation Function (SBAF) for a Neural Network</head><p>The investigation into finding an optimal set of features for surface temperature based discrimination of habitability (Section 5.3) led us to modeling an activation function which may be used in back propagation in Neural</p><p>Networks. The activation function may be used to reduce the error in back propagation while using Artificial Neural</p><p>Networks to classify exoplanets based on habitability features. The structure of the activation is inspired by the outcome of TSS <ref type="table" target="#tab_4">(Table 4)</ref>  Clearly, the first derivative vanishes when α = x, the derivative is positive when α &gt; x and is negative when α &lt; x (implying range of values for α so that the function becomes increasing or decreasing). We need to determine the sign of the second derivative when α = x to ascertain the condition of maxima (corresponding to maximum width of the separating hyperplane ensuring optimal discrimination between habitability classes). Assuming 0 &lt; x &lt; 1, the condition of optimality, 0 ≤ α ≤ 1, y by construction lies between (0, 1). Hence, d 2 y dx 2 &lt; 0 ensuring maxima of y.</p><p>• x is surface temperature (normalized between 0 and 1) and 1−x is the complement of that, together explaining the perfect discrimination between habitability classes as explained in our TSS above. The motivation of • The new activation function to be used for training a neural network for habitability classification boasts of an optima. Evidently, from the graphical simulations below, we observe less flattening of the function and therefore the formulation should be able to tackle local oscillations more easily as compared to the more generally used sigmoid function. Moreover, since 0 ≤ α ≤ 1, 0 ≤ x ≤ 1, 0 ≤ 1 − x ≤ 1, the variable term in the denominator of SBAF, kx α (1 − x) 1−α may be approximated to a first order polynomial. This may help us in circumventing expensive floating point operations without compromising the precision.</p><p>• Need to show that the maxima is unique in the defined interval. This will circumvent the local maxima problem.</p><p>: </p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: An overview of the methods used in the paper.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>(</head><label></label><figDesc>a) This is a visualization of the standard Gini impu- rity criteria. It is a perfectly symmetric function on two probability variables: there is no preference or asymme- try of having better classifications towards any class in the dataset. The highest impurity encountered here is when both classes have an equal number of samples in the same node, i.e., the proportion of each class is 50%. (b) Here we see that the function has been skewed. The implication of this is that impurity due to the class c1 with probability p is less for a large range of p as com- pared to the standard Gini impurity. As a consequence of the peak being shifted towards the right, the max- imum impurity of c1 comes from a greater number of samples than what results in a 50% proportion. (c) This is similar to the case in Figure 2 (b), except that the impurity that results from the class with probability p − 1 is lesser. (d) This is another variant that can arise due to the ex- ponents (αs) when both classes contribute proportion- ately, and neither gets a clear preference: confusion may arise and such cases should be avoided with appropriate parameter tuning.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: All the graphs plotted here are for a 2-class classification problem. If the probability of occurrence of a sample of one class in a node is p, then consequently, the probability of occurrence of a sample of the other class in the same node is 1 − p.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 3 :</head><label>3</label><figDesc>Figure 3: Plot of S. Temp vs absolute value of (S. Temp -1). In EU, 1 is the S. Temp of Earth, and in this graph, it is represented by the green triangle at (1, 0). The points in orange represent the optimistic sample of potentially habitable exoplanets and the points in blue represent non-habitable planets. Since the non-habitable set is more expansive, only the points in the vicinity of the habitable samples are plotted. We see that there is minor overlap near the boundaries of the classes.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Figure 4 :</head><label>4</label><figDesc>Figure 4: A graphical depiction of the optimal separating hyperplane (black line) determined after disregarding the non-habitable points within the convex hull of samples of the habitable class. The consequence of this is noticed near the class boundaries, where a few non-habitable samples fall on the habitable-side of the hyperplane.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Figure 5 :</head><label>5</label><figDesc>Figure 5: Geometric representation of the problem in a 2D space. AB is a segment from the optimal separating hyperplane, A = (x 1 , y 1 ), B = (x 2 , y 2 ) and O = (1, 0). d is the distance of (1, 0) (which is Earth's feature vector) from the separating hyperplane.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>1 .</head><label>1</label><figDesc>Synthetic Oversampling Using Distribution Assumption and SVM-KNN: Similar to the method of oversampling using KDE, 1000 samples each for the classes of mesoplanets and psychroplanets were artificially generated. The classifiers described in Section 4.1 are used after the data generation.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head></head><label></label><figDesc>that have been gaining a lot of popularity as potentially habitable worlds. The non-habitable samples are mostly chosen at random, except the TRAPPIST-1 planets, which we included for the sake of completeness with respect to the TRAPPIST-1 potentially habitable samples. Consider the planets TRAPPIST-1 d and b. The differences in sign indicate clear demarcation between the two different classes of habitability. In stark contrast, S.Temp based classification shall place TRAPPIST-1 d and b in the same class because of the proximity of the decision boundary (both TRAPPIST-1 d and b having the same sign as well as close in magnitude). The TSS, unlike S.Temp can thus bolster the discrimination capability (change in sign generates a non-ambiguous separating hyperplane) of a habitability classifier. The variation of the scores from TRAPPIST-1 b to h are reflective of the knowledge gained from ongoing research on the TRAPPIST-1 planets (Barr et al., 2017; de Wit et al., 2018)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_10"><head>Figure 6 :</head><label>6</label><figDesc>Figure 6: The plot of mass vs radius shows that finding discernible trends or ranges only based on mass and radius is difficult to find.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_12"><head></head><label></label><figDesc>In order to generate 1000 samples for the classes with less number of samples (mesoplanets and psychroplanets), the hybrid SVM-KNN algorithm as described in Section 5.1 is used to rectify the class-belongingness of any non- conforming random samples. For this, the temperature-related features of P. Ts Mean, P. Ts Min, P. Teq Min, and P. Teq Max are considered in this rectification mechanism. The artificially generated dataset is iteratively split into training and testing sets (in a ratio of 70:30). If any artificially generated sample in any iteration fails to be accepted (or be correctly classified) by the SVM-KNN algorithm, its class-belongingness in the dataset is changed. As this simulation is done only on two classes in the data, non-conformance to one class could only indicate the belongingness to the other class. The process of artificially generating and labeling data is illustrated in Figure B.7. A new set of data points generated randomly from the estimated Poisson distributions of both classes are plotted. The points in red depict artificial points belonging to the class of psychroplanets and the points in blue depict artificial points belonging to the class of mesoplanets. In general, the number of non-conforming points are less in number as the estimated distributions of the features of either class are different. Figure B.7(b) depicts three points (encircled) that should</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_13"><head></head><label></label><figDesc>the process is inherently stochastic, each new run of the SVM-KNN algorithm might result in a different number of iterations (and different amounts of execution time for each iteration) required until zero non-conforming samples are achieved. However, a general trend may be analyzed for the purpose of ascertaining that the algorithm will complete in a finite amount of time. Figure B.8 is a plot of the i th iteration against the time required for the algorithm to execute the respective iteration (to rectify the points in the synthesized dataset). From this figure, it should be noted that each successive iteration requires a smaller amount of time to complete: the red curve (a quadratic fit of the points) represents a decline in the time required for the SVM-KNN method to complete execution in successive iterations of a run. The number of iterations required for the complete execution of the SVM-KNN method ranges from one to six, with a generally declining execution time of successive iterations, proving the stability of the hybrid algorithm. Any algorithm is required to converge: a point beyond which the execution of the algorithm ceases. In this case, convergence must ensure that every artificially generated data point conforms</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_14"><head>(</head><label></label><figDesc>a) Scatter plot of newly generated artificial data points in two dimensions. (b) The best boundaries between two classes are deter- mined using SVM. Here, there are three non-conforming data points (encircled) belonging to the mesoplanet class.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_15"><head>Figure B. 7 :</head><label>7</label><figDesc>Figure B.7: A new set of artificial data points being processed and their class-belongingness corrected in successive iterations of the SVM-KNN hybrid algorithm as a method of bounding and ensuring the purity of synthetic data samples.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_16"><head>Figure B. 8 :</head><label>8</label><figDesc>Figure B.8: A quadratic curve has been fit to the execution times of successive iterations in a run of the SVM-KNN method to demonstrate the general trend of decreasing times of execution of successive iterations. The time required to converge to the perfect labeling of class-belongingness of the synthetic data points reduces with each successive iteration resulting in the dip exhibited in successive iterations. This fortifies the efficiency of the proposed hybrid SVM-KNN algorithm.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_17"><head></head><label></label><figDesc>Additionally, another parameter, the edge length vector h = {h 1 , h 2 , . . . h d }, is defined, where each component of h is set on a heuristic that considers the values of the corresponding feature in the original data. If f j is the column vector representing some feature j ∈ X and</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_18"><head>. 7 .</head><label>7</label><figDesc>The graphs of these calculated values are presented in Figure B.9 for univariate data and Figure B.10 for multivariate data. Appendix B.2.4. Parzen-Window Estimation of Discrete Random Variables</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_19"><head>Figure B. 9 :</head><label>9</label><figDesc>Figure B.9: Estimates for univariate continuous distributions</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_20"><head></head><label></label><figDesc>Figure B.11: Estimates for discrete distributions</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_21"><head>From</head><label></label><figDesc>and previous work on habitability modeling and classification (Bora et al., 2016; Saha et al., 2017) based on econometric production function (Saha et al., 2016; Ginde et al., 2016, 2015; Sarkar et al., 2016). The visualization of the activation function shows that it doesn't suffer from the local oscillation problem and may not experience premature convergence witnessed in gradient descent/ascent based methods. We present a nice analytical property of the function below. y = 1 1 + kx α (1 − x) 1−α ⇒ lny = lny − ln(1 + kx α (1 − x) 1−α ) = −ln(1 + kx α (1 − x) 1−α )Equation C.3, the second derivative is computed as follows: d 2 y dx 2 = y(y − 1) x(1 − x) + (α − x)(1 − 2x) − (α − x) 2 (1 − 2y)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_22"><head></head><label></label><figDesc>SBAF is derived from this fact of TSS. Using kx α (1 − x) 1−α shall maximize the width of the two separating hyperplanes in the SVM used in TSS (See the proof below) as the kernel has a global maxima when 0 ≤ α ≤ 1. This is equivalent to the CDHS formulation when CD-HPF is written as y = kx α (1 − x) β where ensures global maxima (maximum width of the separating hyperplanes) under such constraints (Bora et al., 2016; Saha et al., 2017).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_23"><head>Figure C .</head><label>C</label><figDesc>Figure C.12: application of SBAF on Mean Surface Temperature of exoplanets</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" validated="false"><head>Algorithm Method of Handling Bias due to Class Imbalance</head><label></label><figDesc></figDesc><table>Artificial Undersampling 
+KDE Using Parzen Window Estimation 
+
+True 
+
+Pred 
+All Features 
+Mass and Radius Only 
+All Features 
+Mass and Radius Only 
+
+N 
+P 
+M 
+N 
+P 
+M 
+N 
+P 
+M 
+N 
+P 
+M 
+
+N 
+99.51 0.25 
+0.25 96.34 1.13 
+2.53 
+99.63 0.17 
+0.2 
+96.96 1.86 
+1.18 
+
+GNB 
+P 
+0.85 98.87 0.28 
+6.96 
+8.86 
+84.18 
+0.0 
+100.0 
+0.0 
+0.0 
+38.5 
+61.5 
+
+M 
+0.0 
+6.54 93.46 
+0.0 
+7.13 
+92.87 
+0.0 
+0.08 99.92 
+0.0 
+5.92 
+94.08 
+
+N 
+97.32 1.18 
+1.5 
+94.91 
+0.4 
+4.69 
+98.87 
+0.2 
+0.93 93.64 3.37 
+2.99 
+
+LDA 
+P 
+0.31 67.18 32.51 17.8 
+0.0 
+82.2 
+0.0 
+89.06 10.94 
+0.0 
+41.51 
+58.49 
+
+M 
+0.0 
+3.93 96.07 10.94 
+0.0 
+89.06 
+0.0 
+5.62 94.38 
+0.0 
+21.96 
+78.04 
+
+N 
+98.12 0.52 
+1.36 96.39 0.94 
+2.67 
+99.65 0.12 
+0.23 95.97 2.36 
+1.68 
+
+SVM 
+P 
+3.01 86.07 10.93 6.77 20.31 
+72.92 
+0.01 99.78 0.21 
+0.0 
+70.06 
+29.94 
+
+M 
+3.02 
+2.01 94.97 0.16 13.46 
+86.38 
+0.01 
+0.08 99.92 
+0.0 
+29.16 
+70.84 
+
+N 
+100.0 
+0.0 
+0.0 
+96.87 0.89 
+2.24 
+100.0 
+0.0 
+0.0 
+96.98 1.11 
+1.91 
+
+RBF-SVM 
+P 
+100.0 
+0.0 
+0.0 
+20.3 
+19.1 
+60.6 
+100.0 
+0.0 
+0.0 
+0.0 
+79.05 
+20.95 
+
+M 
+100.0 
+0.0 
+0.0 
+19.11 14.18 
+66.72 
+100.0 
+0.0 
+0.0 
+0.02 17.96 
+82.03 
+
+N 
+97.77 0.45 
+1.78 97.02 1.55 
+1.42 
+99.16 
+0.2 
+0.64 96.82 1.95 
+1.23 
+
+KNN 
+P 
+0.28 21.41 78.31 12.16 36.17 
+51.67 
+0.0 
+100.0 
+0.0 
+0.26 91.62 
+8.12 
+
+M 
+0.16 14.81 85.02 11.73 25.74 
+62.52 
+0.0 
+0.0 
+100.0 0.43 12.99 
+86.58 
+
+N 
+99.44 
+0.4 
+0.16 97.08 1.05 
+1.88 
+99.96 
+0.0 
+0.04 97.82 1.13 
+1.04 
+
+DT 
+P 
+3.98 92.33 3.69 
+9.31 68.77 
+21.92 
+0.0 
+100.0 
+0.0 
+0.57 94.96 
+4.47 
+
+M 
+0.66 
+1.82 97.51 11.74 15.77 
+72.48 
+0.0 
+0.0 
+100.0 
+0.5 
+4.05 
+95.45 
+
+N 
+99.75 0.17 
+0.08 97.01 1.22 
+1.77 
+99.94 0.02 
+0.04 98.07 0.89 
+1.05 
+
+RF 
+P 
+2.77 96.62 0.62 12.65 63.24 
+24.12 
+0.0 
+100.0 
+0.0 
+0.09 96.19 
+3.73 
+
+M 
+0.16 
+2.72 97.12 10.82 21.13 
+68.05 
+0.0 
+0.05 99.95 0.22 
+4.67 
+95.11 
+
+N 
+99.69 0.31 
+0.0 
+97.46 1.66 
+0.88 
+99.11 0.22 
+0.67 96.64 1.68 
+1.68 
+
+GBDT 
+P 
+1.16 96.51 2.33 
+4.0 
+72.0 
+24.0 
+0.0 
+99.96 0.04 
+0.1 
+88.43 
+11.47 
+
+M 
+3.7 
+1.23 95.06 3.65 25.55 
+70.8 
+0.0 
+0.0 
+100.0 
+0.0 
+6.77 
+93.23 
+
+Table 1: Confusion matrices of the results of classification using the entire set of features as well as only mass and radius, both for 
+
+undersampling and oversampling using Parzen window estimation (as described in Sections 4.1.1, 4.1.2 and 4.1.3). The larger the values 
+
+of the diagonal elements in the confusion matrix of a classifier, the better is the performance of the respective classifier. 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" validated="false"><head>Table 5 .</head><label>5</label><figDesc></figDesc><table>Every classifier uses the features in a dataset in different ways. That is why the ranks and percentage 
+
+importances observed using random forests and GBDTs are different. The feature importances were determined 
+
+using artificially balanced datasets. </table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" validated="false"><head>Table 2 :</head><label>2</label><figDesc>Confusion matrices of the results of classification using the SVM-KNN oversampling technique described in Section 5.1 based on the entire feature set and only mass and radius as features.</figDesc><table>Pred 
+All Features 
+Mass and Radius Only 
+
+N 
+P 
+M 
+N 
+P 
+M 
+
+N 
+97.99 
+0.0 
+2.01 98.98 
+0.0 
+1.02 
+
+Decision Trees with Balancing 
+P 
+0.0 
+100.0 
+0.0 
+3.22 87.10 
+9.68 
+
+M 
+0.0 
+0.0 
+100.0 
+0.0 
+1.82 
+98.18 
+
+N 
+94.18 4.76 
+1.05 94.27 0.29 
+5.44 
+
+Decision Trees Without Balancing 
+P 
+0.0 
+66.67 33.</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" validated="false"><head>Table 3 :</head><label>3</label><figDesc></figDesc><table>Confusion matrices of the results of classification of decision trees with the elastic Gini criteria (elaborated in 5.2). Compared 
+
+to the results shown in Tables 1 and 2, these results are better, affirming the idea of handling asymmetry in the dataset explicitly. 
+
+Potentially Habitable Exoplanets 
+Non-Habitable Exoplanets 
+
+P. Name 
+S. Temp 
+TSS 
+P. Name 
+S. Temp 
+TSS 
+
+TRAPPIST-1 d 1.01527 0.91713 
+TRAPPIST-1 b 
+1.37674 -1.04331 
+
+TRAPPIST-1 e 0.90416 0.62172 
+TRAPPIST-1 c 
+1.20799 -0.12806 
+
+TRAPPIST-1 f 
+0.79757 0.20096 
+TRAPPIST-1 h 
+0.63125 -0.45554 
+
+TRAPPIST-1 g 0.75035 0.01456 
+Kepler-519b 
+1.97257 -4.27495 
+
+ProximaCenb 
+0.91632 0.66969 MOA-2010-BLG-328Lb 0.33403 -1.62874 
+
+Kepler-186f 
+0.77430 0.10913 
+OGLE-2005-390Lb 
+0.32187 -1.67671 
+
+Kepler-705 b 
+1.00555 0.96987 
+Wolf1061d 
+0.56042 -0.73513 
+
+K2-72e 
+1.10555 0.42749 
+YZCetb 
+1.64861 -2.51789 
+
+Ross128b 
+1.09410 0.48964 
+GJ649c 
+1.98403 -4.33710 
+
+K2-3d 
+1.14271 0.22599 
+EPIC211822797b 
+1.44305 -1.40301 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4" validated="false"><head>Table 4 :</head><label>4</label><figDesc>The TSS (5.3) of various samples are presented. The potentially habitable sample in this table mostly consists of exoplanets</figDesc><table></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_6" validated="false"><head>Table 5 :</head><label>5</label><figDesc>The feature importances with respect to random forests and GBDTs are presented. We have presented the top 10 features for random forests; GBDTs selected 8 features and the ranking is provided. There are important similarities between the most important features as per each method, disregarding the order. The feature ranks demonstrate that the ML algorithms are in agreement with our knowledge of physics.</figDesc><table></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_8" validated="false"><head>0</head><label>0</label><figDesc></figDesc><table>Radial Basis SVM 
+Psychroplanets 
+63.33 
+6.67 
+30.0 
+
+Mesoplanets 
+58.93 
+8.93 
+32.14 
+
+Non Habitable 
+100.0 
+0.0 
+0.0 
+
+K Nearest Neighbors 
+Psychroplanets 
+64.22 
+17.13 
+18.65 
+
+Mesoplanets 
+48.12 
+13.95 
+37.93 
+
+Non Habitable 
+99.48 
+0.29 
+0.23 
+
+Decision Trees 
+Psychroplanets 
+42.99 
+48.91 
+8.1 
+
+Mesoplanets 
+32.61 
+1.5 
+65.89 
+
+Non Habitable 
+99.75 
+0.12 
+0.13 
+
+Random Forests 
+Psychroplanets 
+56.86 
+33.43 
+9.71 
+
+Mesoplanets 
+32.76 
+1.72 
+65.52 
+
+Non-Habitable 
+99.95 
+0.0 
+0.05 
+
+GBDT 
+Psychroplanets 
+1.3 
+87.01 
+11.69 
+
+Mesoplanets 
+2.11 
+2.11 
+95.77 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_9" validated="false"><head>Table A .</head><label>A</label><figDesc></figDesc><table>6: Confusion matrices of the results of classification without undersampling of the non-habitable class. 
+
+Appendix B. Details of Data Augmentation Methods 
+
+Appendix B.1. Generating Data by Assuming a Distribution 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_11" validated="false"><head>Table B .</head><label>B</label><figDesc></figDesc><table>7: Mean squared error for continuous standard distributions. 
+
+1. Normal 
+
+2. Cauchy 
+
+3. Laplace 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_12" validated="false"><head>Table B .</head><label>B</label><figDesc>8: Chi Square test results for discrete distributions.</figDesc><table></table></figure>
+
+			<note place="foot">α + β = 1, 0 ≤ α ≤ 1, 0 ≤ β ≤ 1, k is suitably assumed to be 1 (CRS condition), and the representation</note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">The cosmic zoo: The (near) inevitability of the evolution of complex, macroscopic life</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Bains</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Schulze-Makuch</surname></persName>
+		</author>
+		<idno type="doi">10.3390/life6030025</idno>
+		<idno>doi:10.3390/life6030025</idno>
+		<ptr target="https://doi.org/10.3390/life6030025" />
+	</analytic>
+	<monogr>
+		<title level="j">Life</title>
+		<imprint>
+			<biblScope unit="volume">6</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<monogr>
+		<title level="m" type="main">Interior structures and tidal heating in the TRAPPIST-1 planets</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">C</forename><surname>Barr</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Dobos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">L</forename><surname>Kiss</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<idno type="doi">10.1051/0004-6361/201731992</idno>
+		<idno>doi:10.1051/0004-6361/ 201731992</idno>
+		<ptr target="https://doi.org/10.1051/0004-6361/201731992" />
+	</analytic>
+	<monogr>
+		<title level="j">Astronomy &amp; Astrophysics URL</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Cd-hpf: New habitability score via data analytic modeling</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Bora</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Saha</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Agrawal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Safonova</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Routh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Narasimhamurthy</surname></persName>
+		</author>
+		<idno type="doi">10.1016/j.ascom.2016.08.001</idno>
+		<ptr target="https://doi.org/10.1016/j.ascom.2016.08.001" />
+	</analytic>
+	<monogr>
+		<title level="j">Astronomy and Computing</title>
+		<imprint>
+			<biblScope unit="volume">17</biblScope>
+			<biblScope unit="page" from="129" to="143" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">A training algorithm for optimal margin classifiers</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">E</forename><surname>Boser</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">M</forename><surname>Guyon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">N</forename><surname>Vapnik</surname></persName>
+		</author>
+		<idno type="doi">10.1145/130385.130401</idno>
+		<idno>doi:10.1145/130385.130401</idno>
+		<ptr target="https://doi.org/10.1145/130385.130401" />
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the fifth annual workshop on Computational learning theory -COLT 1992</title>
+		<meeting>the fifth annual workshop on Computational learning theory -COLT 1992</meeting>
+		<imprint>
+			<publisher>ACM Press</publisher>
+			<date type="published" when="1992" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Technical note: Some properties of splitting criteria</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Breiman</surname></persName>
+		</author>
+		<idno type="doi">10.1023/A:1018094028462</idno>
+		<idno>doi:10.1023/A:1018094028462</idno>
+		<ptr target="https://doi.org/10.1023/A:1018094028462" />
+	</analytic>
+	<monogr>
+		<title level="j">Machine Learning</title>
+		<imprint>
+			<biblScope unit="volume">24</biblScope>
+			<biblScope unit="page" from="41" to="47" />
+			<date type="published" when="1996" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Random forests</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Breiman</surname></persName>
+		</author>
+		<idno type="doi">10.1023/A:1010933404324</idno>
+		<idno>doi:10.1023/A:1010933404324</idno>
+		<ptr target="https://doi.org/10.1023/A:1010933404324" />
+	</analytic>
+	<monogr>
+		<title level="j">Machine Learning</title>
+		<imprint>
+			<biblScope unit="volume">45</biblScope>
+			<biblScope unit="page" from="5" to="32" />
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">Smote: Synthetic minority over-sampling technique</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">V</forename><surname>Chawla</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">W</forename><surname>Bowyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">O</forename><surname>Hall</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">P</forename><surname>Kegelmeyer</surname></persName>
+		</author>
+		<ptr target="http://dl.acm.org/citation.cfm?id=1622407.1622416" />
+	</analytic>
+	<monogr>
+		<title level="j">J. Artif. Int. Res</title>
+		<imprint>
+			<biblScope unit="volume">16</biblScope>
+			<biblScope unit="page" from="321" to="357" />
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">XGBoost</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Guestrin</surname></persName>
+		</author>
+		<idno type="doi">10.1145/2939672.2939785</idno>
+		<idno>doi:10.1145/2939672.2939785</idno>
+		<ptr target="https://doi.org/10.1145/2939672.2939785" />
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining -KDD 2016</title>
+		<meeting>the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining -KDD 2016</meeting>
+		<imprint>
+			<publisher>ACM Press</publisher>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Support-vector networks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Cortes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Vapnik</surname></persName>
+		</author>
+		<idno type="doi">10.1023/A:1022627411411</idno>
+		<idno>doi:10.1023/A:1022627411411</idno>
+		<ptr target="https://doi.org/10.1023/A:1022627411411" />
+	</analytic>
+	<monogr>
+		<title level="j">Machine Learning</title>
+		<imprint>
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="page" from="273" to="297" />
+			<date type="published" when="1995" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<monogr>
+		<title level="m" type="main">Pattern classification</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">O</forename><surname>Duda</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">E</forename><surname>Hart</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">G</forename><surname>Stork</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2001" />
+			<publisher>Wiley</publisher>
+			<pubPlace>New York</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">Greedy function approximation: A gradient boosting machine</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">H</forename><surname>Friedman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Annals of Statistics</title>
+		<imprint>
+			<biblScope unit="volume">29</biblScope>
+			<biblScope unit="page" from="1189" to="1232" />
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">Mining massive databases for computation of scholastic indices: Model and quantify internationality and influence diffusion of peer-reviewed journals</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Ginde</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Saha</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Balasubramaniam</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Harsha</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Mathur</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Dayasagar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Anand</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the fourth national conference of Institute of Scientometrics</title>
+		<meeting>the fourth national conference of Institute of Scientometrics<address><addrLine>SIoT</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">Scientobase: a framework and model for computing scholastic indicators of non-local influence of journals via native data acquisition algorithms</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Ginde</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Saha</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Mathur</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Venkatagiri</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Vadakkepat</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Narasimhamurthy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">S</forename><surname>Daya Sagar</surname></persName>
+		</author>
+		<idno type="doi">10.1007/s11192-016-2006-2</idno>
+		<idno>doi:10.1007/s11192-016-2006-2</idno>
+		<ptr target="https://doi.org/10.1007/s11192-016-2006-2" />
+	</analytic>
+	<monogr>
+		<title level="j">Scientometrics</title>
+		<imprint>
+			<biblScope unit="volume">108</biblScope>
+			<biblScope unit="page" from="1479" to="1529" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<monogr>
+		<title level="m" type="main">Assessing the possibility of biological complexity on other worlds, with an estimate of the occurrence of complex life in the milky way galaxy</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Irwin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Méndez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Fairén</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Schulze-Makuch</surname></persName>
+		</author>
+		<idno type="doi">10.3390/challe5010159</idno>
+		<idno>doi:10.3390/challe5010159</idno>
+		<ptr target="https://doi.org/10.3390/challe5010159" />
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="page" from="159" to="174" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<monogr>
+		<title level="m" type="main">Predicting the direction of stock market prices using random forest</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Khaidem</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Saha</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Basak</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">R</forename><surname>Dey</surname></persName>
+		</author>
+		<ptr target="https://www.researchgate.net/publication/301818771_Predicting_the_direction_of_stock_market_prices_using_random_forest" />
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<monogr>
+		<title level="m" type="main">The night sky of exoplanets</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Méndez</surname></persName>
+		</author>
+		<ptr target="http://phl.upr.edu/library/notes/syntheticstars" />
+		<imprint>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<monogr>
+		<title level="m" type="main">A thermal planetary habitability classification for exoplanets</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Méndez</surname></persName>
+		</author>
+		<ptr target="http://phl.upr.edu/library/notes/athermalplanetaryhabitabilityclassificationforexoplanets" />
+		<imprint>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Méndez</surname></persName>
+		</author>
+		<ptr target="http://phl.upr.edu/hec" />
+		<title level="m">The habitable exoplanets catalog URL</title>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">Distinct adoption of k-nearest neighbour and support vector machine in classifying EEG signals of mental tasks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Mohanchandra</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Saha</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">S</forename><surname>Murthy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Lingaraju</surname></persName>
+		</author>
+		<idno type="doi">10.1504/ijiei.2015.073064</idno>
+		<idno>doi:10.1504/ijiei.2015.073064</idno>
+		<ptr target="https://doi.org/10.1504/ijiei.2015.073064" />
+	</analytic>
+	<monogr>
+		<title level="j">International Journal of Intelligent Engineering Informatics</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="page">313</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">On estimation of a probability density function and mode</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Parzen</surname></persName>
+		</author>
+		<idno type="doi">10.1214/aoms/1177704472</idno>
+		<idno>doi:10.1214/aoms/1177704472</idno>
+		<ptr target="https://doi.org/10.1214/aoms/1177704472" />
+	</analytic>
+	<monogr>
+		<title level="j">The Annals of Mathematical Statistics</title>
+		<imprint>
+			<biblScope unit="volume">33</biblScope>
+			<biblScope unit="page" from="1065" to="1076" />
+			<date type="published" when="1962" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Scikit-learn: Machine learning in Python</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pedregosa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Varoquaux</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gramfort</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Michel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Thirion</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Grisel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Blondel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Prettenhofer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Weiss</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Dubourg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Vanderplas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Passos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Cournapeau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Brucher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Perrot</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Duchesnay</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Machine Learning Research</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="page" from="2825" to="2830" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">A SVM-kNN method for quasar-star classification</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Peng</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Zhao</surname></persName>
+		</author>
+		<idno type="doi">10.1007/s11433-013-5083-8</idno>
+		<idno>doi:10.1007/ s11433-013-5083-8</idno>
+		<ptr target="https://doi.org/10.1007/s11433-013-5083-8" />
+	</analytic>
+	<monogr>
+		<title level="j">Science China Physics, Mechanics and Astronomy</title>
+		<imprint>
+			<biblScope unit="volume">56</biblScope>
+			<biblScope unit="page" from="1227" to="1234" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">Induction of decision trees</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Quinlan</surname></persName>
+		</author>
+		<idno type="doi">10.1007/bf00116251</idno>
+		<idno>doi:10.1007/bf00116251</idno>
+		<ptr target="https://doi.org/10.1007/bf00116251" />
+	</analytic>
+	<monogr>
+		<title level="j">Machine Learning</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="81" to="106" />
+			<date type="published" when="1986" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">An empirical study of the naive bayes classifier</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Rish</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">IJCAI 2001 workshop on empirical methods in artificial intelligence, IBM</title>
+		<meeting><address><addrLine>New York</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2001" />
+			<biblScope unit="page" from="41" to="46" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">Remarks on some nonparametric estimates of a density function</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Rosenblatt</surname></persName>
+		</author>
+		<idno type="doi">10.1214/aoms/1177728190</idno>
+		<idno>doi:10.1214/aoms/1177728190</idno>
+		<ptr target="https://doi.org/10.1214/aoms/1177728190" />
+	</analytic>
+	<monogr>
+		<title level="j">The Annals of Mathematical Statistics</title>
+		<imprint>
+			<biblScope unit="volume">27</biblScope>
+			<biblScope unit="page" from="832" to="837" />
+			<date type="published" when="1956" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<monogr>
+		<title level="m" type="main">Theoretical Validation of Potential Habitability via Analytical and Boosted Tree Methods: An Optimistic Study on Recently Discovered Exoplanets</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Saha</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Basak</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Bora</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Safonova</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Agrawal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Sarkar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Murthy</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1712.01040</idno>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">A novel revenue optimization model to address the operation and maintenance cost of a data center</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Saha</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Sarkar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Dwivedi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Dwivedi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">M</forename><surname>Narasimhamurthy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Roy</surname></persName>
+		</author>
+		<idno type="doi">10.1186/s13677-015-0050-8</idno>
+		<idno>doi:10.1186/s13677-015-0050-8</idno>
+		<ptr target="https://doi.org/10.1186/s13677-015-0050-8" />
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Cloud Computing</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">Three-dimensional extinction mapping and selection effects</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">E</forename><surname>Sale</surname></persName>
+		</author>
+		<idno type="doi">10.1093/mnras/stv1459</idno>
+		<idno>doi:10.1093/mnras/ stv1459</idno>
+		<ptr target="https://doi.org/10.1093/mnras/stv1459" />
+	</analytic>
+	<monogr>
+		<title level="j">Monthly Notices of the Royal Astronomical Society</title>
+		<imprint>
+			<biblScope unit="volume">452</biblScope>
+			<biblScope unit="page" from="2960" to="2972" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<monogr>
+		<title level="m" type="main">Cdsfa stochastic frontier analysis approach to revenue modeling in large cloud data centers</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Sarkar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Goswami</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Saha</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Kar</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:arXiv:1610.00624</idno>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title level="a" type="main">Time to consider search strategies for complex life on exoplanets</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Schulze-Makuch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Bains</surname></persName>
+		</author>
+		<idno type="doi">10.1038/s41550-018-0476-2</idno>
+		<idno>doi:10.1038/s41550-018-0476-2</idno>
+		<ptr target="https://doi.org/10.1038/s41550-018-0476-2" />
+	</analytic>
+	<monogr>
+		<title level="j">Nature Astronomy</title>
+		<imprint>
+			<biblScope unit="page" from="1" to="2" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title level="a" type="main">A two-tiered approach to assessing the habitability of exoplanets</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Schulze-Makuch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Méndez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Fairén</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Paris</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Turse</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Boyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">F</forename><surname>Davila</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>De Sousa António</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Catling</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">N</forename><surname>Irwin</surname></persName>
+		</author>
+		<idno type="doi">10.1089/ast.2010.0592</idno>
+		<idno>doi:10.1089/ast.2010.0592</idno>
+		<ptr target="https://doi.org/10.1089/ast.2010.0592" />
+	</analytic>
+	<monogr>
+		<title level="j">Astrobiology</title>
+		<imprint>
+			<biblScope unit="volume">11</biblScope>
+			<biblScope unit="page" from="1041" to="1052" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">Identifying exoplanets with deep learning: A five-planet resonant chain around kepler-80 and an eighth planet around kepler-90</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">J</forename><surname>Shallue</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vanderburg</surname></persName>
+		</author>
+		<ptr target="http://stacks.iop.org/1538-3881/155/i=2/a=94" />
+	</analytic>
+	<monogr>
+		<title level="j">The Astronomical Journal</title>
+		<imprint>
+			<biblScope unit="volume">155</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">Nomads of the galaxy</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">E</forename><surname>Strigari</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Barnabè</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">J</forename><surname>Marshall</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">D</forename><surname>Blandford</surname></persName>
+		</author>
+		<idno type="doi">10.1111/j.1365-2966.2012.21009.x</idno>
+		<idno>doi:10.1111/j.1365-2966.2012.21009.x</idno>
+		<ptr target="https://doi.org/10.1111/j.1365-2966.2012.21009.x" />
+	</analytic>
+	<monogr>
+		<title level="j">Monthly Notices of the Royal Astronomical Society</title>
+		<imprint>
+			<biblScope unit="volume">423</biblScope>
+			<biblScope unit="page" from="1856" to="1865" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title level="a" type="main">On a class of perceptrons</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">N</forename><surname>Vapnik</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">Y</forename><surname>Chervonenkis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Automation and Remote Control</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="103" to="109" />
+			<date type="published" when="1964" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title level="a" type="main">Atmospheric reconnaissance of the habitable-zone earth-sized planets orbiting TRAPPIST-1</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>De Wit</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">R</forename><surname>Wakeford</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">K</forename><surname>Lewis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Delrez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Gillon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Selsis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Leconte</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">O</forename><surname>Demory</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Bolmont</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Bourrier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">J</forename><surname>Burgasser</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Grimm</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Jehin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">M</forename><surname>Lederer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">E</forename><surname>Owen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Stamenkovi´cstamenkovi´c</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">H M J</forename><surname>Triaud</surname></persName>
+		</author>
+		<idno type="doi">10.1038/s41550-017-0374-z</idno>
+		<idno>doi:10.1038/s41550-017-0374-z</idno>
+		<ptr target="https://doi.org/10.1038/s41550-017-0374-z" />
+	</analytic>
+	<monogr>
+		<title level="j">Nature Astronomy</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page" from="214" to="219" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<monogr>
+		<title level="m" type="main">Asymmetric and Sample Size Sensitive Entropy Measures for Supervised Learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Zighed</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Ritschard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Marcellin</surname></persName>
+		</author>
+		<idno type="doi">10.1007/978-3-642-05183-8_2</idno>
+		<idno>doi:10.1007/978-3-642-05183-8_2</idno>
+		<ptr target="https://doi.org/10.1007/978-3-642-05183-8_2" />
+		<imprint>
+			<date type="published" when="2010" />
+			<publisher>Springer</publisher>
+			<biblScope unit="page" from="27" to="42" />
+			<pubPlace>Berlin Heidelberg; Berlin, Heidelberg</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

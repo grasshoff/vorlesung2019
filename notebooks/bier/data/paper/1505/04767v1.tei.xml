@@ -1,0 +1,1021 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-04T16:22+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">The rvfit Code: A Detailed Adaptive Simulated Annealing Code for Fitting Binaries and Exoplanets Radial Velocities</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2015-05-18">18 May 2015</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ramón</forename><surname>Iglesias-Marzoa</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Mercedes</forename><surname>López-Morales</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">María</forename><surname>Jesús</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Arévalo</forename><surname>Morales</surname></persName>
+						</author>
+						<author>
+							<affiliation key="aff0">
+								<orgName type="department" key="dep1">Astrophysics Department</orgName>
+								<orgName type="department" key="dep2">Centro de Estudios de Física del Cosmos de Aragón</orgName>
+								<orgName type="institution">Universidad de La Laguna</orgName>
+								<address>
+									<addrLine>Plaza San Juan 1</addrLine>
+									<postCode>E-38205, E-44001</postCode>
+									<settlement>La Laguna, Tenerife, Teruel</settlement>
+									<country>Spain, Spain</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<affiliation key="aff1">
+								<orgName type="department" key="dep1">Smithsonian Center for Astrophysics</orgName>
+								<orgName type="department" key="dep2">Astrophysics Department</orgName>
+								<orgName type="department" key="dep3">Instituto de Astrofísica de Canarias</orgName>
+								<orgName type="institution">Harvard</orgName>
+								<address>
+									<addrLine>60 Garden Street, Universidad de La Laguna, E-38205 La Laguna, E-38200 La Laguna</addrLine>
+									<postCode>02138</postCode>
+									<settlement>Cambridge, Tenerife, Tenerife</settlement>
+									<region>MA</region>
+									<country>USA and, Spain, Spain</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">The rvfit Code: A Detailed Adaptive Simulated Annealing Code for Fitting Binaries and Exoplanets Radial Velocities</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2015-05-18">18 May 2015</date>
+						</imprint>
+					</monogr>
+					<note type="submission">Received ; accepted Accepted PASP -2 -</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>Subject headings: Data Analysis and Techniques -Stars -Extrasolar Planets</keywords>
+			</textClass>
+			<abstract>
+				<p>The fitting of radial velocity curves is a frequent procedure in binary stars and exoplanet research. In the majority of cases the fitting routines need to be fed with a set of initial parameter values and priors from which to begin the computations and their results can be affected by local minima. We present a new code, the rvfit code, for fitting radial velocities of stellar binaries and exoplanets using an Adaptive Simulated Annealing (ASA) global minimization method, which fastly converges to a global solution minimum without the need to provide preliminary parameter values. We show the performance of the code using both synthetic and real data sets: double-lined binaries, single-lined bi-naries, and exoplanet systems. In all examples the keplerian orbital parameters fitted by the rvfit code and their computed uncertainties are compared with literature solutions. Finally, we provide the source code with a working example and a detailed description on how to use it.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>Precise, absolute masses of stars and planets can be only measured if they are part of binary (star-star or star-planet) systems. The masses are derived by fitting the radial velocity (RV) curves of those systems to the keplerian orbital equations. Those equations need to be solved numerically using multi-parameter minimization techniques.</p><p>The fitting of radial velocity curves is an a-priori straightforward procedure that gets complicated by the need to explore a wide multi-parameter space and by the existence of many potential local minima, which can yield to incorrect solutions. Local minima are a well known issue in mathematical optimization problems and a lot of work has been done over the years to overcome this limitation when trying to fit multi-parameter functions. Simultaneous, multi-parameter minimization techniques, such as the LevenbergMarquardt (LM) algorithm <ref type="bibr" target="#b20">(Levenberg 1944;</ref><ref type="bibr" target="#b24">Marquardt 1963;</ref><ref type="bibr" target="#b34">Press et al. 1992</ref>), also known as the damped least-squares (DLS) method, or the <ref type="bibr">Nelder &amp; Mead Simplex (NMS)</ref> algorithm <ref type="bibr">(Nelder &amp; Mead 1965;</ref><ref type="bibr" target="#b29">Murty 1983)</ref>, are widely used in multi-parameter function optimization problems in many science fields.</p><p>Different minimization methods are implemented in the most widely used binary and exoplanet modelling softwares. Some of those softwares are the Wilson-Devinney code <ref type="bibr" target="#b43">(Wilson &amp; Devinney 1971</ref>) which is the de facto standard code to analyze eclipsing binary stars and implements the Differential Corrections (DC) method which is derivative based and is used to look for local convergence. A wrapper for the Wilson-Devinney Method, WD2007, was built by J. Kallrath <ref type="bibr" target="#b28">(Milone &amp; Kallrath 2008)</ref> and implements Simulated Annealing (SA) in the Boltzmann version (see e. g <ref type="bibr">Metropolis et al. 1953;</ref><ref type="bibr" target="#b18">Kirkpatrick et al. 1983</ref>). PHOEBE (PHysics Of Eclipsing BinariEs; <ref type="bibr" target="#b35">Prša &amp; Zwitter 2005</ref>) is a code which models light and RV curves. PHOEBE relies in the Wilson-Devinney code and acts as a front-end interface adding new capabilities. Another commonly used software is Nightfall (Wichmann 2011), which is a code to build synthetic light and RV curves of eclipsing binary stars and can fit a model to photometric and RV data. Nightfall uses the 'Simplex Algorithm' for local optimizacion and SA for global optimization <ref type="bibr" target="#b41">(Wichmann 1999</ref>).</p><p>In recent years, the discovery of hundreds of exoplanets using RV techniques has lead to the development of several software packages to fit RV and transit photometric curves.</p><p>One example is the Systemic Console ( <ref type="bibr" target="#b27">Meschiari et al. 2009;</ref><ref type="bibr" target="#b26">Meschiari &amp; Laughlin 2010)</ref>, which focuses in the fitting of exoplanet RV and transit curves and includes the LM, NMS and SA algorithms.</p><p>All those software packages include methods for local and global minimisation, SA among them. SA is a multi-parameter minimization technique that draws on metallurgic optimal cooling processing methods (see <ref type="bibr" target="#b18">Kirkpatrick et al. 1983)</ref>, and it has been implemented and tested in some of those popular codes. However, the technique has been somewhat demoted on claims of being notoriously slow and less efficient than other methods (e. g. <ref type="bibr" target="#b35">Prša &amp; Zwitter 2005;</ref><ref type="bibr" target="#b18">Kallrath &amp; Milone 2006;</ref><ref type="bibr" target="#b41">Wichmann 1999</ref>).</p><p>Faster methods based on derivatives (LM, DC), start from points near the solution but this assumes a previous knowledge of the solution, which is only tuned by the algorithm.</p><p>In this paper we introduce a modified version of the SA method called Adaptive Simulated Annealing (ASA), which overcomes the speed problem of standard SA methods and ensures fast converging to a global minimum solution for stellar binaries and exoplanet radial velocity curves. We have developed an ASA minimization code in IDL 1 , which we make available to the community, and which can be easily implemented as part of any custom binary or exoplanet analysis software. We also provide a detailed guide on how 1 IDL is a high-level commercial programming language and environment by Exelis Visual Information Solutions. http://www.exelisvis.com/ProductsServices/IDL.aspx to implement this ASA method for fitting radial velocity curves to a set of radial velocity measurements.</p><p>We describe the ASA method in section 2. In section 3 we describe the function that the algorithm aims at minimising, and the algorithm itself is described in section 4 and 5.</p><p>We present some examples of the performance of the algorithm in section 6, and discuss the results and pros and cons of the algorithm in sections 7 and 8. The code with all its documentation is publicly available at http://www.cefca.es/people/ ~ riglesias/index.html.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">(Adaptive) Simulated Annealing</head><p>SA is a function-evaluation-based technique frequently used in electrical engineering, image and signal processing, and other fields to address multi-variable minimization problems in which the space dimensions and the complexity or non-linearity is too high for conventional minimization algorithms, for instance, those based in derivatives. SA is a generalization of a Monte Carlo method initially developed for examining the equations of state and frozen states of n-body systems ( <ref type="bibr">Metropolis et al. 1953</ref>). Later on, <ref type="bibr" target="#b32">Pincus (1970)</ref>; <ref type="bibr" target="#b18">Kirkpatrick et al. (1983)</ref> andČern´yandˇandČern´andČern´y (1999) independently generalized the SA idea to solve discrete optimization problems that involved local parameter search procedures.</p><p>The initial idea behind SA consisted on developing an algorithm that would calculate the (global) internal energy state of a crystalline structure in metallurgic studies <ref type="bibr">(Metropolis et al. 1953</ref>). The goal of the original SA algorithms was to minimize an objective function which resembles the internal energy of materials. The algorithm took an independent parameter called temperature and reduced it following a certain annealing law.</p><p>For each temperature, a number N gen of possible test states were generated from a previous state, and the objective function was computed for each of those test states; a test state was accepted or rejected based on the acceptance rules, which depend on the temperature parameter. If a test state was accepted, it became the current state and, if it was the one with the minimum absolute energy, it was saved. The temperature was then reduced to begin the process from the last accepted state. At each temperature, the loop in which the states are generated and tested for acceptance is commonly called the Metropolis loop.</p><p>The key feature of the SA algorithm is the way in which the moves to a new test state are accepted. All the test states with a energy (objective function) lower than the current energy are accepted, but those test states with a higher energy can be accepted or rejected based on a probability computed from the energy difference between the current and the test state. This is how SA algorithms avoid stopping at local minima, since a state with a higher energy configuration, an uphill movement, can be accepted given a certain probability.</p><p>Applied to a general minimization problem, the SA method consists of three functions: 1) a probability density function for a N-parameter space, where N are the parameters to minimize. This function generates new test states, 2) a probability of acceptance function, which determines whether a given step solution is accepted or discarded, and 3) the annealing schedule, which defines how each parameter changes with each iteration step.</p><p>Several variations of SA are described in the literature (see e. g. Ingber 1996; <ref type="bibr" target="#b6">Corana et al. 1987;</ref><ref type="bibr">Dreo et al. 2006;</ref><ref type="bibr" target="#b31">Otten &amp; van Ginneken 1989;</ref><ref type="bibr" target="#b36">Salamon et al. 2002)</ref>, but here we focus on the original SA and the so called Fast Simulated Annealing (FA, <ref type="bibr" target="#b39">Szu and Hartley 1987)</ref> techniques.</p><p>The probability distributions of the original SA are generally described as Boltzmann Annealing (BA, <ref type="bibr">Metropolis et al. 1953;</ref><ref type="bibr" target="#b18">Kirkpatrick et al. 1983</ref>). Based on the BA notation, the probability of acceptance function can be expressed as:</p><formula xml:id="formula_0">P = exp(−∆E/T ),<label>(1)</label></formula><p>where ∆E is the energy difference between states and T is the schedule of the annealing, which is denoted by T by analogy with the temperatures of the different energy states in thermodynamics:</p><formula xml:id="formula_1">T (k) = T 0 ln(k) ,<label>(2)</label></formula><p>In this equation, T 0 is the initial temperature, chosen for the algorithm to explore the full range of the parameters to be searched, and k = 0, 1, ..., N with N large enough to achieve a convergence. The BA algorithm picks the range of the parameters to be searched and starts iterations following this temperature law in search for the 'global minimum energy state' of the system. The generating function for the new states is a gaussian function centered in the current state.</p><p>A variation of the SA algorithm is called Fast Simulated Annealing (FA, <ref type="bibr" target="#b39">Szu and Hartley 1987)</ref> in which the gaussian generating distribution is replaced by a Cauchy distribution.</p><p>This lead to a better access to distant states due to the long tail of the Cauchy distribution, thus improving the exploration of the parameter space in the search for the global minimum.</p><p>To ensure the convergence properties of the new algorithm a change in the schedule of the annealing temperatura is needed, following a faster function T (k) = T 0 /k, from which the FA algorithm takes the name. Our code implements a generating distribution similar to FA, as described in section 2.1.1.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">Adaptive Simulated Annealing</head><p>The rvfit code that we present in this paper to perform fast fitting of radial velocity curves is based on he Adaptive Simulated Annealing (ASA) algorithm. ASA (Ingber convergence of standard SA methods.</p><p>ASA has been already applied to the computation of orbits for binary systems with radial velocities and visual measurements <ref type="bibr" target="#b33">(Pourbaix 1998</ref>). But the cases where the only observations avaliable are the radial velocities are many more, e.g. exoplanets and single/double line eclipsing binaries. In the majority of these cases there are not relative positional measurements. Also in these cases, even if light curves exist, sometimes is necessary to fit the radial velocities alone to feed initial sets of parameters to more elaborated modeling codes. The advantage of this approach is to reach a full solution for the physical parameters of the binary system faster. The rvfit code that we present in this paper to provide fast fitting of radial velocity curves is based on the ASA algorithm.</p><p>The basic structure of the ASA algorithm is the same of the classical SA. There are, nevertheless, some key differences: new distributions for the acceptance and state functions and a new annealing schedule; the use of independent temperature scales for each fitted parameter and for the acceptance function; and the use of a re-annealing at specific intervals. We explain each one of those steps in the following subsections.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.1.">The state function</head><p>Defining U and L as the vectors with the upper and lower bounds of the parameter space, in which each point is represented by a vector x, for each parameter x i the function used to generate new test points is:</p><formula xml:id="formula_2">x new i = x i + q i (U i − L i ),<label>(3)</label></formula><p>where q i is the following distribution function defined in the interval [-1,1] and centered around zero </p><formula xml:id="formula_3">q i = sgn v i − 1 2 T i,gen (k i ) 1 + 1 T i,gen (k i ) |2v i −1| − 1<label>(4)</label></formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.2.">The annealing schedules</head><p>For this generating function, the asociated generating temperature follows an exponential function:</p><formula xml:id="formula_4">T i,gen (k i ) = T i,gen (0)e −ck 1/n i ,<label>(5)</label></formula><p>where T i,gen (0) is the initial value, k i is a natural number which depends on each parameter to fit, n is the number of parameters to fit, and c is a constant which depends on each problem and need to be adjusted. A similar equation is needed for the acceptance temperature: </p><formula xml:id="formula_5">T a = T a (0)e −ck 1/n a<label>(6)</label></formula><p>Based on the statistical properties of the algorithm <ref type="bibr" target="#b15">(Ingber 1989</ref>), a global minimum can be reached with these annealing laws while maintaining a fast convergence rate. The ASA algorithm becomes adaptive by the definition of an independent temperature value for each parameter.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.3.">Re-Annealing</head><p>The last difference between the SA and ASA algorithms is re-annealing. The idea behind re-annealing is that the rate of change of the annealing schedule can be changed independently for each parameter throughout the convergence proccess. In its way towards the global minimum, the algorithm travels the parameter space through points with very different local topology, i.e. while some parameters vary rapidly in some regions of the parameter space, others may vary very slowly in those regions. By using the same generating temperatures (T i,gen ) for all the parameters, it is accepted that the cost function behaves isotropically, i.e., the topology of the parameters space is nearly the same in all points and in all directions. This situation results in a waste of computational effort.</p><p>Therefore, to optimize computational time, ASA decreases T i,gen along the directions in which the sensitivity of the cost function is greater, to allow the algorithm perform small steps, and incresases T i,gen along the directions with a small sensitivity to allow for large jumps. ASA adapts its performance by re-scaling the generating temperatures (T i,gen ) and the acceptance temperature (T a ) every N accept acceptances.</p><p>To adapt the algorithm's performance, first the sensitivity of each parameter is updated based on the local topology of the parameter space. This is done by numerically computing the derivatives:</p><formula xml:id="formula_6">s i = ∂E(x best ) ∂x i = E(x best + δ i ) − E(x best ) δ i ,<label>(7)</label></formula><p>where δ i is a small step size in the parameter x i (see <ref type="bibr" target="#b3">Chen &amp; Luk 1999</ref>). The new generating temperatures are then computed as:</p><formula xml:id="formula_7">T i,gen (k i )| new = s max s i T i,gen (k i )<label>(8)</label></formula><p>Likewise, the new acceptance temperature is reset to T a (k a ) = E(x best ) and T a (0) is reset to the value of the last accepted cost function value. With the new T i,gen values the corresponding annealing times k i and k a are then re-computed as:</p><formula xml:id="formula_8">k i = 1 c log T i,gen (0) T i,gen (k i ) n (9) k a = 1 c log T a (0) T a (k a ) n<label>(10)</label></formula><p>and the algorithm resumes with the new computed values.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">The rvfit objective function: Radial Velocity Keplerian Orbits</head><p>The model that the rvfit code tries to fit is the radial velocity keplerian orbits equation for the case of a double-lined binary, or a single-lined binary where the second object can be either another star or a planet. Assuming gaussian uncertainties in the measurements, the function that our implementation of the ASA algorithm aims at minimizing is χ 2 . In the most general case of a double-lined binary, the χ 2 function is given by</p><formula xml:id="formula_9">χ 2 = N i i=1 v calc,i − v i σ i 2 + N j j=1 v calc,j − v j σ j 2 ,<label>(11)</label></formula><p>where N i and N j are the number of radial velocity measurements of the primary and secondary components, and v i and v j , and σ i and σ j are the measured velocities of each components and their associated uncertainties. In addition, v calc,i and v calc,j in this equation corresponds to the expected radial velocities of the primary and secondary components in our physical model calculated using the keplerian orbit equation for each component, i.e.</p><formula xml:id="formula_10">v calc,i = γ + K 1 [cos (θ + ω) + e cos ω],<label>(12)</label></formula><p>and</p><formula xml:id="formula_11">v calc,j = γ + K 2 [cos (θ + ω ′ ) + e cos ω ′ ],<label>(13)</label></formula><p>where ω ′ = ω + π, since the argument of the periastron of the secondary component differs by π from the argument of the periastron of the primary, γ is the center of mass velocity of the system (systematic velocity) measured from the Sun, θ is the true anomaly, e is the eccentricity of the orbit, and K 1 and K 2 are the radial velocity amplitudes for the two components.</p><p>In equations 12 and 13, the argument of the periastron of the system, ω, is a constant, and the true anomaly, θ, is the parameter that varies with time. θ(t) is given by the equation:</p><formula xml:id="formula_12">θ(t) = 2 arctan 1 + e 1 − e tan E(t) 2 ,<label>(14)</label></formula><p>where E is the eccentric anomaly, which is computed from the mean anomaly M by resolving the Kepler equation</p><formula xml:id="formula_13">E − e sin E = M (15)</formula><p>The mean anomaly M is obtained directly from the orbital period P and the time of periastron passage T p of the system:</p><formula xml:id="formula_14">M = 2π P (t − T p )<label>(16)</label></formula><p>Thus, for a double-lined binary the set of parameters to minimize for a given dataset</p><formula xml:id="formula_15">is [P, T p , e, ω, γ, K 1 , K 2 ].</formula><p>For a single-lined binary, where we can only measure the radial velocities of one of the components, the set of parameters to minimize is [P, T p , e, ω, γ, K 1 ].</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Resolving the Kepler equation</head><p>The core step in the computation of the objective function χ 2 is the iterative calculation of equation 15 to obtain the value of the eccentric anomaly E. This is a major step in the evaluation of the objective function since the Kepler equation must be solved numerically and, if not properly done, the evaluation of the objective function will be slow thus degrading the performance of the SA algorithm. Since the SA algorithm explores the full range of eccentricity and mean anomaly values for a given binary, the calculation of E must be robust and must converge quickly for all values of e and M. In the first versions of the rvfit code we implemented a classical Newton algorithm, but soon realized that this method can be improved and accelerated. We therefore ran extensive tests to choose a fast and reliable method to solve the Kepler equation for any parameter combination. We finally chose the following method, which we call Newton two-step method:</p><p>• We compute an initial value of E using a third order Maclaurin series expansion of E and Kepler's equation. This ensures that the initial value of E is close to its real value and therefore provides faster convergence. The implemented equation is the following:</p><formula xml:id="formula_16">E = M + e sin M + e 2 2 sin 2M + e 3 8 (3 sin 3M − sin M)<label>(17)</label></formula><p>• In a second step, a Newton classical iterative method was used to refine the computed initial value to the desired accuracy. The E value previously computed is used to feed this iterative method. At each iteration a new value of the eccentric anomaly is computed using the equation:</p><formula xml:id="formula_17">E k+1 = E k + M + e sin E k − E k 1 − e cos E k (18)</formula><p>This process is repeated until |E k+1 − E k | &lt; ǫ. In this case the accuracy was set to a somewhat high value of ǫ = 10 −10 radians to avoid systematic errors.</p><p>The number of iterations versus the eccentricity of our Newton two-step routine and other classical routines is shown in <ref type="figure">Figure 2</ref> for an M=0.3 radians value of the mean anomaly. This value was deliberately selected to show some strange effects seen in the number of iterations at high eccentricity values for some classical routines. The discrete jumps in the plots are due to the fact that iteration numbers are integers, so jumps appears for small values in the logaritmic vertical axis. The comparison among our two-step method and the other methods are displayed in the left panel of the <ref type="figure">Figure 2</ref> for the full range of eccentricities.</p><p>Since we selected 32 steps in the binary search method, the plot of the iteration number Our implemented Newton two-step algorithm avoids this problem and improves the performance of the Newton method by starting from a solution very near the correct result, thus reducing the number of iterations and increasing the stability.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">The implemented ASA algorithm</head><p>In this section we provide a detailed description of our ASA algorithm implementation.</p><p>For our implementation we follow the same approach detailed by <ref type="bibr" target="#b3">Chen &amp; Luk (1999)</ref>, except for how we calculate the initial acceptance temperature and other improvements, as will be described in more detail below. The code was implemented in IDL 7.0. The ASA code is packed in a main program called rvfit but several common routines are separated in other file for convenience.</p><p>Based on the equations described in the previous section, and assuming no previous knowledge of the orbital parameters of the system, our ASA algorithm minimizes the χ 2 function in eq. 11 in the multidimensional space given by the following set of parameters:</p><p>the orbital period of the system, P , the time of periastron passage, T p , the eccentricity of the orbit, e, the argument of the periastron, ω, the systematic velocity of the system, γ, and the radial velocity amplitudes, K 1 and K 2 (only K 1 in the case of single-lined binaries and exoplanets).</p><p>ASA works by assuming that each measurement is in the form of [t i , RV i , σ(RV i )], i = 1, .., N i , where t i is the time of observation i (in HJD or BJD), RV i is the measured radial velocity (m/s or km/s), and σ(RV i ) is the uncertainty of that radial velocity in the same units as RV. If the binary is double-lined then a set of parameters [t j , RV j , σ(RV j )], j = 1, .., N j , for the secondary need to be provided. We assume those uncertainties follow a gaussian distribution.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">Initialization</head><p>Our algorithm implements some improvements over the one by <ref type="bibr" target="#b3">Chen &amp; Luk (1999)</ref>.</p><p>One of those improvements is the initialization of the acceptance temperature (T a0 ).</p><p>Chen &amp; Luk (1999) set T a0 from the value of the cost function in an aleatory state. Instead, we use the <ref type="bibr">Dreo et al. (2006)</ref> description with the following steps: 1) we compute a set of aleatory perturbations is computed, i.e. 100, 2) we compute the average of the cost function variations due to these perturbations &lt; ∆χ 2 &gt;=&lt; (χ 2 k+1 − χ 2 k ) &gt;, 3) we stablish an initial acceptance probability of p = 0.25, claimed to be the optimal value for 5-100 dimensional parameter spaces (see <ref type="bibr">Gelman et al. 2003;</ref><ref type="bibr" target="#b8">Driscoll 2006;</ref><ref type="bibr" target="#b23">MacKay 2006</ref>), and finally 4) we compute the optimum T a0 from p and &lt; ∆χ 2 &gt; as:</p><formula xml:id="formula_18">p = 1 1 + e &lt;∆χ 2 &gt;/T a0 ⇒ T a0 = &lt; ∆χ 2 &gt; ln(1/P + 1)<label>(19)</label></formula><p>This change ensures an appropriate initial acceptance temperature T a0 , optimizing convergence and therefore reducing computational time.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.">Parameter tunning</head><p>An advantage of the ASA algorithm is that some of the control parameters are automatically and easily set during the first stages of the execution and are tuned along the evolution of the temperatures. However, a few of them, namely N acep , N gen and c, need to be set by hand and adapted to each particular problem.. Here we explain how we adapt those parameters in rvfit.</p><p>The c constant (introduced in eqs. 5 and 6) controls the annealing rate, at which the generating and acceptance temperatures are reduced. When c is too low the algorithm needs more time to achieve a low temperature stage where the neightbourhood of the global minimum is explored and refined. So the algorithm slows down. When c is too high the temperature drops faster and the algorithm can get stuck near a local minimum depending on the cost function and the parameter space topology.</p><p>Chen &amp; Luk (1999) claim values of c in the range <ref type="bibr">[1,</ref><ref type="bibr">10]</ref> work well. However, our tests with published observations conclude that c = 20 provides faster convergence and works well for the number of parameters we need to fit for. This large value of c makes mandatory the use of double precision arithmetic in the code variables to avoid computational overflows or underflows. For some cases, it may be convenient to reduce this value.</p><p>We set the other two parameters that need tunning to N gen = 10 4 and N accept = 10 3 , an order of magnitude higher than <ref type="bibr" target="#b3">Chen &amp; Luk (1999)</ref>. These values are justified by the need to have better sampling of the orbital period in cases where the period of the system is small compared to the range of periods the code explores. A good example is when short period binaries are found in long observing campaigns. Of course, these values can be revised for some cases, but we find they work well for a wide range of synthetic and real radial velocity datasets (see section 6).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3.">Termination</head><p>Another change implemented in our rvfit code is the way in which a termination condition is achieved. A number of stopping rules are described in the literature (see <ref type="bibr">Locatelli 2002, p. 23</ref>), all of them based on the fact that when the algorithm does not evolve significantly over a number of temperature changes then it must be stopped. When fitting a model to a set of observations, some aditional information is provided by the uncertainties, σ: assuming that the model is correct and the uncertainties are well computed, then the fitted model must pass through most of the points at a distance less than σ. When the algorithm is stuck near a local minima we can use this criterion wheter it is stopped.</p><p>We decided to use a mixed criterion based on the information provided by the uncertainties and the progress of the algorithm. Our criterion gathers information about the convergence state as the algorithm evolves, and with that information and the actual value of the χ 2 makes a decission about stopping. To do this, we make a list with the last N ε best values of χ 2 (in our case N ε = 5), and append the best χ 2 to the list after each temperature step. When the differences among all the values of χ 2 in the list are less than ε (with ε = 10 −5 ), the annealing loop is stopped if the value of the last χ 2 is:</p><formula xml:id="formula_19">χ 2 ≤ n k=1ˆσ k=1ˆ k=1ˆσ σ k 2 ,<label>(20)</label></formula><p>wherê σ = ( n l=1 σ l )/n is the mean of the uncertainties σ l in the data (primary and secondary), with n = N i + N j . This upper limit is set assuming that in a good fit some of the measurements are separarated less thanˆσthanˆ thanˆσ from the model. If this last condition is not met, we reset the acceptance temperature T a = T a0 , and the program resumes the annealing loop.</p><p>To prevent the loop from running indefinitely, we impose a limit, N term , the number of reannealings that the annealing loop can do without an improvement in the χ 2 value. This condition would only happen if the algorithm got stuck in weird values, when the initial values provided makes the algorithm unstable, or if the fitted data doesn't correspond to the model. We impose a high value of N term = 20 to allow the code to achieve a stable state before termination.</p><p>After terminating the annealing loop, the code computes the uncertainties in the parameters and uses the parameter values to derive the physical quantities of the system.  Since ASA is a heuristic method with aleatory generation of test parameter values, these plots will be somewhat different each time the code is executed. However, they will have the same overall behaviour of T a and χ 2 due to the annealing-reannealing cycle.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Computation of uncertainties</head><p>Once the algorithm has converged to a global minimum solution, rvfit computes the uncertainties of each parameter in one of the two ways described below.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1.">Fisher matrix</head><p>The Fisher matrix is a popular procedure to obtain quick uncertainties in the model parameters. It is based on the central-limit theorem which states that 'a well-behaved likelihood distribution is asymptotically Gaussian near its maximum'. As a consecuence this procedure can only describe elliptical uncertainty contours. Their implementation is straightforward and numerical derivatives can be used if the function doesn't have analytical form.</p><p>Following Andrae (2010), rvfit computes the Fischer matrix of all parameters at the global minimum position as:</p><formula xml:id="formula_20">[F ] = 1 2   ∂ 2 ∂x 2 ∂ 2 ∂x∂y ∂ 2 ∂y∂x ∂ 2 ∂y 2   χ 2<label>(21)</label></formula><p>The computation of the partial derivatives is done following <ref type="bibr" target="#b5">Coe (2009)</ref>. Once the <ref type="bibr">[F]</ref> matrix is computed, the covariance matrix is obtained by inversion:</p><formula xml:id="formula_21">[F ] −1 = [C] =   σ 2 x σ xy σ yx σ 2 y  <label>(22)</label></formula><p>The main drawback of computing the uncertainties with the Fisher matrix is that it cannot represent non-linear correlations between parameters, which can be seen in a number of models.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2.">Markov Chain Monte Carlo uncertainties</head><p>rvfit also includes a Markov Chain monte Carlo (MCMC) method for the cases where more detailed uncertainty distributions P (x) are desired. <ref type="bibr" target="#b10">Ford (2005</ref><ref type="bibr" target="#b11">Ford ( , 2006</ref>) applied a bayesian analysis to the computation of uncertainties of exoplanet radial velocity curves.</p><p>Much of his work can be directly applied to this problem since the Metropolis-Hastings (MH) algorithm he used to sample the P (x) distribution uncertainties is the same.</p><p>In our case, a separate MCMC code to compute the uncertainties was implemented, using the simple MH algorithm depicted in <ref type="bibr" target="#b10">Ford (2005)</ref>. This code works in two basic steps. First, a new sample x ′ is generated from a candidate distribution q(x). In our case, this distribution q(x) is a multidimensional gaussian function of width σ, which is a vector composed of the widths for the distributions of each of the fitted parameters. Second, a decision is made to accept or to reject the new state, using the Metropolis-Hastings acceptance probability A, given by</p><formula xml:id="formula_22">A(x, x ′ ) = min 1, P (x ′ ) P (x) q(x, x ′ ) q(x ′ , x)<label>(23)</label></formula><p>In the cases where the distribution q(x) is symmetric the values q(x, x ′ ) and q(x ′ , x) turn out to be equal and the MH algorithm is the called Metropolis algorithm, the same one used for the SA algorithm. This is the situation in the typical case where a gaussian distribution of width σ centered in the actual state x is chosen, as in our MCMC code.</p><p>Based in the ratio of likelihoods of the two states, the new acceptance probability is then given by:</p><formula xml:id="formula_23">A(x, x ′ ) = min 1, exp 1 2 (χ 2 (x) − χ 2 (x ′ ))<label>(24)</label></formula><p>The Markov Chain is built with the accepted values x ′ , if these were accepted, or with the old x, if there is not an acceptance. The old x must be appended to the chain whenever there is not an acceptance. If this is not done, some bias will be introduced in parameters with a hard bound like e = 0. See (Eastman et al. 2013, sec 3.5.3) for a discussion.</p><p>Our MCMC does not make use of a burnin phase prior to the computation of the Markov Chain because the chain is started in the parameter values provided by the ASA algorithm which are very near the maximum of the unknown distribution. But the width σ of the proposal distribution is a key parameter which needs to be tuned up to achieve a good mixing of the Markov Chain and to obtain a fast sampling of the objective distribution.</p><p>This σ is usually selected depending of the desired acceptance probability to achieve a good mixing and we selected again an acceptance probability of p ∼ 0.25, as in the T a0 initialization (see section 4.1). Given that each fitted parameter has its own range and marginalized distribution the σ values must be unique for that parameter.</p><p>Our procedure to tune up this vector is as follows. Once the σ for the proposed distribution is computed, the MCMC algorithm computes the uncertainties for all the parameters. Usually, a MCMC chain with 10 5 points is enough to provide a reliable measurement of the uncertainties, but longer chains might be needed in some cases.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">rvfit perfomance tests</head><p>To test the performance of rvfit we compared its results to published solutions for a set of systems. The systems were selected to cover a range of physical and observational configurations, i.e. double-lined and single-lined binaries, with both circular and eccentric orbits and with long and short periods, and exoplanet systems. We also selected datasets with a variety of observing conditions: with few and many observations, with high and low signal to noise measurements, and densely and loosely observed.</p><p>We do not include datasets aimed at observing specific effects, such as the RossiterMcLaughlin effect (see <ref type="bibr" target="#b30">Ohta et al. 2005</ref>; Giménez 2006), or relativistic or tidal effects (see <ref type="bibr" target="#b38">Sybilski et al. 2013</ref>).</p><p>We selected two double-line spectroscopic and eclipsing binaries, two single-line spectroscopic binary stars, and two exoplanet systems. The published solutions for those systems obtained from the literature and the results of our rvfit code are shown in <ref type="table">Table   1</ref>. All uncertainties were computed using a MCMC chain with n = 10 5 samples, except for GU Boo with all parameters free (n = 10 6 samples) and HD 37605 (n = 5 × 10 5 samples).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.1.">LV Her</head><p>LV Her is a double-line eccentric eclipsing binary star ( <ref type="bibr" target="#b40">Torres et al. 2009</ref>). We selected this system because its high eccentricity, the high quality of its radial velocity curve, the long orbital period, and the long observing time interval relative to the period. For this system two fits were done: the first one leaving all the parameters free and the second one fixing P to the value from the light curve to mimic the fit by <ref type="bibr" target="#b40">Torres et al. (2009)</ref>.</p><p>Our first fit arrives to a solution remarkably similar to the published one (see <ref type="figure" target="#fig_5">Figure   5</ref>). Our fitted period has a greater uncertainty since the one published was derived from the photometric eclipses of the system, which are high quality time marks. Even so, our fitted parameter set, based only in the radial velocity data, recovers perfectly the overall solution.</p><p>Fixing the orbital period to the value from the light curves ( <ref type="bibr" target="#b40">Torres et al. 2009</ref>) yields, again, similar parameters to the ones published.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.2.">GU Boo</head><p>GU Boo is a double-line and eclipsing binary star <ref type="bibr" target="#b22">(López-Morales &amp; Ribas 2005</ref>), composed of two nearly equal low-mass main sequence stars (M 1,2 ≃ 0.6M ⊙ ) in an circular orbit with a short orbital period of 11.7 hours.</p><p>Leaving all the parameters free the eccentricity obtained with rvfit is compatible with zero and the uncertainty in ω is fairly large. This suggest a circular orbit. The MCMC run shows fairly large uncertainties in those parameters related with the periastron: the marginalized histograms for T p , e, and ω are severely spread over a wide range and those of T p and ω are multimodal and runing a longer MCMC chain doesn't fix the situation.</p><p>This behaviour is a consequence of the degeneracy in T p and ω due to the null eccentricity and is a excellent indicator of this situation. In <ref type="table">Table 1</ref> we quote for P the uncertainty derived from a gausian fit to the histogram and for the other parameters the uncertainties and values derived from the maximum of the histogram and the 68.3% shortest confidence interval. We show the fitted RV curve and the residuals in <ref type="figure" target="#fig_10">Figure 6</ref> In the second fit we fixed P , T p , e and ω to the values derived by <ref type="bibr" target="#b22">López-Morales &amp; Ribas (2005)</ref> from the system's light curves. ω was fixed to 90 degrees to match the time of periastron with the instant of the primary eclipse. This leaves only three parameters free which were easily recovered in our fit. The uncertainties are gaussian-like and larger than the published values since in the original paper they were computed by simple error progagation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.3.">GJ 1046</head><p>GJ 1046 is a system containing a brown dwarf in an eccentric orbit around an M dwarf <ref type="bibr">(Kürster et al. 2008</ref>). The system is single-lined because of the low luminosity of the brown dwarf secondary. We fitted all the parameters simultaneously and obtained remarkable agreement with the published values (see <ref type="figure" target="#fig_11">Figure 7</ref>), obtaining a smaller value for the χ 2 than the published value. The MCMC uncertainties are very well modeled by gaussians and in <ref type="table">Table 1</ref> we quoted as uncertainties the σ of those gaussians.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.4.">HR 3725</head><p>HR 3725 is a single-lined spectroscopic binary containing a G2 III primary <ref type="bibr" target="#b1">(Beavers &amp; Salzer 1985)</ref>. Presumably, the secondary is a dwarf star with a late spectral type in a circular orbit. Using the published dataset we fitted two models: the first one with all the parameters free, which confirms the hipothesis of a circular orbit. In the second model we fixed e = 0 and ω = 90, as the first model suggest. In both cases, our period is smaller than the published value, which was obtained by an independent algorithm not stated in <ref type="bibr" target="#b1">Beavers &amp; Salzer (1985)</ref>. The K 1 value agrees within uncertainties. Our fitted RV curve is shown in <ref type="figure">Figure 8</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.5.">HD 37605</head><p>HD 37605 was the first exoplanet discovered by the Hobby-Eberly Telescope ( <ref type="bibr" target="#b4">Cochran et al. 2004</ref>). The planet has a very eccentric orbit (e = 0.737) with a period of 54 days and a mass of m sin i = 2.84 M J . Again, we did two fits, one leaving all the parameters free, and another fixing γ = 0 to mimic the published fit. For both models, the resulting parameters are in good agreement with the published orbital solution. The fitted RV solution is shown in <ref type="figure">Figure 9</ref>.</p><p>For this system, the MCMC was run over 5 × 10 5 times, due to the asymmetry in the marginalized histograms for the model with all the parameters free.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.6.">Kepler 78b</head><p>Kepler 78b is the first Earth-like transiting exoplanet discovered in the Kepler mission data ( <ref type="bibr">Pepe et al. 2013;</ref><ref type="bibr">Sanchis-Ojeda et al. 2013;</ref><ref type="bibr" target="#b14">Howard et al. 2013</ref>). It orbits its parent solar-like star in a nearly circular orbit and, due to their small mass-ratio, the HARPS-N dataset ( <ref type="bibr">Pepe et al. 2013</ref>) has a very low signal to noise ratio (see <ref type="figure" target="#fig_1">Figure 10)</ref>. So, this system poses a very stringent test to our code since it must recover the very low-amplitude RV signal caused by this exoplanet.</p><p>In a first fit, we kept T p , e, ω fixed following a similar approach to <ref type="bibr">Pepe et al. (2013)</ref>.</p><p>T p was set to the reference epoch in their <ref type="table">Table 1</ref>, the eccentricity was set to 0 and ω was set to 90 degrees to match the instant of the transit with T p . Note that they fitted the mean longitude λ 0 at epoch T 0 . Our fit results in slightly lower values of P and K 1 , near the limit of uncertainties. In a first test we set a period range between 0.1 and 1.0 days, but the algorithm found solutions with P = 0.265024 (χ 2 =327.73) and P = 0.748368 (χ 2 =330.62), both with lower χ 2 than the Kepler period (χ 2 =339.98). The presence of those solutions led us to constrain the period search to the interval [0.3, 0.5] days to match the period of the planet from Kepler data, since this is a local minimum in a wider period domain.</p><p>Since there is a precise period computed by Sanchis-Ojeda et al. <ref type="formula" target="#formula_0">(2013)</ref> from the Kepler mission photometry we ran another fit but now fixing P, e, and ω. The value for K 1 has a better agreement with the value published in <ref type="bibr">Pepe et al. (2013)</ref>. This is due to the small change in the period which varies the overall solution, as shown in the figure.</p><p>7. Discussion</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.1.">Treatment of circular orbits</head><p>As shown in section 6 when the eccentricity is null the periastron remains undefined, so the parameters related can be set to a convenient value. In eclipsing binary stars or transiting exoplanets with circular orbits it is common to define the periastron as the point of the inferior conjunction since it is well constrained by the center of the main eclipse (T 0 ) and can be used as the phase reference. So it is common to fix T p = T 0 and ω = π/2 to match the defined line of nodes with the vision line.</p><p>This situation is easy to identify when the code is forced to fit the eccentricity in a circular orbit, since the uncertainties in the fitted values of T p and ω are quite large, and the fitted e value is near 0 with a large uncertainty. In this case, the best procedure is to re-fit fixing e = 0.  <ref type="table">Table 1</ref>: Results for the fitting of radial velocities data for the selected systems. All the uncertainties were computed using a MCMC chain (see text). For each parameter, the symmetric uncertainties were computed by fitting a gaussian function to the marginalized histogram.</p><p>In this case the quoted uncertainty is the σ of the fitted gaussian function. The asymmetric uncertainties were computed using the 68.3%</p><p>shortest confidence interval over the histogram. In all the cases, the uncertainties are expressed as the two last digits of the parameter, with the decimal point present where necessary for guidance. f means fixed and adopted from other section in the original paper. The Nightfall, and in their User Manual states that 'Be prepared for a computing time on the order of a day or more'. We presume that he implemented a standard SA though no details are given.</p><p>To our knowledge, these claims were made in the context of fitting simultaneous photometric and RV observations of eclipsing binaries where a complex model need to be fitted to account for the variety of phenomena in such systems. This triggers the number of parameters to be fitted simultaneously, including tidal distorsions, limb darkening, gravity brightening, mutual heating effects, computation of visible photosphere due to eclipses, and stellar spots. It is clear that in these models the cost function is harder to compute and the space parameter is harder to search. In addition, some of these codes implement classical SA, not the newer versions with better convergence properties. There have been, however, developments in computational technology in recent years, which allow computations with much higher speeds.</p><p>The computation time of the ASA algorithm depends on a number of factors:</p><p>• the number of parameters to fit,</p><p>• the complexity of the functional dependence of the cost function with the parameters,</p><p>• the size of the dataset, and</p><p>• the particular configuration of internal variables to run the code, particularly c and</p><formula xml:id="formula_24">N gen .</formula><p>In addition, the ASA is a heuristic algorithm with a strong random behaviour. This means that each time it is run the trajectory in the parameter space will be different, in spite of starting the algorithm with the same initial parameters.</p><p>Because of those factors, the precise execution time of the ASA algorithm cannot be measured or predicted since each run of the code will lead to different values even with the same dataset and starting points. Thus, we decided to estimate the execution time of the algorithm taking a statistical approach. For a model radial velocity dataset, we ran the code a large number of times to obtain statistics on the times needed to complete the fit. These km/s. The chosen orbit depicts a single line system without loss of generality, since for a double-lined system the total observed points are distributed between the two stars with the same computational load for computing the cost function as in a single-lined system with the same total number of points.</p><p>With this configuration we simulated four datasets with 15, 50, 100 and 1000 randomly spaced data points over a span of 3 periods. Gaussian distributed undertainties with σ noise = 2 km/s were added to each dataset, resulting in radial velocity curves with a signal-to-noise ratio (SNR) 10. Each model was fitted 1000 times using rvfit. For each run, the execution time and the χ 2 was logged. <ref type="figure" target="#fig_1">Figure 11</ref> shows the execution time histograms of the four datasets. To quantify this plot we defined t 68 , t 95 , and t 99 as the execution times encompassing the 68%, 95% and 99% of all runs. The results are summarized in <ref type="table">Table 2</ref>.</p><p>Typical execution times are below 20 s for common single-lined binary datasets and below 30 s for double-line binary datasets. Earth-like exoplanets with datasets of hundreds of points could be analized in less than two or three minutes.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.3.">Robustness tests</head><p>To make the code as robust as possible, we performed thousands of fitting tests by generating synthetic datasets with a wide range of orbital parameters varying P , T p, γ, K 1 , and K 2 in a aleatory fashion and covering the full range of values for e and ω. A number of flaws were detected, mainly related with overflows and zero denominators, which were corrected checking the conditions of the computations in volved.  <ref type="table">Table 2</ref>: Execution times measured over 1000 consecutive runs for the same synthetic datasets in <ref type="figure" target="#fig_1">Figure   11</ref>. Each time was measured from the histogram computing the cumulative distribution function (CDF) and interpolating the desired percentage. Note that doubling the t 68 execution times is a good guess for t 99 .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.4.">Refinement of the result</head><p>In their work about the ASA algorithm applied to combined visual and RV observations, <ref type="bibr" target="#b33">Pourbaix (1998)</ref> claims that a local search has to be used to tune the minimum found.</p><p>This could be due to the fact that the termination condition for his ASA algorithm stops the computation after a fixed number of temperature reductions with the goal in mind of obtain a automatic value for the annealing-rate parameter c. Our criterion to stop the annealing loop is somewhat different since we keep a track of the variations in the cost function χ 2 to have control over the convergence. So the refinement is an unnecesary step for our algorithm. Whether the result is to be refined, the output parameters from the ASA algorithm have to be the input parameters for a code such as Levemberg-Marquadt (see <ref type="bibr" target="#b44">Wright &amp; Howard 2009</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8.">Conclusions</head><p>The Adaptive Simulated Annealing Algorithm (ASA) provide a valuable tool to fit functions in highly-dimensional parameter spaces. The first versions of the Simulated Annealing algorithm, the so called Boltzmann Annealing, was computationally slow. The new developments in this algorithm, namely Adaptive Simulated Annealing (ASA), makes it an option to take into account.</p><p>With present domestic computational technologies, a complete solution for radialvelocity curves with preliminary uncertainties can be obtained in times of the order of tens of seconds or less. In eclipsing binary systems and transiting exoplanets, where the period can be determined from their light curves, the fitting is even faster obtaining a complete solution in seconds.</p><p>ASA allows to fit radial velocity curves leaving free all the parameters, including the period. This is an advantage over others algorithms where the period must be fixed beforehand using other techniques such as periodograms, Fast Fourier Transforms or Phase Dispersion Minimization techniques.</p><p>One of the advantages of the ASA approach is that no derivative is needed to compute the fit since it is based only on function evaluations. This efficiently avoids local minima.</p><p>Also, this approach allows to concentrate all the physics in one function, the objective function, in our case the χ 2 , where the physical model comes into the v calc . More elaborated models can easily be intoduced changing this function.</p><p>Due to these refinements, the advantages of ASA over the classical SA algorithm are clearly stated: 1) Better convergence properties in high dimensionality spaces with great topological complexity, 2) Individual adaptation of each parameter to the local topology, and 3) Faster schedule for the generating and acceptance temperatures.</p><p>But this advantages have some cost. The implementation of the ASA algorithm is more complex than the classical SA algorithm, there is a larger number of internal parameters, namely, the temperatures and the sensibilities and, 3) the exponential form of the temperature schedules force to check the exponents to avoid overflows and force the use of double precission aritmethic.</p><p>We have developed a fitting code called rvfit which makes use of ASA, to fit keplerian radial velocity curves. Our code, implemented in IDL, computes initial uncertainties using a Fisher matrix but we have also tested a routine to obtain uncertainties using a Markov</p><p>Chain Monte-Carlo (MCMC) technique with the Metropolis-Hastings sampler.</p><p>The rvfit code, which is publically avaliable at http://www.cefca.es/people/ ~ riglesias/index.ht shows their full capabilities when a search in the full parameter space is needed. Thus, this code may be helpful in situations where the orbital period is unknown, as may be the case of RV surveys, since it avoids the previous computation of a periodogram or the use of other routine to find the period. Also, it provides the full set of parameters in a consistent way taking into account the observational uncertainties of the data.</p><p>Other, simpler techniques, can be applied in the cases where only a small subset of parameters need to be fitted. For instance, for a circular orbit of known period, a sine curve can be fitted directly to the radial velocities. This is because there is a limit to the minimum number of computations that must be done at each temperature to reach the termination condition. This mechanism is of low efficiency for a small parameters set, where other algorithms can perform better.</p><p>Our tests with real and synthetic radial velocity curves are very promising, with our computed values and uncertainties in full agreement with the published values, thus proving the power of this technique.</p><p>-36 -We note that the current version of rvfit is only suited for fitting single exoplanet systems. Simultaneous multi-planet fits will be implemented in future versions of the code.</p><p>Future refinements of rvfit will also introduce Keplerian perturbations in the orbit due to the presence of other bodies in the system, such as interacting planets or a thirth star in an external orbit, calculations of jitter contributions for exoplanet RV datasets and the capability to merge and simultaneously fit RV datasets from different sources.    orbit. This plot correspond to the fit with all the parameters free, including the period. <ref type="figure">Fig. 9</ref>.-Radial velocity curve for the exoplanet system HD 37605 in which we fitted all the parameters including the orbital period. The plot of the fit with γ = 0 is identical to the eye.  Each synthetic model was fitted 1000 times to build 20-bin histograms. The abrupt drop for the lowest bin in each histogram is due to the minimum number of reannealings imposed to the code for termination and marks the minimum execution time for each dataset.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="9.">Acknowledgements</head></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head></head><label></label><figDesc>In this function, v i is a random number in the [0,1] interval and T i,gen (k i ) is the generating temperature for the parameter x i , which depends on k i called annealing times, an independent index for each parameter. The function sgn() determines the sign of the expresion inside the parentheses. We show the behaviour of this distribution function in Figure 1 for three different generating temperatures. The distribution of points given by this function concentrates around the central value when T i,gen is reduced. But even in the case of very low temperatures, some points are generated far away from the central point allowing for a scan of the space parameters and moving away from the central value whether or not a better solution is found. This avoids local minima.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Fig. 1 .</head><label>1</label><figDesc>Fig. 1.-Behaviour of the distribution function q i for three different generating temperatures T gen : dashed for T gen = 1000, dotted for T gen = 0.01 and solid for T gen = 10 −20 . The effect of reducing the temperature is to concentrate the generated points around the central value q i = 0, but still allowing the generation of some points far away. The parameter c was fixed to 20 as in our code.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head></head><label></label><figDesc>Several routines has been developed in the past to do this in an efficient fashion (see e.g. the review by Meeus 1998). Well-known classical methods to solve the Kepler equation include the Newton method (Duffett-Smith 1988; Meeus 1998), the Kepler method (Meeus 1998), and the binary search method (Sinnott 1985).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>is a constant.</head><label></label><figDesc>In the Kepler method we also implemented the two-step approach mentioned, computing the initial value of the eccentric anomaly with the eq. 17. The Kepler method needs from 3 to 30 iterations depending on the eccentricity value but the behaviour shows a regular trend with a maximun of iterations near e=0.7. The Newton classical method is very fast, converging to the solution in less than 10 iterations for eccentricities below e=0.95 but shows a strong increment near the limit of e &lt; 1. To investigate this behaviour we run aditional tests for the eccentricity in the range [0.95,0.999] for each method. The results are displayed in Figure 2. A strong random variation is observed in the number of iterations needed to achieve the desired accuracy, with peaks above 200 iterations for some values of the eccentricity and less than 20 iterations for the neightbour test. No clear pattern is observed in this variation, which suggest a weak convergence in this range of eccentricities. The results of the tests shown here are for M=0.3, but we find a similar behavior for other values of M, affecting slightly different intervals of eccentricity near the limit of 1. Meeus (1998) has observed this same effect (see his Figures 4 and 5) and claims that the problem is present for values of M near 0 and eccentricity near 1, i.e. the parameters that makes the denominator in the equation 18 almost 0. He quoted some solutions, which are reduced to limiting the value of the eccentric anomaly correction in the algorithm.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head></head><label></label><figDesc>The behaviour of the algorithm is shown in Figures 3 and 4. Those figures show the acceptance temperature and the cost function values for all the accepted parameter configurations for a fitting run to the data of the eccentric double-line eclipsing binary LV Her (Torres et al. 2009). In this fit all the parameters were leave free, including the orbital period. The figures illustrate the evolution of the acceptance temperature with the annealing phases of decreasing T a , the subsequent reannealing jumps, and the associated groups of new acceptances with higher cost function values when a reannealing occurs.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Figure 5 shows</head><label>5</label><figDesc>Figure 5 shows the resulting radial velocity curve fit for this binary.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head></head><label></label><figDesc>references are: [1]=Torres et al. (2009) (there is a typo in the published value of γ [Torres, priv. comm.]), [2]=López-Morales &amp; Ribas (2005), [3]=Kürster et al. (2008), [4]=Beavers &amp; Salzer (1985), [5]=Cochran et al. (2004), [6]=Sanchis-Ojeda et al. (2013), [7]=Pepe et al. (2013), [8]=Howard et al. (2013) 7.2. Speed tests and dependence with the number of observations A primordial motivation for all fitting codes is the execution speed. Some authors claim that SA is slow. Milone &amp; Kallrath (2008) published an extended analysis of classical SA and its performance using an algorithm similar to Corana et al. (1987), and applied it to the computation of eclipsing binary stars light curves. But they only fitted light-curves, not RV curves, and used the WD code to compute the cost function. Fitting three or four parameters, their measured execution times are as long as 6.2 × 10 4 s, though in one fit they get a more reasonable value of 386 s. Prša &amp; Zwitter (2005) claim that SA methods 'are notoriously slow', without going into details. In their conclusions they state that ASA, with Powell's direction method, is a 'very promising candidate' Prša (2011) claims that ASA merits applied to eclipsing binaries 'are still to be confirmed'. Kallrath &amp; Milone (2006), in section 4.3.4.3, states for SA that 'the computational cost to reach this state can be high, as temperature annealing has to be sufficiently slow'. Wichmann (1999) includes SA in</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head></head><label></label><figDesc>speed tests were done to provide a complete physical solution, not only the solution of the ASA algorithm. This includes the code needed to read the data files, to compute the initial parameter values and, after arriving to a solution, to compute the physical parameters of the system with their uncertainties, and to display the plots with the fitted radial velocity curve, the observed data and the residuals. The tests do not include the computation of the uncertainties using the MCMC code, which is in separated routines. The speed tests were done in a DELL inspiron laptop with an Intel Core I5 processor and 8 GB of RAM memory, running Ubuntu Linux 12.04 LTS. To assess the dependence of the execution time with the number of RV observations we simulated diferent datasets with a particular orbital configuration. We chose an orbit with the parameters P = 10 days, T p = 2450000.0, e = 0.1, ω = 90 degrees, γ = 0 km/s, K 1 = 20</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head></head><label></label><figDesc>Fig. 2.-Number of iterations versus eccentricity for four different methods to solve Kepler's equation. The left-side panel shows 100 evenly distributed eccentricity values between e = 0 − 0.9999, for M=0.3 radians. This plot reveals how the classical Newton method has convergence problems when e ∼ 1. The right-side panel shows the eccentricity interval e = 0.95 − 0.9999, where we compute 100 values for M = 0.3 radians. Both plots show how our implemented Newton two-step method is more efficient than all the others.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head>Fig. 5 .</head><label>5</label><figDesc>Fig. 5.-Radial velocity curve for LV Her for the fit with all the parameters free, including the period. The error bars are smaller than the point size in the RV plot. This solution is visually indistinguishable from the one with P fixed.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_10"><head>Fig. 6 .</head><label>6</label><figDesc>Fig. 6.-Radial velocity curve for the low-mass eclipsing binary GU Boo. This plot correspond to the second fit, with a circular orbit and in which we fixed P and T P to the values obtained from the photometry. The fit with all the parameters free is indistinguishable from this plot.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_11"><head>Fig. 7 .</head><label>7</label><figDesc>Fig. 7.-Fitted radial velocity curve for the single-lined binary GJ 1046. For this plot all the six parameters of the Keplerian model were leave free, including the period. The error bars in the RV curve are smaller than the symbols of the RV values.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_12"><head>Fig. 10 .</head><label>10</label><figDesc>Fig. 10.-Radial velocity curve for the exoplanet system Kepler 78b. This plot corresponds to the solution with circular orbit and with P and T P fixed from the Kepler photometry.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_13"><head>Fig. 11 .</head><label>11</label><figDesc>Fig. 11.-Speed test results for SNR=10 synthetic datasets with different number of points.</figDesc></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Andrae</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1009.2755v3</idno>
+		<imprint>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">I</forename><surname>Beavers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Salzer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">97</biblScope>
+			<biblScope unit="page">355</biblScope>
+			<date type="published" when="1985" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Cern´ycern´y</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Optimization Theory and Applications</title>
+		<imprint>
+			<biblScope unit="volume">45</biblScope>
+			<biblScope unit="page">41</biblScope>
+			<date type="published" when="1985" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">L</forename><surname>Luk</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Signal Processing</title>
+		<imprint>
+			<biblScope unit="volume">79</biblScope>
+			<biblScope unit="page">117</biblScope>
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">D</forename><surname>Cochran</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">401</biblScope>
+			<biblScope unit="page">1029</biblScope>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Coe</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:0906.4123v1</idno>
+		<imprint>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Corana</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Marchesi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Martini</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Ridella</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ACM Trans. Mathematical Software</title>
+		<imprint>
+			<biblScope unit="volume">13</biblScope>
+			<biblScope unit="page">262</biblScope>
+			<date type="published" when="1987" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<monogr>
+		<title level="m" type="main">Metaheuristics for Hard Optimization</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Dréo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Pétrowski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Siarry</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Taillard</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2006" />
+			<biblScope unit="page">44</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<monogr>
+		<title level="m" type="main">Practical Astronomy with your calculator</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Driscoll</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1998" />
+			<publisher>Cambridge University Press</publisher>
+		</imprint>
+		<respStmt>
+			<orgName>San Francisco State University Duffett-Smith, P.</orgName>
+		</respStmt>
+	</monogr>
+<note type="report_type">Master Thesis</note>
+	<note>3nd Ed</note>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Eastman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">S</forename><surname>Gaudi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">125</biblScope>
+			<biblScope unit="page">83</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Ford</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">129</biblScope>
+			<biblScope unit="page">1706</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Ford</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">642</biblScope>
+			<biblScope unit="page">505</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<monogr>
+		<title level="m" type="main">Bayesian Data Analysis</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gelman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Carlin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">S</forename><surname>Stern</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">B</forename><surname>Rubin</surname></persName>
+		</author>
+		<imprint>
+			<publisher>Chapman &amp; Hall/CRC</publisher>
+		</imprint>
+	</monogr>
+	<note>2nd Ed</note>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Giménez</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">650</biblScope>
+			<biblScope unit="page">408</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Howard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">503</biblScope>
+			<biblScope unit="page">381</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">Very fast simulated re-annealing</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Ingber</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mathl. Comput. Modelling</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="page">967</biblScope>
+			<date type="published" when="1989" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Simulated annealing: Practice versus theory</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Ingber</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mathl. Comput. Modelling</title>
+		<imprint>
+			<biblScope unit="volume">18</biblScope>
+			<biblScope unit="page">29</biblScope>
+			<date type="published" when="1993" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Adaptive simulated annealing (ASA): Lessons learned</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Ingber</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Control and Cybernetics</title>
+		<imprint>
+			<biblScope unit="volume">25</biblScope>
+			<biblScope unit="page">33</biblScope>
+			<date type="published" when="1996" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">Eclipsing Binary Stars. Modelling and Analysis</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Kallrath</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">F. ;</forename><surname>Milone</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Springer</forename><surname>Kirkpatrick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">C</forename><surname>Gelatt</surname><genName>Jr</genName></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Vecchi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Sci</title>
+		<imprint>
+			<biblScope unit="volume">220</biblScope>
+			<biblScope unit="issue">4598</biblScope>
+			<biblScope unit="page">671</biblScope>
+			<date type="published" when="1983" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Kürster</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Endl</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Reffert</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">483</biblScope>
+			<biblScope unit="page">869</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Levenberg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Quarterly of Applied Mathematics</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page">164</biblScope>
+			<date type="published" when="1944" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<monogr>
+		<title level="m" type="main">Simulated annealing algorithms for continuous global optimization, Handbook of Global Optimization II</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Locatelli</surname></persName>
+		</author>
+		<imprint>
+			<publisher>Kluwer Academic Publishers</publisher>
+			<biblScope unit="page">179</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>López-Morales</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Ribas</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">631</biblScope>
+			<biblScope unit="page">1120</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J C</forename><surname>Mackay</surname></persName>
+		</author>
+		<title level="m">Information Theory, Inference, and Learning Algorithms</title>
+		<imprint>
+			<publisher>Cambridge University Press</publisher>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Marquardt</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">SIAM Journal on Applied Mathematics</title>
+		<imprint>
+			<biblScope unit="volume">11</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page">431</biblScope>
+			<date type="published" when="1963" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<monogr>
+		<title level="m" type="main">Astronomical Algorithms</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Meeus</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1998" />
+			<publisher>Willmann-Bell Inc</publisher>
+		</imprint>
+	</monogr>
+	<note>2nd Ed</note>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Meschiari</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">P</forename><surname>Laughlin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">718</biblScope>
+			<biblScope unit="page">543</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Meschiari</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">S</forename><surname>Wolf</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Rivera</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">P</forename><surname>Laughlin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Vogt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Butler</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<editor>Metropolis N., Rosenbluth A., Rosenbluth M., Teller A., Teller E.</editor>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page">1087</biblScope>
+			<date type="published" when="1953" />
+		</imprint>
+	</monogr>
+	<note>PASP</note>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<monogr>
+		<title level="m" type="main">Short-Period Binary Stars. Observations,Analyses and Results</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">F</forename><surname>Milone</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Kallrath</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">F</forename><surname>Milone</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Leahy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hobill</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2008" />
+			<publisher>Springer</publisher>
+			<biblScope unit="page">191</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title level="a" type="main">Linear programming</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">G. ; J A</forename><surname>Murty</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Mead</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Computer Journal</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="page">308</biblScope>
+			<date type="published" when="1965" />
+			<publisher>John Wiley &amp; Sons Inc Nelder</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Ohta</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Taruya</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Suto</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">622</biblScope>
+			<biblScope unit="page">1118</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title level="a" type="main">The Annealing Algorithm</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">H J M</forename><surname>Otten</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">P P P ; F</forename><surname>Van Ginneken</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">503</biblScope>
+			<biblScope unit="page">377</biblScope>
+			<date type="published" when="1989" />
+			<publisher>Kluwer Academic Publishers Pepe</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Pincus</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Operations Research</title>
+		<imprint>
+			<biblScope unit="volume">18</biblScope>
+			<biblScope unit="page">1225</biblScope>
+			<date type="published" when="1970" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Pourbaix</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;AS</title>
+		<imprint>
+			<biblScope unit="volume">131</biblScope>
+			<biblScope unit="page">377</biblScope>
+			<date type="published" when="1998" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Press</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Teukolsky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Vetterling</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Flannery</surname></persName>
+		</author>
+		<title level="m">Numerical Recipes in C</title>
+		<imprint>
+			<publisher>Cambridge University Press</publisher>
+			<date type="published" when="1992" />
+		</imprint>
+	</monogr>
+	<note>2nd ed</note>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">;</forename><surname>Prša</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Siam Prša</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Zwitter</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PHOEBE Scientific Reference</title>
+		<imprint>
+			<biblScope unit="volume">628</biblScope>
+			<biblScope unit="page">426</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+	<note>ApJ</note>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Salamon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Sibani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">; R</forename><surname>Frost</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Facts, Conjectures, and Improvements for Simulated Annealing</title>
+		<meeting><address><addrLine>Philadelphia</addrLine></address></meeting>
+		<imprint>
+			<publisher>SIAM Sanchis-Ojeda</publisher>
+			<date type="published" when="2002" />
+			<biblScope unit="volume">774</biblScope>
+			<biblScope unit="page">54</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">W</forename><surname>Sinnott</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Sky and Telescope</title>
+		<imprint>
+			<biblScope unit="volume">70</biblScope>
+			<biblScope unit="page">159</biblScope>
+			<date type="published" when="1985" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Sybilski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Konacki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">K</forename><surname>Koz00owski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">G</forename><surname>Helminiak</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">431</biblScope>
+			<biblScope unit="page">2024</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Szu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Hartley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Phys. Lett. A</title>
+		<imprint>
+			<biblScope unit="volume">122</biblScope>
+			<biblScope unit="page">157</biblScope>
+			<date type="published" when="1987" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Torres</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">H</forename><surname>Sandberg Lacy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Claret</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">138</biblScope>
+			<biblScope unit="page">1622</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Wichmann</surname></persName>
+		</author>
+		<title level="m">Nightfall Users Manual</title>
+		<imprint>
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title level="a" type="main">Nightfall: Animated Views of Eclipsing Binary Stars</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Wichmann</surname></persName>
+		</author>
+		<idno>ascl:1106.016</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Astrophysics Source Code Library</title>
+		<imprint>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">E</forename><surname>Wilson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Devinney</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">166</biblScope>
+			<biblScope unit="page">605</biblScope>
+			<date type="published" when="1971" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Wright</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Howard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">182</biblScope>
+			<biblScope unit="page">205</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

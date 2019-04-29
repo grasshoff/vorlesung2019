@@ -1,0 +1,492 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-11T13:16+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Random sampling technique for ultra-fast computations of molecular opacities for exoplanet atmospheres</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2018-08-02">August 2, 2018</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Min</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">SRON Netherlands Institute for Space Research</orgName>
+								<address>
+									<addrLine>Sorbonnelaan 2</addrLine>
+									<postCode>3584 CA</postCode>
+									<settlement>Utrecht</settlement>
+									<country key="NL">The Netherlands</country>
+								</address>
+							</affiliation>
+							<affiliation key="aff1">
+								<orgName type="department">Astronomical institute Anton Pannekoek</orgName>
+								<orgName type="institution">University of Amsterdam</orgName>
+								<address>
+									<addrLine>Science Park 904</addrLine>
+									<postCode>1098 XH</postCode>
+									<settlement>Amsterdam</settlement>
+									<country key="NL">The Netherlands</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Random sampling technique for ultra-fast computations of molecular opacities for exoplanet atmospheres</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2018-08-02">August 2, 2018</date>
+						</imprint>
+					</monogr>
+					<note type="submission">Last edit: August 2, 2018</note>
+					<note>Astronomy &amp; Astrophysics manuscript no. 31612 c ESO 2018</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<abstract>
+				<p>Context. Opacities of molecules in exoplanet atmospheres rely on increasingly detailed line-lists for these molecules. The line lists available today contain for many species up to several billions of lines. Computation of the spectral line profile created by pressure and temperature broadening, the Voigt profile, of all of these lines is becoming a computational challenge. Aims. We aim to create a method to compute the Voigt profile in a way that automatically focusses the computation time into the strongest lines, while still maintaining the continuum contribution of the high number of weaker lines. Methods. Here, we outline a statistical line sampling technique that samples the Voigt profile quickly and with high accuracy. The number of samples is adjusted to the strength of the line and the local spectral line density. This automatically provides high accuracy line shapes for strong lines or lines that are spectrally isolated. The line sampling technique automatically preserves the integrated line opacity for all lines, thereby also providing the continuum opacity created by the large number of weak lines at very low computational cost. Results. The line sampling technique is tested for accuracy when computing line spectra and correlated-k tables. Extremely fast computations (∼ 3.5 · 10 5 lines per second per core on a standard current day desktop computer) with high accuracy (≤ 1% almost everywhere) are obtained. A detailed recipe on how to perform the computations is given.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>After an extremely successful decade of exoplanet discoveries, the exoplanet research field is rapidly moving into the age of characterisation. Spectroscopic observations of exoplanet atmospheres are becoming more and more detailed especially with the HST WFC3 as an important contributor. The launch of the James Web Space Telescope (JWST) next year will likely accelerate this development enormously. The increasing level of detail in the observations is accompanied by an increasing demand on the accuracy of the models trying to explain the data. A first step in modelling an exoplanet atmosphere is having the right opacities of both molecules and cloud particles. The hot atmospheres of many planets we can study today provide challenges for the databases of molecular lines created for the atmosphere of the Earth and solar system planets, like HITRAN ( <ref type="bibr" target="#b10">Rothman et al. 2013</ref>) and HITEMP ( <ref type="bibr" target="#b11">Rothman et al. 2010</ref>). To solve this problem the ExoMol project was initiated <ref type="bibr" target="#b12">(Tennyson &amp; Yurchenko 2012;</ref><ref type="bibr" target="#b13">Tennyson et al. 2016)</ref>. In this project a mixture is employed of first principles and empirically tuned quantum mechanical computations, providing the most complete list of transitions for a wide variety of molecules.</p><p>Send offprint requests to: M. Min, e-mail: M.Min@sron.nl</p><p>Having a line list that is as complete as possible is crucial for doing proper radiative transfer computations in high temperature atmospheric environments. However, computing the line opacities for a large number of lines can be computationally challenging. For example, the ExoMol line list of CH 4 contains on the order of 10 10 lines <ref type="bibr" target="#b16">(Yurchenko &amp; Tennyson 2014)</ref>. Computing the exact pressure and temperature broadened Voigt profile for each of these lines is computationally extremely demanding. There are several approximate methods for computing Voigt profiles available in the literature <ref type="bibr">(e.g. Humlícek 1982;</ref><ref type="bibr" target="#b14">Weideman 1994;</ref><ref type="bibr" target="#b18">Zaghloul &amp; Ali 2012)</ref>. Also, much effort is spend succesfully on making these approximate methods faster and more accurate (see e.g. <ref type="bibr" target="#b8">Poppe &amp; Wijers 1990;</ref><ref type="bibr" target="#b7">Letchworth &amp; Benner 2007)</ref>. These methods all focus on obtaining a given accuracy of the exact shape of the Voigt profile by applying mathematical approximations to decrease the computation time. While these methods still require significant computation time, they are now routinely applied to compute Voigt profiles in many applications. The fastest code able to compute Voigt profiles of large numbers of lines at this moment is the HELIOS-k code <ref type="bibr" target="#b2">(Grimm &amp; Heng 2015)</ref>. This code is able to compute ∼ 10 5 lines per second on a dedicated NVIDIA K20 GPU based machine. This implies that the computation of 10 10 lines still requires on the order of one day for a single point in arXiv: <ref type="bibr">1710</ref> pressure temperature space. Usually a grid of pressure and temperature points is required. Thus, there is the need for an even faster method. In addition, we have to make sure that there are no systematic errors in the computations because a small systematic error in a single line can become large when computed for 10 10 lines. Thus, we seek a method that is statistically exact, preserves the integrated opacities and the average shape of the lines, and computes the line profile accurately for the stronger lines.</p><p>For most practical applications we are not interested in the detailed line shapes of all 10 10 lines. Only a few of the strongest lines can be distinguished, while the weaker lines provide continuum opacity. However, the detailed properties of the line wings due to pressure broadening are very important to take into account <ref type="bibr" target="#b3">(Hedges &amp; Madhusudhan 2016)</ref>. <ref type="bibr" target="#b15">Yurchenko et al. (2017a)</ref> use these arguments to separate the linelist into a list of weaker lines, for which a pseudo-continuum is computed, and a list of stronger lines, for which the full line profiles are computed. The authors of that paper show that the number of strong lines is orders of magnitude smaller than the total number of lines, so the computation time required is reduced with a similar fraction. This is a very strong method, with the only drawback that a split into strong and weak lines is required. In this paper we take a different approach which automatically transitions from strong to weak lines.</p><p>The extremely large number of lines is ideal for statistical methods. In this paper these properties are used to construct a line sampling technique where the line shape is randomly sampled. The technique automatically focusses the computation time in constructing accurate line shapes for the strongest lines, while for the weakest lines the focus lies on creating the right continuum opacity. The statistical properties of the line shapes are computed without approximation, taking into account the detailed far line wings due to pressure broadening of the vey large number of lines. This creates accurately the expected continuum from these large number of line wings. The computation time of the line sampling technique scales favourably with the number of lines, meaning that for large line numbers increasing the number of lines has very little influence on the computation time required.</p><p>In section 2 the line sampling technique is presented in detail and the numerical implementation is explained. The method is applied to computing the CH 4 opacities and correlated-k tables in section 3. Finally, the results are summarised in section 4.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Opacity computations</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">Statistical line profile sampling</head><p>The large line lists available for species like CH 4 and H 2 O contain so many lines that in low resolution spectra there are 10 5 to 10 6 lines per spectral resolution element. Thus, we are not so much interested in the exact line shapes as we are in the statistical distribution of the opacities. The correlated-k method simply samples the probability opacity distribution within a resolution bin. An efficient method for computing the correlated-k tables therefore focusses on computing these statistical properties, rather than the exact line shape of each separate line.</p><p>A molecular line is broadened by Doppler-and pressure broadening. The convolution of a Gaussian (Doppler) and Lorentz (pressure) profile creates the Voigt profile. Computing the exact shape of this convolution can be computationally demanding. Here we do not compute the convolution directly but sample the exact shape of the convolution by sampling the Gaussian and a Lorentz profile. Sampling a probability distribution can be done by creating a number of N samples of the frequency shift with respect to the line centre, and adding a fraction of 1/N of the integrated line to the frequency bin corresponding to that frequency shift. In the limit of N → ∞ this gives the exact line shape. Standard algorithms exist for sampling probability distributions of various shapes. For an explanation on sampling of the deviates of a probability distribution the reader is referred to chapter 7.2 of <ref type="bibr" target="#b9">Press et al. (1992)</ref>. While no analytic expression exists for sampling the deviate of the Voigt probability distribution, we can construct the deviate exactly by sampling the deviates of the Gaussian and Lorentzian distributions of which the Voigt profile is a convolution.</p><p>The broadening of the line due to thermal velocity of the gas is given by the Gaussian probability distribution</p><formula xml:id="formula_0">φ therm = 1 σ √ 2π exp − (ν − ν 0 ) 2 2σ 2 (1)</formula><p>where ν is the frequency of the radiation, ν 0 the centre of the line, and σ the thermal broadening parameter given by</p><formula xml:id="formula_1">σ = ν 0 c 2 k b T m mol (2)</formula><p>with k b the Boltzmann constant, T the temperature of the gas, m mol the mass of the molecule, and c the speed of light. The broadening of the line due to pressure effects is given by the Lorentz probability distribution</p><formula xml:id="formula_2">φ press = γ/π γ 2 + (ν − ν 0 ) 2 ,<label>(3)</label></formula><p>where γ = γ 2 i with γ i is the broadening parameter due to pressure broadening of species i. The dependency of γ i on pressure and temperature is given by</p><formula xml:id="formula_3">γ i = γ i,0 p i P 0 T 0 T n i ,<label>(4)</label></formula><p>where γ i,0 is the broadening parameter at temperature T 0 and pressure P 0 , n i is the pressure broadening exponent due to broadening by species i, and p i is the partial pressure of species i (p i = f i · P, with f i the abundance of species i and P the total pressure). In the ExoMol database there is broadening data available for H 2 and He, which are the most important collisional partners in the broadening of the lines ( <ref type="bibr" target="#b17">Yurchenko et al. 2017b)</ref>. A Gaussian profile can be easily sampled using standard algorithms. Given random numbers −1 &lt; η 1 , η 2 &lt; 1, samples the Gaussian profile. Also a Lorentz profile is easily sampled. Given a random number, −1 &lt; η &lt; 1,</p><formula xml:id="formula_4">∆ν therm = σ η 1 −2 ln η 2 1 + η 2 2 η 2 1 + η 2 2 ,<label>(5)</label></formula><formula xml:id="formula_5">∆ν press = γ tan π 2 η ,<label>(6)</label></formula><p>samples the Lorentzian profile. Both thermal and pressure broadening move energy of the line away from the line centre. The probability distributions give the fraction of the energy that is moved away from the line centre by a shift ∆ν = ν − ν 0 . The combined effect of thermal and pressure broadening, the Voigt profile, is thus computed by the convolution of these two probability distributions. In other words, we move the energy away from the line centre by two shifting mechanisms implying that we are able to sample the Voigt distribution by ∆ν = ∆ν therm + ∆ν press .</p><p>We stress that by adding the frequency shifts in the sampling procedure, we compute the exact shape of the convolution of the two profiles and thus the exact shape of the Voigt profile. This procedure should not be confused with the pseudoVoigt profile (which introduces a small error at the advent of decreased computation time <ref type="bibr" target="#b6">Ida et al. 2000)</ref>. In principle, the procedure to construct a Voigt profile is to use this sampling procedure to distribute the integrated opacity of each line over frequency space. We create N random values for ∆ν and add a fraction of 1/N of the integrated line opacity in the frequency bin corresponding to the frequency ν 0 + ∆ν, with ν 0 the line centre. The disadvantage of this direct approach is that we need many samples to make sure no bins in the line wings are missed and end up with zero opacity. A better procedure is to spread the opacity over multiple bins. We spread the opacity of a sample over all bins in the frequency range ν 1 ≤ ν ≤ ν 2 given by, ν 1 = ν 0 − |∆ν press | + ∆ν therm , (8) ν 2 = ν 0 + |∆ν press | + ∆ν therm .</p><p>To obtain the Voigt line profile from this we have to weight each sample with a factor w = ∆ν 2 press ∆ν 2 press + γ 2 .</p><p>Finally, the profile sampled in this way is normalised to the integrated line opacity. Often we would like the pressure broadening profile to have a cutoff at a certain value. In case a cutoff is preferred which is a multiple of γ, we can simply limit the random number η to alter the range of ∆ν press . In case an absolute cutoff in terms of ∆ν is preferred, a simple check is required if the sampled ∆ν is within the given range. If not, we just draw a new sample. An important aspect of the sampling procedure is that the integrated line opacity is always conserved, independent on if and where the line wings are cut.</p><p>Constructing a smooth line profile using the above sampling procedure can be efficient, but the real efficiency gain is when we realise that we do not need a perfectly smooth line shape for each of the 10 5 lines in each frequency bin. We can adjust the number of samples N for each line, taking into account:</p><p>-The local line density; more lines per frequency interval means we can reduce N and still maintain a proper statistical sampling of the opacity distribution in the low resolution frequency bins. -The line strength; weak lines will only create continuum, allowing to decrease N. We note that the integrated opacity is always exactly fixed, independent of N. Thus for very weak lines, even N = 1 will create the required continuum opacity.</p><p>After extensive empirical testing and optimising efficiency and accuracy we take,</p><formula xml:id="formula_9">N = R H S 200 N L R L S aver ,<label>(11)</label></formula><p>where R H is the spectral resolution used for sampling of the lines, R L is the low resolution required for the correlated-k tables, N L is the local number of lines in the resolution element corresponding to R L , S aver is the average line strength in the low resolution frequency bin, and S is the strength of the line under consideration. The value of N is restricted to 1 ≤ N ≤ 10 7 . Finally, the full computational gain of this method is obtained by storing a large number of values for ∆ν therm /σ and ∆ν press /γ. We can construct the line samples for each line with given γ and σ by randomly sampling from these two arrays. This avoids having to compute the ln and tan function too often. For both we use an array of 10 8 pre-sampled values to avoid any possibility of duplicate sampled lines.</p><p>In <ref type="figure" target="#fig_0">Fig. 1</ref> we show a Voigt profile with γ = σ = 1 for different values of N. The lower three panels in this figure give the error in percentage with respect to a Voigt profile calculated using a classical method. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.">Correlated-k computations</head><p>The correlated-k method for opacity sampling is a way to perform low resolution computations but still take into account the strong opacity fluctuations at high resolution. Correlated-k uses the assumption that within the low resolution frequency bin, radiative transfer computations with the same opacity give the same result. This means that we have to perform the radiative transfer computations for all opacities occurring within this frequency bin. The idea behind correlated-k method is to sort all opacities in a low frequency bin and transfer from the parameter ν (or λ) to a parameter 0 &lt; g &lt; 1 that contains all opacities sorted. So the lowest opacities are at g = 0 and the highest at g = 1. The distribution of opacities is the same in g or ν, so the radiative transfer is the same when averaged over ν or over g. The big advantage is that the opacity curve in g is much smoother (see examples in the next section), so we can sample the radiative transfer computations over just a few g points, where the line opacities fluctuate enormously over ν, requiring orders of magnitude more points.  It is not our aim here to discus detailed properties of the correlated-k method. For that we refer the reader to <ref type="bibr" target="#b1">Goody et al. (1989)</ref>; <ref type="bibr" target="#b2">Grimm &amp; Heng (2015)</ref>; <ref type="bibr" target="#b0">Amundsen et al. (2017)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Example: CH 4</head><p>The line sampling method above is implemented in code reading in the files from the ExoMol database. The code produces line opacities and correlated-k tables <ref type="bibr">1</ref> . As an example here we consider CH 4 in the near infrared <ref type="bibr" target="#b16">(Yurchenko &amp; Tennyson 2014</ref>). In <ref type="figure" target="#fig_1">Fig. 2</ref> we plot a small part of the spectrum. Even this tiny wavelength range contains on the order of 10 6 lines. The line profiles are sampled with a number of samples given by Eq. 11 in the lowest curves. The other curves are for more or less samples. As can be seen, increasing the number of samples by a factor of ten does not significantly decrease the noise, while if we decrease the number of samples by ten or 100 we start to see sampling noise on the line opacities. In <ref type="figure" target="#fig_2">Fig. 3</ref> we plot the resulting correlated-k tables for a wavelength bin with R = 300 around λ = 7.5 µm for different pressures and temperatures. We also plot here the relative difference with the correlated-k tables for ten times more samples. This gives an indication of the sampling error. As is expected, the error is larger for lower temperatures. This is caused by the fact that for lower temperatures the lines are narrower, and thus the sampling of the line wings is less accurate. In this case the wavelength bins relatively far from the line centre of the strong lines have poor statistics. However, we see that even in this case the error is below 10% everywhere, while for all other cases it is even below 1%. In <ref type="figure" target="#fig_3">Fig. 4</ref> we show the correlated-k tables for a wavelength bin around 0.9 µm. Also here the errors are below 1% everywhere. This behaviour is representative for the entire spectrum from optical to the infrared. It is also found that the line spectra are more sensitive to noise than the correlated-k tables.</p><p>The spectrum of CH 4 computed at two different temperatures and different pressures is shown in <ref type="figure" target="#fig_4">Fig. 5</ref>. We see that the opacity of the molecule converges towards a continuum for high pressures. This is caused by the very wide pressure broadened wings of the many lines. We note that for these computations we have considered the full Voigt profile without any wing cutoff. It is currently unknown where the pressure broadened line-wings should be cut off, but it can be seen that the effect of this is significant.</p><p>For methane at 1500 K and 1 mbar the method described above computes around 3.5 · 10 5 lines per second for a single CPU on an iMac from 2011 (3.4 GHz Intel Core i7). So on a typical 8-core desktop machine, computing the full CH 4 spectrum with 10 10 lines takes on the order of an hour and a half (this includes reading of the huge linelist files). The exact number can vary depending on the processor, molecule, temperature and pressure, but these numbers give a good indication of the speedup that the line sampling technique can provide for computing opacities from line lists. The code does not rely on dedicated machines, so can be run on arbitrary computer clusters. We note here also that by looking at Eq. 11 we see that increasing the number of lines typically has only a small influence on the computation speed, since automatically the number of samples per line is reduced. <ref type="bibr">1</ref> The computational code is available on a collaborative basis by contacting the author. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Summary</head><p>A method is provided for very fast computation of molecular opacities from large line lists. The method uses random sampling of the line profiles. There are no approximations of the shape of the lines or artificial line-cutoffs needed, the full Voigt profile is sampled for all lines. The method has the advantage that the computation time is not linearly proportional to the number of lines. When increasing the number of lines in the line list, we can decrease the number of samples per line to keep the computation time within reasonable limits.</p><p>It is shown that the method provides accurate correlatedk tables and even accurate high resolution line opacities. The broad, very far wings of the pressure broadened Voigt profile, creating continuum opacity for high pressures, can be fully computed with this method. The line sampling technique therefore provides a robust way of computing molecular opacities from large line list databases such as the ExoMol database for exoplanet opacities.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 .</head><label>1</label><figDesc>Figure 1. Example Voigt profile sampled using different values for N. The three lower panels represent the relative error (in %) with respect to a Voigt profile computed using a classical method. The frequency is in arbitrary units, γ = σ = 1.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 2 .</head><label>2</label><figDesc>Figure 2. Line spectra of methane for various pressures and tempartures computed using the line sampling technique. In the lower two panels also shown are the spectra computed with more or less samples. The spectra with different values for the number of samples are offset with respect to the N × 1.0 curves.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 3 .</head><label>3</label><figDesc>Figure 3. Examples of correlated-k tables for methane for various pressures and temperatures. The k-tables correspond to a wavelength bin with R = 300 around λ = 7.5 µm.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 4 .</head><label>4</label><figDesc>Figure 4. Examples of correlated-k tables for methane for various pressures and temperatures. The k-tables correspond to a wavelength bin with R = 300 around λ = 0.899 µm.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Figure 5 .</head><label>5</label><figDesc>Figure 5. The Methane absorption cross sections as a function of wavelength for various pressures and temperatures.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" validated="false"><head></head><label></label><figDesc>.01997v1 [astro-ph.EP] 5 Oct 2017</figDesc><table></table></figure>
+
+			<note place="foot" n="4"> M. Min: Random sampling technique for ultra-fast computations of molecular opacities for exoplanet atmospheres</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">S</forename><surname>Amundsen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Tremblin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Manners</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Baraffe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J</forename><surname>Mayne</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">598</biblScope>
+			<biblScope unit="page">97</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Goody</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>West</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Crisp</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Quant. Spec. Radiat. Transf</title>
+		<imprint>
+			<biblScope unit="volume">42</biblScope>
+			<biblScope unit="page">539</biblScope>
+			<date type="published" when="1989" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">L</forename><surname>Grimm</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Heng</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">808</biblScope>
+			<biblScope unit="page">182</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Hedges</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Madhusudhan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">458</biblScope>
+			<biblScope unit="page">1427</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Humlícek</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Quant. Spec. Radiat. Transf</title>
+		<imprint>
+			<biblScope unit="volume">27</biblScope>
+			<biblScope unit="page">437</biblScope>
+			<date type="published" when="1982" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<monogr>
+		<title level="m" type="main">Random sampling technique for ultra-fast computations of molecular opacities for exoplanet atmospheres</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Min</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Ida</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Ando</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Toraya</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Applied Crystallography</title>
+		<imprint>
+			<biblScope unit="volume">33</biblScope>
+			<biblScope unit="page">1311</biblScope>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">L</forename><surname>Letchworth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">C</forename><surname>Benner</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Quant. Spec. Radiat. Transf</title>
+		<imprint>
+			<biblScope unit="volume">107</biblScope>
+			<biblScope unit="page">173</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">P M</forename><surname>Poppe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">M J</forename><surname>Wijers</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ACM Trans. Math. Softw</title>
+		<imprint>
+			<biblScope unit="volume">16</biblScope>
+			<biblScope unit="page">38</biblScope>
+			<date type="published" when="1990" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<monogr>
+		<title level="m" type="main">Numerical recipes in FORTRAN. The art of scientific computing</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">H</forename><surname>Press</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">A</forename><surname>Teukolsky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">T</forename><surname>Vetterling</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">P</forename><surname>Flannery</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1992" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">S</forename><surname>Rothman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">E</forename><surname>Gordon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Babikov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Quant. Spec. Radiat. Transf</title>
+		<imprint>
+			<biblScope unit="volume">130</biblScope>
+			<biblScope unit="page">4</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">S</forename><surname>Rothman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">E</forename><surname>Gordon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Barber</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Quant. Spec. Radiat. Transf</title>
+		<imprint>
+			<biblScope unit="volume">111</biblScope>
+			<biblScope unit="page">2139</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">425</biblScope>
+			<biblScope unit="page">21</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">F</forename><surname>Al-Refaie</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Molecular Spectroscopy</title>
+		<imprint>
+			<biblScope unit="volume">327</biblScope>
+			<biblScope unit="page">73</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A C</forename><surname>Weideman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">SIAM J. Numer. Anal</title>
+		<imprint>
+			<biblScope unit="volume">31</biblScope>
+			<biblScope unit="page">1497</biblScope>
+			<date type="published" when="1994" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">S</forename><surname>Amundsen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">P</forename><surname>Waldmann</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">440</biblScope>
+			<biblScope unit="page">1649</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Barton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Physics Conference Series</title>
+		<imprint>
+			<biblScope unit="volume">810</biblScope>
+			<biblScope unit="page">12010</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+	<note>Journal of Physics Conference Series</note>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Zaghloul</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">N</forename><surname>Ali</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ACM Trans. Math. Softw</title>
+		<imprint>
+			<biblScope unit="volume">38</biblScope>
+			<biblScope unit="page">1</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

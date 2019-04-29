@@ -1,0 +1,841 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-11T13:19+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Stellar Inversion Techniques</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2017-11-06">6 Nov 2017</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Daniel</forename><forename type="middle">R</forename><surname>Reese</surname></persName>
+						</author>
+						<title level="a" type="main">Stellar Inversion Techniques</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2017-11-06">6 Nov 2017</date>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<abstract>
+				<p>Stellar seismic inversions have proved to be a powerful technique for probing the internal structure of stars, and paving the way for a better understanding of the underlying physics by revealing some of the shortcomings in current stellar models. In this lecture, we provide an introduction to this topic by explaining kernel-based inversion techniques. Specifically, we explain how various kernels are obtained from the pulsation equations, and describe inversion techniques such as the Regularised Least-Squares (RLS) and Optimally Localised Averages (OLA) methods .</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Many of the problems which intervene in physics can be described in terms of forward and inverse problems. Generally speaking, a forward problem focuses on predicting the effects which result from a set of physical causes, such as deducing the gravitational field of an object from its distribution of matter. In an inverse problem, one typically tries to deduce the physical causes which led to a given set of results or effects (which are typically observations). Hence, trying to deduce the distribution of matter from the gravitational field of an object is an inverse problem.</p><p>The field of asteroseismology, i.e., the study of stellar pulsations, also fits this description. Trying to predict stellar pulsation frequencies for a given stellar model constitutes a forward problem. Likewise, trying to deduce the stellar structure which led to a given set of pulsation frequencies is an inverse problem. This inverse problem turns out to be quite difficult because, in general, the relation between stellar structure and oscillation frequencies is non-linear. Nonetheless, given the wealth of Daniel R. Reese LESIA, Observatoire de Paris, PSL Research University, CNRS, Sorbonne Universités, UPMC Univ. Paris 06, Univ. Paris Diderot, Sorbonne Paris Citée, 92195 Meudon, France, e-mail: daniel.reese@obspm.fr information on the internal structure of stars provided by pulsation frequencies, a variety of approaches have been devised to tackle this problem, as expressed by <ref type="bibr" target="#b20">Gough (1985)</ref> in the context of helioseismology:</p><p>Inversions can conveniently be divided into three categories. The simplest consists of the execution of the forward problem using solar models with a few adjustable parameters, and the calibration of those parameters by fitting theory to observation. The second is the use of analytical methods. [...] Thirdly, there are the formal inversion techniques borrowed from geophysics that have been used on real and artificial solar data.</p><p>The first category of inversions is usually named "forward modelling" (not to be confused with the "forward problem") and corresponds to searching for an optimal model in a restricted parameter space. It typically includes methods such as grid searches (e.g., Silva <ref type="bibr">Aguirre et al. 2015</ref>), MCMC methods (e.g., <ref type="bibr" target="#b6">Bazot et al. 2012</ref>), or genetic algorithms <ref type="bibr" target="#b27">(Metcalfe &amp; Charbonneau 2003</ref><ref type="bibr" target="#b11">, Charpinet et al. 2005</ref>). The advantages of this approach is its obvious simplicity, and the fact that it produces physically coherent models. However, the parameter space is restricted and does not allow for hitherto unknown physical ingredients not included in the stellar models. Furthermore, such methods can be costly, especially if models are calculated on-the-fly. The second approach includes methods such as asymptotic methods or glitch fitting. These methods can provide a great deal of physical insight into stellar physics but are beyond the scope of the present lecture. Finally, formal inversion techniques typically consist in adjusting the structure of a reference stellar model so as to match a set of observed frequencies. The advantage of this approach is that it can potentially extract more information from the pulsation frequencies, and is therefore open to new physics. However, this method may lead to models which are not physically coherent, and can be more difficult to implement. These approaches are in fact complementary. Indeed, the forward approach typically provides a reference model, which can then be further refined via formal inversion techniques.</p><p>The present lecture focuses on the third category, i.e., formal inversion techniques. However, before tackling inversions, it is necessary to spend a bit of time on the forward problem in order to bring out some of the properties which apply in the context of inverse problems. This will be the subject of the next section. Then stellar inversion techniques will be described in Sect. 3. A short conclusion including a list of relevant references and available inversion codes will follow.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">The forward problem</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Adiabatic pulsation equations</head><p>Stellar pulsations, the periodic motion of gas or plasma within a star, are described by the Lagrangian displacement and the Eulerian perturbations to density, pressure, and gravitational potential, denoted ξ ξ ξ , ρ ′ , p ′ and φ ′ , respectively. When applying the adiabatic approximation (i.e., when neglecting heat transfers during the peri-odic motions), these quantities are determined by Euler's equation, the continuity equation, and the adiabatic relation, which express the conservation of momentum, mass, and energy, as well as Poisson's equation. Through various analytical manipulations, and the use of Green's function and suitable boundary conditions for Poisson's equation, it is possible to express ρ ′ , p ′ and φ ′ as a function of ξ ξ ξ alone. When inserted into Euler's equation, this leads to the following schematic equation:</p><formula xml:id="formula_0">ω 2 ξ ξ ξ = F (ξ ξ ξ ) ,<label>(1)</label></formula><p>where F is an integro-differential operator, and where we have assumed a time dependence 1 of the form exp(−iωt). Equation (1), along with appropriate boundary conditions, is an eigenvalue problem, the solutions of which are known as "eigensolutions". Specifically, ω 2 is an eigenvalue and corresponds to the square of the pulsation frequency, whereas ξ ξ ξ is the eigenmode or eigenfunction, and specifies the geometric characteristics of the stellar pulsation. The forward problem in this case, then corresponds to finding the above eigensolutions for a given stellar structure, i.e., for a given F operator. The inverse problem corresponds to finding the stellar structure (and hence F ) from a set of pulsation frequencies and some sort of mode identification, i.e., a partial characterisation of the structure of the pulsation modes. In the case of solar-like oscillators, a mode identification typically includes the harmonic degrees ℓ of the pulsations, and possibly the radial orders n (this is usually obtained from comparisons with models) and azimuthal orders m (only if frequency multiplets, typically caused by stellar rotation, can be resolved). Given that the forward problem is non-linear, the inverse problem will also be non-linear. However, to make the problem more tractable, one typically linearises it. Linearising Eq. (1) leads to the following equation 2 :</p><formula xml:id="formula_1">(δ ω 2 )ξ ξ ξ + ω 2 (δ ξ ξ ξ ) = δ F (ξ ξ ξ ) + F (δ ξ ξ ξ ) .<label>(2)</label></formula><p>This equation simply expresses how a small modification to the stellar structure leads to small modifications 3 of the pulsation modes, in particular frequency differences δ ω. Hence, in order to solve the inverse problem, one needs to find a reference stellar model (typically using some form of forward modelling) which is sufficiently close to the true stellar model so that the linear approximation applies, and invert the frequency differences, in order to find how to correct the stellar model so that it more closely matches the actual star. However, Eq. <ref type="formula" target="#formula_1">(2)</ref> is not straightforward to use as it contains terms with δ ξ ξ ξ , the perturbation of the eigenmode. The next section shows how to remove these terms by exploiting an important property of the adiabatic pulsation equations, namely their symmetry.</p><p>1 If one assumes that modes are proportional to exp(imϕ), ϕ being the longitude, such a time dependence will lead to m &gt; 0 modes being prograde, where m is the azimuthal order. If one uses, instead, a time dependence of the form exp(iωt), then m &gt; 0 modes will be retrograde. <ref type="bibr">2</ref> Throughout these lectures, the δ notation will be used to indicate a modification of the equilibrium stellar structure and associated pulsations. <ref type="bibr">3</ref> It is very important to note that here, the "δ " symbol is not a Lagrangian perturbation, but rather a modification of the model and its pulsations.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Symmetry of the adiabatic pulsation equations</head><p>Before explaining in what sense the pulsation equations are symmetric, it is necessary to introduce the following dot product:</p><formula xml:id="formula_2">η η η, ξ ξ ξ = V ρ 0 η η η * · ξ ξ ξ dV ,<label>(3)</label></formula><p>where η η η * is the complex conjugate of η η η, and V the stellar volume. We note that this is a complex dot product, hence:</p><formula xml:id="formula_3">η η η, ξ ξ ξ = ξ ξ ξ , η η η * .</formula><p>The adiabatic pulsation equations are symmetric with respect to the above dot product:</p><formula xml:id="formula_4">η η η, F (ξ ξ ξ ) = F (η η η), ξ ξ ξ ,<label>(4)</label></formula><p>where ξ ξ ξ and η η η are any displacement fields, which need not necessarily be eigenfunctions at this point. In order to prove this symmetry, we start by introducing the associated pressure and gravitational potential perturbations as deduced from the relevant equations:</p><formula xml:id="formula_5">(ξ ξ ξ , p ′ , φ ′ ) and (η η η, π ′ , ψ ′ ).</formula><p>We then calculate the dot product between η η η and Euler's equation (applied to ξ ξ ξ ). After various manipulations (integration by parts etc.), this leads to the following formula (e.g., <ref type="bibr">Unno et al. 1989)</ref>:</p><formula xml:id="formula_6">η η η, F (ξ ξ ξ ) = V (π ′ ) * p ′ ρ 0 c 2 0 dV + V ρ 0 N 2 0 (η η η * · e r )(ξ ξ ξ · e r )dV + S ρ 0 g 0 (η η η * · e r )(ξ ξ ξ · e r )dS − 1 4πG V ∞ ∇ ∇ ∇(ψ ′ ) * · ∇ ∇ ∇φ ′ dV ,<label>(5)</label></formula><p>where V is the star's volume, S its surface, V ∞ infinite space, e r the unit vector in the radial direction, and N 2 0 the square of the Brunt-Väisälä frequency. In deriving the surface term, we assumed, as a boundary condition, that the Lagrangian pressure perturbation vanishes at the surface. Appendix C of Reese (2006) explains how to obtain the last term (integrated over V ∞ ). It is very clear from this explicit formulation that the pulsation equations are symmetric. More general forms of this equation have been derived, for instance, in the case of differentially rotating physical bodies <ref type="bibr" target="#b24">(Lynden-Bell &amp; Ostriker 1967)</ref>.</p><p>This symmetry leads to a number of consequences. Firstly, the eigenvalues, ω 2 , are real (meaning that the ω are either real or purely imaginary). Secondly, the eigenfunctions of distinct eigenvalues are orthogonal with respect to the above dot product. The third consequence is known as the "variational principle". According to this principle, the variational frequency, defined by ω 2 var = ξ ξ ξ , F (ξ ξ ξ ) / ξ ξ ξ , ξ ξ ξ , differs from the true eigenfrequency by an amount which is of second order or higher in terms of the error on the eigenfunction, i.e.,</p><formula xml:id="formula_7">ω 2 − ω 2 var = O ∆ ξ ξ ξ 2</formula><p>. This is useful as ω 2 var provides an independent and potentially more accurate estimate of the eigenvalue than the numerical value and is therefore used as an accuracy test in various pulsation codes such as ADIPLS (Christensen-Dalsgaard 2008).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Kernels</head><p>We now return to our original problem, i.e., calculating the frequency variation caused by a small modification of the stellar structure. Taking the dot product between Eq. (2) and ξ ξ ξ , and grouping terms with δ ξ ξ ξ yields:</p><formula xml:id="formula_8">δ ω 2 ξ ξ ξ , ξ ξ ξ − −ξ ξ ξ , δ F (ξ ξ ξ ) = −ω 2 ξ ξ ξ + F (ξ ξ ξ ), δ ξ ξ ξ ,<label>(6)</label></formula><p>where we have made use of the symmetry of F . The right-hand side vanishes because ξ ξ ξ is an eigenmode, and ω 2 the corresponding eigenvalue. Isolating δ ω 2 then yields:</p><formula xml:id="formula_9">δ ω 2 = 2ωδ ω = ξ ξ ξ , δ F (ξ ξ ξ ) ξ ξ ξ , ξ ξ ξ .<label>(7)</label></formula><p>This last form is extremely useful because it relates modifications of the pulsation frequency directly to changes in the stellar model, without needing δ ξ ξ ξ . The next obvious question is what types of perturbations can we expect in stars? A first type of perturbation, which in fact is ubiquitous, is stellar rotation. One can distinguish the 1D case, where the rotation profile, Ω , only depends on the radial coordinate r (also known as "shellular" rotation) from the 2D case where it depends on r and θ , the colatitude. A second type of perturbation is modifications to the stellar structure, as defined, for instance, by the ρ 0 , Γ 1,0 , c 2 0 etc., profiles. So far, structural modifications have only been envisaged in a 1D setting.</p><p>Rotation leads to two inertial accelerations: the centrifugal and the Coriolis acceleration. The former distorts the shape of the star but is a second order effect, so will be neglected. The latter intervenes in the oscillatory motions and leads to first order effects on the frequencies. To first order, Euler's equation takes on the form:</p><formula xml:id="formula_10">ω 2 ξ ξ ξ = 2ωmΩ ξ ξ ξ − 2iωΩ Ω Ω × ξ ξ ξ + ∇ ∇ ∇p ′ ρ 0 − ρ ′ g 0 ρ 0 + ∇ ∇ ∇φ ′ ,<label>(8)</label></formula><p>where Ω is the rotation profile, and Ω Ω Ω = Ω e z . From this we deduce:</p><formula xml:id="formula_11">δ F (ξ ξ ξ ) = 2ωmΩ ξ ξ ξ − 2iωΩ Ω Ω × ξ ξ ξ .<label>(9)</label></formula><p>In the 1D case, the frequency shift is given by</p><formula xml:id="formula_12">δ ω n, ℓ, m = ω n, ℓ, m − ω n, ℓ, 0 = m R 0 K nℓ Ω (r)Ω (r)dR ,<label>(10)</label></formula><p>where</p><formula xml:id="formula_13">K nℓ Ω = ρ 0 r 2 ξ 2 r + ℓ(ℓ + 1)ξ 2 h − 2ξ r ξ h − ξ 2 h R 0 ρ 0 (r) ξ 2 r + ℓ(ℓ + 1)ξ 2 h r 2 dr<label>(11)</label></formula><p>and where ξ r and ξ h are the radial and horizontal components of the Lagrangian displacement, respectively. K nℓ Ω is known as the "rotation kernel". As can be seen from this expression, frequencies with the same (n, ℓ) values are uniformly split as </p><formula xml:id="formula_14">C = R 0 ρ 0 2ξ r ξ h + ξ 2 h r 2 dr R 0 ρ 0 (r) ξ 2 r + ℓ(ℓ + 1)ξ 2 h r 2 dr .<label>(12)</label></formula><p>C is known as the Ledoux constant and represents the effects of the Coriolis force (see <ref type="bibr" target="#b23">Ledoux 1951</ref>).</p><p>In the 2D case, the rotational splitting is given by</p><formula xml:id="formula_15">δ ω n, ℓ, m = R 0 π 0 K n, ℓ, m (r, θ )Ω (r, θ )rdrdθ ,<label>(13)</label></formula><p>where K n, ℓ m (r, θ ) is the 2D rotation kernel (expressions for such kernels may be found in <ref type="bibr" target="#b32">Schou et al. 1994)</ref>. This time, the splitting as a function of m may be nonuniform. The acoustic structure of stars is typically determined by two variables, e.g., (ρ 0 ,Γ 1,0 ) and possibly some surface quantities such as the surface pressure. Accordingly, when modifying the structure of a star, the modifications to two structural quantities need to be specified, e.g., (δ ρ 0 , δΓ 1,0 ) (although in some cases, 3 functions need to be specified, e.g., <ref type="bibr" target="#b8">Buldgen et al. 2017</ref>). As was the case for rotation, it is possible to relate changes in frequency to structural modifications of stars using kernels. The easiest structural kernels to derive are those for the variables (ρ, c 2 ). After a (very) lengthy derivation, one can show that</p><formula xml:id="formula_16">δ ω ω = R 0 K c 2 ,ρ (r) δ c 2 0 (r) c 2 0 (r) + K ρ,c 2 (r) δ ρ 0 (r) ρ 0 (r) dr ,<label>(14)</label></formula><p>where:  <ref type="figure" target="#fig_1">Figure 2</ref> gives an example of (ρ, c 2 ) kernels. We note that in deriving Eq. <ref type="formula" target="#formula_0">(14)</ref>, we neglected various surface terms which result from integration by parts. Also, the modelling of surface layers in stars tends to be inaccurate. Accordingly, Eq. <ref type="formula" target="#formula_0">(14)</ref> typically includes an extra ad hoc adjustable surface term. Besides these kernels, other structural kernels can also be obtained: <ref type="bibr" target="#b26">Masters 1979</ref><ref type="bibr" target="#b19">, Elliott 1996</ref><ref type="bibr" target="#b3">, Basu &amp; Christensen-Dalsgaard 1997</ref><ref type="bibr" target="#b22">, Kosovichev 1999</ref><ref type="bibr" target="#b8">, Buldgen et al. 2017</ref>). Some of these require using the equation of state and its derivatives. <ref type="figure" target="#fig_1">Figure 2</ref> shows an example of (ρ,Γ 1 ) kernels.</p><formula xml:id="formula_17">K c 2 ,ρ = ρ 0 c 2 0 χ 2 r 2 2Iω 2 ,<label>(15)</label></formula><formula xml:id="formula_18">K ρ,c 2 = ρ 0 r 2 2Iω 2 c 2 0 χ 2 − ω 2 ξ 2 r + ℓ(ℓ + 1)ξ 2 h − 4πG R s=r 2ρ 0 ξ r χ + dρ 0 ds ξ 2 r ds −2g 0 ξ r χ + 2g 0 ξ r dξ r dr + 4πGρ 0 ξ 2 r + 2 ξ r dφ ′ dr + ℓ(ℓ + 1)ξ h φ ′ r ,<label>(16)</label></formula><formula xml:id="formula_19">I = R 0 ρ 0 ξ 2 r + ℓ(ℓ + 1)ξ 2 h r 2 dr , χ = ∇ ∇ ∇ · ξ ξ ξ Y ℓ m = dξ r dr + 2ξ r r − ℓ(ℓ + 1)ξ h r .</formula><formula xml:id="formula_20">(ρ,Γ 1 ), (P,Γ 1 ), (u ≡ P ρ ,Γ 1 ), (g,Γ 1 ), (u,Y ), (A,Γ 1 ), (N 2 , c 2 ) etc. (see</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">The inverse problem</head><p>As described at the beginning of this lecture, the seismic inverse problem consists in deducing the stellar structure from a set of identified pulsation frequencies, i.e., with known quantum numbers. Inverse methods have proved to be a powerful way of solving such a problem. These typically involve correcting a reference stellar model so as to obtain a new model which reproduces the pulsation frequencies more accurately. Inverse methods come into two broad categories, namely linear and non-linear methods. The linear methods are further subdivided into the Regularised Least-Squares (RLS) and Optimally Localised Averages (OLA) methods. For the non-linear inversions, there are iterated versions of the RLS method, as well as a method which adjusts the internal phases of the eigenmodes. In what follows, we will focus on linear inverse methods, beginning with rotation inversions, as these provide a good starting point to illustrate the different methods.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Rotation inversions</head><p>The rotation inverse problem can be expressed by the following set of equations:</p><formula xml:id="formula_21">S n l ,ℓ l = ω n l ,ℓ l ,m l − ω n l ,ℓ l ,0 m l = R 0 K n l ,ℓ l Ω (r)Ω (r)dr + ε n l ,ℓ l , 1 ≤ l ≤ L ,<label>(17)</label></formula><p>where the S n l ,ℓ l are the "rotational splittings" (i.e., the observations), Ω (r) the unknown rotation profile, and ε n l ,ℓ l the errors on the splittings, characterised by a standard deviation of σ n l ,ℓ l = ε n l ,ℓ l . In what follows, we will use the index "l" as shorthand for (n l , ℓ l ).</p><p>The goal of the inverse problem is to recover Ω (r) from the set of available rotational splittings. At first, this problem looks impossible. Indeed, the unknown is a function, whereas there is a finite number of observational constraints. Furthermore, the problem is ill-conditioned, i.e., it is highly sensitive to noise. In order to address these issues, it is necessary to inject a priori assumptions when solving the inverse problem. Accordingly, we should always bear in mind these assumptions when looking at and interpreting the results.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.1">Regularised Least Squares (RLS)</head><p>A first approach to tackling this problem involves decomposing the rotation profile over a set of basis functions:</p><formula xml:id="formula_22">Ω inv (r) = ∑ k a k f k (r) ,<label>(18)</label></formula><p>where the a k are unknown coefficients, and the f k basis functions. In general, the number of unknown coefficients should be equal to or less than the number of observed splittings. Typical choices for the f k include b-spline functions of various degrees. For instance, zeroth degree b-splines produce step-wise functions, whereas cubic splines produce functions with a continuous second derivative (which can be useful for regularisation terms). When substituted into Eq. (17), this leads to the following theoretical rotational splittings, ˜ S l , for the above rotation profile:</p><formula xml:id="formula_23">˜ S l = R 0 K l Ω (r)Ω inv (r)dr .<label>(19)</label></formula><p>An obvious way of choosing the a k is by minimising (typically in a least-squares sense) the distance between the observed splittings, S l , and the theoretical ones. However, a naive application of such a procedure leads to poor results as illustrated by the dotted grey curve in the top panel of <ref type="figure" target="#fig_2">Fig. 3</ref>. Indeed, the problem is ill-conditioned, and any errors in the observations will be strongly amplified. A standard remedy to this problem is to include a supplementary regularisation term to obtain a smooth solution when carrying out the minimisation, hence the name "Regularised Least-Squares" (RLS) method. This leads to the following typical cost function:</p><formula xml:id="formula_24">J(a k ) = L ∑ l=1 S l − ˜ S l 2 σ 2 l + Λ 1 σ 2 R 0 d 2 Ω inv dr 2 2 dr ,<label>(20)</label></formula><formula xml:id="formula_25">where 1 σ 2 = 1 L ∑ L l=1 1 σ 2 l</formula><p>, and Λ is a regularisation parameter which can be adjusted. The cost function is minimised by numerically finding the a k coefficients for which the gradient of J is zero. <ref type="figure" target="#fig_2">Figure 3</ref> shows various solutions obtained for the rotation inverse problem based on a set of rotational splittings from Christensen- <ref type="bibr" target="#b13">Dalsgaard et al. (1990)</ref>. As can be seen in the top panel, larger values of Λ lead to solutions that are smoother. The bottom panel shows that such solutions are a worse fit to the S l . Hence, there is a trade-off between obtaining smooth solutions and fitting the data. The best solutions are obtained for intermediate values of Λ as can be seen by comparing the solutions in <ref type="figure" target="#fig_2">Fig. 3</ref> to the true solution given in figs. 3 and 11 of Christensen- <ref type="bibr" target="#b13">Dalsgaard et al. (1990)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.2">Various error measurements</head><p>It is also possible to calculate error bars around the inverted solution. To demonstrate this, we start with a given grid point, r 0 . The relationship between Ω inv (r 0 ) and the a k coefficients is linear. Likewise, the relationship between the a k and the S l is also linear. Hence the relationship between Ω inv (r 0 ) and the S l is linear and can be expressed as follows: </p><formula xml:id="formula_26">Ω inv (r 0 ) = ∑ l c l (r 0 )S l .<label>(21)</label></formula><p>Assuming the errors on the splittings are uncorrelated, the 1σ error bar on the inverted value of the rotation rate will simply be</p><formula xml:id="formula_27">σ Ω (r 0 ) = ∑ l (c l (r 0 )σ l ) 2 .<label>(22)</label></formula><p>In the specific case where the errors are uniform, the error is amplified by the quantity ∑ l (c l (r 0 )) 2 which is known as the "error magnification". It is important to bear in mind that these error bars only take into account how the observational errors propagate through the inversion. They do not actually measure the quality of the inversion, which could, for example, be poor due to over-regularisation.</p><p>In order to evaluate the quality of the inversion at a given point, it is useful to look at the "averaging kernel". If we replace the S l in Eq. <ref type="formula" target="#formula_0">(21)</ref> by the expressions given in Eq. (17), then it is possible to establish a relationship between Ω (r) and Ω inv (r 0 ):</p><formula xml:id="formula_28">Ω inv (r 0 ) = R 0 ∑ l c l (r 0 )K l Ω (r) K avg (r 0 ,r) Ω (r)dr + ∑ l c l (r 0 )ε l .<label>(23)</label></formula><p>This expression shows that Ω inv (r 0 ) is in fact an average of the true rotation profile Ω (r). The corresponding weight function, K avg (r 0 , r), is the averaging kernel. Ideally, this function should have a strong amplitude at r 0 and be close to zero elsewhere. <ref type="figure" target="#fig_3">Figure 4</ref> shows a few examples of averaging kernels for the RLS method.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.3">Optimally Localised Averages (OLA)</head><p>The notion of averaging kernels naturally leads to the Optimally Localised Averages (OLA) methods. The basic idea in these methods is to optimise the coefficients c l so as to obtain optimal averaging kernels. Two variants include the Multiplicative and the Subtractive OLA, abbreviated MOLA and SOLA, respectively. The MOLA method comes from <ref type="bibr" target="#b1">Backus &amp; Gilbert (1968)</ref>. In this method, the averaging kernel is multiplied by a penalty function that increases in amplitude as you move away from the target position r 0 . Hence, the coefficients c l (r 0 ) are obtained by minimising the following cost function:</p><formula xml:id="formula_29">J(c l ) = R 0 P(r 0 , r) K avg (r 0 , r) 2 dr fit data + tan θ σ 2 L ∑ l=1 (c l σ l ) 2 regularisation + λ 1 − R 0 K avg K avg unimodular ,<label>(24)</label></formula><p>where</p><formula xml:id="formula_30">σ 2 = 1 L ∑ L l=1 σ 2 l ,</formula><p>θ is a trade-off parameter between fitting data and reducing error (i.e., a regularisation parameter), P(r 0 , r) the penalty function (usually 12(r − r 0 ) 2 ), and λ a Lagrange multiplier used to ensure that the averaging kernel is "unimodular", i.e., R 0 K avg (r 0 , r)dr = 1. This last condition is important for ensuring that the inverted value, Ω inv (r 0 ) = ∑ l c l (r 0 )S l is a proper average of the underlying rotation profile.</p><p>The SOLA method was first described in <ref type="bibr" target="#b28">Pijpers &amp; Thompson (1992)</ref>. In this method, the difference between the averaging kernel and a suitable target function is minimised. Hence, the coefficients c l (r 0 ) are obtained by minimising the following cost function:</p><formula xml:id="formula_31">J(c l ) = R 0 T (r 0 , r) − K avg (r 0 , r) 2 dr + tan θ σ 2 L ∑ l=1 (c l σ l ) 2 + λ 1 − R 0 K avg ,<label>(25)</label></formula><p>where T (r 0 , r) is the target function. Ideally, T should be a Dirac function centred on r 0 . However, given the finite number of rotation splittings and hence rotation kernels to work with, trying to achieve such a target is impossible and would lead to poor numerical results. Generally, Gaussian or similar functions are used as targets:</p><formula xml:id="formula_32">T (r 0 , r) = 1 A exp − (r − r 0 ) 2 2∆ (r 0 ) 2 ,<label>(26)</label></formula><p>where A is a normalisation constant to ensure that R 0 T (r 0 , r)dr = 1 (it is not simply 1/ √ 2π∆ (r 0 ) since the integration interval is not from −∞ to ∞), and ∆ (r 0 ) the width of the target function. A good choice for ∆ (r 0 ) when dealing with acoustic modes is ∆ (r 0 ) ∝ c 0 (r 0 ) (e.g., <ref type="bibr">Thompson 1993)</ref>. <ref type="figure" target="#fig_4">Figure 5</ref> shows inversion results for the RLS, MOLA and SOLA methods as well as some averaging kernels. The advantages of the MOLA method compared to the SOLA method is that it has fewer free parameters and tends to produce slightly better results. Conversely, the SOLA method has a much smaller computational cost. Indeed, minimising the SOLA cost function for different values of r 0 leads to systems of equations where only the right-hand side changes. Accordingly, only one matrix inversion (or factorisation) is needed for the entire inversion.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.4">Applications</head><p>The first and most spectacular examples of rotation profile inversions are those done for the Sun. Indeed, the Sun's close proximity has enabled the detection of countless rotational splittings going to high ℓ values. This, in turn, has enabled 2D in- versions of the solar rotation profile such as the one shown in <ref type="figure" target="#fig_5">Fig. 6</ref>, taken from <ref type="bibr">Thompson et al. (2003)</ref> (see also <ref type="bibr" target="#b33">Schou et al. 1998</ref>). Such profiles were not in agreement with the theoretical predictions at the time and have accordingly led to various theoretical investigations and numerical simulations to gain a better understanding of the Sun and its internal rotation (e.g., <ref type="bibr">Thompson et al. 2003</ref><ref type="bibr" target="#b7">, Brun et al. 2004</ref>).</p><p>A more recent example of stellar rotation inversions are those in subgiants and red giants <ref type="bibr" target="#b16">(Deheuvels et al. , 2014</ref>. These results as well as results from ensemble asteroseismology have shown that although the core of these stars rotate much faster than the envelope, the difference in rotation speeds is orders of magnitude smaller than what is expected theoretically (Eggenberger et al. 2012, </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Structural inversions</head><p>We now turn our attention to structural inversions. In contrast to rotation inversions, there are two functions to invert simultaneously. As was derived in Sect. 2.3, the linearised relationship between modifications of the stellar structure and shifts in the frequency can be expressed as follows:</p><formula xml:id="formula_33">δ ω l ω l obs. = R 0 K l a,b (r) known δ a a unknown dr + R 0 K l b,a (r) known δ b b unknown dr + F surf. (ω l ) E l + ε l , (27)</formula><p>where we have added an ad hoc surface correction term (i.e., the term with F surf. ) as well as the observational error, ε l . The variables (a, b) represent two structural profiles (e.g., (ρ,Γ 1 )). The structural inverse problem then consists in deducing the profiles δ a/a and δ b/b from the frequency shifts δ ω l /ω l . The fact that there are two functions to invert leads to modifications of the RLS and OLA methods, as well as the introduction of "cross-term kernels", K cross .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.1">Regularised Least Squares (RLS)</head><p>In the regularised least squares method, both functions (δ a/a and δ b/b) are discretised over a set of basis functions, and the unknown coefficients are obtained by minimising a cost function of the form:</p><formula xml:id="formula_34">J δ a a , δ b b = ∑ l 1 σ 2 l δ ω l ω l − R 0 K l a,b δ a a dr − R 0 K l b,a δ b b dr 2 +Λ 1 σ 2 R 0 d 2 dr 2 δ a a 2 + d 2 dr 2 δ b b 2 dr .<label>(28)</label></formula><p>Additional terms may be included to model surface effects. In much the same way as for rotation inversions, the inverted functions are related in a linear way to the observables (δ ω/ω) l :</p><formula xml:id="formula_35">δ a a inv = ∑ l c l (r 0 ) δ ω ω l , δ b b inv = ∑ l c ′ l (r 0 ) δ ω ω l . (29)</formula><p>These inversion coefficients can then be used to define the averaging and cross-term kernels:</p><formula xml:id="formula_36">K avg (r 0 , r) = L ∑ l=1 c l (r 0 )K l a,b (r) , K cross (r 0 , r) = L ∑ l=1 c l (r 0 )K l b,a (r) ,<label>(30)</label></formula><formula xml:id="formula_37">K ′ avg (r 0 , r) = L ∑ l=1 c ′ l (r 0 )K l b,a (r) , K ′ cross (r 0 , r) = L ∑ l=1 c ′ l (r 0 )K l a,b (r) ,<label>(31)</label></formula><p>which help to relate the inverted structural functions at r 0 to the true structural functions:</p><formula xml:id="formula_38">δ a a inv (r 0 ) = R 0 K avg (r 0 , r) δ a(r) a(r) + K cross (r 0 , r) δ b(r) b(r) dr , (32) δ b b inv (r 0 ) = R 0 K ′ cross (r 0 , r) δ a(r) a(r) + K ′ avg (r 0 , r) δ b(r) b(r) dr ,<label>(33)</label></formula><p>where we have neglected the contribution from surface effects and observational errors. As can be seen from these equations, the cross-term kernels help to quantify the amount of cross-talk between the two functions in the inversion. In the particular case of solar inversions, where the mass is known through independent considerations, it is possible to constrain the inversion to preserve the mass by introducing a supplementary Lagrange multiplier, provided one of the structural variables being inverted is the density variation, δ ρ 0 /ρ 0 . Indeed, if the mass is constant, then δ ρ 0 /ρ 0 obeys the following relation:</p><formula xml:id="formula_39">0 = 4π R 0 ρ 0 (r) δ ρ 0 ρ 0 r 2 dr .<label>(34)</label></formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.2">Optimally Localised Averages (OLA)</head><p>The OLA methods will also be modified due to the presence of two functions which are being inverted. Given that the modifications to the MOLA and SOLA variants are similar, we will focus on the SOLA method in what follows. First of all, there will be two separate inversions, one for each of the functions being inverted. Secondly, not only do the averaging kernels need to be optimised, but the cross-term kernels need to be reduced as much as possible. These considerations lead to cost functions of the following form:</p><formula xml:id="formula_40">J(c l (r 0 )) = R 0 T (r 0 , r) − K avg (r 0 , r) 2 dr + β R 0 {K cross (r 0 , r)} 2 dr + tan θ ∑ L l=1 (c l (r 0 )σ l ) 2 σ 2 + λ 1 − R 0 K avg (r 0 , r)dr .<label>(35)</label></formula><p>For each inversion, there is a regularisation parameter (θ ), a supplementary parameter to adjust the trade-off between optimising the averaging kernel or minimising the cross-term kernel (β ), a Lagrange multiplier to ensure the averaging kernel is unimodular (λ ), and optionally some supplementary Lagrange multipliers used to suppress surface effects <ref type="bibr">(Däppen et al. 1991</ref>). The target functions (T ) for each of the inverted functions can be adjusted independently. In order to preserve the mass, for instance in the case of solar inversions, one can treat Eq. (34) as a supplementary observed relation. Specifically, 0 will play the role of δ ω/ω and the function f (r) = 4πρr 2 will be the kernel associated with the structural variable δ ρ 0 /ρ 0 .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.3">Applications</head><p>Up to now, structural inversions have been applied primarily to the Sun. <ref type="figure" target="#fig_6">Figure 7</ref>, which is based on the results of <ref type="bibr" target="#b2">Basu et al. (2009)</ref>, shows an example of such an inversion for the structural variables (c, ρ). In recent years, the downward revision of the solar metal abundances (e.g., <ref type="bibr" target="#b0">Asplund et al. 2009</ref>) has led to a significant discrepancy between the results from solar structural inversions and models based on these new abundances (e.g., <ref type="bibr" target="#b5">Basu et al. 2015</ref>). Indeed, helioseismic inversions led to a lower depth for the base of the convection zone compared to what is obtained from models with the revised abundances. Currently, it is not entirely clear how to solve this problem but different solutions are being investigated.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Integrated quantities</head><p>In the case of stars other than the Sun, it is very difficult to carry out structural inversions due to the limited number of available modes (e.g., <ref type="bibr" target="#b4">Basu et al. 2002)</ref>. Indeed, because of cancellation effects in disc-integrated observations, only modes for which ℓ ≤ 3 are detected <ref type="bibr" target="#b17">(Dziembowski 1977)</ref>. One strategy in such a situation is to invert stellar parameters rather than structural profiles. Indeed, since structural inversions at a given grid point actually give a weighted average of the true underlying profile, one can use a SOLA inversion to directly target the appropriate weight function which yields the desired stellar parameter. The quantities which may be inverted by such a procedure include the total angular momentum (Pijpers 1998), the mean density ( <ref type="bibr" target="#b31">Reese et al. 2012</ref>), the acoustic radius and various core or internal mixing indicators ( <ref type="bibr" target="#b9">Buldgen et al. 2015b</ref><ref type="bibr" target="#b8">Buldgen et al. ,a, 2017</ref>. <ref type="figure" target="#fig_7">Figure 8</ref> shows an inversion of the acoustic radius, as described in <ref type="bibr" target="#b9">Buldgen et al. (2015b)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Conclusion</head><p>As illustrated in this course, inversions can be used to probe stellar rotation profiles, probe the internal structure of stars, estimate various stellar parameters, and indirectly test new physics outside a given grid of stellar models. Nonetheless, one must also bear the limitations of seismic inversions, namely, the use of a priori assumptions about the smoothness of rotation or structural profiles and the linearisation of the relationship between frequencies and stellar structure (except in the case of non-linear inversions). Furthermore, it is important to keep in mind that inversions cannot yield more information than what is intrinsically contained in the observed pulsation modes.</p><p>In order to get a more in-depth understanding of inversions, we recommend the following articles or publications:</p><p>• Lynden- <ref type="bibr" target="#b24">Bell &amp; Ostriker (1967)</ref> and <ref type="bibr" target="#b12">Christensen-Dalsgaard (2003)</ref>: the variational principle : structural kernels Various seismic inversion software packages have also become freely available in recent years:</p><p>• INVERSIONKIT 4 : 1D inversions on individual stars • INVERSIONPIPELINE 5 : inversions of stellar parameters using a grid of models • NONLINEARKIT 6 : non-linear 1D inversion tool still under development • SOLA PACK 7 : 2D rotation inversions in the Sun Silva Aguirre, V., Davies, G. R., <ref type="bibr" target="#b5">Basu, S., et al. 2015</ref><ref type="bibr">, MNRAS, 452, 2127</ref><ref type="bibr">Thompson, M. J. 1993</ref>  </p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Fig. 1</head><label>1</label><figDesc>Fig. 1 Examples of 1D rotation kernels. .</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Fig. 2</head><label>2</label><figDesc>Fig. 2 Kernels for the (n, ℓ) = (13, 1) pulsation mode, for the structural pairs (ρ 0 , c 2 0 ) and (ρ 0 ,Γ 1,0 ).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Fig. 3</head><label>3</label><figDesc>Fig. 3 Top: Inverted rotation profiles based on the RLS method for different values of the regularisation parameter. Bottom: L-curve which shows the two components of the RLS cost function as a function of Λ .</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Fig. 4</head><label>4</label><figDesc>Fig. 4 Averaging kernels for the RLS method at various positions.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Fig. 5</head><label>5</label><figDesc>Fig. 5 Top: Inversion results and error bars for the RLS, MOLA and SOLA methods. Bottom: Averaging kernels at r 0 = 0.5578 R for these three methods.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Fig. 6</head><label>6</label><figDesc>Fig. 6 2D solar rotation profile from Thompson et al. (2003) (see also Schou et al. 1998) based on a SOLA inversion technique. Figure courtesy of M. J. Thompson and J. Christensen-Dalsgaard.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Fig. 7</head><label>7</label><figDesc>Fig. 7 (c, ρ) structural inversion for the Sun based on the results of Basu et al. (2009). Figure courtesy of S. Basu.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Fig. 8</head><label>8</label><figDesc>Fig. 8 Acoustic radius inversion based on Buldgen et al. (2015b). Figure courtesy of G. Buldgen.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" validated="false"><head>in Astronomical Society of the Pacific Conference Series, Vol. 42, GONG 1992. Seismic Investigation of the Sun and Stars, ed. T. M.</head><label></label><figDesc></figDesc><table>Brown, 141 
+Thompson, M. J., Christensen-Dalsgaard, J., Miesch, M. S., &amp; Toomre, J. 2003, 
+ARA&amp;A, 41, 599 
+Unno, W., Osaki, Y., Ando, H., Saio, H., &amp; Shibahashi, H. 1989, Nonradial oscilla-
+tions of stars (Tokyo: University of Tokyo Press) </table></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Asplund</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Grevesse</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">J</forename><surname>Sauval</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Scott</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ARA&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">47</biblScope>
+			<biblScope unit="page">481</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Backus</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Gilbert</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Geophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">16</biblScope>
+			<biblScope unit="page">169</biblScope>
+			<date type="published" when="1968" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Basu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Chaplin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Elsworth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>New</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">M</forename><surname>Serenelli</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">699</biblScope>
+			<biblScope unit="page">1403</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Basu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Christensen-Dalsgaard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">322</biblScope>
+			<biblScope unit="page">5</biblScope>
+			<date type="published" when="1997" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Basu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Christensen-Dalsgaard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Thompson</surname></persName>
+		</author>
+		<title level="m">Stellar Structure and Habitable Planet Finding</title>
+		<editor>B. Battrick, F. Favata, I. W. Roxburgh, &amp; D. Galadi</editor>
+		<imprint>
+			<date type="published" when="2002" />
+			<biblScope unit="volume">485</biblScope>
+			<biblScope unit="page" from="249" to="252" />
+		</imprint>
+	</monogr>
+	<note>ESA Special Publication</note>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Basu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Grevesse</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Mathis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Turckchì Eze</surname></persName>
+		</author>
+		<title level="m">Space Science Reviews</title>
+		<imprint>
+			<date type="published" when="2015" />
+			<biblScope unit="volume">196</biblScope>
+			<biblScope unit="page">49</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Bazot</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Bourguignon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Christensen-Dalsgaard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">427</biblScope>
+			<biblScope unit="page">1847</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">S</forename><surname>Brun</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Miesch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Toomre</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">614</biblScope>
+			<biblScope unit="page">1073</biblScope>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Buldgen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">R</forename><surname>Reese</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Dupret</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">583</biblScope>
+			<biblScope unit="page">21</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+	<note>A&amp;A</note>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Buldgen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">R</forename><surname>Reese</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Dupret</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Samadi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">574</biblScope>
+			<biblScope unit="page">42</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Ceillier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Eggenberger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>García</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Mathis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">555</biblScope>
+			<biblScope unit="page">54</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Charpinet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Fontaine</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Brassard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">M</forename><surname>Green</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Chayer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">437</biblScope>
+			<biblScope unit="page">575</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Christensen-Dalsgaard</surname></persName>
+		</author>
+		<ptr target="http://astro.phys.au.dk/~jcd/oscilnotes/-.2008" />
+	</analytic>
+	<monogr>
+		<title level="j">Lecture Notes on Stellar Oscillations</title>
+		<imprint>
+			<biblScope unit="volume">316</biblScope>
+			<biblScope unit="page">113</biblScope>
+			<date type="published" when="2003" />
+			<publisher>ApSS</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Christensen-Dalsgaard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Schou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Thompson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">242</biblScope>
+			<biblScope unit="page">353</biblScope>
+			<date type="published" when="1990" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Däppen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">O</forename><surname>Gough</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Kosovichev</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Thompson</surname></persName>
+		</author>
+		<title level="m">Challenges to Theories of the Structure of Moderate-Mass Stars</title>
+		<editor>D. Gough &amp; J. Toomre</editor>
+		<imprint>
+			<publisher>Berlin Springer Verlag</publisher>
+			<date type="published" when="1991" />
+			<biblScope unit="volume">388</biblScope>
+			<biblScope unit="page">111</biblScope>
+		</imprint>
+	</monogr>
+	<note>Lecture Notes in Physics</note>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Deheuvels</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>García</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Chaplin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">756</biblScope>
+			<biblScope unit="page">19</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Deheuvels</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Do˘ Gan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Goupil</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">564</biblScope>
+			<biblScope unit="page">27</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Dziembowski</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Acta Astronomica</title>
+		<imprint>
+			<biblScope unit="volume">27</biblScope>
+			<biblScope unit="page">203</biblScope>
+			<date type="published" when="1977" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Eggenberger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Montalbán</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Miglio</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">544</biblScope>
+			<biblScope unit="page">4</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Elliott</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">280</biblScope>
+			<biblScope unit="page">1244</biblScope>
+			<date type="published" when="1996" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Gough</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Sol. Phys</title>
+		<imprint>
+			<biblScope unit="volume">100</biblScope>
+			<biblScope unit="page">65</biblScope>
+			<date type="published" when="1985" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">O</forename><surname>Gough</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Thompson</surname></persName>
+		</author>
+		<title level="m">Solar Interior and Atmosphere</title>
+		<editor>Cox, A. N., Livingston, W. C., &amp; Matthews, M. S.</editor>
+		<meeting><address><addrLine>Tucson</addrLine></address></meeting>
+		<imprint>
+			<publisher>University of Arizona Press</publisher>
+			<date type="published" when="1991" />
+			<biblScope unit="page" from="519" to="561" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Kosovichev</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Computational and Applied Mathematics</title>
+		<imprint>
+			<biblScope unit="volume">109</biblScope>
+			<biblScope unit="page">1</biblScope>
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Ledoux</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">114</biblScope>
+			<biblScope unit="page">373</biblScope>
+			<date type="published" when="1951" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lynden-Bell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Ostriker</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">136</biblScope>
+			<biblScope unit="page">293</biblScope>
+			<date type="published" when="1967" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Marques</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Goupil</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Lebreton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">549</biblScope>
+			<biblScope unit="page">74</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Masters</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Geophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">57</biblScope>
+			<biblScope unit="page">507</biblScope>
+			<date type="published" when="1979" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">S</forename><surname>Metcalfe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Charbonneau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Computational Physics</title>
+		<imprint>
+			<biblScope unit="volume">185</biblScope>
+			<biblScope unit="page">176</biblScope>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">P</forename><surname>Pijpers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">P</forename><surname>Pijpers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Thompson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Methods in helio-and asteroseismology</title>
+		<imprint>
+			<publisher>Imperial College Press</publisher>
+			<date type="published" when="1992" />
+			<biblScope unit="volume">297</biblScope>
+			<biblScope unit="page">33</biblScope>
+		</imprint>
+	</monogr>
+	<note>A&amp;A</note>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">C</forename><surname>Rabello-Soares</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Basu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Christensen-Dalsgaard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">309</biblScope>
+			<biblScope unit="page">35</biblScope>
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Reese</surname></persName>
+		</author>
+		<ptr target="http://tel.archives-ouvertes.fr/tel-00120334" />
+		<imprint>
+			<date type="published" when="2006" />
+		</imprint>
+		<respStmt>
+			<orgName>Université Toulouse III -Paul Sabatier</orgName>
+		</respStmt>
+	</monogr>
+<note type="report_type">PhD thesis</note>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">R</forename><surname>Reese</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Marques</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Goupil</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Thompson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Deheuvels</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">539</biblScope>
+			<biblScope unit="page">63</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Schou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Christensen-Dalsgaard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Thompson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">433</biblScope>
+			<biblScope unit="page">389</biblScope>
+			<date type="published" when="1994" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Schou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">M</forename><surname>Antia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Basu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">505</biblScope>
+			<biblScope unit="page">390</biblScope>
+			<date type="published" when="1998" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

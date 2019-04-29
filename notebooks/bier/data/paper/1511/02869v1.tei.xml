@@ -1,0 +1,1691 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-04T16:24+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">WFIRST-AFTA Coronagraph Science Yield Modeling with EXOSIMS</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Dmitry</forename><surname>Savransky</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Sibley School of Mechanical and Aerospace Engineering</orgName>
+								<orgName type="institution" key="instit2">Cornell University</orgName>
+								<address>
+									<postCode>14853</postCode>
+									<settlement>Ithaca</settlement>
+									<region>NY</region>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+							<affiliation key="aff1">
+								<orgName type="institution" key="instit1">Carl Sagan Institute</orgName>
+								<orgName type="institution" key="instit2">Cornell University</orgName>
+								<address>
+									<postCode>14853</postCode>
+									<settlement>Ithaca</settlement>
+									<region>NY</region>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Daniel</forename><surname>Garrett</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Sibley School of Mechanical and Aerospace Engineering</orgName>
+								<orgName type="institution" key="instit2">Cornell University</orgName>
+								<address>
+									<postCode>14853</postCode>
+									<settlement>Ithaca</settlement>
+									<region>NY</region>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">WFIRST-AFTA Coronagraph Science Yield Modeling with EXOSIMS</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<note>Address all correspondence to: Dmitry Savransky ( ds264@cornell.edu)</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>WFIRST-AFTA</term>
+					<term>coronography</term>
+					<term>science yield modeling</term>
+				</keywords>
+			</textClass>
+			<abstract>
+				<p>We present and discuss the design details of an extensible, modular, open source software framework called EXOSIMS, which creates end-to-end simulations of space-based exoplanet imaging missions. We motivate the development and baseline implementation of the component parts of this software with models of the WFIRST-AFTA coronagraph, and present initial results of mission simulations for various iterations of the WFIRST-AFTA coronagraph design. We present and discuss two sets of simulations: The first compares the science yield of completely different instruments in the form of early competing coronagraph designs for WFIRST-AFTA. The second set of simulations evaluates the effects of different operating assumptions, specifically the assumed post-processing capabilities and telescope vibration levels. We discuss how these results can guide further instrument development and the expected evolution of science yields.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>The majority of exoplanets discovered to date have been detected indirectly, by looking for effects these planets have on their host stars. Directly imaging exoplanets will provide a great deal of additional information unobtainable by most indirect detection methods and make discoveries expanding the population of known exoplanets. While direct imaging of exoplanets has been demonstrated with ground based instruments, these have all been very young, very large, and selfluminous planets on long-period orbits. Imaging of smaller and more Earth-like planets will likely require space observatories such as the Wide-Field Infrared Survey Telescope-Astrophysics Focused Telescope Assets (WFIRST-AFTA). Such observatories are major undertakings requiring extensive planning and design.</p><p>Building confidence in a mission concept's ability to achieve its science goals is always desirable. Unfortunately, accurately modeling the science yield of an exoplanet imager can be almost as complicated as designing the mission. While each component of the system is modeled in great detail as it proceeds through its design iterations, fitting these models together is very challenging.</p><p>Making statements about expected science returns over the course of the whole mission requires a large number of often unstated assumptions when such results are presented. This makes it challenging to compare science simulation results and also to systematically test the effects of changing just one part of the mission or instrument design from different groups.</p><p>We seek to address this problem with the introduction of a new modular, open source mission simulation tool called EXOSIMS (Exoplanet Open-Source Imaging Mission Simulator). This software is specifically designed to allow for systematic exploration of exoplanet imaging mission science yields. The software framework makes it simple to change the modeling of just one aspect of the instrument, observatory, or overall mission design. At the same time, this framework allows for rapid prototyping of completely new mission concepts by reusing pieces of previously implemented models from other mission simulations.</p><p>Modeling the science yield of an exoplanet imager is primarily difficult because it is completely conditional on the true distributions of planet orbital and physical parameters, of which we so far have only partial estimates. This makes the mission model an inherently probabilistic one, which reports posterior distributions of outcomes conditioned on some selected priors. Since the introduction of observational completeness by Robert Brown, 1 it is common to approach exoplanet mission modeling with Monte Carlo methods. Various groups have pursued such modeling, often focusing on specific aspects of the overall mission or observation modeling. <ref type="bibr" target="#b1">[2]</ref><ref type="bibr" target="#b2">[3]</ref><ref type="bibr" target="#b3">[4]</ref><ref type="bibr" target="#b4">[5]</ref> A second challenge is correctly including all of the dynamic and stochastic aspects of such a mission. Given a spacecraft orbit, a target list, and the constraints of the imaging instrument, we can always predict when targets will be observable. Incorporating this knowledge into a sim-ulation, however, can be challenging if a single calculated value represents the predictions, i.e., the number of planets discovered. Similarly, while it is simple to write down the probability of detecting a planet upon the first observation of a star, it is more challenging to do the same for a second observation an arbitrary amount of time later, without resorting to numerical simulation. <ref type="bibr" target="#b1">2</ref> EXOSIMS deals with these challenges by explicitly simulating every aspect of the mission and producing a complete timeline of simulated observations including the specific targets observed at specific times in the mission and recording the simulated outcomes of these observations. While one such simulation does not answer the question of expected mission science yield, an ensemble of many thousands of such simulations gives the data for the posterior distributions of science yield metrics. EXOSIMS is designed to generate these ensembles and provide the tools to analyze them, while allowing the user to model any aspect of the mission as detailed as desired.</p><p>In §2 we provide an overview of the software framework and some details on its component parts. As the software is intended to be highly reconfigurable, we focus on the operational aspects of the code rather than implementation details. We use the coronagraphic instrument currently being developed for WFIRST-AFTA as a motivating example for specific implementations of the code. In §3 we present mission simulation results for various iterations of the WFIRST-AFTA coronagraph designs using components that are being adapted to build the final implementation of EXOSIMS.</p><p>EXOSIMS is currently being developed as part of a WFIRST Preparatory Science investigation, with initial implementation targeted at WFIRST-AFTA. This development includes the definition of a strict interface control, along with corresponding prototypes and class definitions for each of the modules described below. The interface control document and as-built documentation are both available for public review and comment at https://github.com/dsavransky/EXOSIMS. Ini-tial code release is targeted for Fall 2015, with an alpha release in February of 2016 and continued updates through 2017.</p><p>Future development of EXOSIMS is intended to be a community-driven project, and all software related to the base module definitions and simulation execution will be made publicly available alongside the interface control documentation to allow mission planners and instrument designers to quickly write their own modules and drop them directly into the code without additional modifications made elsewhere. We fully expect that EXOSIMS will be highly useful for ensuring the achievement of the WFIRST-AFTA science goals, and will be of use to the design and planning of future exoplanet imaging missions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">EXOSIMS Description</head><p>EXOSIMS builds upon previous frameworks described in Ref. 3 and Ref. 6, but will be significantly more flexible than these earlier efforts, allowing for seamless integration of independent software modules, each of which performs its own well-defined tasks, into a unified mission simulation. This will allow the wider exoplanet community to quickly test the effects of changing a single set of assumptions (for example, the specific model of planet spectra, or a set of mission operating rules) on the overall science yield of the mission, by only updating one part of the simulation code rather than rewriting the entire simulation framework.</p><p>The terminology used to describe the software implementation is loosely based on the objectoriented framework upon which EXOSIMS is built. The term module can refer to either the object class prototype representing the abstracted functionality of one piece of the software, or to an implementation of this object class which inherits the attributes of the prototype, or to an instance of this object class. Thus, when we speak of input/output definitions of modules, we are referring to the class prototype. When we discuss implemented modules, we mean the inherited class definition. Finally, when we speak of passing modules (or their outputs), we mean the instantiation of the inherited object class being used in a given simulation. Relying on strict inheritance for all implemented module classes provides an automated error and consistency-checking mechanism, as we can always compare the outputs of a given object instance to the outputs of the prototype.</p><p>This means that it is trivial to pre-check whether a given module implementation will work with the larger framework, and thus allows for the flexibility and adaptability described above.  The simulation modules take the information contained in the input modules and perform mission simulation tasks. Any module may perform any number or kind of calculations using any or all of the input parameters provided. They are only constrained by their input and output specification, which is designed to be as flexible as possible, while limiting unnecessary data passing to speed up execution.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Input Modules</head><p>The specific mission design under investigation determines the functionality of each of the input modules, but the inputs and outputs of each are always the same (in terms of data type and what the variables represent). These modules encode and/or generate all of the information necessary to perform mission simulations. Here we briefly describe the functionality and major tasks for each of the input modules.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.1">Optical System Description</head><p>The Optical System Description module contains all of the necessary information to describe the effects of the telescope and starlight suppression system on the target star and planet wavefronts.</p><p>This requires encoding the design of both the telescope optics and the specific starlight suppression system, whether it be an internal coronagraph or an external occulter. The encoding can be achieved by specifying Point Spread Functions (PSF) for on-and off-axis sources, along with (potentially angular separation-dependent) contrast and throughput definitions. At the opposite level of complexity, the encoded portions of this module may be a description of all of the optical elements between the telescope aperture and the imaging detector, along with a method of propagating an input wavefront to the final image plane. Intermediate implementations can include partial propagations, or collections of static PSFs representing the contributions of various system elements. The encoding of the optical train will allow for the extraction of specific bulk parameters including the instrument inner working angle (IWA), outer working angle (OWA), and mean and max contrast and throughput.</p><p>If the starlight suppression system includes active wavefront control, i.e., via one or more deformable mirrors (DM), 7 then this module must also encode information about the sensing and control mechanisms. Again, this can be achieved by simply encoding a static targeted DM shape, or by dynamically calculating DM settings for specific targets via simulated phase retrieval. As wavefront control residuals may be a significant source of error in the final contrast budget, it is vitally important to include the effects of this part of the optical train.</p><p>The optical system description can optionally include stochastic and systematic wavefronterror generating components. Again, there is a wide range of possible encodings and complexities.</p><p>They could be Gaussian errors on the contrast curves sampled during survey simulation to add a random element to the achieved contrast on each target. Alternatively, in cases where an active wavefront control system is modeled, stochastic wavefront errors could be introduced by simulating the measurement noise on the wavefront sensor (either again as drawn from pre-determined distributions, or additively from various detector and astrophysical noise sources). Systematic errors, such as mis-calibration of deformable mirrors, closed-loop control delays, and non-common path errors, may be included to investigate their effects on contrast or optical system overhead. In cases where the optical system is represented by collections of static PSFs, these effects must be included in the diffractive modeling that takes place before executing the simulation. For external occulters, we draw on the large body of work on the effects of occulter shape and positioning errors on the achieved contrast, as in Ref. 8.</p><p>Finally, the optical system description must also include a description of the science instrument or instruments. The baseline instrument is assumed to be an imaging spectrometer, but pure imagers and spectrometers are also supported. Each instrument encoding must provide its spatial and wavelength coverage and sampling. Detector details such as read noise, dark current, and quantum efficiency must be provided, along with more specific quantities such as clock induced charge for electron multiplying CCDs. <ref type="bibr" target="#b9">9</ref> Optionally, this portion of the module may include descriptions of specific readout modes, i.e., in cases where Fowler sampling 10 or other noise-reducing techniques are employed. In cases where multiple science instruments are defined, they are given enumerated indices in the specification, and the Survey Simulation module must be implemented so that a particular instrument index is used for a specific task, i.e., detection vs. characterization.</p><p>The overhead time of the optical system must also be provided and is split into two parameters. The first is an integration time multiplier for detection and characterization modes, which represents the individual number of exposures that need to be taken to cover the full field of view, full spectral band, and all polarization states in cases where the instrument splits polarizations. For detection modes, we will typically wish to cover the full field of view, while possibly only covering a small bandpass and only one polarization, whereas for characterizations, we will typically want all polarizations and spectral bands, while focusing on only one part of the field of view. The second overhead parameter gives a value for how long it will take to reach the instrument's designed contrast on a given target. This overhead is separate from the one specified in the observatory definition, which represents the observatory settling time and may be a function of orbital position, whereas the contrast floor overhead may depend on target brightness. If this value is constant, as in the case of an observing strategy where a bright target is used to generate the high contrast regions, or zero, as in the case of an occulter, then it can be folded in with the observatory overhead.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.2">Star Catalog</head><p>The Star Catalog module includes detailed information about potential target stars drawn from general databases such as SIMBAD, 11 mission catalogs such as Hipparcos, <ref type="bibr" target="#b12">12</ref> or from existing curated lists specifically designed for exoplanet imaging missions. <ref type="bibr" target="#b3">4</ref> Information to be stored, or accessed by this module will include target positions and proper motions at the reference epoch (see §2.1.6), catalog identifiers (for later cross-referencing), bolometric luminosities, stellar masses, and magnitudes in standard observing bands. Where direct measurements of any value are not available, values are synthesized from ancillary data and empirical relationships, such as color relationships and mass-luminosity relations. <ref type="bibr" target="#b13">13</ref> This module will not provide any functionality for picking the specific targets to be observed in any one simulation, nor even for culling targets from the input lists where no observations of a planet could take place. This is done in the Target List module as it requires interactions with the Planetary Population module (to determine the population of interest), the Optical System Description module (to define the capabilities of the instrument), and Observatory Definition module (to determine if the view of the target is unobstructed).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.3">Planet Population Description</head><p>The Planet Population Description module encodes the density functions of all required planetary parameters, both physical and orbital. These include semi-major axis, eccentricity, orbital orientation, and planetary radius and mass. Certain parameter models may be empirically derived 14 while others may come from analyses 15, 16 of observational surveys such as the Keck Planet Search, <ref type="bibr" target="#b17">17,</ref><ref type="bibr" target="#b18">18</ref> Kepler, 19-21 and ground-based imaging surveys including the Gemini Planet Imager Exoplanet Survey. <ref type="bibr" target="#b24">22,</ref><ref type="bibr" target="#b25">23</ref> This module also encodes the limits on all parameters to be used for sampling the dis-tributions and determining derived cutoff values such as the maximum target distance for a given instrument's IWA.</p><p>The Planet Population Description module does not model the physics of planetary orbits or the amount of light reflected or emitted by a given planet, but rather only encodes the statistics of planetary occurrence and properties. As this encoding is based on density functions, it fully supports modeling 'toy' universes where all parameters are fixed, in which case all of the distributions become delta functions. We can equally use this encoding to generate simulated universes containing only 'Earth-twins' to compare with previous studies as in Ref. 1 or Ref. 5. Alternatively, the distributions can be selected to mirror, as closely as possible, the known distributions of planetary parameters. As this knowledge is limited to specific orbital or mass/radius scales, this process invariably involves some extrapolation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.4">Observatory Description</head><p>The Observatory Definition module contains all of the information specific to the space-based observatory not included in the Optical System Description module. The module has three main tasks: orbit, duty cycle, and keepout definition, which are implemented as functions within the module. The inputs and outputs for these functions are represented schematically in <ref type="figure" target="#fig_2">Fig. 2</ref>.</p><p>The observatory orbit plays a key role in determining which of the target stars may be observed for planet finding at a specific time during the mission lifetime. The Observatory Definition module's orbit function takes the current mission time as input and outputs the observatory's position vector. The position vector is standardized throughout the modules to be referenced to a heliocentric equatorial frame at the J2000 epoch. The observatory's position vector is used in the keepout definition task and Target List module to determine which of the stars from the Star Catalog may be targeted for observation at the current mission time.</p><p>The duty cycle determines when during the mission timeline the observatory is allowed to perform planet-finding operations. The duty cycle function takes the current mission time as input and outputs the next available time when exoplanet observations may begin or resume, along with the duration of the observational period. The outputs of this task are used in the Survey Simulation module to determine when and how long exoplanet finding and characterization observations occur.</p><p>The specific implementation of the duty cycle function can have significant effects on the science yield of the mission. For example, if the observing program is pre-determined, such that exoplanet observations can only occur at specific times and last for specific durations, this significantly limits the observatory's ability to respond dynamically to simulated events, such as the discovery of an exoplanet candidate. This can potentially represent a sub-optimal utilization of mission time, as it may prove to be more efficient to immediately spectrally characterize good planetary candidates rather than attempting to re-observe them at a later epoch. It also limits the degree to which followup observations can be scheduled to match the predicted orbit of the planet. Alternatively, the duty cycle function can be implemented to give the exoplanet observations the highest priority, such that all observations can be scheduled to attempt to maximize dynamic completeness 2 or some other metric of interest.</p><p>The keepout definition determines which target stars are observable at a specific time during the mission simulation and which are unobservable due to bright objects within the field of view such as the sun, moon, and solar system planets. The keepout volume is determined by the specific design of the observatory and, in certain cases, by the starlight suppression system. For example, in the case of external occulters, the sun cannot be within the 180 • annulus immediately behind the telescope (with respect to the line of sight) as it would be reflected by the starshade into the telescope. The keepout definition function takes the current mission time and Star Catalog module output as inputs and outputs a list of the target stars which are observable at the current time. It constructs position vectors of the target stars and bright objects which may interfere with observations with respect to the observatory. These position vectors are used to determine if bright objects are in the field of view for each of the potential stars under exoplanet finding observation. If there are no bright objects obstructing the view of the target star, it becomes a candidate for observation in the Survey Simulation module.</p><p>The observatory definition also includes the target transition time, which encodes the amount of overhead associated with transitioning to a new target before the next observation can begin. For missions with external occulters, this time includes both the transit time between targets as well as the time required to perform the fine alignment at the end of the transit. For internal coronagraphs, this includes the settling time of the telescope to reach the bus stability levels required by the active wavefront control system. These may all be functions of the orbital position of the telescope, and may be implemented to take into account thermal effects when considering observatories on geocentric orbits. This overhead calculation does not include any additional time required to reach the instrument's contrast floor, which may be a function of target brightness, and is encoded separately in the Optical System Description.</p><p>In addition to these functions, the observatory definition can also encode finite resources that are used by the observatory throughout the mission. The most important of these is the fuel used for stationkeeping and repointing, especially in the case of occulters which must move significant distances between observations. We could also consider the use of other volatiles such as cryogens for cooled instruments, which tend to deplete solely as a function of mission time. This module also allows for detailed investigations of the effects of orbital design on the science yield, e.g., comparing the baseline geosynchronous 28.5 • inclined orbit for WFIRST-AFTA <ref type="bibr" target="#b26">24</ref> with an alternative L2 halo orbit also proposed for other exoplanet imaging mission concepts. <ref type="bibr" target="#b27">25</ref> </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.5">Planet Physical Model</head><p>The Planet Physical Model module contains models of the light emitted or reflected by planets in the wavelength bands under investigation by the current mission simulation. It uses physical quantities sampled from the distributions defined in the Planet Population, including planetary mass, radius, and albedo, along with the physical parameters of the host star stored in the Target List module, to generate synthetic spectra or band photometry, as appropriate. The planet physical model is explicitly defined separately from the population statistics to enable studies of specific planet types under varying assumptions of orbital or physical parameter distributions, i.e., evaluating the science yield related to Earth-like planets under different definitions of the habitable zone.</p><p>The specific implementation of this module can vary greatly, and can be based on any of the many available planetary albedo, spectra and phase curve models. <ref type="bibr" target="#b29">[26]</ref><ref type="bibr" target="#b30">[27]</ref><ref type="bibr" target="#b31">[28]</ref><ref type="bibr" target="#b32">[29]</ref><ref type="bibr" target="#b33">[30]</ref><ref type="bibr" target="#b34">[31]</ref><ref type="bibr" target="#b35">[32]</ref> 2.1.6 Time</p><p>The Time module is responsible for keeping track of the current mission time. It encodes only the mission start time, the mission duration, and the current time within a simulation. All functions in all modules requiring knowledge of the current time call functions or access parameters implemented within the Time module. Internal encoding of time is implemented as the time from mission start (measured in days). The Time module also provides functionality for converting between this time measure and standard measures such as Julian Day Number and UTC time.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.7">Rules</head><p>The Rules module contains additional constraints placed on the mission design not contained in other modules. These constraints are passed into the Survey Simulation module to control the simulation. For example, a constraint in the Rules module could include prioritization of revisits to stars with detected exoplanets for characterization when possible. This rule would force the Survey Simulation module to simulate observations for target stars with detected exoplanets when the Observatory Module determines those stars are observable.</p><p>The Rules module also encodes the calculation of integration time for an observation. This can be based on achieving a pre-determined signal to noise (SNR) metric (with various possible definitions), or via a probabilistic description as in Ref. 33. This requires also defining a model for the background contribution due to all astronomical sources and especially due to zodiacal and exozodiacal light. <ref type="bibr" target="#b4">5</ref> The integration time calculation can have significant effects on science yield-integrating to the same SNR on every target may represent a suboptimal use of mission time, as could integrating to achieve the minimum possible contrast on very dim targets. Changing the implementation of the Rules module allows exploration of these tradeoffs directly.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.8">Post-Processing</head><p>The Post-Processing module encodes the effects of post-processing on the data gathered in a simulated observation, and the effects on the final contrast of the simulation. In the simplest implementation, the Post-Processing module does nothing and simply assumes that the attained contrast is some constant value below the instrument's designed contrast-that post-processing has the effect of uniformly removing background noise by a pre-determined factor. A more complete implementation actually models the specific effects of a selected post-processing technique such as LOCI <ref type="bibr" target="#b37">34</ref> or KLIP <ref type="bibr" target="#b38">35</ref> on both the background and planet signal via either processing of simulated images consistent with an observation's parameters, or by some statistical description.</p><p>The Post-Processing module is also responsible for determining whether a planet detection has occurred for a given observation, returning one of four possible states-true positive (real detection), false positive (false alarm), true negative (no detection when no planet is present) and false negative (missed detection). These can be generated based solely on statistical modeling as in Ref. 33, or can again be generated by actually processing simulated images.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Simulation Modules</head><p>The simulation modules include Target List, Simulated Universe, Survey Simulation and Survey</p><p>Ensemble. These modules perform tasks which require inputs from one or more input modules as well as calling function implementations in other simulation modules.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.1">Target List</head><p>The Target List module takes in information from the Optical System Description, Star Catalog, Planet Population Description, and Observatory Definition input modules and generates the input target list for the simulated survey. This list can either contain all of the targets where a planet with specified parameter ranges could be observed, <ref type="bibr" target="#b39">36</ref> or can contain a list of pre-determined targets such as in the case of a mission which only seeks to observe stars where planets are known to exist from previous surveys. The final target list encodes all of the same information as is provided by the Star Catalog module.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.2">Simulated Universe</head><p>The Simulated Universe module takes as input the outputs of the Target List simulation module to create a synthetic universe composed of only those systems in the target list. For each target, a planetary system is generated based on the statistics encoded in the Planet Population Description module, so that the overall planet occurrence and multiplicity rates are consistent with the provided distribution functions. Physical parameters for each planet are similarly sampled from the input density functions. This universe is encoded as a list where each entry corresponds to one element of the target list, and where the list entries are arrays of planet physical parameters. In cases of empty planetary systems, the corresponding list entry contains a null array.</p><p>The Simulated Universe module also takes as input the Planetary Physical Model module instance, so that it can return the specific spectra due to every simulated planet at an arbitrary observation time throughout the mission simulation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.3">Survey Simulation</head><p>The Survey Simulation module takes as input the output of the Simulated Universe simulation module and the Time, Rules, and Post-Processing input modules. This is the module that performs a specific simulation based on all of the input parameters and models. This module returns the mission timeline -an ordered list of simulated observations of various targets on the target list along with their outcomes. The output also includes an encoding of the final state of the simulated universe (so that a subsequent simulation can start from where a previous simulation left off) and the final state of the observatory definition (so that post-simulation analysis can determine the percentage of volatiles expended, and other engineering metrics).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.4">Survey Ensemble</head><p>The Survey Ensemble module's only task is to run multiple simulations. While the implementation of this module is not at all dependent on a particular mission design, it can vary to take advantage of available parallel-processing resources. As the generation of a survey ensemble is an embarrassingly parallel task-every survey simulation is fully independent and can be run as a completely separate process-significant gains in execution time can be achieved with parallelization. The baseline implementation of this module contains a simple looping function that executes the desired number of simulations sequentially, as well as a locally parallelized version based on IPython Parallel. <ref type="bibr" target="#b40">37</ref> </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">WFIRST-AFTA Coronagraph Modeling</head><p>While the development of EXOSIMS is ongoing, we have already produced simulation results with the functionality out of which the baseline EXOSIMS implementation is being built. In this section, we present the results of some mission simulations for WFIRST-AFTA using optical models of coronagraph designs generated at JPL during the coronagraph downselect process in 2013, as well as post-downselect optical models of the Hybrid Lyot Coronagraph (HLC) 38 generated in 2014 * . It is important to emphasize that the instrument designs and mission yields shown here are not representative of the final coronagraphic instrument or its projected performance. All of the design specifics assumed in these simulations are still evolving in response to ongoing engineering modeling of the observatory as a whole and to best meet the mission science requirements.</p><p>These simulations are instead presented in order to highlight the flexibility of the EXOSIMS approach to mission modeling, and to present two important use cases. In §3.1 we present mission yield comparisons for different instrument designs while all other variables (observatory, star catalog, planet models, etc.) are kept constant. The results from these simulations are most useful for direct comparisons between different instruments and to highlight particular strengths and weaknesses in specific designs. Ideally, they can be used to guide ongoing instrument development and improve the final design science yield. In §3.2 we investigate a single coronagraph design operating under varying assumptions on observatory stability and post-processing capabilities. These simulations highlight how EXOSIMS can be used to evaluate a more mature instrument design to ensure good results under a variety of operating parameters. This section also demonstrates how to incorporate the effects of different assumptions in the pre-simulation optical system diffractive modeling.</p><p>In addition to the HLC, the first set of optical models includes models for a Shaped Pupil Coronagraph (SPC) <ref type="bibr" target="#b42">39</ref> and a Phase-Induced Amplitude Apodization Complex Mask Coronagraph (PIAA-CMC). <ref type="bibr" target="#b43">40</ref> In the downselect process, the SPC and HLC were selected for further develop- with updates to stellar data, where available, taken from current values from the SIMBAD Astronomical Database. 11 Target selection is performed with a detection integration time cutoff of 30 days and a minimum completeness cutoff of 2.75%. <ref type="bibr" target="#b39">36</ref> Revisits are permitted at the discretion of the automated scheduler, <ref type="bibr" target="#b2">3</ref> and one full spectrum is attempted for each target (spectra are not repeated if the full band is captured on the first attempt). The total integration time allotted is one year, spaced over six years of mission time with the coronagraph getting top priority on revisit observations.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Comparison of Pre-Downselect Coronagraph Designs</head><p>As a demonstration of EXOSIMS ability to compare different instrument designs for a single mission concept, we compare mission simulation results based on optical models of the pre-downselect SPC, HLC and PIAA-CMC designs. As all of these represent preliminary designs that have since been significantly improved upon, and as our primary purpose here is to demonstrate the simulations' utility, we will refer to the three coronagraphs simply as C1, C2, and C3 (in no particular order). <ref type="table" target="#tab_0">Table 1</ref> lists some of the parameters of the three coronagraphs including their inner and outer working angles, their minimum and mean contrasts, and maximum and mean throughputs.</p><p>Each design has significantly different operating characteristics in its region of high contrast (or 'dark hole'). C3 provides the best overall minimum contrast and IWA, but has a more modest mean contrast, whereas C2 has the most stable, and lowest mean contrast over its entire dark hole, at the expense of a larger inner working angle. C1 has the smallest angular extent for its dark hole, but maintains reasonably high throughput throughout. C2 has a constant, and very low throughput, while C3 has the highest throughput over its entire operating region. Finally, while C1 and C3 cover the full field of view with their dark holes, C2 only creates high contrast regions in 1/3 of the field of view, and so requires three integrations to cover the full field.</p><p>We consider five specific metrics for evaluating these coronagraph designs:</p><p>1. Unique planet detections, defined as the total number of individual planets observed at least once.</p><p>2. All detections, defined as the total number of planet observations throughout the mission (including repeat observations of the same planets).</p><p>3. Total visits, defined as the total number of observations. 4. Unique targets, defined as the number of target stars observed throughout the mission.</p><p>5. Full spectral characterizations, defined as the total number of spectral characterizations covering the entire 400 to 800 nm band. This does not include characterizations where the inner or outer working angle prevent full coverage of the whole band. This number will always be smaller than the number of unique detections based on the mission rules used here.</p><p>While it is possible to use EXOSIMS results to calculate many other values, these metrics represent a very good indicator of overall mission performance. As it is impossible to jointly maximize all five-in particular, getting more full spectra or additional repeat detections is a direct trade-off to finding additional, new planets-these values together describe the Pareto front of the mission phase space. At the same time, these metrics serve as proxies for other quantities of interest. For example, taken together, all detections and unique detections indicate a mission's ability to confirm it's own detections during the course of the primary mission, as well as for possible orbit fitting to detected planets. The number of unique targets, compared with the input target list, determines whether a mission is operating in a 'target-poor' or 'execution time-poor' regime. The latter can be addressed simply by increasing the mission lifetime, whereas the former can only be changed with an instrument redesign. Finally, comparing the numbers of unique detections and full spectra indicates whether an instrument design has sufficient capabilities to fully characterize the planets that it can detect.</p><p>For each of the coronagraphs we run 5000 full mission simulations, keeping all modules except for the Optical Description and Post-Processing constant. In addition to the parameters and implementations listed above, our Post-Processing module implementation assumes a static factor of either 10 or 30 in terms of contrast improvement due to post-processing. That is, results marked 10x assume that the achieved contrast on an observation is a factor of 10 below the design contrast at the equivalent angular separation. All together, we generated 30,000 discrete mission simulations, in six ensembles. Mean values and 1σ standard deviations for our five metrics of interest for each ensemble are tabulated in Fig 3 PDF of unique detections (number of individual planets, potentially with multiple planets about some targets, detected one or more times) for the coronagraph designs described in <ref type="table" target="#tab_0">Table 1</ref> assuming either a factor of 10 or 30 in post-processing contrast gains. Of particular importance here is the probability of zero detections-all of the designs at 10x suppression, and C1 in particular, have a significant (&gt; 5%) chance of never seeing a planet.</p><p>From the tabulated values, we see that the three coronagraphs have fairly similar performance in terms of number of planets found and spectrally characterized. Overall, C2 is most successful at detecting planets, due primarily to the stability of its contrast over the full dark hole. However, because of the very low overall throughput, this does not translate into more spectral characterizations than the other two designs. C1 and C2 benefit more from the change from 10x to 30x contrast improvement due to post-processing than does C3, which already has the deepest overall contrast, but whose contrast varies significantly over the dark hole. The largest differences in the metrics are the total number of observations. These illustrate the direct trade-off between acquiring spectra, which take a very long time, and doing additional integrations on other targets. In cases such as C2 with only 10x contrast improvement, the spectral characterization times are typically so long that most targets do not stay out of the observatory's keepouts and so the mission scheduling logic chooses to do more observations rather than wasting time on impossible spectral integrations.</p><p>Turning to the figures of the full distributions for these metrics, we see that despite having similar mean values for unique planet detections, the full distributions of detections are quite different, leading to varying probabilities of zero detections. As this represents a major mission failure mode, it is very important to track this value, as it may outweigh the benefits of a given design. C1 with only 10x contrast gain does particularly poorly in this respect, with over 15% of cases resulting in no planets found. However, when a 30x gain is assumed, C1 and C2 end up having the lowest zero detection probabilities. We again see that the effects of even this simple post-processing assumption are not uniform over all designs. This is due to the complicated interactions between each instrument's contrast curve and the assumed distributions of planetary parameters. In essence, if our priors were different (leading to different completeness values for our targets) then we would expect different relative gains for the same post-processing assumptions. This is always a pitfall of these simulations and must always be kept in mind when analyzing the results. It should also be noted that there have been multiple iterations of all these coronagraph designs since downselect, resulting in significantly lower probabilities of zero detections, as seen in the next section.</p><p>Another interesting feature are the very long right-hand tails of the all detections and total visits distributions. These do not actually represent outliers in terms of highly successful missions, but rather typically imply the existence of one or a small number of very easy to detect planets.</p><p>The logic of the scheduler allows the mission to keep returning to these targets for followup observations when it has failed to detect any other planets around the other targets in its list. This situation arises when the design of the instrument and assumptions on planet distributions leave to combat this, the scheduler code prevents revisits to a given target after four successful detections of a planet around it. Finally, turning to <ref type="figure" target="#fig_7">Fig. 7</ref> we see that all three designs, regardless of postprocessing assumptions have greater than 10% probabilities of zero full spectral characterizations.</p><p>C1 with 10x post-processing gains fares most poorly with zero full spectra achieved in over one third of all cases.</p><p>Analysis of the survey ensembles also allows us to measure the biasing effects of the mission on the planet parameters of interest. As we know the input distributions of the simulation, we can think of these as priors, and of the distribution of the 'observed' planets as the posteriors. <ref type="figure" target="#fig_8">Figs. 8 and   9</ref> show the distributions of planetary mass and radius used in the simulations, respectively, along with the output distributions from the various coronagraph designs. The output distributions are calculated by taking the results of all of the simulations in each ensemble together, as the number of planets detected in each individual simulation is too small to produce an accurate distribution.</p><p>The input mass distribution shown here is derived from the Kepler radius distribution as reported in Ref. 42 and is calculated by assuming that this distribution is the same for all orbital periods and via an assumed density function. <ref type="bibr" target="#b5">6</ref> The frequency spike seen at around 20 Earth masses is due to a poor overlap in the density functions used in this part of the phase space. This results in an equivalent spike in the posterior distributions, which slightly biases the results.</p><p>All of the instruments have fairly similar selection biases, although C1 and C3, which have smaller inner working angles and higher throughputs, detect more lower mass/radius planets. The effects of the instruments are readily apparent in all cases: lower radius planets, which are predicted to occur more frequently than larger radius ones, are detected at much lower rates. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Comparison of HLC Parameters</head><p>In this section we present the results of survey ensemble analyses for a single instrument-a postdownselect HLC design-again assuming either 10x or 30x post-processing gains, and assuming either 0.4, 0.8, or 1.6 milliarcseconds of telescope jitter. The jitter of the actual observatory will be a function of the final bus design and the operation of the reaction wheels, and its precise value</p><p>is not yet known, which makes it important to evaluate how different levels of jitter may effect the achieved contrast and overall science yield. The jitter is built directly into the optical system model encoded in the Optical System Description module (see Krist et al., this volume, for details), while the post-processing is treated as in the previous section.</p><p>As in the previous section, we run ensembles of 5000 simulations for each of the six cases considered, keeping all modules except for the Optical Description and Post-Processing constant. The mean and 1σ of the five metrics of interest described in §3.1 are tabulated in <ref type="table">Table 3</ref>, and the full PDFs for all metrics are shown in <ref type="figure" target="#fig_0">Figs. 10 -14</ref>.</p><p>One important observation made immediately obvious by these results is the relatively large effect of increased jitter versus the gains due to post-processing. Tripling the assumed gain factor of post-processing on the final achieved contrast has a significantly smaller effect on the number of detections, gaining only one unique detection, on average, as compared with halving the amount of telescope jitter, which increases the number of unique detections by over 30%, on average. This shows us that the telescope jitter may be an effect that fundamentally cannot be corrected after the fact, and therefore needs to be tightly controlled, with well defined requirements set during mission design. Much of the current development effort for the project is focused on low-order wavefront sensing and control to mitigate these effects. <ref type="bibr" target="#b47">43</ref> Fig 10 PDF of unique planetary detections (number of individual planets, potentially with multiple planets about some targets, detected one or more times) for the post-downselect HLC design, assuming either a factor of 10 or 30 in postprocessing contrast gains and telescope jitter of 0.4, 0.8 or 1.6 mas. It should be noted that the change in assumed post-processing gain has a significantly smaller effect than the increased telescope jitter. We also note that the 1.6 mas jitter cases still have a small (0.6 to 1.8%) probability of never seeing a planet, whereas the 0.4 mas jitter ensembles do not contain a single simulation with zero plaents detected.</p><p>We can also see significant improvements in the coronagraph design since the versions evaluated in §3.1, as the probability of zero planet detections is less than 2% in the case of the highest jitter level, and is well below 1% for all other cases. In fact, for both the 0.4 mas jitter ensembles, no simulations had zero detections, indicating a very low probability of complete mission failure for this coronagraph at these operating conditions. Similar to the results of the previous section, the trend in the number of total visits does not simply follow those seen in the unique and total detection metrics, but is a function of both the number of detections and how much time is spent on spectral characterizations. We can see how the cases with the highest jitter and lowest post-processing gains are pushed towards larger numbers of observations, and unique targets, as they are able to achieve fewer full spectral characterizations, leaving them with additional mission time to search for new candidates. This is equally reflected in <ref type="figure" target="#fig_0">Fig. 14</ref> where, despite the good performance seen in <ref type="figure" target="#fig_0">Fig. 10</ref>, all jitter levels have over 5% chance of zero full spectra at the 10x post-processing gain level, and only the 0.4 mas case at 30x gain has no instances of zero full spectra in its ensemble of results.</p><p>These metrics, taken together, clearly show that further optimization is possible via modification of mission rules, which were kept constant in all these ensembles. For example, the low numbers of spectral characterizations at higher jitter levels suggest that it may be worthwhile to attempt shallower integrations in order to be able to make more total observations and potentially find a larger number of bright planets. This would bias the final survey results towards larger planets, but would increase the probability of spectrally characterizing at least some of the planets discovered. Alternatively, this may point to the desirability of investigating whether full spectral characterizations can be achieved for a small number of targets over the course of multiple  <ref type="figure" target="#fig_0">Fig. 10</ref>. Here, the post-processing improvement factor makes more of a difference than in the previous two figures, as more time must be devoted to spectral characterizations, limiting how much time is available for further observations. independent observations.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Conclusions</head><p>We have presented the design details of EXOSIMS-a modular, open source software framework for the simulation of exoplanet imaging missions with instrumentation on space observatories. We   <ref type="figure" target="#fig_0">Fig. 10</ref>. The trend here tracks closely to the one observed in the total visits metric, and shows that this coronagraph design is not target limited in any of the studied cases.</p><p>As both the tools and the coronagraph and mission design continue to mature we expect the predictions presented here to evolve as well, but certain trends have emerged that we expect to persist. We have identified the portions of design space and telescope stability ranges that lead to significant probabilities of zero detections, and we expect instrument designs and observatory specifications to move away from these. We have also identified a mean number of new planetary detections, for our particular assumed prior distributions of planetary parameters, that are consistent with the science definition team's mission goals for this instrument.</p><p>As we continue to both develop the software and to improve our specific modeling of WFIRST-AFTA we expect that these and future simulations will prove helpful in guiding the final form of the mission, and will lay the groundwork for analysis of future exoplanet imagers. Daniel Garrett is a PhD student in the Sibley School of Mechanical and Aerospace Engineering at Cornell University. His research interests include dynamics and control theory, planetary science, and space exploration.  a Contrast improvement factor due to post-processing. b Number of individual planets detected one or more times. c Total number of detections (including repeat detections of the same planets). d Total number of planets where spectra can be obtained over the whole wavelength range (400-800 nm). <ref type="table">Table 3</ref> Mean values and standard deviations of five performance metrics calculated from ensembles of mission simulations for the post-downselect HLC with varying levels of assumed telescope jitter. Column definitions as in  3 PDF of unique detections (number of individual planets, potentially with multiple planets about some targets, detected one or more times) for the coronagraph designs described in <ref type="table" target="#tab_0">Table 1</ref> assuming either a factor of 10 or 30 in post-processing contrast gains. Of particular importance here is the probability of zero detectionsall of the designs at 10x suppression, and C1 in particular, have a significant (&gt; 5%) chance of never seeing a planet.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>List of Figures</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>4</head><p>PDF of all detections (including repeat detections) for instruments as in <ref type="figure">Fig. 3</ref>.</p><p>Note that values of 15 or more typically represent a small number of easily detectable planet that are re-observed many times. Re-observations of a single target were capped at four successful detections in all simulations.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>5</head><p>PDF of total number of observations (including repeat observations of some targets) for instruments as in <ref type="figure">Fig. 3</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>6</head><p>PDF of unique targets observed for instruments as in <ref type="figure">Fig. 3</ref>. While all three instruments have fairly narrow distributions of this parameter, only C2 with 10x postprocessing gains is completely target limited.</p><p>7 PDF of number of spectra achieved over the whole band from 400 to 800 nm for instruments as in <ref type="figure">Fig. 3</ref>. C3 does comparatively well in this metric due to its lower IWA and high throughput.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>8</head><p>Input and output distributions of planetary radius for instruments as in <ref type="figure">Fig. 3</ref>. The black dashed line represents the density function used in generating the planetary radii for the simulated planets in all simulations, while the other lines represent the distributions of planetary radii of the planets detected by each of the coronagraphs.</p><p>The input distribution is based on the Kepler results reported in Ref. 42.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>9</head><p>Input and output distributions of planetary mass for instruments as in <ref type="figure">Fig. 3</ref>. The input mass distribution is derived from sampling the radius distribution shown in <ref type="figure" target="#fig_8">Fig. 8</ref> and converting to mass via an assumed density function.</p><p>10 PDF of unique planetary detections (number of individual planets, potentially with multiple planets about some targets, detected one or more times) for the postdownselect HLC design, assuming either a factor of 10 or 30 in post-processing contrast gains and telescope jitter of 0.4, 0.8 or 1.6 mas. It should be noted that the change in assumed post-processing gain has a significantly smaller effect than the increased telescope jitter. We also note that the 1.6 mas jitter cases still have a small (0.6 to 1.8%) probability of never seeing a planet, whereas the 0.4 mas jitter ensembles do not contain a single simulation with zero plaents detected.</p><p>11 PDF of total number of planetary detections (including repeat detections) for instruments as in <ref type="figure" target="#fig_0">Fig. 10</ref>. The trend here closely follows the one observed in the results for the unique detections metric.</p><p>12 PDF of total number of target observations (including repeat observations) for instruments as in <ref type="figure" target="#fig_0">Fig. 10</ref>. Here, the post-processing improvement factor makes more of a difference than in the previous two figures, as more time must be devoted to spectral characterizations, limiting how much time is available for further observations.</p><p>13 PDF of unique targets observed for instruments as in <ref type="figure" target="#fig_0">Fig. 10</ref>. The trend here tracks closely to the one observed in the total visits metric, and shows that this coronagraph design is not target limited in any of the studied cases.</p><p>14 PDF of number of spectra achieved over the whole band from 400 to 800 nm for instruments as in <ref type="figure" target="#fig_0">Fig. 10</ref>. In the worst case, there is an ∼ 15% of not getting any spectra. Only the case of 0.4 mas jitter with 30x post-processing gain has no simulations in its ensemble with zero full spectra achieved.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Fig 1</head><label>1</label><figDesc>Fig 1 Flowchart of mission simulation. Each box represents a component software module which interacts with other modules as indicated by the arrows. The simulation modules (those that are not classified as input modules) pass all input modules along with their own output. Thus, the Survey Ensemble module has access to all of the input modules and all of the upstream simulation modules.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Fig. 1</head><label>1</label><figDesc>Fig. 1 shows the relationships of the component software modules classified as either input</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Fig 2</head><label>2</label><figDesc>Fig 2 Depiction of Observatory Definition module including inputs, tasks, and outputs.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head></head><label></label><figDesc>ment with PIAA-CMC as backup. It should be noted that the HLC optical models in the first and second set of simulations shown here represent different iterations on the coronagraph design, and thus represent different instruments. The Optical System Description is implemented as a static point spread function, throughput curve, and contrast curve based on the JPL optical models. Other values describing the detector, science instrument and the rest of the optical train were chosen to match Ref. 41 as closely as possible. The integration times in the Rules module are determined via modified equations based on Ref. 33 to achieve a specified false positive and negative rate, which are encoded as constant in the post-processing module. Spectral characterization times are based on pre-selected SNR values (as in Ref. 1) and match the calculations in Ref. 41. The Star Catalog is based on a curated database originally developed by Margaret Turnbull, 4</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Fig 4</head><label>4</label><figDesc>Fig 4 PDF of all detections (including repeat detections) for instruments as in Fig. 3. Note that values of 15 or more typically represent a small number of easily detectable planet that are re-observed many times. Re-observations of a single target were capped at four successful detections in all simulations.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Fig 5</head><label>5</label><figDesc>Fig 5 PDF of total number of observations (including repeat observations of some targets) for instruments as in Fig. 3.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Fig 6</head><label>6</label><figDesc>Fig 6 PDF of unique targets observed for instruments as in Fig. 3. While all three instruments have fairly narrow distributions of this parameter, only C2 with 10x post-processing gains is completely target limited.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Fig 7</head><label>7</label><figDesc>Fig 7 PDF of number of spectra achieved over the whole band from 400 to 800 nm for instruments as in Fig. 3. C3 does comparatively well in this metric due to its lower IWA and high throughput.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head>Fig 8</head><label>8</label><figDesc>Fig 8 Input and output distributions of planetary radius for instruments as in Fig. 3. The black dashed line represents the density function used in generating the planetary radii for the simulated planets in all simulations, while the other lines represent the distributions of planetary radii of the planets detected by each of the coronagraphs. The input distribution is based on the Kepler results reported in Ref. 42.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head>Fig 9</head><label>9</label><figDesc>Fig 9 Input and output distributions of planetary mass for instruments as in Fig. 3. The input mass distribution is derived from sampling the radius distribution shown in Fig. 8 and converting to mass via an assumed density function.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_10"><head>Fig</head><label></label><figDesc>Fig 11 PDF of total number of planetary detections (including repeat detections) for instruments as in Fig. 10. The trend here closely follows the one observed in the results for the unique detections metric.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_11"><head>Fig</head><label></label><figDesc>Fig 12 PDF of total number of target observations (including repeat observations) for instruments as in Fig. 10. Here, the post-processing improvement factor makes more of a difference than in the previous two figures, as more time must be devoted to spectral characterizations, limiting how much time is available for further observations.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_12"><head></head><label></label><figDesc>have also motivated the development and baseline implementation of the component parts of this software for the WFIRST-AFTA coronagraph, and presented initial results of mission simulations for various iterations of the WFIRST-AFTA coronagraph design. These simulations allow us to compare completely different instruments in the form of early competing coronagraph designs for WFIRST-AFTA. The same tools also allow us to evaluate the effects of different operating assumptions, demonstrated here by comparing different assumed post-processing capabilities and telescope stability values for a single coronagraph design.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_13"><head>Fig</head><label></label><figDesc>Fig 13 PDF of unique targets observed for instruments as in Fig. 10. The trend here tracks closely to the one observed in the total visits metric, and shows that this coronagraph design is not target limited in any of the studied cases.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_14"><head>Fig</head><label></label><figDesc>Fig 14 PDF of number of spectra achieved over the whole band from 400 to 800 nm for instruments as in Fig. 10. In the worst case, there is an ∼ 15% of not getting any spectra. Only the case of 0.4 mas jitter with 30x post-processing gain has no simulations in its ensemble with zero full spectra achieved.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_15"><head>1</head><label></label><figDesc>Flowchart of mission simulation. Each box represents a component software mod- ule which interacts with other modules as indicated by the arrows. The simulation modules (those that are not classified as input modules) pass all input modules along with their own output. Thus, the Survey Ensemble module has access to all of the input modules and all of the upstream simulation modules. 2 Depiction of Observatory Definition module including inputs, tasks, and outputs.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" validated="false"><head>1 arXiv:1511.02869v1 [astro-ph.IM] 9 Nov 2015</head><label>1</label><figDesc></figDesc><table></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" validated="false"><head>Table 2 , with the full probability density functions (PDFs) shown</head><label>2</label><figDesc></figDesc><table>in Figs. 3 -7. 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" validated="true"><head>Table 1 Parameters for coronagraphs studied in §3.1.</head><label>1</label><figDesc></figDesc><table>Contrast 
+Throughput b 
+FOV 
+Name IWA a OWA a 
+Min 
+Mean 
+Max Mean Sharpness c Portion d 
+C1 
+0.128 0.652 6.91e-09 1.60e-08 0.40 0.32 
+0.0142 
+1 
+C2 
+0.184 1.064 4.06e-09 7.06e-09 0.22 0.22 
+0.0138 
+1/3 
+C3 
+0.085 0.624 2.87e-09 2.94e-08 1.00 0.85 
+0.0143 
+1 
+
+a Inner and outer working angle in arcseconds at 550 nm. 
+b This is the throughput due to the coronagraph optics only. 
+c Sharpness is defined as 
+
+i P 2 
+
+i 
+
+
+/ ( 
+
+i P i ) 
+2 for normalized PSF P i . 
+d The fraction of the field of view covered by the coronagraph's region of high contrast. 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4" validated="true"><head>Table 2 Mean</head><label>2</label><figDesc>values and standard deviations of five performance metrics calculated from ensembles of mission simulations for the instruments described in Table 1.</figDesc><table>Unique 
+All 
+Full 
+All 
+Unique 
+Contrast Detections b Detections c Spectra d 
+Visits 
+Targets 
+Name Factor a 
+µ 
+1σ 
+µ 
+1σ 
+µ 1σ 
+µ 
+1σ 
+µ 
+1σ 
+
+C1 
+10x 
+1.8 
+1.4 
+2.6 
+4.4 
+1.1 1.1 74.9 28.2 63.5 3.7 
+30x 
+3.7 
+2.0 
+4.4 
+2.6 
+2.2 1.5 56.4 2.7 55.3 2.2 
+
+C2 
+10x 
+2.4 
+1.6 
+7.8 13.5 1.4 1.2 141.3 38.8 74.9 0.4 
+30x 
+4.2 
+2.1 
+5.0 
+2.9 
+2.2 1.5 59.5 1.9 58.1 1.2 
+
+C3 
+10x 
+2.0 
+1.5 
+2.4 
+2.0 
+1.3 1.2 54.7 2.0 54.0 1.5 
+30x 
+3.0 
+1.9 
+3.4 
+2.3 
+1.9 1.4 31.5 2.2 30.9 1.9 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_5" validated="true"><head>Table 2 .</head><label>2</label><figDesc></figDesc><table>Unique 
+All 
+Full 
+All 
+Unique 
+Jitter Contrast Detections b Detections c Spectra d 
+Visits 
+Targets 
+(mas) Factor a 
+µ 
+1σ 
+µ 
+1σ 
+µ 1σ 
+µ 
+1σ 
+µ 
+1σ 
+
+0.4 
+30x 
+12.4 3.5 14.0 4.4 9.5 3.2 47.6 4.3 45.2 4.0 
+10x 
+11.4 3.5 12.5 4.2 6.2 2.6 31.9 2.4 30.4 1.9 
+
+0.8 
+30x 
+7.8 
+2.8 
+8.7 
+3.3 4.9 2.2 38.4 2.5 37.0 2.3 
+10x 
+7.2 
+2.7 
+8.0 
+3.3 2.8 1.7 28.1 2.3 27.0 2.0 
+
+1.6 
+30x 
+5.1 
+2.3 
+5.7 
+2.7 1.4 1.2 31.6 1.6 30.8 1.4 
+10x 
+4.0 
+2.0 
+4.4 
+2.4 1.9 1.4 44.9 2.2 44.1 2.2 
+
+</table></figure>
+
+			<note place="foot">* J. Krist, personal communication, 2014</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Acknowledgments</head><p>This material is based upon work supported by the National Aeronautics and Space Administration under Grant No. NNX14AD99G issued through the Goddard Space Flight Center. EXOSIMS is being developed at Cornell University with support by NASA Grant No. NNX15AJ67G. This research has made use of the SIMBAD database, operated at CDS, Strasbourg, France. The authors would like to thank Rhonda Morgan for many useful discussions and suggestions, as well as our reviewers Wes Traub and Laurent Pueyo, who have significantly improved this work through their comments.</p></div>
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">Single-visit photometric and obscurational completeness</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Brown</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">624</biblScope>
+			<biblScope unit="page" from="1010" to="1024" />
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">New completeness methods for estimating exoplanet discoveries by direct detection</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Soummer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">715</biblScope>
+			<biblScope unit="page">122</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">Analyzing the designs of planet-finding missions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Savransky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J</forename><surname>Kasdin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Cady</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Publications of the Astronomical Society of the Pacific</title>
+		<imprint>
+			<biblScope unit="volume">122</biblScope>
+			<biblScope unit="issue">890</biblScope>
+			<biblScope unit="page" from="401" to="419" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">The Search for Habitable Worlds: 1. The Viability of a Starshade Mission</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">C</forename><surname>Turnbull</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Glassman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Roberge</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Cash</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Noecker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Lo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Mason</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Oakley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Bally</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Publications of the Astronomical Society of the Pacific</title>
+		<imprint>
+			<biblScope unit="volume">124</biblScope>
+			<biblScope unit="issue">915</biblScope>
+			<biblScope unit="page" from="418" to="447" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Maximizing the exoearth candidate yield from a future direct imaging mission</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">C</forename><surname>Stark</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Roberge</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Mandell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Robinson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">795</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page">122</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Space mission design for exoplanet imaging</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Savransky</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">SPIE Optical Engineering+ Applications</title>
+		<imprint>
+			<date type="published" when="2013" />
+			<biblScope unit="page" from="886403" to="886403" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Wavefront control in space with mems deformable mirrors for exoplanet direct imaging</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">L</forename><surname>Cahoy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">D</forename><surname>Marinan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Novak</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Kerr</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Nguyen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Webber</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Falkenburg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Barg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Micro/Nanolithography, MEMS, and MOEMS</title>
+		<imprint>
+			<biblScope unit="volume">13</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="11105" to="011105" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">B</forename><surname>Shaklan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">C</forename><surname>Noecker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">S</forename><surname>Lo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Glassman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">J</forename><surname>Dumont</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">O</forename><surname>Jordan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J</forename></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">Error budgeting and tolerancing of starshades for exoplanet detection</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W C</forename><surname>Kasdin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Cash</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">R</forename><surname>Cady</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Lawson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of SPIE</title>
+		<meeting>SPIE</meeting>
+		<imprint>
+			<date type="published" when="2010" />
+			<biblScope unit="page">7731</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Electron-multiplying CCD: the new ICCD</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J</forename><surname>Denvir</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Conroy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">International Symposium on Optical Science and Technology</title>
+		<imprint>
+			<date type="published" when="2003" />
+			<biblScope unit="page" from="164" to="174" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">Demonstration of an algorithm for read-noise reduction in infrared arrays</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Fowler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Gatley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">353</biblScope>
+			<biblScope unit="page">33</biblScope>
+			<date type="published" when="1990" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">The simbad astronomical database-the cds reference database for astronomical objects</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Wenger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Ochsenbein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Egret</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dubois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Bonnarel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Borde</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Genova</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Jasniewicz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Laloë</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Lesteven</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astronomy and Astrophysics Supplement Series</title>
+		<imprint>
+			<biblScope unit="volume">143</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="9" to="22" />
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">The hipparcos catalogue</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Perryman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Lindegren</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Kovalevsky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Hoeg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><surname>Bastian</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Bernacca</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Crézé</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Donati</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Grenon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Grewing</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astronomy and Astrophysics</title>
+		<imprint>
+			<biblScope unit="volume">323</biblScope>
+			<biblScope unit="page" from="49" to="52" />
+			<date type="published" when="1997" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">The mass-luminosity relation from end to end</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">J</forename><surname>Henry</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Spectroscopically and Spatially Resolving the Components of the Close Binary Stars, Proceedings of the Workshop held 20-24 October 2003 in Dubrovnik</title>
+		<editor>Croatia, R. W. Hilditch, H. Hensberge, and K. Pavlovski</editor>
+		<meeting><address><addrLine>San Francisco</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2004" />
+			<biblScope unit="volume">318</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Parameter distributions of keplerian orbits</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Savransky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Cady</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J</forename><surname>Kasdin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">728</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">66</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">The occurrence rate of small planets around small stars</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">D</forename><surname>Dressing</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">767</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">95</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Planetary radii across five orders of magnitude in mass and stellar insolation: application to transits</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Fortney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Marley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Barnes</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">659</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page">1661</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">The keck planet search: detectability and the minimum mass and orbital period distribution of extrasolar planets</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Cumming</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P</forename><surname>Butler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Marcy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">S</forename><surname>Vogt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Wright</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Fischer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Publications of the Astronomical Society of the Pacific</title>
+		<imprint>
+			<biblScope unit="volume">120</biblScope>
+			<biblScope unit="issue">867</biblScope>
+			<biblScope unit="page" from="531" to="554" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Howard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Marcy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Fischer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Wright</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Isaacson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">The occurrence and mass distribution of close-in super-earths, neptunes, and jupiters</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Valenti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">N</forename><surname>Anderson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Ida</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">330</biblScope>
+			<biblScope unit="issue">6004</biblScope>
+			<biblScope unit="page" from="653" to="655" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Planetary candidates observed by kepler. iii. analysis of the first 16 months of data</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">M</forename><surname>Batalha</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">F</forename><surname>Rowe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">T</forename><surname>Bryson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Barclay</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">J</forename><surname>Burke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Caldwell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Christiansen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Mullally</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">E</forename><surname>Thompson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">M</forename><surname>Brown</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal Supplement Series</title>
+		<imprint>
+			<biblScope unit="volume">204</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page">24</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Fressin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Torres</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">T</forename><surname>Bryson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Christiansen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">D</forename><surname>Dressing</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">The false positive rate of kepler and the occurrence of planets</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">M</forename><surname>Jenkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">M</forename><surname>Walkowicz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Batalha</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">766</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page">81</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">A plateau in the planet population below twice the size of earth</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">A</forename><surname>Petigura</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Marcy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Howard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">770</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">69</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Experimental design for the gemini planet imager</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Mcbride</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Graham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Macintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">V</forename><surname>Beckwith</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">A</forename><surname>Poyneer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Wiktorowicz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Publications of the Astronomical Society of the Pacific</title>
+		<imprint>
+			<biblScope unit="volume">123</biblScope>
+			<biblScope unit="issue">904</biblScope>
+			<biblScope unit="page" from="692" to="708" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">First light of the gemini planet imager</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Macintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Graham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Ingraham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Q</forename><surname>Konopacky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Perrin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Poyneer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Bauman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Barman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">S</forename><surname>Burrows</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings of the National Academy of Sciences</title>
+		<imprint>
+			<biblScope unit="volume">111</biblScope>
+			<biblScope unit="issue">35</biblScope>
+			<biblScope unit="page" from="12661" to="12666" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<monogr>
+		<title level="m" type="main">Wide-field infrared survey telescope-astrophysics focused telescope assets wfirst-afta final report</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Spergel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Gehrels</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Breckinridge</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Donahue</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Dressler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Gaudi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Greene</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Guyon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Hirata</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Kalirai</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1305.5422</idno>
+		<imprint>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Savransky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">N</forename><surname>Spergel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J</forename><surname>Kasdin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Cady</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">D</forename><surname>Lisman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">H</forename><surname>Pravdo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">Occulting ozone observatory science overview</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Shaklan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Fujii</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proc. SPIE</title>
+		<meeting>SPIE</meeting>
+		<imprint>
+			<date type="published" when="2010" />
+			<biblScope unit="volume">7731</biblScope>
+			<biblScope unit="page">77312</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title level="a" type="main">Estimates of the bolometric albedos and radiation balance of uranus and neptune</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Pollack</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Rages</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">H</forename><surname>Baines</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Bergstralh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Wenkert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">E</forename><surname>Danielson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Icarus</title>
+		<imprint>
+			<biblScope unit="volume">65</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="442" to="466" />
+			<date type="published" when="1986" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title level="a" type="main">Reflected spectra and albedos of extrasolar giant planets. i. clear and cloudy atmospheres</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Marley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Gelino</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Stephens</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">I</forename><surname>Lunine</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Freedman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">513</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page">879</biblScope>
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title level="a" type="main">Synthetic spectra and colors of young giant planet atmospheres: effects of initial conditions and atmospheric metallicity</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Fortney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Marley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Saumon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Lodders</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">683</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page">1104</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">Exoplanet albedo spectra and colors as a function of planet phase, separation, and metallicity</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">L</forename><surname>Cahoy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Marley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Fortney</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">724</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">189</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">Spectral and photometric diagnostics of giant planet formation scenarios</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">S</forename><surname>Spiegel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Burrows</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">745</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page">174</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title level="a" type="main">A Nongray Theory of Extrasolar Giant Planets and Brown Dwarfs</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Burrows</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Marley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">B</forename><surname>Hubbard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">I</forename><surname>Lunine</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Guillot</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Saumon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Freedman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Sudarsky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Sharp</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">491</biblScope>
+			<biblScope unit="page">856</biblScope>
+			<date type="published" when="1997" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title level="a" type="main">Beyond the t dwarfs: Theoretical spectra, colors, and detectability of the coolest brown dwarfs</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Burrows</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Sudarsky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">I</forename><surname>Lunine</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">596</biblScope>
+			<biblScope unit="page">587</biblScope>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title level="a" type="main">Linear and bayesian planet detection algorithms for the terrestrial planet finder</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J</forename><surname>Kasdin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Braems</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">646</biblScope>
+			<biblScope unit="page" from="1260" to="1274" />
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title level="a" type="main">A new algorithm for pointspread function subtraction in high-contrast imaging: A demonstration with angular differential imaging</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lafrenì Ere</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Doyon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Nadeau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Artigau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical journal</title>
+		<imprint>
+			<biblScope unit="volume">660</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="770" to="780" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title level="a" type="main">Detection and characterization of exoplanets and disks using projections on Karhunen-Loeve eigenimages</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Soummer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Pueyo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Larkin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal Letters</title>
+		<imprint>
+			<biblScope unit="volume">755</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page">28</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title level="a" type="main">Design reference mission construction for planet finders</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Savransky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J</forename><surname>Kasdin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proc. SPIE</title>
+		<meeting>SPIE</meeting>
+		<imprint>
+			<date type="published" when="2008" />
+			<biblScope unit="page">7010</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title level="a" type="main">Ipython: a system for interactive scientific computing</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Perez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">E</forename><surname>Granger</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Computing in Science &amp; Engineering</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="21" to="29" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title level="a" type="main">Complex apodization lyot coronagraphy for the direct imaging of exoplanet systems: design, fabrication, and laboratory demonstration</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Trauger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Moody</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Gordon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Krist</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Mawet</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">SPIE Astronomical Telescopes+ Instrumentation, 84424Q-84424Q, International Society for Optics and Photonics</title>
+		<imprint>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title level="a" type="main">A shaped pupil lyot coronagraph for wfirst-afta</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Zimmerman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">Eldorado</forename><surname>Riggs</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J</forename><surname>Kasdin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Carlotti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Vanderbei</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">American Astronomical Society Meeting Abstracts</title>
+		<imprint>
+			<date type="published" when="2015" />
+			<biblScope unit="page">225</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title level="a" type="main">Simulated contrast performance of phase induced amplitude apodization (piaa) coronagraph testbed</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Sidick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Kern</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Belikov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Kuhnert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Shaklan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">SPIE Astronomical Telescopes+ Instrumentation, 91430W-91430W, International Society for Optics and Photonics</title>
+		<imprint>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title level="a" type="main">Science yield estimation for afta coronagraphs</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">A</forename><surname>Traub</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Belikov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Guyon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J</forename><surname>Kasdin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Krist</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Macintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Mennesson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Savransky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Shao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Serabyn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Trauger</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proc. SPIE, SPIE Astronomical Telescopes+ Instrumentation, 91430N-91430N, International Society for Optics and Photonics</title>
+		<meeting>SPIE, SPIE Astronomical Telescopes+ Instrumentation, 91430N-91430N, International Society for Optics and Photonics</meeting>
+		<imprint>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Fressin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Torres</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">T</forename><surname>Bryson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Christiansen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">D</forename><surname>Dressing</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title level="a" type="main">The false positive rate of Kepler and the occurrence of planets</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">M</forename><surname>Jenkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">M</forename><surname>Walkowicz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Batalha</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">766</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page">81</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<analytic>
+		<title level="a" type="main">Technology development towards WFIRST-AFTA coronagraph</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Poberezhskiy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Zhao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>An</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Balasubramanian</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Belikov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Cady</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Demers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Diaz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Q</forename><surname>Gong</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Gordon</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">SPIE Astronomical Telescopes+ Instrumentation, 91430P-91430P, International Society for Optics and Photonics</title>
+		<imprint>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title level="a" type="main">Low order wavefront sensing and control for WFIRST-AFTA coronagraph</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Shi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">American Astronomical Society Meeting Abstracts</title>
+		<imprint>
+			<date type="published" when="2015" />
+			<biblScope unit="page">225</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<monogr>
+		<title level="m" type="main">He received his PhD from Princeton University in 2011 followed by a postdoctoral position at Lawrence Livermore National Laboratory where he assisted in the integration and commissioning of the Gemini Planet Imager. His research interests include optimal control of optical system, simulation of space missions</title>
+		<imprint/>
+		<respStmt>
+			<orgName>Dmitry Savransky is an assistant professor in the Sibley School of Mechanical and Aerospace Engineering at Cornell University</orgName>
+		</respStmt>
+	</monogr>
+	<note>and image post-processing techniques</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

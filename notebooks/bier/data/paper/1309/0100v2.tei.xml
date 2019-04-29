@@ -1,0 +1,545 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-04T16:16+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Detecting multiple periodicities in observational data with the multifrequency periodogram -II. Frequency Decomposer, a parallelized time-series analysis algorithm</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2013-11-25">25 Nov 2013</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Roman</forename><forename type="middle">V</forename><surname>Baluev</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Central Astronomical Observatory at Pulkovo of Russian Academy of Sciences</orgName>
+								<address>
+									<addrLine>Pulkovskoje sh. 65</addrLine>
+									<postCode>196140</postCode>
+									<settlement>St Petersburg</settlement>
+									<country key="RU">Russia</country>
+								</address>
+							</affiliation>
+							<affiliation key="aff1">
+								<orgName type="institution" key="instit1">Sobolev Astronomical Institute</orgName>
+								<orgName type="institution" key="instit2">St Petersburg State University</orgName>
+								<address>
+									<addrLine>Universitetskij pr. 28</addrLine>
+									<postCode>198504</postCode>
+									<settlement>Petrodvorets, St Petersburg</settlement>
+									<country key="RU">Russia</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Detecting multiple periodicities in observational data with the multifrequency periodogram -II. Frequency Decomposer, a parallelized time-series analysis algorithm</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2013-11-25">25 Nov 2013</date>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>methods: data analysis</term>
+					<term>methods: statistical</term>
+					<term>surveys</term>
+				</keywords>
+			</textClass>
+			<abstract>
+				<p>This is a parallelized algorithm performing a decomposition of a noisy time series into a number of sinusoidal components. The algorithm analyses all suspicious periodicities that can be revealed, including the ones that look like an alias or noise at a glance, but later may prove to be a real variation. After selection of the initial candidates, the algorithm performs a complete pass through all their possible combinations and computes the rigorous multifrequency statistical significance for each such frequency tuple. The largest combinations that still survived this thresholding procedure represent the outcome of the analysis. The parallel computing on a graphics processing unit (GPU) is implemented through CUDA and brings a significant performance increase. It is still possible to run FREDEC solely on CPU in the traditional single-threaded mode, when no suitable GPU device is available. To verify the practical applicability of our algorithm, we apply it to an artificial time series as well as to some real-life exoplanetary radial-velocity data. We demonstrate that FREDEC can successfully reveal several known exoplanets. Moreover, it detected a new 9.8-day variation in the Lick data for the five-planet system of 55 Cnc. It might indicate the existence of a small sixth planet in the 3:2 commensurability with the planet 55 Cnc b, although this detection is model-dependent and still needs a detailed verification.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>Hardly someone would object against the assertion that the extraction of a multiperiodic variation in a raw time series data is one of the most importaint tasks of the practical astronomy. Among the most relevant branches we may highlight, for instance, the investigation of variable stars and the exoplanets searches. It is also widely known that this task is often dramatically complicated by undesired but typical properties of the data that are acquired by astronomers ( <ref type="bibr" target="#b15">Vio et al., 2013)</ref>. Such data are typically</p><p>Email address: roman@astro.spbu.ru <ref type="bibr">(Roman V. Baluev)</ref> non-uniform; moreover, they often demonstrate various regular, pseudo-regular, as well as irregular gapping patterns that might get into severe interference with the real periodic variations, which interfere between each other too. All this takes place above some background noise, which has an a priori unknown (or only poorly known) variance. Since the time when the Schuster (1898) and the <ref type="bibr" target="#b8">Lomb (1976</ref><ref type="bibr" target="#b12">)-Scargle (1982</ref> periodograms were introduced, a lot of efforts were done to overcome various issues arising in the task of the spectral data analysis. These efforts were done in the field of theory work as well as in the field of practical computing. We may highlight, in particular, that parallel algorithms of periodogram computation using graphics processing units (GPUs) are getting popularity in recent time <ref type="bibr" target="#b14">(Townsend, 2010)</ref>.</p><p>Here we present a computation algorithm that may significantly facilitate this analysis. It is meant to be a practical extension of our previous theory work <ref type="bibr" target="#b4">(Baluev, 2013)</ref>, hereafter Paper I. In that work we provided an analytic approach to treat and compute the multifrequency detection false alarm probabilities (hereafter FAP). In particular, it was demonstrated in Paper I that to rigorously prove the simultaneous existence of each of n presumably detected periodic components of a multiperiodic variation, it is insufficient to just test each of the n periodicities individually. It is mandatory to additionally ensure that all these periodic components are statistically significant jointly, i.e. as a tuple. Also, it is necessary to verify that there is enough statistical significance for each possible subtuple of any dimension m &lt; n. Only after all these statistical tests (2 n − 1 tests in total) are passed through, we may fairly claim that each of these n periodicities likely exist (with a stated statistical confidence, of course). Paper I also contains an analytic approach to compute the false alarm probabilities that are associated to the mentioned multifrequency tests. These analytic approximations represent the multifrequency extensions of the ones that we previously constructed for the single-frequency (e.g. Lomb-Scargle) periodograms <ref type="bibr" target="#b0">(Baluev, 2008)</ref>.</p><p>Our computation algorithm, named as FREquency DEComposer (FREDEC), implements this theory in a ready-for-use pipeline.</p><p>The package can be dowloaded at http://sourceforge.net/projects/fredec/. At first, it applies a consequent scan of singlefrequency periodograms to create an initial pool of candidate periodicities. This preliminary scan represents some mixture of the QUICK and SLICK algorithms described by <ref type="bibr" target="#b7">Foster (1995)</ref>. Then each frequency combination of the constructed frequency pool is considered in view of its complete multifrequency statistical significance. In the end, the algorithm prints out the set of the largest independent frequency combinations that were still found significant.</p><p>FREDEC is based on the multiperiodic model of an observable variation. This model represents the sum of a limited number of sinusoids. Thus, it should perform well in the cases when the actual variation can be well approximated by such a model, especially if the exact model of the variation is unknown or too complicated. The suitable astronomical cases include, for example, the exoplanetary signatures in stellar radial velocity variations and variable stars of several types. This method is not suitable for e.g. aperiodic variations (cathaclismic variables) or severely non-sinusoidal periodicities (eclipsing binaries, exoplanetary transits, Doppler binaries/exoplanets involving orbital eccentricities of 0.8 or larger). In the latter case, we may need too large number of sinusoidal harmonics to approximate the non-sinusoidal shape sufficiently well.</p><p>FREDEC is intended to run on a GPU device in a parallel regime, which increases its performance dramatically. The GPU computing is implemented through the CUDA language. When no suitable GPU device is available, the computations can be still done on CPU in a conventional single-threaded manner.</p><p>The structure of the paper is as follows. In Section 2, we describe the main definition and the analytic theory used by FREDEC. In Section 3, we describe the core procedure of the algorithm -the non-linear fitting of the multifrequency model. In Section 4 we provide a detailed description of the entire algorithm pipeline. In Section 5 we consider some GPU parallelization issues of the algorithm. Finally, in Section 6 we give some recommendations concerning the treatment of the FREDEC results. In Section 7 we discuss the application of our algorithm to several artificial as well as real-life data-analysis examples.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">The definitions, the task layout, and the basic underlying theory</head><p>Let us have a time series containing of N times t i , measurements x i , and weights w i . We will treat these data as the sum x i = µ(t i ) + ǫ i , where µ is a parametric signal model that depends on the hypothesis adopted, and ǫ i are Gaussian and uncorrelated measurement errors. Concerning ǫ i , we will always assume that Eǫ i = 0 and Dǫ i = κ/w i , where the common multiplier κ is unknown (it will be implicitly estimated from the data). We assume that all frequencies that might exist in the data are located some-where in a wide range <ref type="bibr">[0, f max ]</ref>. The width of this frequency range is therefore equal to f max . Using the effective time span T eff = √ 4πVar(t i ), where Var(t i ) is the weighted variance of t i , we can also define a non-dimensional frequency bandwidth W = f max T eff , which plays an important role in various false alarm probability estimations.</p><p>Our most basic null hypothesis involves the following data model:</p><formula xml:id="formula_0">H 0 : µ(t) = c (1)</formula><p>where c is an unknown constant to estimate. In fact, our algorithm may be also extended to have a time polynomial in (1) instead of just a constant c, but currently we limit our attention to the case of only a free constant in H 0 .</p><p>We will deal below with multifrequency hypotheses that in general have the following form:</p><formula xml:id="formula_1">H n : µ(t) = c + + n k=1 a k cos(2π f k t) + b k sin(2π f k t).<label>(2)</label></formula><p>Here, c, a k and b k are unknown linear coefficients, while the frequencies f k are unknown non-linear parameters. For each H n , all the parameters c, a k , b k , and f k , should be estimated from the data using the least-square regression. Denote the averaging operator * * as</p><formula xml:id="formula_2">φ(t) = N i=1 w i φ(t i ).<label>(3)</label></formula><p>and define the goodness-of-fit function, or the χ 2 function, as</p><formula xml:id="formula_3">χ 2 H n (θ, f ) = (x − µ) 2 H n ,<label>(4)</label></formula><p>where the vector θ contains all mentioned linear parameters, while the vector f contains the frequencies. To solve the associated least-square regression task, we must find the best-fit parametric estimates by means of minimizing the relevant χ 2 function. This can be split in two nested subtasks. The inner one involves only an easy linear minimization</p><formula xml:id="formula_4">θ * ( f ) = arg min θ χ 2 H n (θ, f ),<label>(5)</label></formula><p>which can be performed extactly. In the outer subtask, we should perform a more difficult non-linear fitting <ref type="formula">(6)</ref> which needs some iterative procedure. Below we will have rather little interest in the best fitting parametric values θ themselves. The quantities that will be more important for us are the relevant minima of the χ 2 function that eventually define the signal significance. We denote them as</p><formula xml:id="formula_5">f * = arg min f χ 2 H n (θ * ( f ), f ), θ * * = θ * ( f * ),</formula><formula xml:id="formula_6">l n ( f ) = min θ χ 2 H n = χ 2 H n (θ * ( f ), f ), l * n = min θ, f χ 2 H n = l n ( f * ),<label>(7)</label></formula><p>The multifrequency test statistic that measures how much H n fits the data better than H 0 , can be now written down as</p><formula xml:id="formula_7">z n ( f ) = N H n 2 log D − l 0 D − l n ( f ) , z * n = N H n 2 log D − l H 0 D − l * n ( f ) = max f z( f ),<label>(8)</label></formula><p>with D = x 2 , N H n = N − dim H n = N − 3n − 1, and dim f = n. The first quantity defined in (8), z( f ), is an intermediary one; it formally corresponds to an assumption that all frequencies in f are known a priori, and it only needs to solve a linear regression task. The second quantity, z * , corresponds to a general global test. These definitions take into account the unknown noise scaling factor κ, which is implicitly reduced. The formulae (8) represent a slight modification of the periodogram z 3 from ( <ref type="bibr" target="#b0">Baluev, 2008)</ref>. The frequency argument is now multidimensional, and the coefficient N H n is reduced by the extra degrees of freedom introduced by the frequency variables (in addition to the degrees of freedom provided by θ). The latter modification is rather cosmetic. It does not change the asymptotic properties of the periodogram (the relative difference decreases as ∼ 1/N), which we will rely upon below. This change in the coefficient was introduced mainly to make the algorithm more conservative when dealing with small or moderate values of N.</p><p>In addition to the global test (8), we define the local multifrequency test, which is computationally much faster. Let us have some approximate preliminary frequencies estimation in the vector f loc . These preliminary frequencies typically represent the positions of some periodogram peaks. We assume that the true frequencies are indeed located inside of these peaks; they only need to be locally refined using the complete multifrequency model. In this case we can treat the model (2) well-linearizable with respect to f i , so we can apply some gradient method of nonlinear minimization, starting from the initial position of f loc . What we get in the end of the iterations is the nearest local minimum l * n,loc and the implied local test statistic z * n,loc . Hereafter we will denote such local maxima near f loc as</p><formula xml:id="formula_8">z * n,loc ( f loc ) = loc max f ≈ f loc z n ( f )<label>(9)</label></formula><p>Clearly, this z * loc is a discontinuous function: when some frequency in f loc passes between neighbouring periodogram peaks, the value of z loc changes abruptly at some boundary point. To compute the global maximum z * , we need to sample z * loc over a dense enough multidimensional grid (considering that the natural frequency resolution is 1/T ), and then to find the maximum. <ref type="bibr">1</ref> We call the test in (8) as absolute, because it provides an absolute likelihood of the best-fit nfrequency tuple. Eventually, we will need relative tests that compare two nested frequency tuples with each other. The relevant fixed-frequency test statistic (analogue of z n ( f )) can be defined as</p><formula xml:id="formula_9">z n|m ( f | f ′ ) = N H n+m 2 log D − l m ( f ′ ) D − l n+m ( f ′ , f ) .<label>(10)</label></formula><p>Here f ′ is an m-frequency tuple that corresponds to the base model H m . The alternative model H n+m involves m base frequencies f ′ and also an additional set of n frequencies f . This relative test statistic defines the likelihood of n given frequency components under the assumption that m other frequencies are already established. It is also assumed that all related frequency values are known precisely and thus are fixed.</p><p>To derive from (10) a variable-frequency case, we must recall that the base model H m is useful only when it is understood in the local sense. We assume that there exist m approximately-known frequencies f ′ : they are allowed to vary within a narrow neighborhood of f ′ loc . Given this base model, how realistic would be an expanded model with n extra frequencies f ? When f is still fixed, the relevant likelihoodratio measure may be defined with the formulae:</p><formula xml:id="formula_10">z * n|m,loc ( f | f ′ loc ) = N H n+m 2 log D − l m,loc ( f ′ loc ) D − l n|m,loc ( f | f ′ loc ) , l m,loc ( f ′ loc ) = loc max f ′ ≈ f ′ loc l m ( f ′ ), l n|m,loc ( f | f ′ loc ) = loc max f ′ ≈ f ′ loc l n+m ({ f ′ , f }), (11)</formula><p>Optimizing out the variable f too, we introduce the following double-local and global-local tests:</p><formula xml:id="formula_11">z * n,loc|m,loc ( f loc | f ′ loc ) = loc max f ≈ f loc z * n|m,loc ( f | f ′ loc ), z * n|m,loc ( * | f ′ loc ) = max f z * n|m,loc ( f | f ′ loc )</formula><p>. <ref type="formula" target="#formula_1">(12)</ref> Let us assume that we have detected n possible periodic components exist in the data; these components are defined by a preliminary frequency vector f loc . As we discuss in Paper I, to verify that all of these components are indeed statistically significant, we must apply 2 n − 1 statistical tests in total. These are the relative tests z * n−m,loc |m,loc ( f loc | f ′ loc ), where f ′ loc is an arbitrary m-dimensional subvector of f loc . For each integer m from 0 to n − 1 we have C m n of such multifrequency tests, so their total number counts to 2 n − 1.</p><p>Even though all the putative components have passed individual single-frequency tests, this does not guarantee that all their combinations will pass the joint multifrequency tests too. If just a single such combination yields insufficient significance then we have to admit that some of the frequencies in f loc still may be fake: they may prove as a noise artifact or an alias.</p><p>For example, when two frequencies are individually significant but do not score enough joint significance, this means that we cannot claim that both these components are "detected", even if these components generate equal peaks on the periodogram 4 and are not mutual aliases. In this case we should just select these two single-frequency components as peer explanations of the data, without combining them together. What we can say for sure is that at least one of these periodicities likely exists. Whatever periodicity we adopt as true, either this or another one might be confirmed as well as disproved later. We have insufficient observational basis to simultaneously select them both, but we cannot reject them both as well.</p><p>The multifrequency test statistics that we have defined above are not calibrated yet. Under "calibration" of a test statistic z we mean basically a mapping that can transform each z-value to the associated false alarm probability, FAP(z). Note that because we did not knew the vector f loc in advance, the FAP must be calculated as if we have run a full scan of the frequency space, i.e. as if we used the global-local statistic z * n−m|m,loc ( * | f ′ loc ) everywhere, even though we might actually compute its double-</p><formula xml:id="formula_12">local version z * n−m,loc |m,loc ( f loc | f ′ loc )</formula><p>. The latter statistic is used just as a rapid computational, but not analytic, replacer for the former one after f loc is obtained. Now we need to adapt the main results of Paper I, where we have constructed the FAP estimations for some multifrequency test statistics. Those results are still not matching our needs perfectly. First, they refer to only absolute tests similar to z * n in (8) rather than to z * n|m,loc . Secondly, this FAP approximation refers only to a simplified version of z * n ( f ), corresponding to the case when the uncertainties of ǫ i are known exactly (rather than expressed through w i ). However, as we have discussed in Paper I, these simplified FAP expressions still can be used as asymptotic (N → ∞) approximations to the FAP for the periodograms that we denoted here as z * n|m,loc . This is because the base multifrequency models of these statistics, as well as the multiplicative noise model, are understood in the local sense. The relevant nonlinear parameters (the frequencies and κ) thus appear well-linearizable.</p><p>Therefore, the FREDEC code relies on the following multifrequency FAP formula from Paper I:</p><formula xml:id="formula_13">FAP n (z) M n (z) ≃ ˜ A n W n e −z z 3n 2 −1 ,<label>(13)</label></formula><p>where˜Awhere˜ where˜A n are some numeric coefficients that we do not detail here. We use this formula for all multifrequency periodograms of the type z * n|m,loc ( * | f ′ loc ), and consequently for their computational replacers z * n,loc |m,loc ( f loc | f ′ loc ). Obviously, the formula <ref type="formula" target="#formula_2">(13)</ref> is invariable with respect to f loc ; i.e. the periodogram's detection levels in the first approximation do not depend on the parameters of the base model (although the periodograms themselves do depend on them, of course).</p><p>In general, the FREDEC algorithm is doing the following: (i) it constructs a wide enough initial pool of n preliminary frequencies in the vector f loc ; (ii) it computes the set of all necessary test statistics z * m−k,loc |k,loc ; (iii) it tests each independent multifrequency combination (a subvector of f loc ), keeping only the largest combinations that still pass the multifrequency FAP threshold based on <ref type="bibr">(13)</ref>. How many tests we should apply during this sequence? We can sample C m n independent mfrequency combinations f ′ loc out of the original nfrequency pool f loc . For each such combination we must compute 2 m − 1 relative test statistics to ensure its statistical significance. In each of these statistics, z * m−k,loc |k,loc , the combination f ′ loc is split in two subsets having sizes of m − k and k (for 0 ≤ k ≤ m − 1) that serve as the arguments of the statistic. For a given m and k the number of such statistics is C k m (clearly, they sum to 2 m − 1, as expected). Therefore, the total number of the tests to apply to the original pool is equal to n m=1 C m n (2 m − 1) = 3 n − 2 n . This is a quickly growing function that will inevitably limit us to only rather moderate numbers n. Of course, this algorithm still can be optimized in several directions, which are discussed below.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Computing the local multifrequency fit</head><p>The core procedure of the FREDEC algorithm is the computation of the local χ 2 minima that we have denoted as l n and l n,loc . The first function requires to carry out a linear least-square minimization:</p><formula xml:id="formula_14">χ 2 H n (θ, f ) = D − g( f ) · θ + 1 2 θ T Q( f )θ −→ min θ .<label>(14)</label></formula><p>Here we have represented the χ 2 function through a quadratic form, which is possible thanks to the linearity of θ. The likelihood function gradient g and the Fisher matrix Q both are functions of the frequencies. They can be expressed as g = x, x cos ω 1 t, x sin ω 1 t, x cos ω 2 t, x sin ω 2 t, . . . , x cos ω n t, x sin ω n t</p><p>and</p><formula xml:id="formula_16">Q =                1 cos ω 1 t sin ω 1 t . . . cos ω 1 t cos 2 ω 1 t sin ω 1 t cos ω 1 t . . . sin ω 1 t sin ω 1 t cos ω 1 t sin 2 ω 1 t . . . . . . . . . . . . . . .                ,<label>(16)</label></formula><p>where ω k = 2π f k , and the dots stand for the elements containing other ω k analogously to the shown ones with ω 1 . The general definition of g and Q can be found in Paper I. The solution to the task <ref type="formula" target="#formula_3">(14)</ref> is explicit:</p><formula xml:id="formula_17">l n = D − g T Q −1 g/2.</formula><p>A quick way to compute l n is to apply the Cholesky decomposition Q = LL T , where L is a low-triangular matrix. Then we can compute a = L −1 g using a forward substitution of g, and finally we have D − l n = a 2 /2. The associated best fitting parameters can be expressed as θ * = (L T ) −1 a, which can be computed by a back substitution of a.</p><p>Fitting of the frequencies f is an iterative nonlinear procedure, which involves the fitting of θ as a subtask. Assume that we have already performed the linear fit of θ and need to refine f and θ * . Now we can write down the following quadratic approximation:</p><formula xml:id="formula_18">χ 2 H n (θ, f ) = D − g f · ∆ξ + 1 2 ∆ξ T Q f ∆ξ + . . . ,<label>(17)</label></formula><p>where the vector ∆ξ encapsulates the parametric steps ∆θ and ∆ f . The vector g f is the likelihood function gradient over ξ. It is similar to g, but must be computed for θ = θ * ( f ), where f is the frequency vector of the current iteration. The first part of g f , which is associated to the parameters θ, is necessarily zero, because it was annihilated during the linear fitting stage. The low-top submatrix of Q f coincides with Q. The non-zero subvector of g f and the remaining parts of Q f depend on the values of θ * that were obtained previously. These elements involve, in particular, the averaged derivatives of the model <ref type="formula" target="#formula_1">(2)</ref> over the frequency vector f .</p><p>Since Q is a low-top submatrix of Q f , the Cholesky matrix L is also a low-top submatrix of L f (the Cholesky matrix for Q f ). Therefore, we do not need to apply the Cholesky decomposition anew. It can be easily implemented in an incremental manner, extending the pre-calculated L to L f . After the Cholesky decomposition is completed, we can compute the implied parametric step ∆ξ = Q −1 f g f , refine the frequency vector, and proceed to the next iteration, which will start from the linear fitting again. After we reach a satisfactory accuracy in f , we still need to run the linear fitting subroutine once again to compute l n,loc , which we originally aimed to obtain.</p><p>We would like to highlight that the fitting algorithm that we presented above is more efficient than a general non-linear fitting algorithm. We significantly profit here from the linearity of the parameters θ, which allows for more accurate iterations. The iteartions are more accurate because instead of using the values of θ from a previous iteration, we first refine them to honour the latest update of f . Thanks to re-using of the matrix Q, no significant overheads are implied. This approach is generally similar to the one suggested by <ref type="bibr" target="#b18">Wright and Howard (2009)</ref> for exoplanetary fits of radial velocity data.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">The FREDEC pipeline</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">Initialization</head><p>In addition to some variables initialization, data loading, and GPU hardware initialization, we perform some useful normalizations of the time series. These normalizations are intended to fulfil the following relations:</p><formula xml:id="formula_19">1 = 1, x = 0, x 2 = 1, t = 0, t 2 = 1.<label>(18)</label></formula><p>These relations are very useful to satisfy, because they considerably simplify the computation formulae for the elements in (15) and (16) and for some other similar quantities. Otherwise, we would have to carry or re-evaluate the quantities in the left hand sides of (18) through all algorithm pipeline. For example, these relations imply the identity cos 2 ωt + sin 2 ωt = 1, which allows us to omit the evaluation of some of the elements in the matrix Q.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.">Phase 1: preliminary scan</head><p>During this phase we must create the basic pool of candidate frequencies. The most honest and direct way to do so is to run a full multidimensional scan of an n-frequency periodogram with some large enough n. However, this is obviously not practically feasible, so we need to apply some other method. We use a mixture of the QUICK and SLICK algorithms described by <ref type="bibr" target="#b7">Foster (1995)</ref>. We compute a series of the single-frequency residual periodograms, each time adding to the base model the frequency corresponding to the largest peak remaining. This is the SLICK part of the scan. The final pool of the candidate is not limited, however, by the highest peaks of each of these sequential periodograms. We also honour other periodigram peaks that demonstrated small enough single-frequency FAP. These side peaks do not go to the set of the base frequencies to be used when constructing the next residual periodogram, but they go to the final pool of the candidates. This is the QUICK part of the scan. In such a way, our final pool will be probably overfilled, i.e. it will likely contain some aliases or even noisy peaks. We avoid to do any conclusions at this early stage, however, because the peak that initially looked as an alias may later appear as true. On contrary, real variations may initially look as false peaks sometimes <ref type="bibr" target="#b7">(Foster, 1995)</ref>.</p><p>The comprehensive set of the conditions that a periodogram peak must satisfy to go to the pool is:</p><p>1. Its single-frequency FAP, calculated from <ref type="formula" target="#formula_2">(13)</ref> substituting n = 1 is smaller than some settled threshold FAP 1 . The FAP 1 threshold might be rather mild (we use 0.1 by default). 2. Its height is at least half of that of the maximum peak found on this periodogram. This condition is a workaround to handle the situation when the data contain a single dominating variation, which generates a lot of large alias peaks obscuring smaller variations that would reveal themselves after removal of the dominating one.</p><p>The subsequent residual periodograms are computed until the maximum peak's FAP rises above another threshold FAP 0 . Obviously, the inequality FAP 1 ≥ FAP 0 must be satisfied for the algorithm to be logically self-consistent.</p><p>Sometimes the candidates pool may grow too much. To prevent this, we set an upper limit of N/10 on its size. Candidates with the largest detection FAP that are out of this limit by the end of Phase 1 are just thrown away. Since each periodicity requires three parameters in the model (2), the largest ever possible number of the free parameters is thus equal to ∼ N/3.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3.">Phase 2: forward cascade pass</head><p>During this phase, the algorithm computes the set of the values of l m,loc for all possible subsets drawn from the pool of the candidates in all possible combinations. There are C m n independent absolute mfrequency tests for each m = 1, 2, . . . , n. Usually this computation stage is the heviest one. The number of the values to compute is 2 n − 1.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.4.">Phase 3: backward cascade pass</head><p>Based on the previously calculated values of l m,loc , we can now comute the values of all necessary relative test statistics z * m−k,loc |k,loc , for k = 1, 2, . . . m, and then to apply the FAP threshold to them. This phase does not require any non-linear minimization or the expensive averaging of the trigonometric functions, like the phase 2, but the number of the quantities to compute is now increased to ∼ 3 n . Without extra optimizations, this apparently insignificant change makes the phase 3 computation to run even slower than the phase 2, when n exceeds ∼ 20 − 25.</p><p>First, we can avoid the computation of the FAP, which involves transcendent functions, for each test statistic. Instead, we may find the minimum (i.e., the worst-case value) among all z * m−k,loc |k,loc belonging to a layer with the same k, and only after that we should pass this minimum to the FAP threshold. This is because FAP for the same k is expressed by the same formula. However, the layers of the tests with different k may be only compared in terms of the FAP, because the formula (13) depends on the dimensionality of the model. Secondly, we do not actually need to compute FAPs, we need to threshold them. For some mfrequency combination f ′ , sampled out of the original n-frequency pool f , there are 2 m − 1 relative tests to compute, each referring to some lesser subsample of f ′ . But this computation can be interrupted right after we found a subsample that failed the significance test. In case of such a fail we can immediately proceed to the next combination f ′ , skipping any further subsamples from the current f ′ . The complete FAP of the frequency tuple is the maximum among the FAPs of the subsampled combinations, and once this maximum exceeded the threshold, it will never return below it. To further increase the performance, we may alternate the values of k so that the largest test layers (with k ∼ m/2) are left for later; this will increase the chance that some test will fail before we get to the most complicated part of the job.</p><p>With these optimizations, the phase 3 computation time was dramatically reduced, and even became negligible in comparison with the phase 2.</p><p>The FAP thresholding during the phase 3 is controlled by an additional parameter FAP 2 , and it should not exceed FAP 0 or FAP 1 to preserve the logical consistency of the algorithm. Therefore, the double inequality FAP 1 ≥ FAP 0 ≥ FAP 2 must be satisfied. Default values are: FAP 1 = 0.1 and FAP 0 = FAP 2 = 0.05.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.5.">Phase 4: alternatives filtering</head><p>The frequency combinations that survived the phase 3 form the output pool of alternative multiperiodic models of the data. This does not imply, however, that all these alternatives are statistically equivalent. In fact, the results of the algorithm often contain frequency combinations that offer clearly bad fit of the data (in comparison with the other ones). The only thing that is guaranteed is that the results will never contain nested frequency combinations.</p><p>To say that our work is completed we must carry out a statistical comparison between the remaining non-nested models. Testing of non-nested hypotheses is significantly different from the more traditional nested hypotheses case <ref type="bibr" target="#b3">(Baluev, 2012)</ref>. For the case of only two rival hypotheses we could apply e.g. the Vuong test for this goal <ref type="bibr" target="#b16">(Vuong, 1989;</ref><ref type="bibr" target="#b3">Baluev, 2012)</ref>. However, our case involves multiple alternative models, which disables the direct use of the Vuong test. The case of the multiple non-nested hypotheses still needs some more deep theoretic investigation.</p><p>Therefore, this phase 4 of the FREDEC pipeline is currently incomplete. The present version of FRE-DEC only sorts out the alternatives in the χ 2 -increase order to make it easier for the user at least to identify the models that offer a clearly bad fit. Also, the algorithm computes the set of values of the Vuong statistic comparing the best fit with all others. Since the application of this test to multiple alternative hypotheses is not currently very rigorous, these values should be treated with care. Nevertheless, FREDEC allows to filter out only the alternatives that have the Vuong statistic smaller than some critical value. We set this threshold to a rather conservative level of 5 by default.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">GPU parallelization</head><p>Profiling tools show that more than 90% of the FREDEC computing time is spent during the evaluation of the sine and cosine functions. Actually, the same proposition is true for the classic Lomb-Scargle periodogram. Therefore, the most of the computing resources are spent for the trigonometric averages that appear in the gradient vector g and matrix Q, as well as in their extensions g f and Q f . These averages can be split in two independent systems. The first system is used to evaluate the gradient: cos ωt, sin ωt, t cos ωt, t sin ωt, x cos ωt, x sin ωt, xt cos ωt, xt sin ωt,</p><p>where ω is equal to one of ω k . The second one is used to compute the elements of the Fisher matrix:</p><p>cos ωt, sin ωt, t cos ωt, t sin ωt, t 2 cos ωt, t 2 sin ωt,</p><p>where ω = ω k ± ω m , excluding the difference for k = m. The averages involving the t or t 2 multipliers are necessary to calculate g f and Q f ; they appear due to the derivatives of (2) over f . The computation of <ref type="formula" target="#formula_8">(19)</ref> and <ref type="formula" target="#formula_1">(20)</ref> can be very efficiently parallelized on GPU, since we need to evaluate the quantities of the same type differing only in the value of ω. Besides, all of these averages are based on the same time series data (t i , x i , w i ) that can be pre-loaded into the fast shared memory of the 8 GPU. The algorithm is generally similar to the one proposed by <ref type="bibr" target="#b14">Townsend (2010)</ref> for the classic LombScargle periodogram. The performance increase factor for this part of the FREDEC algorithm is relatively high. It reaches hundreds on the top-class GPU (tested with NVIDIA Tesla C2075), though it was smaller for less powerful GPU cards (we tested NVIDIA GeForce 210). This performance increase also significantly depends on the adopted floatingpoint arithmetics -single-or double-precision. We however do not recommend to use single precision for practical calculations with FREDEC due to large round-off errors leading to numerical instability.</p><p>Most other parts of the algorithm are also adapted for GPU computing, although it seems that their parallelization is not that efficient, maybe because of less efficient memory usage. In particular, the parallel least-square fitting of Sect. 3 is implemented by means of launching of many entirely independent instances of the fitting subroutine. However, the internal data arrays used of these fitters are all different and have to be stored in a rather slow global GPU memory.</p><p>The overall performance increase with the mentioned NVIDIA Tesla GPU was ∼ 30 for doubleprecision arithmetics and ∼ 150 for single precision. The difference between the single-and doubleprecision tests was mainly due to a mysterious slowdown of the CPU computation on single-precision, while the GPU benchmark demonstrated, on contrary, a moderate speed-up. The mentioned NVIDIA GeForce card only supports single-precision arithmetics, and in this case the GPU/CPU performance increase factor was ∼ 20.</p><p>The performance of the algorithm depends severely on the number of the frequencies in the initial pool, n. When this n is smaller than 15 the computation passes through pretty quickly both in GPU and CPU mode. For n = 15 − 20 the CPU computation will be long though still feasible, while the GPU one is still rather fast. The values n = 25 − 27 represent the limit of the FREDEC capabilities. In some pracical data that we considered during the testing (they are the public radial velocity data for some exoplanet-hosting stars), the maximum value of n that we dealt with was 25 (that was the case of the Lick data for 55 Cancri, considered below), while other cases usually implied a significantly smaller n.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">Interpretation of the FREDEC results</head><p>The FREDEC output is a set of alternative multifrequency models. The computation pipeline described above verifies that within each such model all its periodic components likely exist (at the significance level of FAP 2 ). Presently, FREDEC does not provide a unique and rigorous way to define which of these alternative models are likely and which are not. As we have explained above, we need a more intricate method of multiple non-nested hypotheses testing to do this part of the work. The output contains the following data per each multiperiodic solution:</p><p>1. Best fitting frequency values f i , sorted in the increase order. 2. The adimensional goodness-of-fit value G = l m,loc N H 0 /N H m . Due to the normalization (18), this quantity is equal to the ratio of the reduced χ 2 values for the best fits of the associated model H m and of the null model H 0 . The reduced χ 2 value for H 0 is the classic variance estimation of the original (unscaled) x i , taken with weights w i . Since this variance is the same over all the alternative fits, the quantity G represents just a scaled value of the reduced χ 2 of the multiperiodic model. Smaller values of G correspond to more preferrable solutions, although we do not define any formal probabilistic measure of the relevant advantage. 3. The Vuong statistic comparing this fit with the one offering the smallest value of G. For large N, each individual Vuong statistic asymptotically follows a standard normal distribution. However, since here we typically have more than two alternative solutions, we have more than a single such comparison test, and when we apply many similar tests, we get an increased chance to make a mistake. This effect of multiple hypothesis testing should increase the thresholding level for the Vuong test, in comparison with the quantile levels of the standard normal distribution. Thus the values of the Vuong test reported by FREDEC are currently not calibrated well.</p><p>4. The single-frequency FAP associated to the maximum peak still remaining in the residual periodogram. Small value of this FAP indicates that after subtraction of this particular multiperiodic solution some significant periodic variations still remain in the data. This may mean that either this solution is parasitic and should be rejected in favour of another one or it is the correct one, but the data still contain some significant residual variation that cannot be reliably decomposed.</p><p>The values of G, of the Vuong statistic, and of the residual single-frequency FAP may be used to filter out the solutions that provide clearly bad fit to the data. To be more helpful here, FREDEC sorts the solution in the χ 2 -increase order (grouping them in bunches with the same m). However, these criteria are currently unrigorous and indirect. For example, it is rather normal when all of the proposed solutions have small residual FAP, and even all below the FAP 2 threshold.</p><p>Notice that we assumed a strictly multiperiodic model (2), and a strict multiplicative model of the noise. In the case when either of the model might be inaccurate, the results reported by the FREDEC are suggestive rather then decisive.</p><p>It is also important to pay attention to the construction of the initial pool of candidates during the Phase 1. When FREDEC truncates this pool by a significant amount (to keep its size below the limit of N/10), this indicates that the data set is to small to provide a complete solution. In this case the data likely contain many periods, but it is impossible to properly process all of them due to a large number of free parameters to fit.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.">Practical examples</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.1.">Double-frequency example from Paper I</head><p>In Paper I we considered an artificial time series, containing two sinusoids at the frequencies of 0.9 Hz and 1.1 Hz, and periodic data gaps generating an aliasing frequency of 0.1 Hz. The singlefrequency periodogram of these data shows the maximum peak at a wrong frequency of 1.0 Hz, while the true frequencies look like some side aliases. These data generate a sequence of detectable periods at the frequencies of (1.0 ± 0.1k) Hz.</p><p>When applied to the original time series of Paper I, our FREDEC algorithm correctly identifies the double-frequency combination used to construct the data. However that data set was entirely noiseless. It is more interesting to consider noisy data, so we added to the original time series a small Gaussian noise with the standard deviation equal to 1/10 of the amplitudes of the original sinusoidal variations.</p><p>First of all, FREDEC again successfully identifies a single double-frequency solution with the correct frequencies of 0.9 Hz and 1.1 Hz. This model has the value of G close to the minimum, and the Vuong statistic of 0.5, indicating a pretty good fit. Additionally, there are 14 alternative combinations containing 5 − 7 components involving various aliased periods. Most of these models could be rejected due to a large value of the Vuong statistic (up to 6.6). The most likely combinations are: two solutions with 7 components (one of the true frequencies and 6 aliases in the range from 0.6 Hz to 1.4 Hz), a single solution with 5 components (aliases from 0.7 to 1.3 Hz without the true frequencies), and the correct double-frequency solution.</p><p>These results indicate that the maximum periodogram peak at 1.0 Hz may only lead us to very complicated models containing no less than 5 periodicities. The simplest admissible model contains two frequencies that initially looked like mere aliases.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.2.">Radial velocity data for the 51 Peg exoplanetary system</head><p>We use the public ELODIE ( <ref type="bibr" target="#b9">Naef et al., 2004</ref>) radial velocity data for this famous planet-hosting star. In the ELODIE data, FREDEC easily identifies the primary (planetary) variation with the period of 4.2308 d. However, a weak though clearly detectable (FAP ∼ 10 −9 ) additional variation is also revealed. Its period is subject to alias ambiguity, and could be one of: 359.3 d (the best fit), 23 h 52 m (Vuong statistic of 0.8), 24 h 00 m (Vuong statistic of 1.7), and 24 h 04 m (Vuong statistic of 2.7). All these values are mutual aliases that likely reflect the presence of a systematic annual variation in the ELODIE data. We have already detected this variation in these data in our old work <ref type="bibr" target="#b1">(Baluev, 2009</ref>) by means of the traditional pe-riodogram. Now, FREDEC confirms this result and gives more details. No more periods in the ELODIE data are seen.</p><p>7.3. Radial velocity data for the GJ 876 exoplanetary system This planetary system is famous thanks to a detectable secular apsidal drift of the two main planets ( <ref type="bibr" target="#b11">Rivera et al., 2010;</ref><ref type="bibr" target="#b5">Correia et al., 2010</ref>). In the radial velocity periodograms an apsidal drift of a planet with an orbital period P appears as a small shift of all related overtone periods P/k. The unperturbed multi-Keplerian model of the radial velocity curve cannot take this effect into account, but the multiperiodic model with freely fittable frequencies can. In fact, we may expect that a mutiperiodic model may fit such data at an accuracy level comparable to that of the rigorous Newtonian N-body model.</p><p>We run FREDEC separately for the HARPS ( <ref type="bibr" target="#b5">Correia et al., 2010</ref>) and Keck ( <ref type="bibr" target="#b11">Rivera et al., 2010)</ref> radial velocity data. In the HARPS data we only robustly detect the periods of the two main planets P b ≈ 60 d and P c ≈ 30 d. There was also the third ambiguous period of either ∼ P c /2 or ∼ P c /3. We actually know that these overtone periods exist simultaneously, but FREDEC finds that their joint significance in the HARPS data is too low, and suggests them as peer alternatives. In the output of Phase 1 of the algorithm we also find a set of periods close to the period of the third planet P d ∼ 2 d, but they were excluded from the analysis to comply with the maximum allowed number of the components. This is not very surprising, since the number of the HARPS data is still rather small to work entirely alone.</p><p>In the Keck data, the best FREDEC solution contains 6 components, which involve all four known planets of the system (P b ≈ 61 d, P c ≈ 30 d, P d ≈ 2 d, and P e ≈ 125 d), and two subharmonics ∼ P c /2 and ∼ P c /3. Additionally to this nominal solution, there are 35 alternative models that involve various aliases (typically the diurnal ones). Most of them can be rejected using the Vuong test: we find only 6 models having the Vuong statistic below 3, all with 6 components. Only one of these remaining alternatives appears relatively non-trivial. It contains no period P e , and in place of the P c /2 subharmonic it contains two close periods of 15.0 d and 14.3 d. We believe this reflects some effect of secular motion due to Newtonian perturbations.</p><p>It must be noted that the RV data for GJ876 are affected by non-white noise <ref type="bibr" target="#b2">(Baluev, 2011)</ref>, which formally invalidates all statistical methods that FRE-DEC relies on. However, in the FREDEC results described above we did not find any clear signature of the correlated noise. Probably, in this case the correlated noise is partly obscured by inaccuracies of the multiperiodic models.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.4.">Radial velocity data for the 55 Cnc exoplanetary system</head><p>This planetary system contains five known planets ( <ref type="bibr" target="#b6">Fischer et al., 2008)</ref>. Their orbital eccentricities are small, as well as their gravitational perturbations. Therefore, the multi-sinusoidal model should work well for these data. Application of the FREDEC algorithm to the published Lick data for this star reveals dozens of alternative solutions. However, most of them, even if pass the Vuong test, are not very likely because they contain various periods close to one day. These periods appear due to diurnal aliasing cycles of the data. Anyway all periods close to 1 day are unlikely, so we paid attention to only nondiurnal periods. These periods are: 5200 d, <ref type="bibr">260 d, 44.4 d, 14.7 d, 9</ref>.8 d, and 0.737 d. This is the basic period set in all combinations revealed by FRE-DEC. The combination with the largest number of non-diurnal periods contains only these six components, which offer almost the best fit (Vuong statistic of 0.01, maximum multifrequency FAP of 0.7%). Other alternative combinations involve a subsample of this basic combination, complemented by some diurnal aliases. All of these basic periods are orbital periods of the known five planets, except for the period of 9.8 d (alternatively <ref type="figure">1.11 d)</ref>.</p><p>This additional period of 9.8 d could represent a hint of some previously unknown planet of the system, so we undertook a more detailed investigation of this variation. Our preliminary conclusion is that this is not necessarily a planet-induced variation. It may represent an artifact of the multiplicative noise model, in which the weights w i are assumed known, and the true uncertainties are assumed equal to κ/w i with a common scale factor κ. For exoplanetary radial velocity fits a better noise model is the addi-tive one, where the error variances are equal to the sum of some known instrumental part and of the "jitter" <ref type="bibr" target="#b17">(Wright, 2005;</ref><ref type="bibr" target="#b1">Baluev, 2009)</ref>. We find that the 9.8 d peak is indeed present in the periodograms constructed using the classic noise model, but it disappears completely when the additive noise model is adopted (using the method of <ref type="bibr" target="#b1">Baluev 2009)</ref>. Previously we noted that the additive noise model may introduce significant changes for heterogeneous time series, in which the jitter may appear differ for different subsets (coming e.g. from different observing teams). So far we have not yet seen case demonstrating that the choice noise model may become so important for a single homogeneous dataset. This however does not decrease the value of our new FREDEC algorithm, since it is a general-purpose data-analysis tool not designed to deal with a special task.</p><p>However, we still do not close the question of the reality of the new 9.8 d period in these data. It is very suspicious that this period appears in a 3:2 commensurability with the another planetary period of 14.7 d. We could not explain the 9.8 d variation by applying the multi-Keplerian model with non-zero eccentricities or the Newtonian model involving planet-planet perturbations in the system. It is relatively unusual that this period disappears only after applying a special model to the RV noise that does not redistribute the power across the frequencies (like e.g. the model of a correlated noise would do). In fact, we are not aware of any work clearly and undoubtfully showing that the additive noise model is indeed practically superior over the classic multiplicative one. So far, the additive noise model was an priori likely but unverified assumption. Therefore, we believe the hypothesis of the new 9.8 d planet in the 55 Cnc system needs a further detailed investigation.</p><p>We pay so much attention to any tiny hints of additional putative planets orbiting 55 Cnc because of the recent attempts to fit this system to a TitiusBode-like law <ref type="bibr" target="#b10">(Poveda and Lara, 2008)</ref>. Such hypotheses appear very endurant regardless of all controversies and disputes around them. This is probably because they offer an apparently easy way to predict new planets in known multi-planet systems. The existence of the 9.8 d planet orbiting 55 Cnc would represent a further argument against the predictive power of any "law" of such type. <ref type="bibr" target="#b10">Poveda and Lara (2008)</ref> did predict new planets in this system, but at a much larger period values like 3.1 yr and 62 yr, where our algorithm finds nothing. On contrary, they did not predict anything at the period of 9.8 d which is now the next planetary candidate in the queue.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8.">Conclusions</head><p>We believe that regardless of the limitations that we have mentioned above, the FREDEC algorithm still might be very useful in practice. To our concern it is the only available algorithm that meticoulosly considers the entire set of all possible frequency combinations, e.g. including the variations that might be wrongly interpreted as aliases. Also, it is the only algorithm that deals with complete false alarm probabilities of the multifrequency combinations. The option of GPU parallelization might be also very helpful. The practical usage of the FRE-DEC algorithm is easy, as it is entirely automatic.</p><p>We expect this software will be useful in many astronomical applications, such as search of exoplanets in radial velocity data and investigation of variable stars. It can also be helpful in the fields other than astronomy, that deal with the period search task, e.g. geophysics and climatology.</p></div>
+			<note place="foot" n="1"> Notice that this frequency grid may be more rarified than the one that we would need to use when determining z * by a &quot;brute force&quot; maximization of z( f ).</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Acknowledgements</head><p>This work was supported by Russian Foundation for Basic Research (project 12-02-31119 mol a) and by the programme of the Presidium of Russian Academy of Sciences "Non-stationary phenomena in the objects of the Universe". I am grateful to the anonymous reviewer for providing very useful suggestions concerning the manuscript.</p></div>
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">Assessing the statistical significance of periodogram peaks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">V</forename><surname>Baluev</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">385</biblScope>
+			<biblScope unit="page" from="1279" to="1285" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">Accounting for velocity jitter in planet search surveys</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">V</forename><surname>Baluev</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">393</biblScope>
+			<biblScope unit="page" from="969" to="978" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">Orbital structure of the GJ876 planetary system, based on the latest Keck and HARPS radial velocity data</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">V</forename><surname>Baluev</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Celest. Mech. Dyn. Astron</title>
+		<imprint>
+			<biblScope unit="volume">111</biblScope>
+			<biblScope unit="page" from="235" to="266" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Distinguishing between a true period and its alias, and other tasks of model discrimination</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">V</forename><surname>Baluev</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">422</biblScope>
+			<biblScope unit="page" from="2372" to="2385" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Detecting multiple periodicities in observational data with the multifrequency periodogram -I. Analytic assessment of the statistical significance</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">V</forename><surname>Baluev</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">436</biblScope>
+			<biblScope unit="page" from="807" to="818" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">The HARPS search for southern extra-solar planets XIX. Characterization and dynamics of the GJ 876 planetary system</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">C M</forename><surname>Correia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Couetdic</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Laskar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Bonfils</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Mayor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Bertaux</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Bouchy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Delfosse</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Forveille</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Lovis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pepe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Perrier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Queloz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Udry</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AA</title>
+		<imprint>
+			<biblScope unit="volume">511</biblScope>
+			<biblScope unit="page">21</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Five planets orbiting 55 Cancri</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Fischer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Marcy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P</forename><surname>Butler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">S</forename><surname>Vogt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Laughlin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Henry</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Abouav</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">M G</forename><surname>Peek</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Wright</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Mccarthy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Isaacson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">675</biblScope>
+			<biblScope unit="page" from="790" to="801" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">The CLEANest Fourier spectrum</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Foster</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">109</biblScope>
+			<biblScope unit="page" from="1889" to="1902" />
+			<date type="published" when="1995" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">Least-squares frequenciy analysis of unequally spaced data</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">R</forename><surname>Lomb</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Ap&amp;SS</title>
+		<imprint>
+			<biblScope unit="volume">39</biblScope>
+			<biblScope unit="page" from="447" to="462" />
+			<date type="published" when="1976" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">The ELODIE survey for northern extra-solar planets. III. Three planetary candidates detected with ELODIE</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Naef</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Mayor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Beuzit</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Perrier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Queloz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Sivan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Udry</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">414</biblScope>
+			<biblScope unit="page" from="351" to="359" />
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">The exoplanetary system of 55 Cancri and the Titius-Bode law</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Poveda</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Lara</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Rev. Mex. A. A</title>
+		<imprint>
+			<biblScope unit="volume">44</biblScope>
+			<biblScope unit="page" from="243" to="246" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">The Lick-Carnegie exoplanet survey: A Uranus-mass fourth planet for GJ 876 in an extrasolar Laplace configuration</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Rivera</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Laughlin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Butler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Vogt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Haghighipour</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Meschiari</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">719</biblScope>
+			<biblScope unit="page" from="890" to="899" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">Studies in astronomical time series analysis. II -Statistical aspects of spectral analysis of unevenly spaced data</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Scargle</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">263</biblScope>
+			<biblScope unit="page" from="835" to="853" />
+			<date type="published" when="1982" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">On the investigation of hidden periodicities with application to a supposed 26 day period of meteorological phenomena</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Schuster</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Terrestial Magnetism and Atmospheric Electricity</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="page" from="13" to="41" />
+			<date type="published" when="1898" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Fast calculation of the Lomb-Scargle periodogram using graphics processing units</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">H D</forename><surname>Townsend</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">191</biblScope>
+			<biblScope unit="page" from="247" to="253" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">Irregular time series in astronomy and the use of the Lomb-Scargle periodogram</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Vio</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Diaz-Trigo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Andreani</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astronomy &amp; Computing</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="5" to="16" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Likelihood ratio tests for model selection and non-nested hypotheses</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Q</forename><forename type="middle">H</forename><surname>Vuong</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Econometrica</title>
+		<imprint>
+			<biblScope unit="volume">57</biblScope>
+			<biblScope unit="page" from="307" to="333" />
+			<date type="published" when="1989" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Radial velocity jitter in stars from the California and Carnegie planet search at Keck observatory</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Wright</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">117</biblScope>
+			<biblScope unit="page" from="657" to="664" />
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">Efficient fitting of multiplanet Keplerian models to radial velocity and astrometry data</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Wright</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Howard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">182</biblScope>
+			<biblScope unit="page" from="205" to="215" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

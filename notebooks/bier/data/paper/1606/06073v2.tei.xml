@@ -1,0 +1,1308 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2019-01-22T13:45+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Spectroscopy Made Easy: Evolution</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2016-08-19">August 19, 2016</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Piskunov</surname></persName>
+							<email>piskunov@astro.uu.se</email>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Physics and Astronomy</orgName>
+								<orgName type="institution">Uppsala University</orgName>
+								<address>
+									<postCode>S-75120</postCode>
+									<settlement>Uppsala</settlement>
+									<country key="SE">Sweden</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jeff</forename><forename type="middle">A</forename><surname>Valenti</surname></persName>
+							<email>valenti@stsci.edu</email>
+							<affiliation key="aff1">
+								<orgName type="institution">Space Telescope Science Institute</orgName>
+								<address>
+									<postCode>21218</postCode>
+									<settlement>Baltimore</settlement>
+									<region>MD</region>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Spectroscopy Made Easy: Evolution</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2016-08-19">August 19, 2016</date>
+						</imprint>
+					</monogr>
+					<note type="submission">Received June 15, 2016; accepted August 2, 2016</note>
+					<note>Astronomy &amp; Astrophysics manuscript no. sme_paper2_final c ESO 2016</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>stars -spectra -fundamental parameters -radiative transfer</keywords>
+			</textClass>
+			<abstract>
+				<p>Context. The Spectroscopy Made Easy (SME) package has become a popular tool for analyzing stellar spectra, often in connection with large surveys or exoplanet research. SME has evolved significantly since it was first described in 1996, but many of the original caveats and potholes still haunt users. The main drivers for this paper are complexity of the modeling task, the large user community, and the massive effort that has gone into SME. Aims. We do not intend to give a comprehensive introduction to stellar atmospheres, but will describe changes to key components of SME: the equation of state, opacities, and radiative transfer. We will describe the analysis and fitting procedure and investigate various error sources that affect inferred parameters. Methods. We review the current status of SME, emphasizing new algorithms and methods. We describe some best practices for using the package, based on lessons learned over two decades of SME usage. We present a new way to assess uncertainties in derived stellar parameters. Results. Improvements made to SME, better line data, and new model atmospheres yield more realistic stellar spectra, but in many cases systematic errors still dominate over measurement uncertainty. Future enhancements are outlined.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>Strong emphasis on imaging and cosmology over the last 30 years has produced a whole generation of astronomers with a superficial understanding of stellar spectra. Recent new directions associated with the discovery of exoplanets, asteroseismology, and large-scale galactic surveys (e.g., Gaia) has rekindled interest in stars, with an emphasis on deriving accurate stellar parameters (temperature, mass, chemical composition, rotation, etc.) in a coherent fashion for a large number of targets. SME is a tool that we made for exactly this purpose. We emphasize the word "tool" to avoid any misconception: SME helps when used properly, but as with any tool it can be misused. SME 1 has evolved substantially since it was first released nearly 20 years ago. In the next section we give a short introduction to SME, followed by a more detailed description of the main components that have been added or significantly changed since the original version. These are the the equation-of-state, the continuous and line opacity calculations, and the radiative transfer solver. In Section 4 we describe and illustrate with examples some good practices to use when analyzing stellar spectra with SME. Section 5 is dedicated to a methodology for estimating uncertainties of the resulting stellar parameters.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">SME under the hood</head><p>SME consists of two components that are loosely connected through "input" and "output" data structures, that are usually stored in files. The first component is the graphical user interface <ref type="bibr">1</ref> Available at http://www.stsci.edu/~valenti/sme.html (GUI) written entirely in IDL 2 . The GUI helps users create an input structure that specifies the goal of a calculation and examine the results of a calculation stored in an output structure. An SME calculation can be a straightforward spectral synthesis or a more elaborate fit of an observation. In all cases the user must provide some basic information: global stellar parameters (effective temperature, surface gravity, metallicity, and radial velocity), line data, spectral intervals, and line broadening parameters (macro-and micro-turbulence, v sin i, and instrumental profile). SME reads line data in the format provided by VALD <ref type="bibr">3 (Piskunov et al. 1995;</ref><ref type="bibr" target="#b14">Kupka et al. 1999</ref>). Fitting requires additional information: an observed spectrum and the set of parameters to vary. The GUI checks the input data for completeness and consistency, making it a convenient starting point for using SME.</p><p>Calculations are performed by the second SME component, known as the "solver". IDL code fits observed spectra, calling a dynamically linked external library to perform the spectral synthesis. The IDL part reads the input structure and passes all relevant information to the library. Library functions solve for molecular and ionization equilibrium, compute continuous and line opacities, and calculate intensity spectra for specified limb angles. The IDL code integrates intensities over the stellar disk and optionally solves for free parameters that yield the best fit. SME is capable of fitting global stellar parameters (effective temperature, surface gravity, metallicity, abundances of specified atoms, v sin i, radial velocity, macro-and micro-turbulence) and some parameters of spectral lines. It is important to remember that SME minimizes a weighted χ 2 statistic, where the usual <ref type="bibr">2</ref>  A&amp;A proofs: manuscript no. sme_paper2_final <ref type="table">Table 1</ref>. List of changes to the SME since the original paper <ref type="bibr" target="#b33">Valenti &amp; Piskunov (1996)</ref> Cumulative distribution estimates in addition to covariance matrix approach contribution of each pixel is further weighted by the observed spectrum. This formulation gives more weight to points near the continuum at the expense of points in line cores, which helps the minimization procedure decouple the influence of continuum and line parameters. SME also calculates and returns standard χ 2 . <ref type="table">Table 1</ref> lists most of the changes that occurred since the first SME paper. The following section describe major modifications and enhancements. Since this is more of a "progress report" paper we will not repeat the description of some important SME features, such as the observation mask, instrumental broadening, χ 2 evaluation, and Marquardt-Levenberg optimization among others.. More information can be found in the original paper and in documentation distributed with the package. We also emphasize SME's compatibility with VALD as a source of atomic and molecular line data.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">Equation of state</head><p>Accurate spectral synthesis requires knowledge of the number density of absorbers and perturbers at every level of the stellar atmosphere. Early versions of SME (before around 1996) use Saha-Boltzmann equations for that purpose restricting the applications to F and hotter stars. The latest version relies on a self-consistent equilibrium solver applicable across wide range of temperature and pressure. The new equation-of-state (EOS) library functions in SME solve for chemical and ionization equilibrium, returning number density and partition function for each species that affects thermodynamic state or contributes to opacities. The output of the EOS is also used for computing collisional broadening. The input parameters are temperature, total gas pressure, and atomic abundances. The EOS provides a consistent foundation for calculations of line and continuum opacities for cool stars with a variety of species competing for the same atoms. The equilibrium assumption is appropriate for collision-dominated stellar photospheres.</p><p>The EOS solver is based on work by Phil Bennet <ref type="bibr">(1991)</ref>. Let Z elem = n elem /n total be the abundance of a particular chemical element, where n elem is the number density of nuclei of that element in any form (atomic or molecular, neutral or ion) and n total is the number density of all elements in any form. Note that the reference is all elements, not just hydrogen. Let n species be the number density of a particular atomic or molecular species with charge q species . Let X species be the count of nuclei in a particular species, that is, 0 for electrons, 1 for atoms or ions, 2 for diatomic molecules, etc. Let X species elem be the count of nuclei of the specified element in a particular species, e.g., X = 2. With these definitions, we can write N equations for N elements, expressing our abundance definitions:</p><p>Z elem = species n species X species elem species n species X species .</p><p>(1)</p><p>These abundance equations are supplemented by the particle and charge conservation equations:</p><formula xml:id="formula_0">n e − + species n species = P/kT<label>(2)</label></formula><p>species n species · q species = n e −</p><p>Eliminating n species from Equations (1-3) requires a relationship between the number density of a species and its constituents. In "equilibrium" the ratio of a reaction product to the reactants depends only on temperature. This ratio is denoted by K(T ) for chemical equilibrium and I(T ) for ionization equilibrium: log n species − elem X species elem · log n elem = log K(T )</p><p>log n neutral − log n species − q species · log n e − = log I(T )</p><p>where n neutral is the number density of neutral counterpart of a q-times ionized species. For example, these equations:</p><p>log n H 2 O − 2 log n H − log n O = log K H 2 O log n TiO − log n TiO + − log n e − = log I TiO + Article number, page 2 of 10 N. Piskunov and Jeff A. Valenti: Spectroscopy Made Easy: Evolution connect the number of water molecules with its constituent atoms and the numbers of neutral and ionized titanium monoxide molecule with the concentration of free electrons. Equations (4-5) can be combined to provide explicit expressions for n species log n species = log K(T ) − log I(T ) + elem X species elem · log n elem − log n q species e − (6) After eliminating n species using Expression (6) above that combines chemical and ionization equilibrium equations (4-5), we are left with only N + 1 independent variables: number densities of neutral atoms (n atom ) for N elements and the number density of free electrons (n − e ). This seems to be smaller than the number of equations (N +2), but the sum of all N equations in <ref type="formula">(1)</ref> is unity by definition, reducing by one the number of constraints restoring the match with the number of unknowns.</p><p>The chemical equilibrium constant K can be written as combination of masses, partition functions, and temperature:</p><formula xml:id="formula_4">K(T ) = 2πkT h 2 3/2 ·                elem m X species elem elem m species                3/2 · elem Q X species elem elem Q species · e −D species /kT (7)</formula><p>where k is the Boltzmann constant, m is a mass, Q is a partition function, and D species is a dissociation energy. The ionization equilibrium constant I for two consecutive ionization stages is given by the well-known Saha equation:</p><formula xml:id="formula_5">1/I(T ) ≡ n ion+1 n e − n ion = 2πkT m e − h 2 3/2 · 2Q ion+1 Q ion · e −E ion /kT (8)</formula><p>where E ion is the ionization energy from ion to ion+1. Combining Saha equations permits writing the expression of I connecting higher ionization stages with the neutral form.</p><p>Currently, the SME library includes partition function for 99 atoms from Hydrogen to Einsteinium with six or more ionization stages for all abundant elements. These partition functions were generously provided by R. L. Kurucz (http://kurucz. harvard.edu/atoms/pf/). For molecules we collected partition functions and molecular equilibrium constants for 197 molecules and six negative ions, mostly from <ref type="bibr" target="#b26">Sauval &amp; Tatum (1984)</ref>. <ref type="bibr" target="#b2">Barklem &amp; Collet (2016)</ref> recomputed molecular partition functions for diatomic molecules and a few negative ions, using updated energy level data from the literature and the NIST database. Their calculations cover temperatures from 10 K to 10000 K, suitable even for interstellar medium conditions. We fit their finely tabulated partition function values with a function that minimizes the maximum error over the full temperature range. <ref type="table" target="#tab_2">Table 2</ref> lists the molecular species currently in SME and the source of each partition function. SME uses a Newton-Raphson approach with Ng acceleration to solve Equations (1-8) iteratively. Convergence of this method depends critically on having a good initial guess. SME uses the following elegant and remarkably robust algorithm to obtain an initial guess. Apportion the input total pressure to atomic species according to their relative abundance. Use the equilibrium constants to calculate partial pressures (Eq. 6) of most abundant species. Scale the atomic partial pressures by the ratio of the input pressure divided by the sum of current atomic and molecular partial pressures. Iterate the cycle above a few times until the scale factor deviates from unity by less than 1%. The result is close to the true solution for all physically possible conditions, even though the procedure ignores coupling between molecular species. With this initial guess, the Newton-Raphson solver typically achieves a precision of 10 −5 in 3-5 iterations for every partial pressure.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.">Line opacities in SME</head><p>SME has a new and improved approximation for the atomic hydrogen line opacity (see below), while Voigt function:</p><formula xml:id="formula_6">H(a, v) = a π +∞ −∞ e −x 2 dx a 2 + (v − x) 2 (9)</formula><p>is used for spectral lines of other species. Here a and v here are the Lorentz broadening and detuning from the central wavelength expressed in units of Doppler width. Line opacity calculations are the most time-consuming part of spectral synthesis, so optimization is important. SME computes line opacity in two steps. First, we compute the central line opacity at each atmospheric layer using the number of absorbers provided by the EOS, line oscillator strength, and excitation energy of the lower level. At this step we identify the lines that will have no detectable contribution to the final spectrum and ignore them in subsequent opacity calculation. For lines other than hydrogen, we also pre-compute the Voigt function parameter a. In the second step, we multiply the central opacity by the opacity profile and determine the line contribution interval. The latter is done by comparing line opacity with continuous opacity at different wavelength offsets from line center, We assume a Voigt profile for all non-hydrogen lines. The Doppler broadening parameter of the Voigt function is a combination of thermal and microturbulent parts. The microturbulent velocity can be specified explicitly and adjusted by the SME. Three mechanisms contribute to the Lorentzian broadening of the Voigt profile: natural or radiative damping, interaction with charged perturbers (quadratic Stark effect), and with neutral perturbers (van der Waals effect). The latter effect is critical for determining the pressure and thus surface gravity and typical approximation using power low extrapolation from a broadening value at one temperature is not good enough for strong transitions with well-developed Lorentzian wings. <ref type="bibr" target="#b3">Barklem et al. (2000a)</ref> computed two-parameter van der Waals approximations for several thousand strong transitions of elements from Li to Ni, better reproducing line shapes in the lowtemperature, high-pressure regime. Their approach takes advantage of the quantum-mechanical description of collisions with neutral Hydrogen developed by Anstee, Barklem and O'Mara (ABO, see references in <ref type="bibr" target="#b3">Barklem et al. (2000a)</ref>). The collisional cross-section σ can be converted to the broadening of the Voigt profile for a given collisional velocity v as:</p><formula xml:id="formula_7">γ ABO = 4 π α/2 · Γ 4 − α 2 · v ref · σ(v ref ) · v v ref 1−α · N H ,<label>(10)</label></formula><p>where v ref is the reference velocity value and N H is number density of neutral Hydrogen. A power law fit to the dependence on the mean collisional velocity adds the second parameter α to the approximation. These parameters, computed for many intermediate to strong lines in the solar spectrum, are available from the VALD database (http://vald.astro.uu.se/ ~vald/php/vald.php). SME readily accepts line data in the VALD format.</p><p>Note that the ∆γ 6 fudge factor does not apply to these "extended" van der Waals parameters. You can still use this factor Article number, page 3 of 10 A&amp;A proofs: manuscript no. sme_paper2_final to enhance conventional γ 6 values or results of the Unsöld approximation when no γ 6 data is available. As theoretical values improve, enhancement becomes less necessary.</p><p>The new hydrogen line absorption code written by Barklem and Piskunov combines the self-broadening theory developed by <ref type="bibr" target="#b4">Barklem et al. (2000b)</ref>, the unified theory to model the interaction of hydrogen atoms with charged particles by <ref type="bibr" target="#b34">Vidal et al. (1970)</ref> implemented in a code by <ref type="bibr" target="#b15">Kurucz (1993)</ref>, and the dynamic effects of ions using the model microfield method by <ref type="bibr" target="#b30">Stehlé (1994)</ref>.</p><p>Line opacities are re-evaluated every time the atmospheric structure, abundances or line parameters are changed although in the last two cases only the opacities for affected transitions are re-computed.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.">Radiative transfer</head><p>The radiative transfer (RT) solution is performed using an attenuation operator method with Bézier spline approximation for the source function. This algorithm was selected after many performance and precision tests for several options including the original SME Runge-Kutta, Feautrier and Hermitian solvers. A detailed description of the new algorithm can be found in de la Cruz <ref type="bibr" target="#b10">Rodríguez &amp; Piskunov (2013)</ref>. Here we give a very short summary of the method. In a plane-parallel case the direction of light propagation is conveniently characterized by µ, which is the cosine of the angle between the local vertical and the propagation direction. The specific intensity I λ is then given by the radiative transfer equation:</p><formula xml:id="formula_8">µ dI λ dτ λ = I λ − S λ (11)</formula><p>where τ λ is the monochromatic optical depth measured from the surface into the star and S λ is the source function. The boundary condition is set deep in the atmosphere where the intensity can be assumed equal to the local black body radiation. The formal solution of RT Equation 11 from point τ 0 to τ is given by:</p><formula xml:id="formula_9">I(τ) = e −∆τ/µ I(τ 0 ) + τ τ 0 e −(τ−t)/µ S (t)dt<label>(12)</label></formula><p>where ∆τ = τ − τ 0 . Note, that this equation is invariant with respect to the direction of τ and can be easily re-written in terms of stellar radius or column mass as independent variables. Assuming that the source function is changing smoothly along the integration path we can approximate it with an analytical function and evaluate the integral analytically. The simplest linear approximation requires the knowledge of the source function at the two ends of the interval. Numerical analysis shows that higherorder approximations significantly improve precision without refining step size. A quadratic fit to the source function makes this solver comparable with or superior to the Feautrier method (see Piskunov &amp; Kochukhov 2002, <ref type="figure">Fig. 3)</ref>. A simple parabolic fit will require the value of the source function at three grid points and it may result in "overshooting" -creating unphysical values inside the interval. To avoid this we used a second order Bézier fit to the source function. It achieves high precision on a sparse grid without over/under-estimating the source function. Algorithmic details can be found in the paper by de la Cruz Rodríguez &amp; Piskunov de la Cruz <ref type="bibr" target="#b10">Rodríguez &amp; Piskunov (2013)</ref> that also describes the cubic version and even the application to the polarized RT. The plane-parallel case can be generalised to the case of spherical geometry, as presented in <ref type="figure" target="#fig_1">Figure 1</ref>. In this case, a ray crosses each spherical shell at different µ angles. Grazing rays actually cross the atmosphere from surface to surface. The change in geometry affects the calculation of the optical path from one layer to the next and the solver. To facilitate solution of RT in a spherical geometry, SME converts height in the model to impact parameter p, relative to the reference radius. SME now includes and interpolates in a grid of spherical models.</p><p>The attenuation operator algorithm is fast and accurate. Further acceleration comes from an adaptive wavelength grid described in the original paper. The same algorithm is used to compute the continuum intensities. SME evaluates continuum at the same wavelength where the line intensity is computed avoiding continuum interpolation. When constructing the wavelength grid, SME now takes advantage of the contribution intervals described in Section 2.2, resulting in a substantial performance boost.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4.">Model atmosphere grid interpolation</head><p>SME can use a single atmosphere (e.g., for the Sun), but more commonly SME generates a custom atmosphere by interpolating in a grid of model atmospheres, based on specified values of T eff ,</p><note type="other">log g, and [m/H]. SME uses the following logic to identify eight "corner" models that bracket the desired model. Find values of [m/</note><p>H] in the grid that bracket the requested [m/H]. Then in this subset of models, find values of log g in the subgrid that bracket the requested log g. Finally in this subset of models, find values of T eff in the subgrid that bracket the requested T eff .</p><p>Next SME pair-wise interpolates (or extrapolates) the eight corner models to produce an output atmosphere. Pairs of models at each of the four combinations of log g and T eff are interpolated to the desired value of [m/H]. These four new models are then interpolated to the desired value of log g, yielding two models at the requested [m/H] and log g. Finally, this pair of models is interpolated to the desired T eff , producing a single output atmosphere at the specified T eff , log g, and [m/H]. The logic is designed for a regular grid, but handles occasional missing models or changes in grid spacing, both of which occur in practice. SME linearly interpolates the logarithm of atmospheric quantities (temperature, electron number density, atomic number density, mass density) versus the logarithm of the depth scale. The depth scale can be mass column or continuum optical depth at a reference wavelength (e.g., 5000 Å). By default SME interpolates atmospheres versus continuum optical depth and solves radiative transfer on a mass column depth scale because our tests suggest that this often yields better precision.</p><p>For each atmospheric quantity, SME fits the first atmosphere in a pair with the second, allowing a scalar offset in the logarithm of the depth scale and in the logarithm of each atmospheric quantity. <ref type="bibr">Valenti &amp; Fischer (2005, section 4</ref>.1) illustrate why the depth scale needs to be adjusted before interpolation. A penalty function is added to the χ 2 goodness-of-fit metric to discourage large offsets in the depth scale. SME constructs a common output depth scale by adopting the mean of the offsets determined for each atmospheric quantity. Both atmospheres are then shifted onto the output depth scale and combined in proportion to the offset from the grid point to the specified value of T eff , log g, or [m/H].</p><p>We evaluated the precision of SME atmosphere interpolation by comparing each atmosphere in the grid with the atmosphere obtained by interpolating the two adjacent atmospheres along one parameter axis. In these tests, the grid spacing is effectively doubled along one axis, yielding larger errors than during normal operation. We calculated the maximum fractional error ("maximum error") in temperature at any depth in the atmosphere and the mean absolute value of the fractional error ("mean error") in temperature at all depths. For solar-type atmospheres in an AT-LAS9 grid, the maximum errors are 1.4% for interpolation along the T eff axis with a grid spacing of 250 K, 0.1% along the log g axis for 0.5 dex spacing, and 0.2% along the [m/H] axis with 0.1 dex spacing.</p><p>The SME distribution includes atmosphere grids generated with MARCS ( <ref type="bibr" target="#b13">Gustafsson et al. 2008</ref>), ATLAS9 <ref type="bibr" target="#b9">(Castelli &amp; Kurucz 2003)</ref>, and a line-by-line code derived from ATLAS9 ( <ref type="bibr" target="#b27">Shulyak et al. 2004</ref>). Some of the grids are segregated into separate files based on microturbulence, grid spacing, or atmosphere geometry (plane parallel vs. spherical). The suite of available atmosphere grids is described in the SME Manual and associated documents distributed with the software. coefficients are pre-calculated for all relevant energy levels of the specified element, for every layer of every atmosphere in the specified atmosphere grid, and for a range of abundances for the species in question. SME needs departure coefficients for a range of abundances because elemental abundances may deviate from the solar pattern. SME has been used with departure coefficients for Li, C, O, Na, Mg, Al, Si, Ca, Fe, Ba, and Eu (e.g., <ref type="bibr" target="#b5">Bergemann et al. 2014;</ref><ref type="bibr" target="#b22">Osorio et al. 2015;</ref><ref type="bibr" target="#b12">Gruyters et al. 2016;</ref><ref type="bibr" target="#b22">Nordlander et al. 2016</ref>  <ref type="bibr" target="#b17">Bergemann &amp; Asplund 2012)</ref>, and Ba ( <ref type="bibr" target="#b21">Mashonkina et al. 2008</ref>). SME documentation describes the format of the grids and the distribution includes a tool for generating grids from user departure coefficient data.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">NLTE calculations with SME</head><p>The use of pre-computed departure coefficients in SME requires associations between each transition and specific energy levels. To make these associations, we use species names, total angular momentum quantum number J, and term designation. These data are all available from VALD using long format extraction. SME still supports the VALD short format for LTE calculations. SME currently uses a file naming convention to associate each departure coefficient grid with the corresponding model atmosphere grid. Once the user selects a model atmosphere grid, the GUI identifies which transitions can be treated in NLTE and allows the user to activate NLTE treatment for the corresponding species.</p><p>For completeness, we describe here how the radiative transfer solver incorporates departure coefficients into line opacities and the source function. SME computes the continuum in LTE, which seems to be a good approximation for cool stars, but may be a limiting factor for hot stars. </p><formula xml:id="formula_10">κ NLTE line = κ LTE line b l e hν/kT − b u e hν/kT − 1<label>(13)</label></formula><p>where κ LTE line is the LTE line opacity and b l and b u are the departure coefficients of the lower and the upper energy levels. The corresponding change to the line source function is:</p><formula xml:id="formula_11">S line = 2hν 3 c 2 b u b l e hν/kT − b u<label>(14)</label></formula><p>and the total source function (ignoring scattering) is: <ref type="figure" target="#fig_2">Figure 2</ref> shows the comparison between NLTE SME spectral synthesis based on interpolation of departure coefficients and the synthetic spectra computed with the MULTI code <ref type="bibr" target="#b8">(Carlsson 1986</ref>).</p><formula xml:id="formula_12">S = S cont κ cont + S line κ line κ cont + κ line (15)</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Using SME to derive stellar parameters</head><p>The use of SME to derive stellar parameters involves several steps.</p><p>1. Define spectral intervals that can adequately constrain the models. 2. For each spectral interval, obtain atomic and molecular line data from, e.g., VALD. If the stellar sample spans a wide range of temperatures, use VALD extract stellar mode to obtain line data at multiple characteristic temperatures. 3. Verify atomic or molecular line parameters, using the spectrum of a well-characterized star (e.g., the Sun) as a constraint. 4. Compute an initial synthesis, solving for radial velocity and, perhaps, continuum normalization. The current version of SME applies continuum adjustments to the observation, rather than the model. 5. Use the GUI to adjust the mask, marking continuum regions that will be used to renormalize observations, line regions, which will be used to constrain model parameters, and bad regions, which will be ignored in the fit. 6. Solve for global parameters (e.g., T eff , log g, [m/H]), keeping individual abundances fixed. 7. Solve for individual abundances, keeping global parameters fixed, unless certain that the spectral intervals can adequately constrain global parameters and individual abundances simultaneously.</p><p>The details of how to perform these steps are described in the SME documentation. SME can solve for various model parameters by fitting an observed spectrum. The stellar parameters are effective temperature (T eff ), surface gravity (log g), metallicity ([m/H]), individual elemental abundances, microturbulence, macroturbulence, projected equatorial rotation velocity (v sin i), and radial velocity. The atomic and molecular parameters are individual oscillator strengths (log g f ), individual van der Waals damping parameters (γ 6 ), and a global scale factor for van der Waals damping (∆γ 6 ).</p><p>Finally, SME can fit some properties of the observations, such as continuum level and spectral resolution.</p><p>Individual model parameters can be well or poorly constrained, depending on the information content in the observed spectrum and physical properties of the star. Subsets of model parameters may be partially or completely degenerate with each other. Spectral line diversity is a key factor, but spectral resolution and signal-to-noise ratio are also relevant. Effective use of SME requires careful assessment of constraints in the observed spectrum, when deciding which SME parameters to determine. The sensitivity to specific free parameters (or the lack of) can be verified by trying different initial guesses, preferably bracketing the final solution. Stellar parameters can be grouped into a subset that mainly affects spectral line strength (T eff , log g, [m/H], abundances, microturbulence) and a subset that mainly affects line shape (macroturbulence, v sin i). Instrumental resolution also affects line shape. Degeneracies tend to be stronger within these subsets and weaker across the two subsets.</p><p>Standard spectroscopy texts (e.g., Gray 2008) discuss how different types of spectral lines respond to changes in stellar T eff , log g, and abundance. SME can only disentangle these physical parameters if the observed spectrum includes adequate constraints. For example, <ref type="bibr" target="#b31">Valenti &amp; Fischer (2005)</ref> use the damping wings of the Mg 1 b triplet to constrain log g in main-sequence stars cooler than T eff = 6200 K. The damping wings disappear at higher temperature (due to Mg ionization) or lower gravity (due to lower photospheric density), limiting the effectiveness of this gravity diagnostic outside the domain where it was originally used. Ionization balance provides another constraint on photospheric density and hence gravity. Including spectral lines from neutral and ionized species helps SME constrain gravity in warmer or more evolved stars (e.g., <ref type="bibr" target="#b6">Brewer et al. 2015</ref>). SME uses [m/H] to interpolate in an atmosphere grid and also to scale all elemental abundances. When SME determines [m/H] by fitting a spectrum, the result is a compromise between the value that yields the best atmosphere and the value that yields the best scaled abundance pattern. In principle there should be no difference, but in practice SME and the atmosphere grids likely have slightly different assumptions and errors.</p><p>Care is required when solving for [m/H] and individual abundances of selected elements. Effectively, [m/H] becomes the abundance scale factor for any remaining elements constrained (perhaps poorly) by the observed spectrum. For example, solving for individual abundances of some iron-peak elements (V, Cr, Mn, Fe, Co, Ni) while using [m/H] to determine scaled solar abundances for some α elements (O, Ne, Mg, Si, S, Ar, Ca, Ti) would yield an [m/H] that is formally inconsistent with metallicity as defined in α-enriched atmosphere models. A more consistent approach would be to solve for individual abundances of α elements, while using [m/H] to determine scaled solar abundances for iron-peak elements.</p><p>For slowly rotating stars, distinguishing macroturbulence from v sin i is difficult, especially when observed spectral lines are asymmetric due to surface granulation. In this case, it may be necessary to assume a value for one of these parameters. For example, <ref type="bibr" target="#b31">Valenti &amp; Fischer (2005)</ref> set v sin i = 0 and determined "macroturbulence" for many stars. Most stars had some contribution from rotation, but a few had negligible rotation. This lower envelope defined a relationship between macroturbulence and T eff . For each star in the sample, they used this relationship to tie macroturbulence to T eff and then solve only for v sin i.</p><p>External constraints can help breaking spectroscopic degeneracies. For example, <ref type="bibr" target="#b29">Sozzetti et al. (2007)</ref> forced log g to be consistent with stellar structure models, constrained by the ratio of semi-major axis to stellar radius inferred from the light curve of a transiting planet. <ref type="bibr" target="#b32">Valenti et al. (2009)</ref> forced log g to be consistent with stellar models, constrained by spectroscopic parameters from SME, apparent visual magnitude, and a precise parallax. External constraints on log g are particularly useful because gravity has a subtle effect on spectra (see, for example, the comparison of various methods by <ref type="bibr" target="#b7">Bruntt et al. (2012)</ref>).</p><p>Several applications of SME focused on strictly differential analysis of similar stars. In the case of solar twins, such a comparison can be simplified by selecting the best-fitted spectral regions and tuning the corresponding line data (oscillator strength and van der Waals broadening) using solar spectra. This hides inconsistencies in the data and the model shifting the derived parameters into the reference frame of the Sun. Of course, the downside of such approach is that accuracy of the results will progressively decrease for objects less similar to the Sun.</p><p>Since SME fits the synthesis to the observations in individual pixels there is no obvious way to derive microturbulent velocity as in the curve-of-growth analysis: by forcing the abundance to be independent of of reduced equivalent width. This condition can be checked after the SME fit, though. Using a number of lines with good parameters covering a significant range in equivalent width in SME fit will usually come close to this condition.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Deriving realistic uncertainties</head><p>When assessing uncertainties in derived parameters, one must distinguish between numerical errors in the solver, measurement errors in the data, and physical errors in the model. For observed spectra of good quality, physical errors in the model typically dominate other sources of error, yet formal uncertainties returned by the Levenberg-Marquardt assume measurement errors in the data dominate. In particular, our formal uncertainties are the square root of elements on the main diagonal of the covariance matrix, which is the inverse of the curvature matrix ( <ref type="bibr" target="#b25">Press et al. 2002)</ref>. These formal uncertainties typically underestimate the true error (χ 2 1), so SME also returns a heuristic uncertainty estimate that considers model errors.</p><p>Before describing our algorithm for estimating model errors, we first demonstrated that numerical errors due to the SME solver are negligible. Components of the solver that can produce Article number, page 7 of 10 A&amp;A proofs: manuscript no. sme_paper2_final <ref type="figure">Fig. 3</ref>. Thousand guesses test, using Vesta observations with the Keck HIRES spectrometer. The axes are effective temperature, surface gravity and metallicity. On the left panel crosses show the initial guesses covering 1200 K in T eff , 0.5 in log g and 1 dex in metallicity. A tight clump of circles slightly above the panel center shows the results illustrating robustness of SME optimization. The right panel shows a close up of the results. The spread is very small but has a structure reflecting cross-dependence of parameters and deficiency of numerical derivatives.  <ref type="figure">Figure 4</ref>. Contours show 1, 2 and 3 σ levels above the minimum determined with procedure described in Section 5. The double circle in the center shows the uncertainties given by the main diagonal elements of the covariance matrix constructed by SME at the end of iterations. A larger double ellipse comes from the new uncertainty estimate.</p><p>numerical errors include the minimization algorithm, calculation of numerical derivatives, interpolation algorithms, and ultimately numerical precision. As a straightforward test, we used SME to recover stellar parameters for 1000 simulated solar observations, all based on a single spectrum generated by SME. We set instrumental resolution to 100,000 and added 0.5% noise to each simulated observation. In this case, the SME model is perfect by construction. For each realization we adopted a random (uniformly distributed) initial guess for the free parameters. The initial guesses spanned 1200 K in T eff , 0.5 dex in log g, and 1 dex in [m/H]. The distribution of final values had a standard deviation of 1 K for T eff and 0.001 dex for the other two free parameters. This precise convergence from a wide range of initial values demonstrates that the SME solver is robust. However, the final parameter errors are much smaller than errors encountered when analyzing actual spectra.</p><p>Next we used SME to fit an actual solar spectrum obtained by observing the asteroid Vesta with the Keck HIRES spectrometer. We used an FTS solar atlas ( <ref type="bibr" target="#b16">Kurucz et al. 1984)</ref> to normalize the stellar continuum. Again we used SME to recover stellar parameters, this time starting from a uniform grid of initial guesses for the free parameters. The distribution of final values had a standard deviation of 12 K for T eff and 0.01 dex or less for log g and [m/H]. This is an order of magnitude larger than the previous test. If the spectral intervals poorly constrained the free parameters, then degeneracies and parameter errors would be even larger. <ref type="figure">Figure 3</ref> illustrates the initial and final values of the free parameters. The final values are mostly coalesced into a primary sequence, but two alternate sequences indicate adjacent local minima. The extent of the parameter sequences indicate partial degeneracy between the free parameters, which is apparently exacerbated by model errors. These model errors include imperfect atomic line data, poor treatment of granulation, neglect of NLTE effects, the exact shape of the instrumental profile, etc.</p><p>From version 433 onwards, SME provides an alternative parameter uncertainty estimate that assumes model errors dominate, rather than measurement error. There are many ways to assess model error, none perfect. We begin by identifying pixels that are sensitive to small changes in a free parameter. In practice, we select all unmasked pixels (with index i) where the partial derivative of the synthetic spectrum with respect to the free parameter is nonzero (∂F i /∂p 0) and the observed minus model residual (R i ) is less than 5 times the measurement uncertainty for each observed spectrum pixel. For each sensitive pixel, we estimate the parameter change (∆p i ) needed to make R i equal to zero, assuming that R i is a linear function of p. Mathematically,</p><formula xml:id="formula_13">∆p i = R i / ∂F i ∂p .<label>(16)</label></formula><p>If model errors dominate, then the width of the distribution of ∆p i values is a measure of parameter uncertainty. For normally distributed errors, the distribution is Gaussian, but model errors need not have a Gaussian distribution. Instead we construct C(∆p), the normalized cumulative distribution function of ∆p i values. Then σ lo = ∆p where C(∆p) = 0.16, σ hi = ∆p where C(∆p) = 0.84, and the mean is σ = (σ lo + σ hi )/2. This cumulative distribution function approach is robust against large residuals, as long as they comprise fewer than 15% of the points at either extreme. The extent of the central part of the cumulative distribution function provides a measure of model uncertainties. In many cases the actual parameter uncertainty is approximately bounded by the formal uncertainty (from the covariance matrix) and the model uncertainty. <ref type="figure">Figure 4</ref> shows examples of normalized cumulative distributions. Note that the estimated median values do not exactly match the SME result. The reason is that the error estimate procedure presented here is not taking into account the cross-talk between parameters. This is well illustrated in <ref type="figure">Figure 5</ref> showing the slice of the χ 2 space along the T eff -log g plane. Doubleline contours show the uncertainties of the numerical procedure (small circle in the center) and the new uncertainty estimates for the effective temperature and surface gravity that attempt to account for the deficiencies of the model. The thick lines show the constant value contours of the χ 2 surface. While the new estimate is very close (in size) to the true 1 σ contour it does not account for interdependence of the two parameters, as demonstrated by the difference in orientation. When using SME to derive stellar parameters, it is imperative to understand the underlying physics and provide balanced and (as much as possible) orthogonal constraints for the free parameters.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">Miscellaneous and coming features</head><p>One of "undocumented" capabilities of SME is the direct calling of the library functions. Such calls could be useful for getting more information about the final model that is not saved in the output structure (e.g., partial number densities of various species, continuous and line opacities, etc.). Alternatively, direct calls can be used for other purposes, such as computing monochromatic optical depth. The SME documentation explains now how to make direct library calls and the distribution includes examples of such calls from IDL for solving the equation of state and continuous opacity at specified wavelengths.</p><p>Another useful tool included in the latest distribution simplifies porting a mask from one SME structure to another. Such need often comes up when analysing a group of similar targets using the same spectral intervals. Both structures should include observations and radial velocities. The tool called port_mask takes care of resampling and interpolating the mask. It can work on structures loaded in IDL session or stored in files.</p><p>We have successfully tested a new radiative transfer solver, that combines the current attenuation operator algorithm with Gauss-Seidel iterations to account for scattering. Proper inclusion of scattering is critically important for low-absorption environments such as the atmospheres of metal-poor giants. At moment of writing, the new solver is still in the testing phase, but we expect it to be included in SME in the near future.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.">Concluding remarks</head><p>The current version of the SME incorporates all the capabilities needed to determine stellar parameters and chemical composition for a broad range of stars, including cool dwarfs and giants. The package includes an equation of state that solves for chemical equilibrium, a faster and more accurate radiative transfer algorithm, new grids of model atmospheres, and grids of precomputed departure coefficients for key elements. While useful, these tools do not replace the insight of a trained researcher. The SME user must still obtain and reduce the observations, select spectral regions, adjust the mask, collect atomic and molecular data, and interpret the final results.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Fig. 1 .</head><label>1</label><figDesc>Fig. 1. Geometric representation of the spherically-symmetric radiative transfer problem. The full radius mesh used for representing the variables as functions of radius is indicated along the radius vector by a set of concentric circles. The distance of rays from the stellar center is given by the impact parameter p. The set of rays that do not hit the core are represented by five parallel rays. The mesh of points used for solving the equation of radiative transfer are the crossing points between the circles and the horizontal lines. Distances along the rays are measured by z = µr where µ = cos θ.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Fig. 2 .</head><label>2</label><figDesc>Fig. 2. Example of NLTE spectrum synthesis for the Sun. The SME calculations used departure coefficients for sodium precomputed for the MARCS atmosphere grid and interpolated to the solar T eff , log g, and [m/H]. The MULTI calculation was done separately for each sodium line using a MARCS model for the Sun. For illustration we also include the observed solar flux spectrum and the SME LTE synthesis. The insert shows a magnified view of the core of the 5890 Å line.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head></head><label></label><figDesc>Departure coefficients b i are defined as the ratio of NLTE level populations to LTE level pop- ulations, b i (τ) = n NLTE i (τ)/n LTE i (τ). The line opacity is then com- puted as:</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Fig. 4 .Fig. 5 .</head><label>45</label><figDesc>Fig. 4. Examples of normalized cumulative distribution functions of parameter offsets ∆p i for an SME fit. The x-axis is parameter offset ∆p relative to the value returned by SME. The horizontal dash and dash-dotted lines show the median and the ±1σ levels.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" validated="true"><head>Table 2 . List of molecular species and negative ions included the EOS. The ST and BC in the Ref. fields indicate the origin of the molecular equilibrium constants and partitions functions from Sauval &amp; Tatum or Barklem &amp; Collet,</head><label>2</label><figDesc></figDesc><table>Species Ref. Species 
+Ref. Species Ref. Species Ref. Species Ref. Species 
+Ref. 
+Al 2 
+ST 
+Al 2 O 
+ST 
+Al 2 O 2 
+ST 
+AlBO 2 
+ST 
+AlCl 
+ST 
+AlCl 2 
+ST 
+AlClF 
+ST 
+AlF 
+BC 
+AlF 2 
+ST 
+AlH 
+BC 
+AlO 
+BC 
+AlO 2 
+ST 
+AlO 2 H 
+ST 
+AlOCl 
+ST 
+AlOF 
+ST 
+AlOF 2 
+ST 
+AlOH 
+ST 
+AlS 
+BC 
+BH 2 
+ST 
+BH 3 
+ST 
+BO 
+ST 
+BO-
+ST 
+BO 2 
+ST 
+BO 2 H 2 
+ST 
+BaCl 2 
+ST 
+BaClF 
+ST 
+BaF 2 
+ST 
+BaO 2 H 2 ST 
+BaOH 
+ST 
+Be 2 O 
+ST 
+Be 3 O 3 
+ST 
+BeBO 2 
+ST 
+BeC 2 
+ST 
+BeCl 2 
+ST 
+BeF 2 
+ST 
+BeH 2 
+ST 
+BeH 2 O 2 ST 
+BeOH 
+ST 
+C 2 
+BC 
+C 2 -
+BC 
+C 2 H 
+ST 
+C 2 H 2 
+ST 
+C 2 H 4 
+ST 
+C 2 HCl 
+ST 
+C 2 HF 
+ST 
+C 2 N 
+ST 
+C 2 N 2 
+ST 
+C 2 O 
+ST 
+C 3 
+ST 
+C 3 H 
+ST 
+C 4 
+ST 
+C 5 
+ST 
+CH 
+BC 
+CH-
+ST 
+CH 2 
+ST 
+CH 3 
+ST 
+CH 3 Cl 
+ST 
+CH 4 
+ST 
+CHCl 
+ST 
+CHF 
+ST 
+CHP 
+ST 
+CN 
+ST 
+CN-
+ST 
+CO 
+BC 
+CO 2 
+ST 
+CS 
+ST 
+CS-
+ST 
+CS 2 
+ST 
+CaCl 
+BC 
+CaCl 2 
+ST 
+CaF 
+BC 
+CaF 2 
+ST 
+CaH 
+BC 
+CaO 2 H 2 ST 
+CaOH 
+ST 
+ClCN 
+ST 
+CrH 
+ST 
+CrO 
+BC 
+CrO 2 
+ST 
+FeCl 2 
+ST 
+FeF 2 
+ST 
+FeH 
+ST 
+FeO 
+ST 
+FeO-
+ST 
+FeO 2 H 2 ST 
+H 2 
+ST 
+H 2 + 
+BC 
+H 2 -
+ST 
+H 2 O 
+ST 
+H 2 S 
+ST 
+H 3 + 
+ST 
+H 3 BO 3 
+ST 
+H 3 O+ 
+ST 
+HBO 
+ST 
+HBO 2 
+ST 
+HBS 
+ST 
+HCN 
+ST 
+HCO 
+ST 
+HCl 
+BC 
+HF 
+BC 
+HS 
+ST 
+HS-
+BC 
+K 2 Cl 2 
+ST 
+K 2 O 2 H 2 ST 
+KBO 2 
+ST 
+KCN 
+ST 
+KCl 
+ST 
+KOH 
+ST 
+LaO 
+BC 
+LaO 2 
+ST 
+Li 2 O 2 H ST 
+LiBO 2 
+ST 
+LiCl 
+BC 
+LiOH 
+ST 
+MgCl 2 
+ST 
+MgClF 
+ST 
+MgF 2 
+ST 
+MgH 
+ST 
+MgO 
+ST 
+MgO 2 H 2 ST 
+MgOH 
+ST 
+MgS 
+BC 
+N 2 
+ST 
+NH 
+BC 
+NH 2 
+ST 
+NH 3 
+ST 
+NO 
+ST 
+NO+ 
+BC 
+NS 
+BC 
+Na 2 C 2 N ST 
+Na 2 Cl 2 ST 
+Na 2 O 2 H ST 
+NaBO 2 
+ST 
+NaCN 
+ST 
+NaCl 
+ST 
+NaH 
+ST 
+NaOH 
+ST 
+O 2 
+BC 
+OBF 
+ST 
+OCS 
+ST 
+OH 
+ST 
+OH-
+BC 
+OTiF 
+ST 
+P 4 
+ST 
+PH 2 
+ST 
+PH 3 
+ST 
+PO 2 
+ST 
+S 2 
+ST 
+SO 
+ST 
+SO 2 
+ST 
+ScO 
+BC 
+Si 2 
+ST 
+Si 2 C 
+ST 
+Si 2 N 
+ST 
+Si 3 
+ST 
+SiC 
+ST 
+SiC 2 
+ST 
+SiF 
+BC 
+SiH 
+BC 
+SiH-
+ST 
+SiH 2 
+ST 
+SiH 2 F 2 
+ST 
+SiH 3 Cl 
+ST 
+SiH 3 F 
+ST 
+SiH 4 
+ST 
+SiN 
+BC 
+SiO 
+ST 
+SiO 2 
+ST 
+SiS 
+ST 
+SrCl 2 
+ST 
+SrF 2 
+ST 
+SrO 2 H 2 ST 
+SrOH 
+ST 
+TiCl 
+ST 
+TiCl 2 
+ST 
+TiCl 3 
+ST 
+TiF 2 
+ST 
+TiF 3 
+ST 
+TiH 
+ST 
+TiO 
+ST 
+TiO+ 
+ST 
+TiO 2 
+ST 
+TiOCl 
+ST 
+TiOCl 2 
+ST 
+TiS 
+BC 
+VO 
+ST 
+VO 2 
+ST 
+YO 
+ST 
+YO 2 
+ST 
+ZrCl 2 
+ST 
+ZrCl 3 
+ST 
+ZrCl 4 
+ST 
+ZrF 2 
+ST 
+ZrF 4 
+ST 
+ZrO 
+BC 
+ZrO+ 
+ST 
+ZrO 2 
+ST 
+
+</table></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">A</forename><surname>Alexeeva</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">I</forename><surname>Mashonkina</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">453</biblScope>
+			<biblScope unit="page">1619</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Ali</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">R</forename><surname>Griem</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PhRv</title>
+		<imprint>
+			<biblScope unit="volume">144</biblScope>
+			<biblScope unit="page">366</biblScope>
+			<date type="published" when="1966" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">S</forename><surname>Barklem</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Collet</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">588</biblScope>
+			<biblScope unit="page">96</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">S</forename><surname>Barklem</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Piskunov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">J</forename><surname>Mara</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;AS</title>
+		<imprint>
+			<biblScope unit="volume">142</biblScope>
+			<biblScope unit="page">467</biblScope>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">S</forename><surname>Barklem</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Piskunov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">J</forename><surname>Mara</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">363</biblScope>
+			<biblScope unit="page">1091</biblScope>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Spherically symmetric model atmospheres for late-type giant stars</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Bennett</forename><surname>Ph</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Bergemann</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">565</biblScope>
+			<biblScope unit="page">89</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+		<respStmt>
+			<orgName>University of</orgName>
+		</respStmt>
+	</monogr>
+<note type="report_type">PhD thesis</note>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Brewer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Fischer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Basu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Valenti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Piskunov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">805</biblScope>
+			<biblScope unit="page">126</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Bruntt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Basu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Smalley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">423</biblScope>
+			<biblScope unit="page">122</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<monogr>
+		<title level="m" type="main">Uppsala Astronomical Observatory Report 33: A Computer Program for Solving Multi-level Non-LTE Problems in Moving or Static Atmospheres</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Carlsson</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1986" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">New Grids of ATLAS9 Model Atmospheres</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Castelli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Kurucz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">proceedings of the IAU Symposium 210 Modelling of Stellar Atmospheres</title>
+		<editor>N. Piskunov, W.W. Weiss, and D.F. Gray. ASP</editor>
+		<meeting>the IAU Symposium 210 Modelling of Stellar Atmospheres<address><addrLine>Uppsala, Sweden</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2003" />
+			<biblScope unit="page">20</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>De La Cruz Rodríguez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Piskunov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">764</biblScope>
+			<biblScope unit="page">33</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<monogr>
+		<title level="m" type="main">The Observation and Analysis of Stellar Photospheres</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">F</forename><surname>Gray</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2008" />
+			<publisher>Cambridge University Press</publisher>
+			<pubPlace>Cambridge</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Gruyters</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Lind</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Richard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Grundahl</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Asplund</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Casagrande</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Charbonnel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Milone</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Primas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">J</forename><surname>Korn</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">589</biblScope>
+			<biblScope unit="page">61</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Gustafsson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Edvardsson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Eriksson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><forename type="middle">G</forename><surname>Jørgensen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Å</forename><surname>Nordlund</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Plez</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">486</biblScope>
+			<biblScope unit="page">951</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Kupka</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Piskunov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">A</forename><surname>Ryabchikova</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">C</forename><surname>Stempels</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">W</forename><surname>Weiss</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;AS</title>
+		<imprint>
+			<biblScope unit="volume">138</biblScope>
+			<biblScope unit="page">119</biblScope>
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">L</forename><surname>Kurucz</surname></persName>
+		</author>
+		<title level="m">CD-ROM 13</title>
+		<meeting><address><addrLine>Cambridge, MA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Smithsonian Astrophysical Observatory</publisher>
+			<date type="published" when="1993" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">L</forename><surname>Kurucz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Furenlid</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Brault</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Testerman</surname></persName>
+		</author>
+		<title level="m">NSO Atlas No. 1: Solar Flux Atlas from 296 to 1300 nm</title>
+		<imprint>
+			<date type="published" when="1984" />
+		</imprint>
+	</monogr>
+	<note>Sunspot</note>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Lind</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Bergemann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Asplund</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">427</biblScope>
+			<biblScope unit="page">50</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Lind</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Asplund</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">S</forename><surname>Barklem</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">K</forename><surname>Belyaev</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">528</biblScope>
+			<biblScope unit="page">103</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Lind</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Asplund</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">S</forename><surname>Barklem</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">503</biblScope>
+			<biblScope unit="page">541</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Mashonkina</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Gehren</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-R</forename><surname>Shi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">J</forename><surname>Korn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Grupp</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">528</biblScope>
+			<biblScope unit="page">87</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Mashonkina</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Zhao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Gehren</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Aoki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Bergemann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Noguchi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Shi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Takada-Hidai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">W</forename><surname>Zhang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">478</biblScope>
+			<biblScope unit="page">529</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Th</forename><surname>Nordlander</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">579</biblScope>
+			<biblScope unit="page">53</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Piskunov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Kochukhov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">381</biblScope>
+			<biblScope unit="page">736</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Piskunov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Kupka</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">A</forename><surname>Ryabchikova</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">W</forename><surname>Weiss</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">S</forename><surname>Jeffery</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;AS</title>
+		<imprint>
+			<biblScope unit="volume">112</biblScope>
+			<biblScope unit="page">525</biblScope>
+			<date type="published" when="1995" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<monogr>
+		<title level="m" type="main">Numerical recipes: the art of scientific computing</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">H</forename><surname>Press</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">A</forename><surname>Teukolsky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">T</forename><surname>Vetterling</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">P</forename><surname>Flannery</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2002" />
+			<biblScope unit="page">521750334</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">J</forename><surname>Sauval</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Tatum</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">56</biblScope>
+			<biblScope unit="page">193</biblScope>
+			<date type="published" when="1984" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Shulyak</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Tsymbal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Ryabchikova</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ch</forename><surname>Stütz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">W</forename><surname>Weiss</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">428</biblScope>
+			<biblScope unit="page">993</biblScope>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">M</forename><surname>Sitnova</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">I</forename><surname>Mashonkina</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">A</forename><surname>Ryabchikova</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astronomy Letters</title>
+		<imprint>
+			<biblScope unit="volume">39</biblScope>
+			<biblScope unit="page">126</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Sozzetti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Torres</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">664</biblScope>
+			<biblScope unit="page">1190</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Stehlé</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;AS</title>
+		<imprint>
+			<biblScope unit="volume">104</biblScope>
+			<biblScope unit="page">509</biblScope>
+			<date type="published" when="1994" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Valenti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Fischer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">159</biblScope>
+			<biblScope unit="page">141</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Valenti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Fischer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Marcy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">702</biblScope>
+			<biblScope unit="page">989</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Valenti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Piskunov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;AS</title>
+		<imprint>
+			<biblScope unit="volume">118</biblScope>
+			<biblScope unit="page">595</biblScope>
+			<date type="published" when="1996" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">R</forename><surname>Vidal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Cooper</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">W</forename><surname>Smith</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Quant. Spectr. Rad. Transf</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="page">1011</biblScope>
+			<date type="published" when="1970" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

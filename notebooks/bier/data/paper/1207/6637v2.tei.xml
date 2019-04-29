@@ -1,0 +1,784 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-04T16:12+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">PynPoint: An Image Processing Package for Finding Exoplanets</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2012-10-18">2012. 18 October 2018</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Adam</forename><surname>Amara</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Institute for Astronomy</orgName>
+								<orgName type="institution">ETH Zurich</orgName>
+								<address>
+									<postCode>8093</postCode>
+									<settlement>Zurich</settlement>
+									<country key="CH">Switzerland</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Sascha</forename><forename type="middle">P</forename><surname>Quanz</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Institute for Astronomy</orgName>
+								<orgName type="institution">ETH Zurich</orgName>
+								<address>
+									<postCode>8093</postCode>
+									<settlement>Zurich</settlement>
+									<country key="CH">Switzerland</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">PynPoint: An Image Processing Package for Finding Exoplanets</title>
+					</analytic>
+					<monogr>
+						<title level="j" type="main">Mon. Not. R. Astron. Soc</title>
+						<imprint>
+							<biblScope unit="volume">000</biblScope>
+							<biblScope unit="page" from="1" to="9"/>
+							<date type="published" when="2012-10-18">2012. 18 October 2018</date>
+						</imprint>
+					</monogr>
+					<note>(MN L A T E X style file v2.2)</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>planets and satellites: detection, methods: data analysis techniques: image processing</keywords>
+			</textClass>
+			<abstract>
+				<p>We present the scientific performance results of PynPoint, our Python-based software package that uses principle component analysis to detect and estimate the flux of exoplanets in two dimensional imaging data. Recent advances in adaptive optics and imaging technology at visible and infrared wavelengths have opened the door to direct detections of planetary companions to nearby stars, but image processing techniques have yet to be optimized. We show that the performance of our approach gives a marked improvement over what is presently possible using existing methods such as LOCI. To test our approach, we use real angular differential imaging (ADI) data taken with the adaptive optics assisted high resolution near-infrared camera NACO at the VLT. These data were taken during the commissioning of the apodising phase plate (APP) coronagraph. By inserting simulated planets into these data, we test the performance of our method as a function of planet brightness for different positions on the image. We find that in all cases PynPoint has a detection threshold that is superior to that given by our LOCI analysis when assessed in a common statistical framework. We obtain our best improvements for smaller inner working angles (IWA). For an IWA of ∼0.29 we find that we achieve a detection sensitivity that is a factor of 5 better than LOCI. We also investigate our ability to correctly measure the flux of planets. Again, we find improvements over LOCI, with PynPoint giving more stable results. Finally, we apply our package to a non-APP dataset of the exoplanet β Pictoris b and reveal the planet with high signal-to-noise. This confirms that PynPoint can potentially be applied with high fidelity to a wide range of high-contrast imaging datasets.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">INTRODUCTION</head><p>The field of exoplanet research has undergone rapid growth with a variety of methods having been developed to detect and charactere the properties of planets orbiting stars other than our Sun. Among these, radial velocity (e.g., <ref type="bibr" target="#b24">Mayor et al. 2011;</ref><ref type="bibr" target="#b6">Cumming et al. 2008;</ref><ref type="bibr" target="#b10">Howard et al. 2010</ref>) and transit (e.g., <ref type="bibr">Batalha et al. 2012;</ref><ref type="bibr" target="#b2">Borucki et al. 2010</ref>) methods have yielded the majority of the planets that have been discovered thus far. Another approach is to image exoplanets directly. The difficulty with this method is that the flux of the planet is substantially smaller than that coming from the star it orbits. Hence, a simple image of the system will be overwhelmingly dominated by the star. This, in combination with the small projected separation on sky between the planet and the host, makes this imaging approach to exo-   <ref type="bibr" target="#b27">Todorov et al. 2010)</ref>. Despite these successes a large number of dedicated planet search surveys have yielded null results (e.g., <ref type="bibr" target="#b23">Masciadri et al. 2005;</ref><ref type="bibr" target="#b1">Biller et al. 2007;</ref><ref type="bibr" target="#b12">Kasper et al. 2007;</ref><ref type="bibr" target="#b14">Lafrenì ere et al. 2007a;</ref><ref type="bibr" target="#b4">Chauvin et al. 2010;</ref><ref type="bibr" target="#b9">Heinze et al. 2010)</ref>. While one of the key conclusions from these surveys has been that massive gas giant planets are rare in orbits with separations larger than a few tens of AU, the innermost regions around the stars are still largely unexplored as we lack the required contrast. To improve this situation, a number of technical methods have been developed that allow us to effectively suppress the flux of the star and thereby form the desired image of the planet. These innovations have been in the hardware and techniques arXiv: <ref type="bibr">1207</ref> for acquiring the data, as well as the analysis methods for data processing.</p><p>At the data acquisition stage, new developments include new coronagraph designs (for recent overview see, e.g., <ref type="bibr">Guyon et al. 2006</ref>) to suppress the flux and halo from the star at small inner working angles (IWA) and improved observing strategies for differential techniques that allow for better modeling of the point spread function (PSF). Examples of these methods are simultaneous differential imaging (SDI, <ref type="bibr" target="#b17">Lenzen et al. 2004</ref>) and angular differential imaging (ADI, <ref type="bibr" target="#b20">Marois et al. 2006</ref>). The common goal of these approaches is to control the stellar PSF so as to reduce 'speckles', which are residual features in the (final) images that can mimic and/or overshadow a planet. Upcoming new dedicated instruments for planet finding combine several of these methods and contrast enhancing techniques with extreme adaptive optics (AO) systems, yielding unprecedented PSF stability and contrast performances (e.g., SPHERE at the VLT, GPI at Gemini; <ref type="bibr">Beuzit et al. 2006;</ref><ref type="bibr" target="#b19">Macintosh et al. 2007)</ref>.</p><p>Along with these improvements, new data analysis methods have been studied. This is a very important part of the process since inefficient methods will not allow us to take full advantage of the new higher quality datasets that are becoming available. On the other hand, highly efficient software solutions allow us to reanalyse existing data to extract more information. A good example is the widely used LOCI package Lafrenì ere et al. 2007b), which is used to model and subtract the stellar PSF. This method significantly improves the contrast performance in ADI datasets compared to the classical ADI data reduction approach and, in the meantime, has also been be adapted to effectively subtract the sky background emission in thermal infrared datasets ( <ref type="bibr" target="#b7">Galicher et al. 2011</ref>).</p><p>Here, we present the results of a new data analysis and PSF subtraction software package -called PynPoint -that we have developed. Our method shows significant improvements to the contrast performance at very small IWAs in ADI datasets. Compared to existing methods, we gain up to a factor of five in sensitivity at separations of ∼0.29 . PynPoint can be applied to a wide range of datasets, including any existing ADI dataset and does not require any special observing strategy or instrument setup.</p><p>In section 2, we give a description of the dataset and simulations we used. In section 3, we give an overview of the main top-level steps used in PynPoint. In sections 4 and 5, we show our performance in both planet detection and flux measurements. We compare our results with those we obtained using LOCI. In section 6, we apply PynPoint to a high-contrast dataset of the exoplanet β Pic b. Our conclusions and discussion on future prospects are presented in section 7.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">DESCRIPTION OF TEST DATA</head><p>To test and validate PynPoint, we created a suite of simulations based on real ADI data. The dataset we used consisted of images taken with the adaptive optics (AO) assisted high resolution camera -NACO -at the VLT ( <ref type="bibr" target="#b18">Lenzen et al. 2003;</ref><ref type="bibr" target="#b26">Rousset et al. 2003</ref>). These images were taken during the commissioning of the apodising phase plate (APP; <ref type="bibr">Kenwor- thy et al. 2010;</ref><ref type="bibr" target="#b8">Girard et al. 2010</ref>) coronagraph, which took place in April 2010. We observed the young, nearby debris disk host star HD115892 in pupil stabilised ADI mode in the NB4.05 filter and used a detector integration time (DIT) for individual exposures of 0.5 s. A complete description of the observations and a first data reduction and analysis (done with LOCI) is presented in <ref type="bibr" target="#b24">Quanz et al. (2011)</ref>. Despite the fact that we did not detect any faint companions around HD115892, this dataset is well suited for our current purposes since the APP already provides a good contrast performance close to the star using current reduction techniques. The full test dataset consists of 10,800 individual exposures contained in 54 data cubes (all images from 'hemisphere 1', see <ref type="bibr" target="#b24">Quanz et al. (2011)</ref>) which corresponds to a total onsource integration time of 1.5 hours. The field rotation over the full image stack was ∼ 50 • .</p><p>The basic data reduction steps (background subtraction, bad pixel correction, and image alignment) are described in <ref type="bibr" target="#b24">Quanz et al. (2011)</ref> and the only additional step was to create postage stamp images from each exposure by cutting out the innermost 59x59 pixels centered on the star. From these postage stamps, we then created a suite of simulations by inserting fake planets to the individual raw images. Each of our simulations contains one planet at one of the three positions shown in <ref type="figure" target="#fig_1">Figure 1</ref>. For the image of the planet, we used a scaled version of an unsaturated image of HD115892 ( this image was created from averaging over a stack of 200 individual unsaturated frames; see also <ref type="bibr" target="#b24">Quanz et al. 2011</ref>). The full-width-half-maximum (FWHM) of the unsaturated PSF was ∼4.5 pixels. By varying the brightness of the planet, we can study the sensitivity of our method as a function of the magnitude contrast between the central star and the planet at a a given position.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">OVERVIEW</head><p>PynPoint is a Python-based software package that we have developed for processing high contrast imaging data of exoplanets. Once the data from an observation run has been reduced to a stack of postage stamps, four main steps are needed for our planet detection procedure. These are:</p><p>(i) constructing a basis set for the analysis; (ii) fitting the stellar PSF to the individual images; (iii) correcting for the PSF and central star; and (iv) averaging over an image stack.</p><p>We have implemented methods in our package for dealing with these four steps. In so doing, we have made improvements in all the steps, but in particular our main gain comes from an improved treatment of the first step. Specifically, we have used a Principle Component Analysis (PCA) approach to empirically build the basis set from the data. In the following sections, we discuss each of these steps in more detail.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Construct Basis Set</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.1">Overview of Basis Functions</head><p>One of the key challenges in analysing high contrast imaging data is to correct for the flux of the central star. The star is effectively a point source, so its image will be that of the PSF On the image we show the three positions of the planets that we used to test our performance. We will refer to these positions as P1(shown by the green circle symbol), P2 (red diamond) and P3 (turquoise/blue square). The symbols show the starting positions of each of the planets and the arcs show the track of each planet during the ADI observing sequence. Note that in our simulations only one planet is used at a given time. The lower panel shows an example of one of the planets that we added to our simulated images. This planet is the brightest example (∆ NB4.05 = 8 mag). For the faintest example, we used (∆ NB4.05 = 11 mag), i.e., ∼16 times fainter. The unit of the x and y axes in the images is pixels, while the flux levels are given in detector counts.</p><p>of the respective telescope-instrument combination altered by atmospheric effects (for ground-based observations). This PSF can be modeled in a number of ways, and one effective approach is to decompose it into a set of basis functions so that the star image can be described through a linear combination such that</p><formula xml:id="formula_0">I( x) = aiφi( x),<label>(1)</label></formula><p>where I( x) is the image of the PSF, φ( x) is a given basis and ai is the coefficient for each basis function. Often it is convenient to work with orthonormal basis functions, such</p><formula xml:id="formula_1">that φi( x)φj( x) dd x = δij,<label>(2)</label></formula><p>where δij is the Kronecker delta. This is because it is computationally convenient to use such orthogonal basis functions, since it is easy to calculate the coefficients, ai, for a given image I( x), using</p><formula xml:id="formula_2">ai = I( x)φi( x) dd x.<label>(3)</label></formula><p>While in this work we have focused on orthogonal complete basis sets, it should be noted that it is also possible to use over-complete basis sets, where the basis functions are not strictly orthogonal to each other. There are a number of popular basis set functions that have been widely used and studied. As an illustration, two such examples of basis set functions are: (i) Fourier -decomposition into sine and cosine functions; and (ii) Shaplets -a decomposition into Gaussian weighted Hermite polynomials (for example see <ref type="bibr" target="#b25">Refregier 2003)</ref>. Another approach, which is the one that we have adopted, is to empirically create a basis set from the data. Typically, this type of empirical approach leads to basis functions that are more efficient at expressing the underlying function than generic basis sets. Here, the efficiency typically refers to a measure of the number of coefficients that would be needed so that residuals between a model and the original images are lower than a given threshold. Efficient basis functions will require a smaller number of coefficients than non-efficient ones. Since many of the basis sets that we would consider using are complete (or overcomplete), meaning that they can be used to describe any function when an infinite series is used, we might think that we are free to use any of them. However, since in practice we have to contend with noise, which effectively truncates the series, the choice of basis sets becomes important (for an example of the impact of basis set choice, see <ref type="bibr">Kitching &amp; Amara 2009)</ref>. In this case, it is better to use efficient basis functions.</p><p>In weak gravitational lensing, the impact and importance of basis sets in modeling the PSF pattern on an image have been widely studied, due to the fact that a critical step in the weak lensing measurement process is to measure and correct for the PSF at the positions of galaxies (for top-level overview of these processes, see <ref type="bibr" target="#b3">Bridle et al. 2009</ref>; Amara 2011). In particular, <ref type="bibr" target="#b11">Jee et al. (2007)</ref> have compared shapelet, wavelet and PCA methods and shown that for their application the empirical PCA method gave the best results. Though different in detail, since in weak lensing we work with a spatially varying PSF while in exoplanet direct imaging the PSF varies primarily in time for groundbased AO-assisted instruments, the key aspects of the two problems share many similarities. For this reason, we have focused our initial studies, which we present here, on PCA basis functions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.2">PCA Basis Sets</head><p>A brief discussion of the basic principles of PCA methods is given by <ref type="bibr" target="#b11">Jee et al. (2007)</ref>. In this section, we give a short summary of the key calculations and outline some of the key issues that need to be considered. We calculated the principle components of our images using singular value decomposition (SVD, see <ref type="bibr" target="#b24">Press et al. 2007</ref>). To do this, we constructed a two dimensional array S, where each row i of the array is a vectorised version of image i of the stack. This means that S has dimensions M×N, where N is the number of pixels in an image and M is the number of images in a stack. We calculate the SVD such that</p><formula xml:id="formula_3">S = UWV T ,<label>(4)</label></formula><p>where W is a diagonal matrix with positive (or zero) elements. In this decomposition, V is a matrix containing the PCA elements that form an orthogonal basis set (U and V are column-orthogonal matricies).</p><p>After running a series of tests, we were able to optimise our PCA decomposition approach by using a careful treatment of the data before applying the decomposition shown in equation 4. Three important steps, which can be seen in the top panels of <ref type="figure" target="#fig_2">Figure 2</ref>, are:</p><p>(i) Subpixel Sampling. We have a large number of PSF realisations, with each one expected to have small offsets between the PSF centre (position of the star) and the pixel grid set by the detectors. This then allows us to reconstruct features over the stack at a resolution that is greater than that of any individual image. For instance, in the example shown in <ref type="figure" target="#fig_2">Figure 2</ref> we have doubled the resolution of the original images to 118 × 118 pixels as compared with the input images (shown in <ref type="figure" target="#fig_1">Figure 1</ref>) with a resolution of 59×59.</p><p>(ii) Central Mask. We know that the central region dominates the flux of the image, and in our HD115892 dataset the core is even saturated ( <ref type="bibr" target="#b24">Quanz et al. 2011</ref>) and contains little useful information. We find that our analysis methods work best when this central region is masked. This is shown in the top left panel of <ref type="figure" target="#fig_2">Figure 2</ref>.</p><p>(iii) Mean Subtraction. When constructing the PCA basis functions, we have the option of subtracting the mean image, which is generated from the entire stack, from each of the individual images before the decomposition. This should be a subtle effect, since if the stack has a mean image then this would likely be (or dominate) the first principle component. Hence, we could expect the step of removing the mean to have little effect. However, since the PCA basis functions are forced to be orthogonal to each other, including the mean as one of the PCAs forces the higher PCA functions to be orthogonal to it. By first subtracting the mean, this condition is removed and we find that the resulting PCA functions work better. An example of a single mean subtracted image is shown in one of the upper panels of <ref type="figure" target="#fig_2">Figure 2</ref>.</p><p>The bottom panels of <ref type="figure" target="#fig_2">Figure 2</ref> show a subsample of the PCA functions for the example we have used in this study. Specifically, we show the PCA functions 1, 2, 4 and 8. In the upper center-right panel we show the reconstruction of a single mean-subtracted image using 100 PCA coefficients. In the top right panel, we show the residuals between the data and the model.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.3">Further Considerations</head><p>One important consideration in empirically building the basis set is to decide which data to use. For instance, if we use the same data to construct the PCAs as what we will use to detect the planets, then there is a danger that the PCA will incorporate the planet and so will tend to remove it from the analysis. There are a number of ways that we could consider to overcome such a problem. For instance, the data could be divided into a training sub-set and an analysis sample. Alternatively, we could try to build a generic basis set for a particular instrument using, for instance, archive data of different stars. Since the training set would be independent of the data used to make the measurements, we reduce biases coming from the modeling. The disadvantage is that these PCA functions are likely be less efficient.</p><p>A further consideration is that the matrix operations in equation 4 can be computer memory intensive when the matrix S becomes large. Ultimately, this will likely lead to a trade-off between the number of images in a stack and the sub-pixel resolution we wish to recover. These optimisations still require further refinement, but our finding in the work presented here suggests that using the same stack to construct the PCA as is used in the data analysis does not present a serious problem. We believe this is because 1) the planets are substantially fainter than the star, and 2) the planets "rotate" around the star in our ADI observations.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Fitting the PSF</head><p>For each image in our stack we are able to calculate the PCA coefficients using equation 3. When using the whole image, the only variable that needs to be specified by the user is the number of PCA coefficients that should be used in the fit. For the case that we are studying here, we find that very good results are achieved for roughly 100 PCA coefficients per fit. Beyond this we find that the improvements in the residuals are marginal. This process is the simplest fitting procedure that we could implement. Nonetheless, we have also incorporated a fitting scheme that allows the user to specify a mask. The reason to do this is that in some cases, for instance when we want to measure the flux of the planet, it is useful to mask out the planet location and only use the data in the rest of the image to fit a PSF model. This then limits the extent to which the planet itself is included in the fitting and avoids overcorrection and reduces possible biases in flux measurement. The disadvantage is that the fit inside the masked region, by necessity, will not be as good. Therefore, random error will increase. Another complicating factor is that once a mask is introduced, the resulting basis functions (multiplied by the mask) are no longer orthogonal. This means that we can no longer find the linear coefficients using equation 3. However, since the masks that we typically introduce tend to be small, equation 3 still gives a good first approximation to the best-fit coefficients. After this, we then refine the coefficients, using a minimisation algorithm, to minimise the residuals,</p><formula xml:id="formula_4">R = (I − Im) 2 × M,<label>(5)</label></formula><p>where Im is the model PSF images for that frame, M is the mask image that blocks out the planet position and the sum is performed over all pixels in the image. This methods works because many of the features that a PSF has within the masked region are correlated to its properties in the unmasked regions. Given a good model for a PSF and a good fit in the unmasked region, we should be able to perform a reasonable reconstruction of the PSF where the mask sits. This method of refining the linear coefficients can be further optimised by minimising the weighted residuals, Rw, given by</p><formula xml:id="formula_5">Rw = (I − Im) 2 × M × W,<label>(6)</label></formula><p>where W is a weighting functions. In the work presented here, we used a Gaussian weighting function centered on the planet positions. This forces the coefficients to those that give a model that is in good agreement with the data in the region close to the mask (and planet) position. These features tend to be more strongly correlated with the features inside the mask, thus giving slightly better fits. The specific optimal weighting scheme is likely to depend on the details arising from, for example, the particular instrument and telescope being used.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">PSF Correction and Averaging Over Stack</head><p>For each image in the stack, we want to remove the flux from the star and to leave the image of the planet. The star light can be well modeled as a convolution between a delta function and the PSF of the observations for that frame.</p><p>Since the intrinsic image is simple, removing the star light in the convolved image corresponds to a simple subtraction of a PSF model from the image. This should then leave an image of the planet convolved with the PSF. Since the model that we fit does not perfectly reproduce a given PSF, the planet image will still be subdominant to the noise in the residuals.</p><p>We still need to average over the stack of images to boost the signal-to-noise of the planet. To do this, we derotate the images in the stack to the same on-sky orientation based on the changes in the parallactic angle of each frame. We then average over the stack. As well as the mean flux at each point, we also compute the variance, which gives us a measure of the noise in the temporal direction at each point in the averaged image. Our final average image should then give us a good representation of the planet convolved with a PSF that is effectively an average PSF over all the data. On top of this, there remains considerable small-scale spatial noise that can be seen as pixel-to-pixel variations. To deal with this and to boost the detectability of the planet, we suggest two approaches to smoothing out these small-scale features. The first is to deconvolve the image with a crude estimate of the average PSF. This will have the effect of pulling all the flux of the planet into one pixel. The other approach, which we have adopted in the current work due to its simplicity, is to use a matched filtering scheme. In this approach, the image is convolved with an estimate of the PSF, and the value of the convolved image at the planet position is then a measure of the total flux of the planet.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">PLANET DETECTION</head><p>We have investigated the efficiency of planet detection for the data presented in section 2. We do this by creating a suit of simulations with planets of varying brightness at the three positions shown in <ref type="figure" target="#fig_1">Figure 1</ref>. We refer to these positions as P1, P2 and P3, and they have star planet separations of 0.52 , 0.29 and 0.52 , respectively. It is worth noting that P1 and P2 lie in the high-contrast hemisphere of the APP PSF where the diffraction rings are suppressed, while P3 lies in the bad hemisphere where the diffraction rings are enhanced (see <ref type="bibr" target="#b13">Kenworthy et al. 2010</ref>). We varied the planets' brightness to achieve a star-planet contrast between 8.0 and 11.0 mag with incremental steps of 0.5 mag and analysed this suit with both LOCI and the PynPoint procedure outlined in section 3.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Data Reduction Using LOCI</head><p>Before running the LOCI package, we median-combined every consecutive 10 exposures in each cube, which resulted in 19 averaged frames per cube or 1026 frames in total for the 54 cubes we observed. Given the short integration time, the field rotation between the individual exposures was negligible, and thus the median-combined frames did not suffer significant smearing effects of the simulated planets. We then applied the LOCI package on the 1026 frames as described in <ref type="bibr" target="#b14">Lafrenì ere et al. (2007b)</ref>, using the following LOCI coefficients (same naming convention as in the original paper): FWHM=4.5 px, N δ =0.75, dr=5 and NA=300. The PSF-subtracted frames were then de-rotated and mediancombined to create the final LOCI-reduced images.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">PynPoint vs. LOCI</head><p>For the PynPoint data reduction, a particular detail to note is that in fitting the PSF model we have not used the masking procedure discussed in section 3.2. This is because performing a blind search over the image with a mask is computationally very intensive, and our current findings show that even without this step we are already able to reach results that outperform what LOCI is able to achieve. However, we return to the masking procedure in section 5 when we focus the discussion on measuring the flux levels of planet candidates. We also note that we were able to perform the PynPoint analysis using the full stack of 10,800 individual exposures.</p><p>In <ref type="figure" target="#fig_3">Figure 3</ref>, we show LOCI and PynPoint results for the two cases where the contrasts between the star and the planet are 8.0 mag and 10.5 mag. These results all use planets located at position P 2, which is the inner most configuration separated 0.29 from the star.</p><p>The LOCI data reduction is explained in the previous section. To generate the PynPoint results, we have created an image that we have specifically tailored to object detection. We do this by creating a detection image, ID, which we produce by dividing the average of the residual images by the root of the variance image,</p><formula xml:id="formula_6">ID = Ires/ √ Ivar.<label>(7)</label></formula><p>We do this because Ivar is a measure of the noise in each pixel and performing this operation produces an image with a more even noise distribution. This does suppress the signal in high noise regions, as it should, but in particular for a signal-to-noise analysis it does allow us to work more directly with the entire image rather than being totally confounded to working in rings around the star as is typically done. This is important since the PynPoint detection images have been convolved in the final step, as outlined in section 3.3, to allow us to effectively match filter. In the example shown in <ref type="figure" target="#fig_3">Figure 3</ref>, we used a Gaussian of width of σ = 0.027 (1 pixel in original image resolution) as a convolution kernel. For the PynPoint images we have also applied an automatic detection routine, the results of which are shown by the contours. We see that for the bright planet (contrast of 8.0 magnitudes), the automatic algorithm easily finds the input planet. For the fainter planet, we see that the planet signal becomes comparable to some of the highest noise peaks, and in the image we see that the planet is one of the three brightest peaks. By eye, we see in all cases that there seems to be a substantial improvement in detectability for the PynPoint images as compared with the LOCI results.</p><p>In <ref type="figure" target="#fig_4">Figure 4</ref>, we quantify the improved performance of our PynPoint software package by showing the detection signal-to-noise as a function of planet magnitude for the three positions we are considering. In all cases we measure the signal from the peak value of the Gaussian convolved image at the planet position (for example, the peak value in the lower left panel of <ref type="figure" target="#fig_3">Figure 3</ref>). For the noise, we measure the standard deviation along the circumference of a circle that is centred on the star and has a radius that passes the center of the planet. The solid curves in <ref type="figure" target="#fig_4">Figure 4</ref> show the PynPoint results, the dashed curves show the LOCI results and the different colours correspond to position P 1 (red), P 2 (blue) and P 3 (green). The triangular symbols in the figure show the points where the planet peak is no longer the brightest peak over the entire image. We were only able to produce these results, shown with the symbols, for the PynPoint images because the LOCI images were dominated by the noise in the central regions and there were no LOCI cases where the planet is the most dominant peak. <ref type="figure" target="#fig_4">Figure 4</ref> also shows 1σ, 3σ and 5σ in horizontal dotted lines.</p><p>For the two outer planet positions (P 1 and P 3), we find that using PynPoint leads to a 50% boost in the signalto-noise, which is a substantial improvement. Seen another way, for a fixed signal-to-noise threshold we see that when the data is analysed using PynPoint we are able to detect planets that are between 0.5 to 1.0 magnitude fainter than what is possible with LOCI. For the close-in planet position P 2 at a separation of ∼ 0.29 , the improvement is even more striking. At this position, we see that the PynPoint signalto-noise is boosted by roughly a factor of five. This is a very significant improvement. In fact, in the LOCI analysis the planet at this position cannot be detected at any of the brightnesses we consider. However, using PynPoint we are able to detect the planet at 5σ down to a magnitude of 8.6 and at 3σ down to magnitude 9.5. The importance of this improvement is even more significant when we consider the fact that the regions closest to the star, where PynPoint performs best as compared with LOCI, are scientifically the most interesting ones. These regions, which are as close to the star as possible, are the most important ones in terms of planet searches since direct imaging surveys have already demonstrated that giant planets are rare at large orbital separations (beyond a few tens of AU, see, e.g.,Lafrenì ere et al. 2007a; <ref type="bibr" target="#b4">Chauvin et al. 2010</ref>), but the parameter space closer to the star is still largely unconstrained. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3">Potential Future Improvements</head><p>Once a possible planet detection is found, it then makes sense to reanalyse the data by placing a mask over the target position and using the method that we outlined in section 3.2. Though computationally more intensive, this step is feasible, since it only needs to be performed at specific locations. With this in mind, it is interesting to consider what an optimal detection strategy might be. For instance, we could imagine that in a two-step process it would make sense to have a more relaxed, but clearly defined, criterion for the first detection (i.e. the step described in this section), such as the detection of all peaks higher than 3σ rather than 5σ, which is more typical. All these candidates can then be studied in more detail using the masking procedure, as we do in section 5, at which point more aggressive cuts could be applied. We have not yet fully investigated this optimisation, but it certainly warrants further systematic work in the future.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">MEASURING THE PLANET FLUX</head><p>It is well known that LOCI introduces flux losses to companions Lafrenì ere et al. 2007b). These flux losses depend on the choice of LOCI parameters and also on the angular separation and the brightness of the companion itself, thus making an accurate analytical correction difficult. Hence, in our next tests we studied the accuracy of LOCI and PynPoint at recovering the flux of the planet once its position is given.</p><p>In the PynPoint case, this means that we want to use the residual images Ires and not the detection images ID, and we also use the planet masking procedure when modeling the PSF to limit possible biases. The results are shown in <ref type="figure" target="#fig_5">Figure 5</ref>. The colour scheme and line styles are the same as those in <ref type="figure" target="#fig_4">Figure 4</ref>. The x-axis of this figure shows the flux inside an aperture with a radius of 0.064 (∼2.4 pixels in original image resolution) centered on the input planet image (e.g., see lower panel of <ref type="figure" target="#fig_1">Figure 1</ref>). The y-axis shows the flux that is measured using the same procedure on the LOCI and PynPoint images. The diagonal dotted black line shows what we would expect in an idealised case where the measured flux is the same as the input flux. In general, we see that in all cases there is a bias between the input flux and measured flux. The important thing to note here is that the three PynPoint cases give reasonably stable off-sets, while the LOCI results show a large range in their performance. In the worse cases of P 1 and P 2, LOCI underestimates the planet close to a factor of 5. While the two worse cases for PynPoint underestimate the flux by a factor of 2. This combined with the better stability of the PynPoint results means that PynPoint is more likely that it can be calibrated. This leads to another example of better performance of our method. We believe that further improvements are possible through continued work and optimisation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">APPLIED EXAMPLE -THE EXOPLANET</head><p>β PICTORIS B  It consists of 80 data cubes, each containing 300 individual exposures with a detector integration time of 0.2 s. The total field rotation amounted to ∼44 • on sky. Again, the basic data reduction steps (sky subtraction, bad pixel corrections and alignment of images) were done as explained in <ref type="bibr" target="#b24">Quanz et al. (2011)</ref>. The final postage stamps we used for our PynPoint analysis were 73×73 pixels in the original images size, but as explained in section 3.1.2, we doubled the resolution of the images (in this case to 146×146 pixels). Our PynPoint analysis effectively has one significant free parameter that is set by the user. This is the number of PCA coefficients that are used to fit each image. However, we find that our results are fairly stable over a wide range of parameter choices. For β Pictoris b we are consistently able to detect the planet with a signal-to-noise in the range of 15 to 20 when changing this parameter by a factor of 3 (between 20 and 60). We note that since the PSF of this non-coronagraphic dataset is less complex than that of the APP, fewer coefficients are needed than in the test datasets in the previous sections. For the results shown in <ref type="figure" target="#fig_6">Figure 6</ref>, we used 40 PCA coefficients. We see that the exoplanet β Pictoris b is by far the strongest signal in the image and is clearly detected with a signal-to-noise of ∼20 south-west of the star at a position angle of ∼209 • .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7">SUMMARY AND OUTLOOK</head><p>We have developed a new Python-based software packagecalled PynPoint -for analysing data for the direct imaging of exoplanets. This new method offers a number of improvements over what is currently available. In particular, we use a principle component analysis to model the PSF of the observations that we then use to subtract the flux coming from the central star, thus revealing the signal of a faint (planetary) companion. We have applied our technique to a set of simulations based on ADI data taken with NACO on the VLT. This dataset used an apodising phase plate, which suppresses the diffraction rings from the star on one side of the image. By inserting simulated planets into these data, we find that PynPoint achieves a detection signal-to-noise that is 50% larger than our LOCI reduction at separations of ∼0.59 and up to a factor of five better for the smaller inner working angle of ∼0.29 . We also find that when measuring the flux of the planet, PynPoint gives more stable, and hence more accurate, results than what we find with LOCI.</p><p>To demonstrate that PynPoint works also on non-APP data and that it reveals real exoplanets and not only simulated ones, we have re-analysed publicly available L data from the exoplanet β Pictoris b observed in December 2009. We clearly detect the exoplanet in our final image with a signal-to-noise close to ∼20.</p><p>Our method relies on empirically constructing a basis set from the data. For this reason, it should be fairly generic and work over a range of wavelengths. The simplicity of our method also means that the number of user-specified parameters is low. Essentially, the only free parameter that needs to be chosen with care is the number of basis coefficients that are used to model the PSF. All other free parameters, such as the size of the masked region, can be automated, and their fine-tuning should not have a significant impact on the final results.</p><p>We have written PynPoint in an object-oriented and modular way and we plan to continuously make improvements to specific sections as we further develop and test our method. In particular, we are focused on: (i) making sure that our basis set are efficient (i.e. sparse); (ii) improving our temporal averaging over the stack; and (iii) improving our spatial algorithms for denoting. We are also in the process of testing our method on different datasets. It will be interesting to see how well PynPoint performs at shorter NIR wavelengths, where the Strehl ratio of the observations is lower than for the data presented here. Furthermore, we hope to obtain test datasets from different instruments to investigate how PynPoint can be optimised for individual observing programs. In so doing, we hope to soon be able to deliver a well-tested package that we can release publicly to the community, thus supporting the large, dedicated exoplanet surveys that will come online in the near future.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>planet detection difficult.</head><label></label><figDesc>However, there have been discover- ies of a few remarkable exoplanets and exoplanet candidates: HR8799 bcde (Marois et al. 2008, 2010), β Pic b (Lagrange et al. 2009, 2010), 2MASS1207 b (Chauvin et al. 2005), LkCA15 b (Kraus &amp; Ireland 2012), 1RXS1609 b Lafrenì ere et al. 2008), 2MASS044144 b (</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 1 .</head><label>1</label><figDesc>Figure 1. The top panel shows an example of a PSF as observed in an individual frame. On the image we show the three positions of the planets that we used to test our performance. We will refer to these positions as P1(shown by the green circle symbol), P2 (red diamond) and P3 (turquoise/blue square). The symbols show the starting positions of each of the planets and the arcs show the track of each planet during the ADI observing sequence. Note that in our simulations only one planet is used at a given time. The lower panel shows an example of one of the planets that we added to our simulated images. This planet is the brightest example (∆ NB4.05 = 8 mag). For the faintest example, we used (∆ NB4.05 = 11 mag), i.e., ∼16 times fainter. The unit of the x and y axes in the images is pixels, while the flux levels are given in detector counts.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 2 .</head><label>2</label><figDesc>Figure 2. The top panels show an example of our PSF fitting approach. From left to right, we show: (i) a masked version of a single image PSF where the centre and the corners of the image have been removed; (ii) the same PSF with the average over the stack removed; (iii) the reconstruction with 100 PCA coefficients; and (iv) the residuals between the mean subtracted PSF in the first panel and our reconstruction. In the bottom panels, we show four examples of our PCAs.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 3 .</head><label>3</label><figDesc>Figure 3. Images used to detect the planets in position P 2. The left panels show the cases for a planet with magnitude contrast of 8.0, and the right panels show results for the planet with a contrast of 10.5. The top two panels show results for LOCI, while the lower panels are the results I D from PynPoint.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Figure 4 .</head><label>4</label><figDesc>Figure 4. Detection signal-to-noise (defined in section 4.2) as a function of the contrast difference between the central star and the planet. The solid curves show results for PynPoint, and the dashed curves show results for LOCI. The colours correspond to the three planet positions that we have used in this study. The horizontal dotted lines show the signal-to-noise thresholds of 5, 3, and 1.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Figure 5 .</head><label>5</label><figDesc>Figure 5. Measured flux as a function of intrinsic planet flux. The black line shows the case where the measured flux is the same as that of the planet; the solid coloured curves show the results from PynPoint, while the dashed curves show the LOCI results. The colour scheme is the same as those used in Figure 4.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Figure 6 .</head><label>6</label><figDesc>Figure 6. The exoplanet β Pictoris b observed in December 2009 in the L filter as revealed with PynPoint (see text). The image has been normalised by the standard deviation (σ) in a ring at the planet radius. The ±15 • around the planet has not been included in the calculation of σ.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" validated="false"><head></head><label></label><figDesc>adam.amara@phys.ethz.ch † sascha.quanz@astro.phys.ethz.ch</figDesc><table></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" validated="false"><head></head><label></label><figDesc>.6637v2 [astro-ph.IM] 15 Aug 2012</figDesc><table></table></figure>
+		</body>
+		<back>
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>ACKNOWLEDGMENTS</head><p>AA would like to thank Roban Kramer and Eduardo Silva for useful discussions on Python and object-oriented programming.</p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Amara</forename><forename type="middle">A ; M</forename></persName>
+		</author>
+		<editor>Beuzit J.-L. et al.</editor>
+		<imprint>
+			<date type="published" when="2006" />
+			<publisher>The Messenger</publisher>
+			<biblScope unit="volume">125</biblScope>
+			<biblScope unit="page">29</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">A</forename><surname>Biller</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">173</biblScope>
+			<biblScope unit="page">143</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Borucki</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">327</biblScope>
+			<biblScope unit="page">977</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Bridle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Shawe-Taylor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Amara</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Applegate</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Annals of Applied Statistics</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="page">6</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Chauvin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">509</biblScope>
+			<biblScope unit="page">52</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Chauvin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Lagrange</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Dumas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Zuckerman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Mouillet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Song</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Beuzit</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Lowrance</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">438</biblScope>
+			<biblScope unit="page">25</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Cumming</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P</forename><surname>Butler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Marcy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">S</forename><surname>Vogt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Wright</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Fischer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">120</biblScope>
+			<biblScope unit="page">531</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Galicher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Macintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Barman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Q</forename><surname>Konopacky</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJL</title>
+		<imprint>
+			<biblScope unit="volume">739</biblScope>
+			<biblScope unit="page">41</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">Presented at the Society of Photo-Optical Instrumentation Engineers (SPIE) Conference</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">H V</forename><surname>Girard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series Guyon O</title>
+		<editor>Pluzhnik E. A., Kuchner M. J., Collins B., Ridgway S. T</editor>
+		<imprint>
+			<date type="published" when="2006" />
+			<biblScope unit="volume">7736</biblScope>
+			<biblScope unit="page">81</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">N</forename><surname>Heinze</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">M</forename><surname>Hinz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Kenworthy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Meyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Sivanandam</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Miller</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">714</biblScope>
+			<biblScope unit="page">1570</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Howard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">330</biblScope>
+			<biblScope unit="page">653</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Jee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Blakeslee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Sirianni</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">R</forename><surname>Martel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">L</forename><surname>White</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">C</forename><surname>Ford</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">119</biblScope>
+			<biblScope unit="page">1403</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Kasper</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Apai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Janson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Brandner</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">472</biblScope>
+			<biblScope unit="page">321</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Kenworthy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">P</forename><surname>Quanz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Meyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">E</forename><surname>Kasper</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Lenzen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Codona</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">H</forename><surname>Girard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">M</forename><surname>Hinz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Society of PhotoOptical Instrumentation Engineers (SPIE) Conference Series Kitching T. D., Amara A</title>
+		<imprint>
+			<date type="published" when="2009" />
+			<biblScope unit="volume">7735</biblScope>
+			<biblScope unit="page">2134</biblScope>
+		</imprint>
+	</monogr>
+	<note>Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</note>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">L</forename><surname>Kraus</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Ireland</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lafrenì Ere</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJl</title>
+		<imprint>
+			<biblScope unit="volume">745</biblScope>
+			<biblScope unit="page">770</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+	<note>ApJ</note>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Lagrange</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">493</biblScope>
+			<biblScope unit="page">21</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A.-M</forename><surname>Lagrange</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">329</biblScope>
+			<biblScope unit="page">57</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Lenzen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Close</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Brandner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Biller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Hartung</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</title>
+		<editor>Moorwood A. F. M., Iye M.</editor>
+		<imprint>
+			<date type="published" when="2004" />
+			<biblScope unit="volume">5492</biblScope>
+			<biblScope unit="page" from="970" to="977" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Lenzen</surname></persName>
+		</author>
+		<title level="m">Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series, M. Iye &amp; A. F. M. Moorwood</title>
+		<imprint>
+			<date type="published" when="2003" />
+			<biblScope unit="volume">4841</biblScope>
+			<biblScope unit="page" from="944" to="952" />
+		</imprint>
+	</monogr>
+	<note>Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</note>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Macintosh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Comptes Rendus Physique</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="page">365</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lafrenì Ere</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Doyon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Macintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Nadeau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">641</biblScope>
+			<biblScope unit="page">556</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Macintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Barman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Zuckerman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Song</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Patience</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lafrenì Ere</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Doyon</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">322</biblScope>
+			<biblScope unit="page">1348</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Zuckerman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Q</forename><forename type="middle">M</forename><surname>Konopacky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Macintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Barman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">468</biblScope>
+			<biblScope unit="page">1080</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Masciadri</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Mundt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Henning</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Alvarez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Barrado Y Navascués</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">625</biblScope>
+			<biblScope unit="page">1004</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Numerical Recipes 3rd Edition: The Art of Scientific Computing</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Mayor</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJl</title>
+		<imprint>
+			<biblScope unit="volume">736</biblScope>
+			<biblScope unit="page">32</biblScope>
+			<date type="published" when="2007" />
+			<publisher>Cambridge University Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Refregier</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">338</biblScope>
+			<biblScope unit="page">35</biblScope>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Rousset</surname></persName>
+		</author>
+		<title level="m">Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series, P. L. Wizinowich &amp; D. Bonaccini</title>
+		<imprint>
+			<date type="published" when="2003" />
+			<biblScope unit="volume">4839</biblScope>
+			<biblScope unit="page" from="140" to="149" />
+		</imprint>
+	</monogr>
+	<note>Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</note>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Todorov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">L</forename><surname>Luhman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">K</forename><surname>Mcleod</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJL</title>
+		<imprint>
+			<biblScope unit="volume">714</biblScope>
+			<biblScope unit="page">84</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

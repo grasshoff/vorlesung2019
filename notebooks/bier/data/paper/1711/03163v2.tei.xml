@@ -1,0 +1,754 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-11T13:19+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">SHALLOW TRANSITS -DEEP LEARNING I: FEASIBILITY STUDY OF DEEP LEARNING TO DETECT PERIODIC TRANSITS OF EXOPLANETS</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2018-02-07">7 Feb 2018 Draft version February 8, 2018</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Shay</forename><surname>Zucker</surname></persName>
+							<email>shayz@post.tau.ac.il</email>
+							<affiliation key="aff0">
+								<orgName type="department">School of Geosciences, Raymond and Beverly Sackler Faculty of Exact Sciences</orgName>
+								<orgName type="institution">Tel Aviv University</orgName>
+								<address>
+									<postCode>6997801</postCode>
+									<settlement>Tel Aviv</settlement>
+									<country key="IL">Israel</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Raja</forename><surname>Giryes</surname></persName>
+							<affiliation key="aff1">
+								<orgName type="department">School of Electrical Engineering, Iby and Aladar Fleischman Faculty of Engineering</orgName>
+								<orgName type="institution">Tel Aviv University</orgName>
+								<address>
+									<postCode>6997801</postCode>
+									<settlement>Tel Aviv</settlement>
+									<country key="IL">Israel</country>
+								</address>
+							</affiliation>
+							<affiliation key="aff2">
+								<orgName type="department">Zucker and Giryes</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Shay</forename><surname>Zucker</surname></persName>
+						</author>
+						<title level="a" type="main">SHALLOW TRANSITS -DEEP LEARNING I: FEASIBILITY STUDY OF DEEP LEARNING TO DETECT PERIODIC TRANSITS OF EXOPLANETS</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2018-02-07">7 Feb 2018 Draft version February 8, 2018</date>
+						</imprint>
+					</monogr>
+					<note>Typeset using L A T E X default style in AASTeX61 Corresponding author:</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>methods: data analysis -planetary systems -planets and satellites: detection -planets and satellites: terrestrial planets -stars: activity</keywords>
+			</textClass>
+			<abstract>
+				<p>Transits of habitable planets around solar-like stars are expected to be shallow, and to have long periods, which means low information content. The current bottleneck in the detection of such transits is caused in large part by the presence of red (correlated) noise in the light curves obtained from the dedicated space telescopes. Based on the groundbreaking results deep learning achieves in many signal and image processing applications, we propose to use deep neural networks to solve this problem. We present a feasibility study, in which we applied a convolutional neural network on a simulated training set. The training set comprised light curves received from a hypothetical high-cadence space-based telescope. We simulated the red noise by using Gaussian Processes with a wide variety of hyperparameters. We then tested the network on a completely different test set simulated in the same way. Our study proves that very difficult cases can indeed be detected. Furthermore, we show how detection trends can be studied, and detection biases be quantified. We have also checked the robustness of the neural-network performance against practical artifacts such as outliers and discontinuities, which are known to affect space-based high-cadence light curves. Future work will allow us to use the neural networks to characterize the transit model and identify individual transits. This new approach will certainly be an indispensable tool for the detection of habitable planets in the future planet-detection space missions such as PLATO.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">INTRODUCTION</head><p>Ever since the discovery of HD 209458 b ( <ref type="bibr" target="#b6">Charbonneau et al. 2000)</ref>, it has become common knowledge that given the necessary geometrical conditions, extrasolar planets ('exoplanets') may partially eclipse their host stars, causing periodic dimming of the observed stellar light. This phenomenon is commonly dubbed 'transits', alluding to the solar transits by Mercury and Venus. Currently, this photometric phenomenon constitutes the dominant channel to detect exoplanets.</p><p>The small physical size of a typical planet compared to that of a solar like star, combined with the typical short duty cycle of a transit signal, render this phenomenon quite difficult to detect. The advent of modern photometric methods and the use of space telescopes facilitate the detection of Jovian planets, and even terrestrial planets in some fortuitous circumstances. This is achieved by increasing the photon collection power, thus reducing the uncorrelated ('white') photon noise.</p><p>Under the assumption that the dominant noise is the uncorrelated photon noise, the algorithms to detect planetary transit signals in stellar light curves have been tackling the challenge in essentially linear approaches. In one way or another, most of the algorithms use a least-squares approach to find a best-fitting transit model to the data, e.g., the BLS ( <ref type="bibr" target="#b15">Kovács et al. 2002)</ref>. Usually, those techniques essentially scan the parameter space of the transit model to search for the best-fitting configuration, if such exists. <ref type="bibr" target="#b22">Pont et al. (2006)</ref> were the first to demonstrate how correlated ('red') noise can be detrimental to traditional transit detection approaches. At that time, when all of the transit surveys were still ground-based, the main source of correlation in the light curve was considered to be related to instrumental and telluric effects. When data began to flow from the dedicated space missions, <ref type="bibr">CoRoT (Auvergne et al. 2009</ref>) and <ref type="bibr">Kepler (Borucki et al. 2010</ref>), it became clear that stellar variability was a major source of red noise ( <ref type="bibr" target="#b0">Aigrain et al. 2009;</ref><ref type="bibr" target="#b19">McQuillan et al. 2012;</ref><ref type="bibr" target="#b3">Basri et al. 2013</ref>), especially in the most difficult signals: transits of terrestrial exoplanets, orbiting in the habitable zones of solar like stars. Those transits would be very shallow, with long periods -meaning a very small effective signal-to-noise ratio (SNR). <ref type="bibr" target="#b7">Cubillos et al. (2017)</ref> provide a review of the simplest approaches to correct for the effects of red noise. However, those approaches are essentially equivalent to merely inflating the effective uncertainties used in the analysis. This is especially relevant to model fitting, rather than detection. Other approaches try to use the large database of the survey to partially filter out the red noise (e.g., <ref type="bibr" target="#b27">Tamuz et al. 2005;</ref><ref type="bibr" target="#b14">Kovács et al. 2005</ref>). The current state-ofthe-art approaches to deal with red noise try to use GPs -Gaussian Processes (e.g., <ref type="bibr" target="#b23">Rasmussen &amp; Williams 2006;</ref><ref type="bibr" target="#b1">Aigrain et al. 2016</ref>). The flexibility of GPs allows the modeling of many kinds of time correlation while maintaining the inherent randomness of the noise. In spite of impressive progress in the computational treatment of GPs, such as the Celerite code <ref type="bibr" target="#b9">(Foreman-Mackey et al. 2017)</ref>, they still remain very demanding computationally. Simultaneously modeling a GP while searching for transits is still out of reach.</p><p>In this paper we examine the feasibility of a new approach -using deep learning. Concisely speaking, deep learning is a set of computational heuristics to train highly nonlinear parametric functions structured in a layered form to perform a certain task ( <ref type="bibr" target="#b16">Lecun et al. 2015;</ref><ref type="bibr">Schmidhuber 2015;</ref><ref type="bibr" target="#b10">Goodfellow et al. 2016</ref>). These functions, known as neural networks, are essentially concatenations of basic units (layers), each comprising a linear operation followed by a simple non-linearity, eventually resulting in intricate highly non-linear functionality. A variant of these networks are convolutional neural networks (CNNs), in which convolutions are used for the linear part of the layers ( <ref type="bibr" target="#b17">Lecun et al. 1998</ref>). CNNs are widely used with images or periodic signals due to their shift invariance property. For the nonlinearity in the layers it is common to use element-wise activation functions such as the sigmoid, hyperbolic tangent and the rectified linear unit (ReLU) <ref type="bibr" target="#b20">(Nair &amp; Hinton 2010)</ref>, which we employ in this work. To date, deep learning techniques achieve state-of-the-art results in many fields including computer vision, speech processing, machine translation, to name a few ( <ref type="bibr" target="#b16">Lecun et al. 2015;</ref><ref type="bibr">Schmidhuber 2015;</ref><ref type="bibr" target="#b10">Goodfellow et al. 2016</ref>). In this work we demonstrate the potential of using CNNs to detect planetary transits in high-cadence light curves plagued by red noise.</p><p>Section 2 presents the simulated training and testing datasets we used, while Section 3 presents the details of the deep learning neural network we applied on those datasets. We present our results in Section 4 and finally discuss their meaning and future implications in Section 5.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">SIMULATED DATA</head><p>We have used simulated data to train the network, and later to test and study its performance. Specifically we generated 10 5 pure noise light curves, each one with or without a transit signal, amounting to 2 × 10 5 light curves in total. We used the first 2 × 83333 light curves for training, and tested the neural network on the remaining 2 × 16667 light curves. In the simulation we assumed the data were obtained by a fictitious planet-detection space telescope, with a five-minute cadence, in between Kepler's long-cadence rate of about 30 minutes ( <ref type="bibr" target="#b5">Borucki et al. 2010</ref>) and the very short 25-seconds cadence planned for PLATO ( <ref type="bibr" target="#b24">Rauer et al. 2014</ref>). We further assumed the duration of the mission's observing run to be 21.33 days, which amounts to a convenient number of 6144 samples.</p><p>The fictitious stellar population observed by our mission comprised stars with apparent magnitudes ranging between V = 10 and V = 16. Specifically, we drew the magnitudes from a beta distribution (e.g., <ref type="bibr" target="#b12">Johnson et al. 1995</ref>) with coefficients α = 3 and β = 1, and later linearly transformed the magnitudes to the required interval <ref type="bibr">[10,</ref><ref type="bibr">16]</ref>. This resulted in a distribution with a preference towards the faint end.</p><p>The magnitude directly affects the uncorrelated photon noise, in a way that should depend on the characteristics of the observational apparatus. Inspired by the pre-flight estimates for <ref type="bibr">Kepler (van Cleve &amp; Caldwell 2009)</ref>, we assumed the following relation for the white-noise RMS:</p><formula xml:id="formula_0">A w = e 0.4(V −10)/2 · 35 µmag<label>(1)</label></formula><p>In order to produce the correlated (red) noise, we have used a GP approach, with a kernel comprising a squaredexponential and a quasi-periodic components (e.g., <ref type="bibr" target="#b1">Aigrain et al. 2016)</ref>. Combined with the white-noise component, we got the following expression for the kernel of the noise GP:</p><formula xml:id="formula_1">k(t i , t j ) = A 2 s exp − t i − t j λ s 2 + A 2 q exp − 1 2 sin 2 π (t i − t j )) T q − t i − t j λ q 2 + A 2 w δ (t i − t j )<label>(2)</label></formula><p>We drew the various hyper-parameters of the kernel from log-uniform distributions over specified intervals detailed in <ref type="table" target="#tab_0">Table 1</ref>. We included each red-noise light curve in the data set once as is, and once with a transit signal added. As this study is a feasibility study, we simulated only transits with periods shorter than 6100 min (about four days), ensuring that at least five transit events would occur during the duration of the observing run. We simulated transits as simple trapezoids, without invoking the full detailed model including limb darkening <ref type="bibr" target="#b18">(Mandel &amp; Agol 2002</ref>). We also assumed transits to be strictly periodic, avoiding effects related to multiple planets and transit-timing variations (TTV). We drew the transit phase from a uniform distribution, and we also drew the combined ingress-egress relative duration (as a fraction of the transit duration) from a uniform distribution, between 0.01 and 0.3. The two other transit parameters (depth and duration) were drawn from log-uniform distributions as detailed in <ref type="table" target="#tab_1">Table 2</ref>.</p><p>3. THE CONVOLUTIONAL NEURAL NETWORK <ref type="figure" target="#fig_0">Fig. 1</ref> depicts the structure of the CNN we used. It consisted of four convolutional layers, all with stride 4. Following deep learning terminology, this is equivalent to applying a regular convolution followed by sampling every fourth entry (discarding the rest). The first layer employed 40 different convolution kernels of length 40 (thus rendering the signal two dimensional, of dimensions 1527 × 40. The size of the second dimension is often referred to as the number of channels.). The second layer had 32 kernels of size 23 × 40, meaning that each of the 32 convolutions got its input from all 40 channels, resulting in 32 channels. The third and fourth layers had 32 kernels of size 23 × 32. The sizes  of the kernels reflect a trade-off between minimizing the number of parameters we need to train, and maximizing the size of the receptive field of each 'neuron' (size of the input segment that affects it). A larger receptive field provides the ability to have more global decisions at the earlier layers of the network. The number of kernels learned at each layer should be large enough to include the variety of features extracted from the data at each layer. Yet it should not be too large, since from a certain point new features do not help the learning but rather add a computational burden and may lead to over-fitting. We have taken all these considerations into account while designing the structure of the network. Each convolution is followed by the ReLU non-linearity <ref type="bibr" target="#b20">(Nair &amp; Hinton 2010)</ref> and batch normalization (BN) <ref type="bibr" target="#b11">(Ioffe &amp; Szegedy 2015)</ref>. The ReLU is an element-wise function that simply zeros all negative values in its input, without changing positive values, thus essentially performing a projection onto the positive orthant. The role of the BN operation is to normalize the output of a given layer in the network such that its entries across different data samples have zero mean and unit variance. Yet it has trainable parameters that allow the network to deviate from this assumption, having other values for the mean and variance that enhance the overall performance of the network. As BN "stabilizes" the data distribution at its output in the network, it improves the convergence during the training of the network. ReLU and BN introduce the non-linearity to the network, which is an essential and crucial ingredient in each deep learning model. Both ReLU and BN are commonly used non-linearities in CNNs, where the first is referred to as the activation function of the network (trying to imitate the activation functions that appear in biological neurons) and the second is considered more as a regularization factor. The non-linearity components are fundamental in the design of any neural network.</p><p>At the end of the network, we employ a fully-connected layer (multiplication by a matrix) of size 544 × 2 followed by ReLU and a softmax operation (i.e. normalized exponential, e.g., Bishop 2006). The softmax, which is commonly used at the end of the network, is another non-linearity besides the ReLU and BN. It emphasizes the largest value in the input by applying an exponent element-wise followed by a division by the sum of the values. Thus, the output of the softmax component can be viewed as a probability distribution: each entry is in the range <ref type="bibr">[0,</ref><ref type="bibr">1]</ref> and the total sum is 1. As a result, the output of the network consists of two values that indicate the probability (as estimated by the network) of the signal at the input of the network being either a noisy transit signal or pure (red) noise. The detection is performed using one-hot-encoding: The output of the network is of the size of the number of classes to be detected (in our case noisy signal and pure noise) and each cell represents one of the classes. Thus, the ground truth labels of the output of the network for noisy signal (or pure noise) are encoded by a vector that contains one at the entry corresponding to signal (or noise) and zero elsewhere.</p><p>The loss function for training the network is the categorical cross entropy: Given a ground truth label y and the output of the network z, it reads as</p><formula xml:id="formula_2">− i y i log(z i ).<label>(3)</label></formula><p>The weights of the networks are updated such that this value is minimized on average over all the training examples.</p><p>Notice that if the input belong to class i = c, then minimizing the above expression is equivalent to maximizing log(z c ).</p><p>In order to update the weights of the network, we need the gradient of the loss function with respect to the network parameters. We calculate this gradient using the back-propagation algorithm ( <ref type="bibr" target="#b17">Lecun et al. 1998</ref>), which is basically applying the chain rule iteratively throughout the network's layers.</p><p>Computing the gradient of the network based on all the data in the training set is prohibitively time consuming. Instead, we follow the common approach of stochastic gradient descent (SGD) with mini-batches. Unlike standard (batch) gradient descent that calculates the gradient of each step based on all the training examples together, SGD computes the gradient at each iteration based on only a small fraction of the data, which is drawn at random each time (without repetition). Once all the training examples have been used, a new training epoch starts, which re-use the data to continue updating the network's parameters. Our training process spanned 35 epochs, during which the network converged. Training the network with few more epochs did not obtain significantly different performance.</p><p>Using SGD for the optimization poses two challenges: (i) SGD uses a step-size parameter, known also as the learning rate, which requires tuning; and (ii) its convergence given a fixed learning rate or a rate that decays in a predetermined way is usually slow. Optimization literature, and the one related to deep earning in particular, proposes several strategies to face these issues. Due to computational complexity, using second-order methods is not feasible and only first order techniques are considered. In this work we rely on the ADAM optimizer <ref type="bibr" target="#b13">(Kingma &amp; Ba 2014)</ref>, which achieves faster convergence by adaptively setting the learning rate based on estimates of first and second moments of the gradients. We use the default parameters proposed with this method.</p><p>The various components and techniques we used in the CNN and which we presented above, are basic tools of the trade in deep learning. <ref type="bibr" target="#b10">Goodfellow et al. (2016)</ref> provides a clear and comprehensive introduction to deep learning, and explains those concepts more thoroughly.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">RESULTS</head><p>Detection was essentially determined by the terminal 'signal' value at the output layer, and whether it exceeded a predetermined threshold. In a similar fashion to traditional detection schemes, the value of that threshold determines the detection probability -both false detection and true detection. It is customary in detection theory to describe the behavior of a detection scheme using a Receiver Operating Characteristic (ROC) curve (e.g., Fawcett 2006), which presents the true positive rate (TPR) as a function of the false positive rate (FPR). <ref type="figure" target="#fig_1">Fig. 2</ref> presents the ROC curve we got for our specific simulated dataset and the neural network described in Section 3 .</p><p>For comparison with traditional approaches, we also ran the BLS algorithm ( <ref type="bibr" target="#b15">Kovács et al. 2002)</ref> on our simulated data. The transit period and duration ranges we used in BLS were exactly the ranges we used in the simulation. As we explained in Sec. 1, real fitting of a GP to each light curve is currently unfeasible. Instead, in order to have some reference performance, we used a simple approach of using a high pass filter, with a cut-off frequency of 1/6200 min −1 , making sure we do not exclude the fundamental frequency of the longest period we seek. The test statistic we used for detection was the Z-score (which is essentially identical to the SDE of <ref type="bibr" target="#b15">Kovács et al. (2002)</ref>). For each threshold value of the Z-score we estimated the FPR using 83333 pure noise light curves, and used different 16667 transit-containing light curves for the TPR (in fact, it was the same division used for training and testing the neural network). The dashed ROC curve in <ref type="figure" target="#fig_1">Fig. 2</ref> represents the performance of the BLS.</p><p>In what follows we examine more closely the performance of the neural network in various cases. We fixed the FPR at 0.01, which implied a TPR of 0.94, or a miss rate of 0.06. In absolute figures, we had a total of 166 false positives, and 920 misses. </p><formula xml:id="formula_4">α = d σ √ qn ,<label>(5)</label></formula><p>where q is the fractional transit duration, n is the total number of samples, and σ is the noise standard deviation. We calculated σ directly from the simulated noise, including all the red-and white-noise contributions. <ref type="figure">Fig. 3</ref> presents the distribution of α for the test data (which include transits), while highlighting the distribution of the missed transits (as full histogram). It is obvious that the misses concentrate on the lowest end of the SNR range, as is intuitively expected. <ref type="figure">Fig. 4</ref> presents the dependence of the rate of misses as a function of the relative contribution of each noise component, represented by the ratio between the noise component amplitude and σ. Interestingly, it seems that the dominant factor affecting the chances to miss a detection is the squared-exponential component.</p><p>Taking a closer look at the effect of the squared-exponential noise, it is illuminating to examine the effect of λ sthe timescale of this red noise component. <ref type="figure" target="#fig_3">Fig. 5</ref> presents the dependence of the miss rate on the ratio of this timescale to the transit duration w. As can be expected, the effect on the miss rate is stronger when the two timescales are comparable, so that this red noise component might 'wash out' the transit events.</p><p>In a similar way we checked the dependence of the miss rate on the period of the quasi-periodic noise component. <ref type="figure">Fig. 6</ref> shows the dependence on the ratio between this period and the transit period. Here it seems that the main effect on the miss rate is when the noise period is shorter than the transit period, while noise periods that are longer constitute a much weaker disturbance to the detection. The 'evolution timescale' of the quasi periodic kernel exhibits a similar behavior, as is shown in <ref type="figure">Fig. 7</ref> -evolution timescales that are shorter than the transit period, constitute a significant disturbance to detection.</p><p>The importance of the squared-exponential noise component is also evident when we examine the false detections ('false positives'). <ref type="figure">Fig. 8</ref> shows the FPR as a function of the relative contribution of each noise component, same as in <ref type="figure">Fig. 4</ref>. Here again, the dominant factor is the amplitude of the squared-exponential component.</p><p>In an attempt to characterize further the contribution of the various GP hyperparameters to false detections, the main effect we have found was that of the timescale of the squared-exponential component. <ref type="figure" target="#fig_6">Fig. 9</ref> shows the dependence of the FPR on the ratio between this timescale and the period of the quasi-periodic noise component. the FPR is highest when this ratio is around a few percents. This might be related to the signals we trained the network to detect: the most common ratio between the transit width and the transit period in the training set is also around a few percents.</p><p>Finally, it is illuminating to examine the light curves of several representative cases. <ref type="figure" target="#fig_0">Fig. 10</ref> shows two extreme examples of true detections by the neural network. The top panel (a), demonstrates a case with a very high effective SNR, α = 250.1. Obviously this is a very easy case to detect, and traditional techniques like the BLS would have probably detected it quite easily. There are many transit events, and they are much deeper than the noise by any standard. On the other hand, the bottom panel (b), shows a much more difficult case, with α = 13.7, on the lower end of the detectability histogram (see <ref type="figure">Fig. 3</ref>). The individual transit events, with a depth of 0.133 millimag, cannot be distinguished easily, so we highlighted them in red. Panels (c)-(g) zoom on the individual transit events, where one can see how difficult it is to spot them in the noise, e.g., the first two events (panels (c) and (d)) are not even fainter than the neighboring samples, and thus affecting the periodic nature assumed by the BLS and other methods. Nevertheless, the neural network did manage to detect the transit signal in this difficult case.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="0.1">1 10</head><p>T q / P  <ref type="figure">Figure 6</ref>. Miss rate as a function of the ratio between the period of the quasi-periodic noise component (Tq) and the transit period (P ).</p><p>In <ref type="figure" target="#fig_0">Fig. 11</ref> we chose to present two examples of false detections, corresponding to the trend shown in <ref type="figure" target="#fig_6">Figs. 8 and 9</ref>. It is apparent that those two light curves contain many events that may indeed resemble transits in a superficial glance, and thus might understandably lead to false detections.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">Outliers and Discontinuities</head><p>An important aspect of real-life light curves is the presence of artifacts caused by cosmic rays or abrupt changes related to operation of the observing apparatus. There are many methods to alleviate those effects. Even though these methods are usually quite satisfactory, those artifacts still constitute a source of confusion and false detections, and also mask out true signals. We tried to test our neural network against the inclusion of those artifacts as well. We therefore added to the simulated light curves outliers. Every sample in our light curves had a probability of 0.01 to be affected by an outlier, that we implemented as an exponentially-distributed brightening, with an expectation value of 0.25 millimag. Larger outliers are obviously easier to identify and remove, and we wanted to test our network in a more challenging setting. In addition to outliers we also added discontinuities. The discontinuity probability we implemented was 5 · 10 −4 per sample, and the value of the jump had a Gaussian distribution with a standard deviation of 0.5 millimag. After each discontinuity we added an exponential decay to the previous level, with a timescale that was itself exponentially distributed with an expectation of 30 minutes. Thus, some of the jumps had very long timescales that were effectively infinite, while others were so short that the discontinuity was effectively an outlier.</p><p>We have repeated the process of training and testing the neural network on the new dataset, with the added artifacts, as well as the BLS and the high-pass filter. This time we preceded the high-pass filter with an outlier removal stage. This stage used calculating a moving median (on a 100-sample window), and it rejected samples which deviated from this median more than three median absolute deviations. We also incorporated our knowledge that the outliers we considered were only brightenings, not dimmings. <ref type="figure" target="#fig_0">Fig. 12</ref> presents the ROC we obtained for this new dataset. The performance of the neural network degraded by a marginal amount, while that of the BLS degraded much more significantly. The results we presented in the previous section prove that a deep neural network can achieve satisfactory performance in detecting quite difficult transit signals in the presence of significant red noise. It is difficult to compare the performance to traditional techniques, as the standard techniques are optimized for white noise and require a preliminary stage of filtering out the red noise. There is currently no 'gold standard' that performs the two tasks, against which we can compare. We therefore compared our neural network performance to a na¨ıvena¨ıve combination of the BLS and a high-pass filter, designed to spare the relevant range of transit frequencies. The neural network performs much better! In addition, one advantage of the approach we propose here is that it is not divided into two stagesdetrending and transit search. The neural network is fed the light curve, including the red noise, and it detects the transits without a detrending stage (which is probably performed implicitly and internally within the neural network mechanism). Furthermore, Section 4.1 shows that the same neural network we used to detect transits in the presence of red noise, performs well also in the presence of outliers and jumps, after being appropriately trained. Thus, in principle, it can also save the need for the separate stages of outlier removal and discontinuities detection. All those abilities of the neural network are made possible by the highly nonlinear nature of the neural computation mechanism, which is totally different from the traditional methods, and opens a plethora of optional new capabilities.</p><p>As the results of Section 4 show, the detection performance of the neural network does behave in ways we would expect -shallower transits, longer periods, lower effective SNR -are all affecting the chances to detect the transits. In that respect, the results constitute a sanity check. One surprising result is that the squared-exponential component had more influence than the quasi-periodic component. However, when we turn to analyze real data, we will have to characterize the GPs in much more detail, with more components in the kernel, and this specific effect may turn out to be different in real life.    In this context, of analyzing real data, we should emphasize the importance of the artificially generated training set. If our purpose would have been the detection of Jovian planets, we could, in principle, skip the process of generating artificial light curves, and use light curves that seem not to contain transits. However, since we aim to detect planets that are difficult to detect, it seems imperative that the light curves we include in the training set as examples of light curves without transits, indeed be without transits. This can only be guaranteed by artificially generated light curves. In the future, we will investigate the question of the perfect composition of the training set: how much does the presence of transits in what we consider as transit-free light curves affect the performance? How much does deviation from the true noise model affect the performance? If it does, we will have to perform a meticulous mapping of the stellar variability space in terms of GP hyperparameters, to help us in compiling the training set. All these are future work research directions we intend to pursue.</p><p>One criticism against neural networks in this context is the fact that the trained neural network is a 'black box' in the sense that we are unable to trace the way it achieves the detection. This may indeed be the case (although some 'reverse engineering' can be attempted), however, since we can characterize in significant detail the false positive rate, as we showed in the previous section, the detections are nevertheless useful scientifically. Furthermore, the feasibility study we presented here focuses on the most fundamental task in the process of detecting transiting exoplanets, namely, tagging light curves that contain transits. Usually, like in the case of the BLS algorithm, this task already performs also part of the task of characterization, and the detection tool also produces an estimate of the transit period. We chose to separate the two tasks, bearing in mind that probably the neural network maintains in its internal representation also an estimate of the period. This will be part of our future studies, where we will try to use deep learning to perform the related tasks of detrending and 'cleaning' the light curves (and perhaps characterizing the activity signal in passing), characterizing the transit signal, and identifying the individual transits for further analysis like identifying TTVs. It may very well turn out that the same neural network can be used for more than one task, but we chose to make minimal assumptions at this stage.</p><p>While we worked on the study we presented here, Pearson, Palafox &amp; Griffith published a paper presenting similar ideas ( <ref type="bibr" target="#b21">Pearson et al. 2017</ref>). There are several fundamental differences between the tests Pearson et al. present in their paper and our test: their noise simulation does not use a GP approach, but only a quasi-periodicity heuristic combined with white noise. Furthermore, they draw the noise and transit simulation parameters from a discrete grid, as opposed to continuous distributions. This renders their training and test sets extremely unrealistic. In spite of those significant shortcomings, the study they present should still be considered a pioneering study that proposes the use of deep learning to detect terrestrial planets for the first time. Another recent paper that is worth mentioning here is the paper by <ref type="bibr" target="#b26">Shallue &amp; Vanderburg (2017)</ref> who claim to have identified transiting planets using deep learning. However, the problem they tackled is fundamentally different from the problem of detecting transits. They have used a conventional approach to detect the transits and then applied neural networks to identify whether the events they had detected were caused by transiting planets or not. Nevertheless, their research is another milestone in the gradually growing recognition of deep learning potential within the exoplanet community.</p><p>In future works, applying the deep learning approach to real-life data will require considering more kinds of artifacts, e.g., sampling gaps. The transit signal will have to be more realistic, and allow complicating features, like multiple planets, TTVs, and very long periods leading to very few transit events.</p><p>In the context of transiting planets, besides CoRoT ( <ref type="bibr" target="#b2">Auvergne et al. 2009</ref>) and <ref type="bibr">Kepler (Borucki et al. 2010</ref>), the scientific community is eagerly anticipating data to flow from NASA's TESS satellite, once it is launched and commissioned ( <ref type="bibr" target="#b25">Ricker et al. 2015</ref>). We will use the data from TESS, in addition to those from CoRoT and Kepler, as the testbed on which deep-learning-based transit detection will be perfected and matured. The next major development will be the launch of PLATO by ESA ( <ref type="bibr" target="#b24">Rauer et al. 2014</ref>). Applying deep learning on PLATO's data will probably result in a surge of terrestrial habitable planets. Obviously, implementing the ideas we present here on those real-life data will require scaling the networks to much longer light curves. To this end, High-Power Computing hardware will have to be used, both for training and testing.</p><p>Deep learning is revolutionizing a growing number of areas in modern human life. It is now time for this development to revolutionize the search for extrasolar habitable planets as well.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 .</head><label>1</label><figDesc>Figure 1. Convolutional neural network architecture used in this work. Conv W × CI indicates a convolutional filter of size W × CI, where CI is the number of channels at the input. Feature size L × C indicates C channels of feature vectors of size L. FC 544 × 2 is a fully connected layer that takes features of size 544 and transfers them to two dimensions. The input has only one channel as can be seen in the above network sketch.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 2 .</head><label>2</label><figDesc>Figure 2. Receiver Operating Characteristic (ROC) curve for the neural network and the dataset presented in this work. The dashed line represents the performance of the BLS preceded by a highpass filter. The dot-dashed line is the so-called 'no-discrimination' line, corresponding to random guess.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 3 .Figure 4 .</head><label>34</label><figDesc>Figure 3. A histogram of the effective SNR of the test light curves that include transit signals. The black bars represent the fraction of the non-detected transit signals (misses)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 5 .</head><label>5</label><figDesc>Figure 5. The miss rate as a function of the ratio between the squared-exponential timescale λs and the transit duration w.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Figure 7 .Figure 8 .</head><label>78</label><figDesc>Figure 7. Miss rate as a function of the ratio between the evolution timescale of the quasi-periodic noise component (λq) and the transit period (P ).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Figure 9 .</head><label>9</label><figDesc>Figure 9. False detection rate as a function of the ratio between the timescale of the squared-exponential noise component (λs) and the period of the quasi-periodic component(Tq).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Figure 10 .</head><label>10</label><figDesc>Figure 10. Examples of detected transit signals ('true positives'). (a) A transit light curve with a high effective SNR of α = 250.1 . (b) A transit light curve with a very low effective SNR of α = 13.7. (c) -(g): Individual transit events of the light curve from panel (b).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head>Figure 11 .</head><label>11</label><figDesc>Figure 11. Examples of light curves mistakenly tagged as transit detections. The two examples fit the trend in Figs. 8 and 9: (a) As/σ = 0.74, λs/Tq = 0.022, (b) As/σ = 0.83, λs/Tq = 0.037 .</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head>Figure 12 .</head><label>12</label><figDesc>Figure 12. Same as Fig. 2, for the dataset with the added artifacts of random outliers and discontinuities</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" validated="true"><head>Table 1 . GP kernel hyper-parameter ranges Hyper-parameter Minimum value Maximum value</head><label>1</label><figDesc></figDesc><table>As 
+5 µ mag 
+125 µ mag 
+
+Aq 
+50 µ mag 
+125 µ mag 
+
+λs 
+1 min 
+10 h 
+
+Tq 
+10 h 
+500 h 
+
+λq 
+1000 min 
+500 h 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" validated="true"><head>Table 2 . Transit parameter ranges</head><label>2</label><figDesc></figDesc><table>Transit parameter Minimum value Maximum value 
+
+depth 
+0.1 millimag 
+1 millimag 
+
+duration 
+30 min 
+200 min 
+
+</table></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pont</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Fressin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">506</biblScope>
+			<biblScope unit="page">425</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Parviainen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">J</forename><surname>Pope</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">459</biblScope>
+			<biblScope unit="page">2408</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Auvergne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Bodin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Boisnard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">506</biblScope>
+			<biblScope unit="page">411</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Basri</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">M</forename><surname>Walkowicz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Reiners</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">769</biblScope>
+			<biblScope unit="page">37</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">M</forename><surname>Bishop</surname></persName>
+		</author>
+		<title level="m">Pattern Recognition and Machine Learning</title>
+		<meeting><address><addrLine>New York, NY</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Borucki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Koch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Basri</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">327</biblScope>
+			<biblScope unit="page">977</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">M</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Latham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Mayor</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJL</title>
+		<imprint>
+			<biblScope unit="volume">529</biblScope>
+			<biblScope unit="page">45</biblScope>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Cubillos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Harrington</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">J</forename><surname>Loredo</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">153</biblScope>
+			<biblScope unit="page">3</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Fawcett</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PaReL</title>
+		<imprint>
+			<biblScope unit="volume">27</biblScope>
+			<biblScope unit="page">861</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Ambikasaran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Angus</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">154</biblScope>
+			<biblScope unit="page">220</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Goodfellow</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Bengio</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Courville</surname></persName>
+		</author>
+		<title level="m">Deep Learning</title>
+		<meeting><address><addrLine>Cambridge, MA</addrLine></address></meeting>
+		<imprint>
+			<publisher>MIT Press</publisher>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Ioffe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Szegedy</surname></persName>
+		</author>
+		<title level="m">International Conference on Machine Learning 2015 (ICML 2015</title>
+		<imprint>
+			<date type="published" when="2015" />
+			<biblScope unit="page">448</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">L</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Kotz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Balakrishnan</surname></persName>
+		</author>
+		<title level="m">Continuous Univariate Distributions</title>
+		<meeting><address><addrLine>New York</addrLine></address></meeting>
+		<imprint>
+			<publisher>Wiley</publisher>
+			<date type="published" when="1995" />
+			<biblScope unit="volume">2</biblScope>
+		</imprint>
+	</monogr>
+	<note>2nd ed.</note>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">P</forename><surname>Kingma</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Ba</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1412.6980</idno>
+		<title level="m">3rd International Conference on Learning Representation (ICLR 2014)</title>
+		<imprint>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Kovács</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Bakos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">W</forename><surname>Noyes</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2005" />
+			<biblScope unit="volume">356</biblScope>
+			<biblScope unit="page">557</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Kovács</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Zucker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Mazeh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">391</biblScope>
+			<biblScope unit="page">369</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Lecun</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Bengio</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Hinton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">521</biblScope>
+			<biblScope unit="page">436</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Lecun</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Bottou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Bengio</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Haffner</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">IEEEP</title>
+		<imprint>
+			<biblScope unit="volume">86</biblScope>
+			<biblScope unit="page">2278</biblScope>
+			<date type="published" when="1998" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Mandel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJL</title>
+		<imprint>
+			<biblScope unit="volume">580</biblScope>
+			<biblScope unit="page">171</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Mcquillan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Roberts</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">539</biblScope>
+			<biblScope unit="page">137</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Nair</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">E</forename><surname>Hinton</surname></persName>
+		</author>
+		<title level="m">Proceedings of the 27th International Conference on Machine Learning</title>
+		<meeting>the 27th International Conference on Machine Learning</meeting>
+		<imprint>
+			<date type="published" when="2010" />
+			<biblScope unit="page">807</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">A</forename><surname>Pearson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Palafox</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">A</forename><surname>Griffith</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">474</biblScope>
+			<biblScope unit="page">478</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pont</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Zucker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Queloz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">373</biblScope>
+			<biblScope unit="page">231</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Rasmussen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Williams</surname></persName>
+		</author>
+		<title level="m">Gaussian Processes for Machine Learning, Adaptive Computation and Machine Learning</title>
+		<meeting><address><addrLine>Cambridge, MA</addrLine></address></meeting>
+		<imprint>
+			<publisher>MIT Press</publisher>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Rauer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Catala</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Aerts</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ExA</title>
+		<imprint>
+			<biblScope unit="volume">38</biblScope>
+			<biblScope unit="page">249</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">R</forename><surname>Ricker</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">JATIS</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page">14003</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">J</forename><surname>Shallue</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vanderburg</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1712.05044</idno>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">61</biblScope>
+			<biblScope unit="page">85</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+	<note>NN</note>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Tamuz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Mazeh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Zucker</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">356</biblScope>
+			<biblScope unit="page">1466</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<monogr>
+		<title level="m" type="main">Kepler Instrument Handbook</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Van Cleve</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Caldwell</surname></persName>
+		</author>
+		<idno>KSCI 19033-001</idno>
+		<ptr target="http://archive.stsci.edu/kepler/manuals/KSCI-19033-001.pdf" />
+		<imprint>
+			<date type="published" when="2009" />
+			<pubPlace>Moffet Field CA</pubPlace>
+		</imprint>
+		<respStmt>
+			<orgName>NASA Ames Research Center</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

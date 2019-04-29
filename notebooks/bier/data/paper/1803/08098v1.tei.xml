@@ -1,0 +1,1036 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2019-01-22T13:33+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">sunstardb: A DATABASE FOR THE STUDY OF STELLAR MAGNETISM AND THE SOLAR-STELLAR CONNECTION</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="201821-03-23">March 23, 2018 21 Mar 2018</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ricky</forename><surname>Egeland</surname></persName>
+							<email>egeland@ucar.edu</email>
+							<affiliation key="aff0">
+								<orgName type="department">High Altitude Observatory</orgName>
+								<orgName type="institution">National Center for Atmospheric Research</orgName>
+								<address>
+									<postBox>PO Box 3000</postBox>
+									<postCode>80307-3000</postCode>
+									<settlement>Boulder</settlement>
+									<region>CO</region>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">sunstardb: A DATABASE FOR THE STUDY OF STELLAR MAGNETISM AND THE SOLAR-STELLAR CONNECTION</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="201821-03-23">March 23, 2018 21 Mar 2018</date>
+						</imprint>
+					</monogr>
+					<note>Draft version Typeset using L A T E X default style in AASTeX61 Corresponding author: Ricky Egeland</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>astronomical databases: miscellaneous</term>
+					<term>virtual observatory tools</term>
+					<term>Sun: activity</term>
+					<term>stars: activity</term>
+					<term>stars: statistics</term>
+					<term>stars:solar-type</term>
+					<term>dynamo</term>
+				</keywords>
+			</textClass>
+			<abstract>
+				<p>The &quot;solar-stellar connection&quot; began as a relatively small field of research focused on understanding the processes that generate magnetic field in stars and which sometimes lead to a cyclic pattern of long-term variability in activity, as demonstrated by our Sun. This area of study has recently become more broadly pertinent to questions of exoplanet habitability and exo-space weather, as well as stellar evolution. In contrast to other areas of stellar research, individual stars in the solar-stellar connection often have a distinct identity and character in the literature, due primarily to the rarity of the decades-long time series that are necessary for studying stellar activity cycles. Furthermore, the underlying stellar dynamo is not well understood theoretically, and is thought to be sensitive to several stellar properties, e.g. luminosity, differential rotation, and depth of the convection zone, which in turn are often parameterized by other more readily available properties. Relevant observations are scattered throughout the literature and existing stellar databases, and consolidating information for new studies is a tedious and laborious exercise. To accelerate research in this area I developed sunstardb, a relational database of stellar properties and magnetic activity proxy time series keyed by individual named stars. The organization of the data eliminates the need for problematic catalog cross matching operations inherent when building an analysis dataset from heterogeneous sources. In this article I describe the principles behind sunstardb, the data structures and programming interfaces, as well as use cases from solar-stellar connection research.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">MOTIVATION</head><p>Observations of the Sun through the telescope began around the time of Galileo and revealed the presence of sunspots on the solar disk. Diligent observation of this phenomena in later centuries lead to the discovery of an ∼11 year cycle in the appearance and disappearance of solar spots <ref type="bibr" target="#b38">(Schwabe 1844)</ref>. <ref type="bibr" target="#b14">Hale (1908)</ref> identified the magnetic nature of these spots, and therefore of the solar cycle. Work has progressed over the subsequent century to explain the formation of these concentrated regions of magnetic field in the convective outer envelope of the Sun and their organized spatiotemporal patterns throughout the solar cycle. At present, a magnetohydrodynamic dynamo is presumed to generate the large-scale magnetic fields responsible for the solar cycle, but the detailed mechanisms and processes are still in dispute (see <ref type="bibr" target="#b6">Charbonneau (2010)</ref>, <ref type="bibr">Charbonneau (2014)</ref>, and ? for recent reviews). The principal difficulty in understanding the magnetic Sun is the inability to observe sub-surface magnetic field, coupled with the computational intractability of modeling a star from the deep interior all the way to the observable surface (see the model domains presented in <ref type="bibr">Charbonneau (2014)</ref>). This latter difficulty is due to the steep entropy, pressure, and density gradients near the solar surface that require high spatial and temporal resolution to model in a direct numerical simulation. Finite computational resources therefore force dynamo models to exclude precisely the layer of the Sun in which observations are possible. The observational and theoretical divide makes the "solar dynamo problem" extremely challenging. <ref type="bibr" target="#b43">Wilson (1968)</ref> recognized that "if analogous cycles could be detected in other stars with different values of the fundamental stellar parameters, the results would be of considerable value in sharpening the theoretical attack on the whole problem." This basic idea lead to the Mount Wilson Observatory HK Project, a dedicated observational program of a proxy for stellar magnetism. The proxy of choice was emission in the line cores of singly ionized calcium, which on the Sun is correlated to the presence of regions of enhanced magnetic field ( <ref type="bibr" target="#b39">Skumanich et al. 1975</ref>). <ref type="bibr" target="#b43">Wilson (1978)</ref> presented results for 91 stars in the first decade of his synoptic observation program, finding that the activity of some stars do vary, often in ways very different than the Sun. Other stars do not appear to vary much at all. <ref type="bibr" target="#b2">Baliunas et al. (1995)</ref> analyzed up to 25 years of observations for 111 F, G, and K-type stars, and reported three broad classes of variability: flat, erratically variable, and cycling. The cycles are of varying quality, some of which clearly resemble the solar cycle, and others that are difficult to determine by eye.</p><p>The MWO HK Project also enabled a more direct measurement of stellar rotation from modulations induced by active regions on the stellar surface ( <ref type="bibr" target="#b1">Baliunas et al. 1983</ref>). Differential rotation is theoretically expected to be an important ingredient for the dynamo (e.g. Parker 1955). <ref type="bibr" target="#b9">Donahue et al. (1996)</ref> estimated surface differential rotation from the seasonal differences in rotation period measurements, presumably due to active latitude migration as in the Sun <ref type="bibr" target="#b8">(Donahue &amp; Keil 1995)</ref>. Rotation and the convective turnover time, a function of stellar mass, were shown to be a strongly correlated with magnetic activity (e.g. <ref type="bibr" target="#b29">Noyes et al. 1984)</ref>.</p><p>The MWO HK Project initiated a subfield of stellar astrophysics known as the "solar-stellar connection" (Noyes 1996). The goals are to understand the origins of solar and stellar magnetism and their time-variable patterns. Research in this area consists of ensemble studies, comparative studies, and detailed characterizations. Ensemble studies examine trends in metrics of activity with respect to one or more independent variables using observations of a collection of stars. Comparative studies focus on the detailed similarities and differences in activity of a small number of well-characterized stars, one of which is usually the Sun. Detailed characterizations focus on a single star, attempting to present measurements of a variety of fundamental properties to a high degree of accuracy.</p><p>Over time, studies in the solar-stellar connection draw on observations from an increasingly diverse number of sources. Additional dedicated stellar activity surveys in Ca HK activity were conducted by the Solar-Stellar Spectrograph at Lowell Observatory <ref type="bibr" target="#b15">(Hall &amp; Lockwood 1995;</ref><ref type="bibr" target="#b16">Hall et al. 2007</ref>), the SMARTS HK Program (Metcalfe 2009), and the TIGRE project ( <ref type="bibr" target="#b37">Schmitt et al. 2014</ref>). Radial velocity exoplanet searches often produce Ca HK observations as a byproduct (e.g. HARPS; <ref type="bibr" target="#b25">Lovis et al. (2011)</ref>, California Planet Search; <ref type="bibr" target="#b19">Isaacson &amp; Fischer (2010)</ref>). For these searches, magnetic activity is a noise source that needs to be understood to avoid false-positives ( <ref type="bibr" target="#b34">Queloz et al. 2001;</ref><ref type="bibr" target="#b10">Dumusque et al. 2014</ref>). Stellar magnetism is also correlated to UV and X-ray emission, making these observations another useful proxy. Instruments producing these observations include IUE ( <ref type="bibr" target="#b3">Boggess et al. 1978</ref>), Einstein ( <ref type="bibr" target="#b13">Giacconi et al. 1979</ref>), ROSAT ( <ref type="bibr" target="#b40">Voges et al. 1999</ref>), Hubble Space Telescope, XMM-Newton ( <ref type="bibr" target="#b20">Jansen et al. 2001)</ref>, and Chandra ( <ref type="bibr" target="#b41">Weisskopf et al. 2000)</ref>. See also the review by <ref type="bibr" target="#b21">Judge &amp; Thompson (2012)</ref>. Direct measurements of net surface magnetism and magnetic maps inferred through Zeeman Doppler Imaging are more rare, but are becoming available (e.g. <ref type="bibr" target="#b33">Petit et al. 2008;</ref><ref type="bibr" target="#b26">Marsden et al. 2014</ref>). Finally, the passage of active regions on a star produces modulations in visible bandpasses that can be detected high-precision instruments or methods, such as differential photometry <ref type="bibr" target="#b24">(Lockwood et al. 1997</ref>).</p><p>Photometric time series are produced by the Fairborn Observatory Automated Photometric Telescopes ( <ref type="bibr" target="#b18">Henry et al. 1995;</ref><ref type="bibr" target="#b17">Henry 1999</ref>), the Kepler spacecraft ( <ref type="bibr" target="#b5">Borucki et al. 2010)</ref>, and the upcoming TESS mission ( <ref type="bibr" target="#b35">Ricker et al. 2014</ref>).</p><p>Results derived from observational time series of activity proxies include mean values (or other middle value estimates), amplitudes, and significant periods of variability such as a cycle period or rotation period. These derived values are published in the literature, and are themselves valuable information for further study in conjunction with estimates of fundamental physical properties such as mass, effective temperature, radius, luminosity, metallicity, age, etc. Such fundamental properties are themselves spread throughout a broad literature. A researcher of the solar-stellar connection therefore spends a considerable amount of time scanning published journal articles for estimates of the various quantities of interest that may play a role in determining stellar magnetism and activity. Modern bibliographic tools (e.g. ADS <ref type="bibr" target="#b23">Kurtz et al. 2000</ref>) and databases like SIMBAD <ref type="bibr" target="#b42">(Wenger et al. 2000</ref>), VizieR , and MAST 1 facilitate this a great deal, but nonetheless the aggregation of relevant information remains a tedious exercise that is often repeated by subsequent researchers. As a Ph.D. student interested in stellar activity I spent many days manually transcribing tables of results in journal articles to electronic format that I could use in analysis, and colleagues have certainly done the same. Progress in the field can be accelerated by reducing the duplication of such tedious tasks.  <ref type="table">Table 1</ref>. Stellar properties of interest. CZ is an abbreviation for "convective zone."</p><p>The sunstardb database was conceived to aggregate observations relevant to studying the dynamo of the Sun and Sun-like stars into a single public database. <ref type="table">Table 1</ref> lists the quantities of interest that are relevant for sunstardb, categorized broadly and loosely by type. The "magnetic" properties are the principal data that define the scope of the database. Only stars that have an observation that is an effect of magnetic field should enter the database. This presently limits the number of objects contained in sunstardb to order 1000 -far fewer than contained in the general purpose database SIMBAD. The "structure" properties pertain to the structure and composition of the star, many of which are not direct measurements but are model dependent. The "energetics" properties are those related to the energy distribution of the star, including the total luminous output as well as the kinematic motions (i.e. rotation, convection). The "context" properties are those of general interest, and are not thought to have a direct consequence on the physical dynamo mechanism. Finally, "dynamo" properties are dynamo model-dependent parameters that are somehow related (usually in a complex and poorly understood way) to the structure and energetics of the star.</p><p>The varied data in <ref type="table">Table 1</ref> exist for several sets of stars, from many sources, published in various places in the literature, in on-line databases, or in private custody. Due to the complexity of data origin, detailed bookkeeping of data provenance is necessary in sunstardb. In many cases there will be conflicting measurements available, and researchers need to be able to decide which values (if any) they prefer. This requires fine-grained data provenance: i.e. every data point must have an associated source.</p><p>sunstardb is currently available as "beta" release (v0.5.0-beta) and further development is anticipated. Source code and examples for using the database are available on GitHub 2 and a website describing the current status of the project has been prepared. 3 I welcome feedback from the community on the usability of the current application, as well as ideas for future improvement.</p><p>This article describes the use cases (Section 2) and design of sunstardb (Sections 3 and 4). The current status and future work for this project are discussed in Section 5.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">USE CASES</head><p>In order to be a useful tool, sunstardb should simplify several aspects of solar-stellar connection research. Below I iterate the use cases envisioned for the sunstardb service, roughly in order of importance. The first four use cases (Sections 2.1-2.4) are at least partially implemented, while the last three (Sections 2.5-2.7) are for future work. The database schema (Section 3) has been designed with each of the following use cases in mind.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">Add New Measurements to sunstardb</head><p>A researcher has obtained and published new measurements within the scope of sunstardb (see <ref type="table">Table 1</ref>) and would like to make these data available to the community. They fill out a web form containing and describing their new data, and the sunstardb curator evaluates the request and updates the database.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.">Discover Stars with Properties of Interest</head><p>A researcher is interested in how (or if) a particular property depends on another, for example activity cycle period (P cyc ) with respect to rotation period (P rot ; c.f. Böhm-Vitense <ref type="formula">(2007)</ref>). The researcher fashions a query to sunstardb for all stars with a known P cyc and P rot , and sunstardb returns this data. The researcher may additionally specify constraints based on other properties in order to narrow their study. For example, they may provide a spectral type ("only G-type stars") or color index ("with 0.59 ≤ (B − V ) ≤ 0.69") constraint.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.">Discover Stars with Relevant Time Series</head><p>A researcher is interested in applying a new technique to estimate cycle periods or cycle quality. They specify a query to sunstardb for all stars with S-index time series greater than 20 years in length with no gaps greater than 2 years. sunstardb returns the set of all time series matching the constraint.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4.">Recover Previously Published Relationships</head><p>Suppose a researcher is interested in updating the Böhm-Vitense (2007) P cyc versus P rot diagram with additional measurements they have made. They specify query to sunstardb for stars with P cyc , and P rot that appeared in Böhm-Vitense <ref type="bibr">(2007)</ref>. sunstardb returns the data table.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.5.">Obtain All Known Data for a Particular Star</head><p>A researcher obtained new high resolution spectra for a particular star and would like to understand these spectra in the context of the magnetic activity of this star. They provide the star's name to sunstardb and receive all known measurements and time series for that star.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.6.">Identify a Star in a Diagram</head><p>A researcher uses sunstardb to generate a scatter plot of activity (log(R HK )) versus Rossby number (Ro). They identify an interesting outlier and want to investigate other characteristics of the star. By clicking on the point, the application identifies the point and provides links to further information.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.7.">Examine a Star's Position in Multiple Dimensions</head><p>A researcher used sunstardb to make two plots for an ensemble of stars, P cyc vs P rot (e.g. Böhm-Vitense 2007) and R HK versus Ro. They have identified an interesting outlier in the latter plot and would like to know its position in the former. Hovering the mouse pointer over a point in one plot highlights the corresponding star in the other plot.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">DATABASE DESIGN</head><p>sunstardb is implemented in the PostgreSQL version 9 relational database. Relational databases model data as a set of tables (a set of columns and rows) with a unique "primary key" identifying each row and relationships between tables described through "foreign key" relationships of their constituent columns. The relational model eliminates data redundancy; e.g. each star is only stored once in the database, and all data associated with that star are linked through a foreign key. Database queries are phrased in the Structured Query Language (SQL), and results are efficiently accessed through the use of database indexes.</p><p>The relational data model (or schema) for sunstardb is shown in <ref type="figure" target="#fig_0">Figure 1</ref>. The principal table is the property table. Each property row declares that a measurement of a given datatype for a given star exists. Each property is associated with a source, reference, and (optional) instrument, which declares the provenance of that datum. A source is the digital format of the data immediately before entering sunstardb. Its kind is either FILE, for data originating from a data file (e.g. ASCII text, or FITS), or CODE for data generated as a result of some analysis process. Each source has an an associated origin, which describes where the source file or code originated. The origin typically describes a web site, data repository, or published paper. The source table is optionally self-referential, which allows a source to be part of a versioned hierarchy. For example, a new calibration of a time series may be derived from the previous version, or a more raw form. A property reference is a published journal reference that explains the datum. The (optional) instrument describes the instrument that is ultimately responsible for the measurement. Properties that are derived from theoretical models (e.g. Rossby number) or empirical relationships (e.g. age) do not have an associated instrument.</p><p>Measurements of a given data type are stored in template tables, indicated as dat $NAME in <ref type="figure" target="#fig_0">Figure 1</ref>, where $NAME is unique for each table (e.g. dat S mean for a table of mean S-indices, dat P cyc for a table of cycle periods). While these dat tables have a 1:1 relationship with the property table, the data are stored separately to allow for different data structures for measurements. The standard measurement dat table shown in <ref type="figure" target="#fig_0">Figure 1</ref> contains a single floating-point value ($NAME column) with an (optional) error bar (errhi and errlo). The dat tables also store an assortment of optional metadata for each measurement, including the time of observation (obs time), the duration of the observation (obs dur), and the time range of the observation (obs range), which allows for special PostgreSQL queries that can select data covering a specific point in time. The meaning of these time metadata is dependent on the type of measurement. For an integrated light observation such as Johnson V it may simply describe the time and duration of integration. For an aggregate quantity such as a mean S-index averaged over decades of individual observations, it may represent the central time and duration of that parent dataset.</p><p>The meta column contains a compound data object encoded in the JavaScript Object Notation (JSON). This special feature of PostgreSQL allows a single column to contain a complex data object. In sunstardb, this column stores a property-dependent object consisting of key-value pairs that describe additional information about the measurement. For example, a mean S-index may have the number of observations used for the mean stored under the N obs key in the meta column object. This ancillary information can be useful in subsequent analysis, but is not important enough to warrant a first-class property. PostgreSQL allows the construction of SQL queries that access and filter results in the compound JSON object.</p><p>A timeseries is nearly identical to a property, except that it describes an array of measurements instead of a single value. This is reflected by the fact the corresponding dat tables have the observation time as part of their unique primary key. Timeseries have array-wide metadata in the timeseries.meta column, and individual element metadata in the dat $NAME.meta column. Note that a timeseries could equally well be represented as a set of property rows, however the distinction is appropriate given that timeseries are generally used in different ways than other scalar properties.</p><p>The dataset and dataset map tables define a set of properties for use in a study. This could be for a single star, indicating a choice of measurement where duplicate measurements exist from different sources, or for a stellar ensemble. For example, the cycle period and rotation data table of Böhm-Vitense (2007, ( <ref type="table">Table 1)</ref>) could be compared to the earlier study of <ref type="bibr" target="#b36">Saar &amp; Brandenburg (1999,</ref>  <ref type="table">(Table 1)</ref>). Each of these tables can be represented as a dataset and retrieved from sunstardb to compare or update.</p><p>Stars are stored in the star table along with their position in celestial coordinates. Stars may have many different names according to the various catalogs or surveys in which they were observed. sunstardb queries the SIMBAD database for a list of all known identifiers for a star, and stores the list in the star alias table. The "default" name for a star is stored in the star.name column, and is equivalent to the default identifier used in SIMBAD. sunstardb interfaces will be designed to be name-agnostic: that is, the user should be able to query for data using any of the star's names, and should be able to specify the preferred name to display when outputting results. For example, the Henry Draper (HD) catalog number is typically used in the solar-stellar connection literature as most of the well-observed stars are contained in this catalog of bright stars (e.g. HD 146233). However, occasionally special stars constellation- To simplify the diagram, some foreign key lines do not connect to the destination table (with same name as source column), but end in a box. Measurement data are stored in the dat $NAME tables, where $NAME is the name of the measurement type (found in datatype) table. Columns are omitted from the timeseries and associated data tables dat $NAME table, which are identical in form to the property table and its associated data table.</p><p>based names (e.g. 18 Scorpii, 18 Sco). sunstardb needs to be able to recognize any of these names for the same star.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">APPLICATION PROGRAMMING INTERFACE</head><p>The sunstardb application is implemented in Python version 2.7. At this time interfaces exist only for direct programmatic remote access to the database, but in the future web user interfaces are envisioned. The application programming interfaces (APIs) are broadly divided into two classes: those responsible for data input, and those responsible for querying the database. These interfaces are described in the following sections.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">Data Input Interface: Data Modules</head><p>Data relevant to sunstardb exists in a variety of formats. Examples include ASCII text files in a multitude of formats, XML provided by existing web services, and FITS format tables. In order to insert these data into sunstardb, it must be converted to a common format and piped to code that can execute the appropriate SQL statements to insert the data to the database. Rather than defining another intermediate file format for this purpose, sunstardb uses a concept of data modules. Data modules are Python packages that contain both the input data in its original format (e.g. text, XML, FITS) as well as a small code snippet to read that data and organize it into a data structure understood by sunstardb. This design pattern reduces redundant code for the tedious task of parsing and inserting data to the database.</p><p>As an example, we will consider the seasonal S-index catalog of <ref type="bibr" target="#b11">Duncan et al. (1991)</ref>, which was transcribed into a digital format and is available in the VizieR catalog service under the catalog ID III/159A. The catalog data file (catalog.dat) was downloaded from VizieR and placed into a data package under the subdirectory Duncan1991. The directory contains two other files: info.json and init .py. The first file contains metadata that describes the data provenance, including bibliographic information on <ref type="bibr" target="#b11">Duncan et al. (1991)</ref>, the source instrument (MWO-HK), and a description of the data origin (VizieR catalog III/159A). The init .py file declares by convention that the Duncan1991 directory is a Python package, and contains ∼50 lines of code that reads and re-formats catalog.dat. This is done by declaring a DataReader class, with a data method that is a Python generator function that returns a sequence of key-value dictionaries understood by sunstardb. With these auxiliary files and code in place, the common sunstardb insertion script need only be passed the package name (Duncan1991) in order to insert this catalog into the database.</p><p>The data module design pattern reduces the amount of redundant code through common DataReader base classes specialized to different classes of input data. In the above example, the sunstardb.datapkg.TextDataReader class is employed, which provides a convenience method for parsing fixed-width text formats given a specification. The remainder of the data package merely reorders parsed lines into a dictionary understood by the sunstardb data insertion script.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.">Querying and Jupyter Notebook Integration</head><p>Queries to sunstardb are implemented in the SunStarDB object as methods prefixed with fetch. Methods exist to fetch individual rows or all rows of most of the tables in <ref type="figure" target="#fig_0">Figure 1</ref>, including star, datatype, instrument, reference, source, and origin. These methods provide a means of data discovery; that is, a way for the user to figure out what data exist in sunstardb. Fetching a set of properties for analysis is accomplished using the fetch data table() method. Here user specifies a dataset and an array of datatype as input to filter the result. All stars with data matching those criteria are returned to the user. Time series are accessed with the fetch timeseries method, which accepts a datatype and a star name, and can be filtered by source.</p><p>The SunStarDB object has some optimizations for use in the IPython ( <ref type="bibr" target="#b32">Pérez &amp; Granger 2007)</ref> and Jupyter 4 notebook environment. An short example is shown in <ref type="figure">Figure 2</ref>. Firstly, as with all python objects in Jupyter, the user has the ability to use tab completion to discover method names, as well as access to documentation by appending "?" to the method name. Care has been taken to provide complete and comprehensible documentation for each SunStarDB method, including descriptions of method arguments and output format. Furthermore, many of the fetchall methods provided for data discovery return their results as an AstroPy <ref type="bibr">(Astropy Collaboration et al. 2013</ref>) table object. By default, this object is rendered by Jupyter as an HTML table, producing an attractive presentation of the data. Calling the show in notebook() method of these Table objects adds the ability to paginate, sort, and filter the table. For example, typing "flat" into the filter field of a result containing cycle classifications from ( <ref type="bibr" target="#b2">Baliunas et al. 1995</ref>) displays only the flat activity stars. This functionality can be useful for quickly identifying candidate stars for specialized studies.</p><p>The astropy tables also support SQL-like join operations in the python environment. This allows the user to easily "cross match" two result tables by star name, for example (see <ref type="figure">Figure 2</ref>). While this functionality is more appropriately implemented in sunstardb for cases in which the tables are very large, the catalogs inserted into sunstardb are typically quite small, of order 100 rows. In these cases, it can be useful and intuitive for the user to perform the cross match in the python environment, where both the input and resulting table can be easily inspected. are accessed by dataset name, and APIs for retrieving data from multiple sources are yet to be developed. Of course, This functionality is possible for users with direct access to the database and good knowledge of SQL, but this is not expected to be common for most users.</p><p>Presently, interaction with sunstardb is done from within a Python programming environment, either through the Jupyter notebook interface or by custom scripts using the sunstardb package. A web user interface is envisioned for simple browsing of the database contents. In particular, users should be able to view a web page for each star that summarizes the measurements and time series available for that star. The web application should also provide pages for each dataset, which can be used to examine the results derived from that dataset and the provenance of each measurement.</p><p>The current vision for sunstardb is to contain data for every star which has a measurement that can be used as a proxy for magnetic activity. At the time of this writing sunstardb contains 1191 properties of 6 data types from 12 distinct sources for 233 stars. Available data types include mean activity indices S and log(R HK ), as well as rotation periods, variability class (e.g. "cycle", "flat"), and activity cycle periods. These are available for stars ranging from F-type to M-type. The stars are mostly on the main-sequence, with a smaller number subgiant and giant stars. The sample selection is a reflection of research priorities in the solar-stellar connection to date. It furthermore contains 1393 time series from 7 distinct sources for 1287 stars, the vast majority of these from the published table of seasonal mean S-indices by <ref type="bibr" target="#b11">Duncan et al. (1991)</ref>. The current contents are far from complete in terms of the vision for sunstardb, but they sufficient to explore the functionality of the database and even to perform studies of activity, rotation, and cyclic (or other) variability. Standard properties such as spectral type, B − V color, T eff , or absolute magnitudes are not yet incorporated into sunstardb, but are readily available from existing stellar databases such as SIMBAD or VizieR using the astroquery package 5 . Incorporation of these data into sunstardb for all stars with existing magnetic properties is a near-term priority.</p><p>Future API development will introduce a more widespread object-oriented approach. The data provenance information (source, origin, instrument, etc.) is particularly complex and well suited to an object representation, rather than the column-like organization returned by the APIs at present. This will make it easier for the future web application to present provenence information, for example as a tool-tip when hovering over a data point or table cell. Improved querying is also a high priority, allowing for more complicated filtering and retrieval of heterogeneous data sets. These improvements are focused on the principal purpose of sunstardb: to simplify data discovery and provide fine-grained meta-data on data provenance.</p><p>sunstardb is currently an unfunded side-project of the author, and future improvements will likely come in intermittent bursts. The vision for sunstardb is to become a standard resource for the solar-stellar connection community, much like the SIMBAD and ADS services are for the broader astronomical community. The current version described here is only the first step in what will hopefully be a growing development project. Feedback on the existing implementation and ideas for future development will be greatly appreciated.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 .</head><label>1</label><figDesc>Figure 1. sunstardb database schema. Each box indicates a table, with the columns in that table listed below. Columns that are part of the unique primary key are underlined. Columns in an additional unique key constraint are starred. Lines indicate foreign key relationships. To simplify the diagram, some foreign key lines do not connect to the destination table (with same name as source column), but end in a box. Measurement data are stored in the dat $NAME tables, where $NAME is the name of the measurement type (found in datatype) table. Columns are omitted from the timeseries and associated data tables dat $NAME table, which are identical in form to the property table and its associated data table.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>5 .Figure 2 .</head><label>52</label><figDesc>Figure 2. Example Jupyter notebook session interacting with sunstardb.</figDesc></figure>
+
+			<note place="foot" n="1"> https://archive.stsci.edu 2 https://github.com/NCAR/sunstardb 3 https://www2.hao.ucar.edu/sunstardb</note>
+
+			<note place="foot" n="4"> http://jupyter.org</note>
+
+			<note place="foot" n="5"> https://astroquery.readthedocs.io</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">P</forename><surname>Robitaille</surname></persName>
+			<affiliation>
+				<orgName type="collaboration">Astropy Collaboration</orgName>
+			</affiliation>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Tollerud</surname></persName>
+			<affiliation>
+				<orgName type="collaboration">Astropy Collaboration</orgName>
+			</affiliation>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">558</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+	<note>A33 [ADS] [DOI</note>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">L</forename><surname>Baliunas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Hartmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">W</forename><surname>Noyes</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">275</biblScope>
+			<biblScope unit="page">752</biblScope>
+			<date type="published" when="1983" />
+		</imprint>
+	</monogr>
+	<note>ADS] [DOI</note>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">L</forename><surname>Baliunas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Donahue</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">H</forename><surname>Soon</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">438</biblScope>
+			<date type="published" when="1995" />
+		</imprint>
+	</monogr>
+	<note>269 [ADS] [DOI</note>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Boggess</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">A</forename><surname>Carr</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">C</forename><surname>Evans</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">275</biblScope>
+			<biblScope unit="page">372</biblScope>
+			<date type="published" when="1978" />
+		</imprint>
+	</monogr>
+	<note>ADS] [DOI</note>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Böhm-Vitense</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">657</biblScope>
+			<biblScope unit="page">486</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+	<note>ADS] [DOI</note>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Borucki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Koch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Basri</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">327</biblScope>
+			<biblScope unit="page">977</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+	<note>ADS] [DOI</note>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Charbonneau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Living Reviews in Solar Physics</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+	<note>3 [ADS] [DOI</note>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+	</analytic>
+	<monogr>
+		<title level="j">ARA&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">52</biblScope>
+			<biblScope unit="page">251</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Donahue</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">L</forename><surname>Keil</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1995" />
+		</imprint>
+	</monogr>
+	<note>SoPh, 159, 53 [ADS] [DOI</note>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Donahue</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">H</forename><surname>Saar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">L</forename><surname>Baliunas</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">466</biblScope>
+			<biblScope unit="page">384</biblScope>
+			<date type="published" when="1996" />
+		</imprint>
+	</monogr>
+	<note>ADS] [DOI</note>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Dumusque</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Boisse</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">C</forename><surname>Santos</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">796</biblScope>
+			<biblScope unit="page">132</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+	<note>ADS] [DOI</note>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">K</forename><surname>Duncan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">H</forename><surname>Vaughan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><forename type="middle">C</forename><surname>Wilson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">76</biblScope>
+			<biblScope unit="page">383</biblScope>
+			<date type="published" when="1991" />
+		</imprint>
+	</monogr>
+	<note>ADS] [DOI</note>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Egeland</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2017" />
+			<pubPlace>Bozeman, Montana, USA</pubPlace>
+		</imprint>
+		<respStmt>
+			<orgName>Montana State University</orgName>
+		</respStmt>
+	</monogr>
+<note type="report_type">PhD thesis</note>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Giacconi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Branduardi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><surname>Briel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">230</biblScope>
+			<biblScope unit="page">540</biblScope>
+			<date type="published" when="1979" />
+		</imprint>
+	</monogr>
+	<note>ADS] [DOI</note>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">E</forename><surname>Hale</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">28</biblScope>
+			<biblScope unit="page">315</biblScope>
+			<date type="published" when="1908" />
+		</imprint>
+	</monogr>
+	<note>ADS] [DOI</note>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">C</forename><surname>Hall</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Lockwood</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">438</biblScope>
+			<date type="published" when="1995" />
+		</imprint>
+	</monogr>
+	<note>404 [ADS] [DOI</note>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">C</forename><surname>Hall</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Lockwood</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">A</forename><surname>Skiff</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="issue">133</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+	<note>862 [ADS] [DOI</note>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Henry</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="issue">111</biblScope>
+			<biblScope unit="page">845</biblScope>
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+	<note>ADS] [DOI</note>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Henry</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">C</forename><surname>Fekel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">S</forename><surname>Hall</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">110</biblScope>
+			<biblScope unit="page">2926</biblScope>
+			<date type="published" when="1995" />
+		</imprint>
+	</monogr>
+	<note>ADS] [DOI</note>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Isaacson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Fischer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">725</biblScope>
+			<biblScope unit="page">875</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+	<note>ADS] [DOI</note>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Jansen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lumb</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Altieri</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">365</biblScope>
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+	<note>L1 [ADS] [DOI</note>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">G</forename><surname>Judge</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Thompson</surname></persName>
+		</author>
+		<title level="m">IAU Symposium</title>
+		<editor>IAU Symposium, ed. C. H. Mandrini &amp; D. F</editor>
+		<imprint>
+			<date type="published" when="2012" />
+			<biblScope unit="volume">286</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Webb</surname></persName>
+		</author>
+		<imprint>
+			<biblScope unit="page" from="15" to="26" />
+		</imprint>
+	</monogr>
+	<note>ADS] [DOI</note>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Kurtz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Eichhorn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Accomazzi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;AS</title>
+		<imprint>
+			<biblScope unit="issue">143</biblScope>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+	<note>41 [ADS] [DOI</note>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Lockwood</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">A</forename><surname>Skiff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">R</forename><surname>Radick</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">485</biblScope>
+			<biblScope unit="page">789</biblScope>
+			<date type="published" when="1997" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Lovis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Dumusque</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">C</forename><surname>Santos</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1107.5325</idno>
+		<imprint>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">C</forename><surname>Marsden</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Petit</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">V</forename><surname>Jeffers</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">444</biblScope>
+			<biblScope unit="page">3517</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+	<note>ADS] [DOI</note>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">S</forename><surname>Metcalfe</surname></persName>
+		</author>
+		<title level="m">Solar-Stellar Dynamos as Revealed by Helio-and Asteroseismology</title>
+		<imprint>
+			<publisher>GONG</publisher>
+			<date type="published" when="2009" />
+			<biblScope unit="volume">416</biblScope>
+		</imprint>
+	</monogr>
+	<note>Astronomical Society of the Pacific Conference Series</note>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">W</forename><surname>Noyes</surname></persName>
+		</author>
+		<title level="m">Astronomical Society of the Pacific Conference Series</title>
+		<editor>R. Pallavicini &amp; A. K. Dupree</editor>
+		<imprint>
+			<date type="published" when="1996" />
+			<biblScope unit="volume">109</biblScope>
+			<biblScope unit="page">3</biblScope>
+		</imprint>
+	</monogr>
+	<note>Cool Stars, Stellar Systems, and the Sun</note>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">W</forename><surname>Noyes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">W</forename><surname>Hartmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">L</forename><surname>Baliunas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">K</forename><surname>Duncan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">H</forename><surname>Vaughan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">279</biblScope>
+			<biblScope unit="page">763</biblScope>
+			<date type="published" when="1984" />
+		</imprint>
+	</monogr>
+	<note>ADS] [DOI</note>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Ochsenbein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Bauer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Marcout</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;AS</title>
+		<imprint>
+			<biblScope unit="issue">143</biblScope>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+	<note>23 [ADS] [DOI</note>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">N</forename><surname>Parker</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">122</biblScope>
+			<biblScope unit="page">293</biblScope>
+			<date type="published" when="1955" />
+		</imprint>
+	</monogr>
+	<note>ADS] [DOI</note>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pérez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">E</forename><surname>Granger</surname></persName>
+		</author>
+		<ptr target="http://ipython.org" />
+	</analytic>
+	<monogr>
+		<title level="j">Computing in Science and Engineering</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Petit</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Dintrans</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">K</forename><surname>Solanki</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">388</biblScope>
+			<biblScope unit="page">80</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+	<note>ADS] [DOI</note>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Queloz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Henry</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Sivan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">379</biblScope>
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+	<note>279 [ADS] [DOI</note>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">R</forename><surname>Ricker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">N</forename><surname>Winn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Vanderspek</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proc. SPIE</title>
+		<meeting>SPIE</meeting>
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="volume">9143</biblScope>
+		</imprint>
+	</monogr>
+	<note>Optical. Infrared, and Millimeter Wave, 914320 [ADS] [DOI</note>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">H</forename><surname>Saar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Brandenburg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">524</biblScope>
+			<biblScope unit="page">295</biblScope>
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+	<note>ADS] [DOI</note>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">H M M</forename><surname>Schmitt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K.-P</forename><surname>Schröder</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Rauw</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astronomische Nachrichten</title>
+		<imprint>
+			<biblScope unit="volume">335</biblScope>
+			<biblScope unit="page">787</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+	<note>ADS] [DOI</note>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Schwabe</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astronomische Nachrichten</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="page">233</biblScope>
+			<date type="published" when="1844" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Skumanich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Smythe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">N</forename><surname>Frazier</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="page">747</biblScope>
+			<date type="published" when="0200" />
+		</imprint>
+	</monogr>
+	<note>ADS] [DOI</note>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Voges</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Aschenbach</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Boller</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">349</biblScope>
+			<biblScope unit="page">389</biblScope>
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">C</forename><surname>Weisskopf</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">D</forename><surname>Tananbaum</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">P</forename><surname>Van Speybroeck</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">L</forename><surname>Dell</surname></persName>
+		</author>
+		<title level="m">Ray Optics, Instruments, and Missions III</title>
+		<editor>J. E. Truemper &amp; B. Aschenbach</editor>
+		<imprint>
+			<date type="published" when="2000" />
+			<biblScope unit="volume">4012</biblScope>
+			<biblScope unit="page" from="2" to="16" />
+		</imprint>
+	</monogr>
+	<note>Proc. SPIE. ADS] [DOI</note>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Wenger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Ochsenbein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Egret</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;AS</title>
+		<imprint>
+			<biblScope unit="volume">143</biblScope>
+			<biblScope unit="issue">9</biblScope>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><forename type="middle">C</forename><surname>Wilson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">153</biblScope>
+			<biblScope unit="page">379</biblScope>
+			<date type="published" when="1968" />
+		</imprint>
+	</monogr>
+	<note>ApJ. ADS] [DOI</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

@@ -1,0 +1,1307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2019-01-22T13:35+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">ExoGAN: Retrieving Exoplanetary Atmospheres Using Deep Convolutional Generative Adversarial Networks</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2018-10-11">October 11, 2018</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Tiziano</forename><surname>Zingales</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">University College London Gower St</orgName>
+								<address>
+									<postCode>WC1E 6BT</postCode>
+									<settlement>Bloomsbury, London</settlement>
+									<country key="GB">United Kingdom</country>
+								</address>
+							</affiliation>
+							<affiliation key="aff1">
+								<orgName type="institution">INAF -Osservatorio Astronomico di Palermo</orgName>
+								<address>
+									<addrLine>Piazza del Parlamento 1</addrLine>
+									<postCode>90134</postCode>
+									<settlement>Palermo</settlement>
+									<country key="IT">Italy</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ingo</forename><forename type="middle">P</forename><surname>Waldmann</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">University College London Gower St</orgName>
+								<address>
+									<postCode>WC1E 6BT</postCode>
+									<settlement>Bloomsbury, London</settlement>
+									<country key="GB">United Kingdom</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">ExoGAN: Retrieving Exoplanetary Atmospheres Using Deep Convolutional Generative Adversarial Networks</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2018-10-11">October 11, 2018</date>
+						</imprint>
+					</monogr>
+					<note type="submission">(Received October 11, 2018; Revised -; Accepted -) Submitted to ApJ</note>
+					<note>Draft version Typeset using L A T E X twocolumn style in AASTeX62</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>Exoplanets -atmospheres -atmospheric retrieval -artificial intelligence -deep learning -GAN</keywords>
+			</textClass>
+			<abstract>
+				<p>Atmospheric retrievals on exoplanets usually involve computationally intensive Bayesian sampling methods. Large parameter spaces and increasingly complex atmospheric models create a computational bottleneck forcing a trade-off between statistical sampling accuracy and model complexity. It is especially true for upcoming JWST and ARIEL observations. We introduce ExoGAN, the Exo-planet Generative Adversarial Network, a new deep learning algorithm able to recognise molecular features, atmospheric trace-gas abundances and planetary parameters using unsupervised learning. Once trained, ExoGAN is widely applicable to a large number of instruments and planetary types. The ExoGAN retrievals constitute a significant speed improvement over traditional retrievals and can be used either as a final atmospheric analysis or provide prior constraints to subsequent retrieval.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">INTRODUCTION</head><p>The modelling of exoplanetary atmospheric spectroscopy through so-called atmospheric retrieval algorithms has become accepted standard in the interpretation of transmission and emission spectroscopic measurements (e.g. <ref type="bibr" target="#b22">Kreidberg et al. 2018;</ref><ref type="bibr" target="#b46">Tsiaras et al. 2018;</ref><ref type="bibr" target="#b5">Bruno et al. 2018;</ref><ref type="bibr" target="#b28">Mansfield et al. 2018;</ref><ref type="bibr" target="#b42">Spake et al. 2018;</ref><ref type="bibr" target="#b40">Sheppard et al. 2017;</ref><ref type="bibr" target="#b2">Barstow et al. 2017;</ref><ref type="bibr" target="#b32">Rocchetto et al. 2016</ref>). These retrieval algorithms are designed to solving the often ill-posed inverse problem of determining atmospheric parameters (such as trace gas abundances for example) from the measured spectra and their corresponding measurement uncertainties (e.g. <ref type="bibr" target="#b17">Irwin et al. 2008;</ref><ref type="bibr" target="#b26">Madhusudhan &amp; Seager 2009;</ref><ref type="bibr" target="#b25">Line et al. 2013;</ref><ref type="bibr" target="#b4">Benneke &amp; Seager 2013;</ref><ref type="bibr" target="#b24">Lavie et al. 2017;</ref><ref type="bibr" target="#b12">Gandhi &amp; Madhusudhan 2018;</ref><ref type="bibr" target="#b7">Cubillos et al. 2016</ref>). The associated atmospheric forward model to be</p><p>Corresponding author: Tiziano Zingales tiziano.zingales.15@ucl.ac.uk fitted varies in complexity from retrieval to retrieval but most times encompasses a high dimensional likelihood space to be sampled. In the era of JWST ( <ref type="bibr" target="#b13">Gardner et al. 2006</ref>) and ARIEL ( <ref type="bibr" target="#b44">Tinetti et al. 2016</ref>) observations, said model complexity will have to increase significantly. To date, the most commonly adopted statistical sampling methods are Nested Sampling <ref type="bibr" target="#b41">(Skilling 2004;</ref><ref type="bibr" target="#b11">Feroz &amp; Hobson 2008;</ref><ref type="bibr" target="#b10">Feroz et al. 2009</ref>) and Markov Chain Monte Carlo (e.g. <ref type="bibr" target="#b16">Gregory 2011</ref>). These approaches typically require of the order of 10 5 -10 6 forward model realisations until convergence. The traditional analysis method, which uses Bayesian statistics, creates a precarious bottleneck: to achieve convergence within reasonable time frames (hours to days), we require the atmospheric forward model to be fast and consequently overly simplistic. The inclusion of disequilibrium chemistry, self-consistent cloud models and the move from 1 D to 2-3 D radiative transfer, are largely precluded by this constraint. In this paper, we present the first deep learning architecture for exoplanetary atmospheric retrievals and discuss a path towards solving the compu-tational bottleneck using atmospheric retrievals assisted by deep-learning.</p><p>Artificial Intelligence has been used extensively to understand and describe complex structures and behaviour in a wide variety of dataset across a plethora of research fields.</p><p>In recent years, the field of exoplanets has seen pioneering deep-learning papers on planet detection <ref type="bibr">(Pear- son et al. 2018;</ref><ref type="bibr" target="#b39">Shallue &amp; Vanderburg 2018)</ref>, exoplanet transit prediction <ref type="bibr" target="#b21">(Kipping &amp; Lam 2017)</ref> and atmospheric spectral identification <ref type="bibr" target="#b49">Waldmann (2016)</ref>. In <ref type="bibr" target="#b49">Waldmann (2016)</ref> we applied a deep-belief neural network (DBN) to recognise the atmospheric features of an exoplanetary emission spectrum. This approach provided a qualitative understanding of the atmospheric trace gases likely to be present in a planetary emission spectrum, to then be included in our atmospheric retrieval framework TauREx ( <ref type="bibr">Waldmann et al. 2015b,a)</ref>. In this paper, we introduce a generative adversarial network (GAN, <ref type="bibr" target="#b15">Goodfellow et al. 2014</ref>) to predict the maximum likelihood (ML) of the full retrieval solution given the observed spectrum. As shown in the following sections, this can be used as a stand-alone solution to retrieval or used to constrain the prior parameter ranges for a more standard atmospheric retrieval later.</p><p>We design our algorithm following four guiding principles:</p><p>• Once trained, the deep or machine-learning algorithm should apply to the widest possible range of planet types.</p><p>• Once trained, the algorithm should apply to a wide range of instruments.</p><p>• The algorithm should be robust in the presence of unknown 'un-trained' features and be able to generalise to parameter regimes outside its formal training set.</p><p>• The design of the algorithm and data format should be modular and easily modifiable and expandable.</p><p>In the following sections, we present the Exoplanet Generative Adversarial Network (ExoGAN) algorithm and demonstrate it on a variety of retrieval scenarios. We provide the ExoGAN algorithm freely to the community (see end of paper).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">METHOD</head><p>In the following sections, we will introduce GANs and deep convolutional generative adversarial networks (DCGANs), followed by a discussion how we adopt DCGANs for exoplanetary retrievals.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">Generative Adversarial Networks</head><p>Generative Adversarial Networks first introduced by <ref type="bibr" target="#b15">Goodfellow et al. (2014)</ref> belongs to the class of unsupervised deep generative neural networks ( <ref type="bibr" target="#b14">Goodfellow et al. 2016)</ref>. Deep generative models can learn the arbitrarily complex probability distribution of a data set, p data , and can generate new data sets drawn from p data . Similarly, they can also be used to fill in missing information in an incomplete data set, so-called inpainting. In this work, we use the data inpainting properties of the GAN to perform retrievals of the atmospheric forward model parameters.</p><p>The most common analogy for a GAN architecture is that of a counterfeit operation. The neural network is given a training data set, x, in our case combinations of atmospheric spectra with their associated forward model parameters. We refer to the training set as the 'real' data with the probability distribution p data . Now two deep neural networks are pitted against each other in a minmax game. One network, the generator network (G), will try to create a 'fake' dataset (p g ), indistinguishable from the 'real' data. In a second step, a second neural network, the discriminator (D), tries to classify 'fake' from 'real' data correctly. The training phase of the GAN is completed when a Nash equilibrium is reached, and the discriminator cannot identify real from fake any longer. At this stage the generator network will have learned a good representation of the data probability distribution and p g p data . <ref type="figure" target="#fig_0">Figure 1</ref> shows a schematic of our GAN implementation. Unlike for variational inference methods, such as variational autoencoders (VAE; <ref type="bibr" target="#b20">Kingma &amp; Welling 2013;</ref><ref type="bibr" target="#b18">Jimenez Rezende et al. 2014</ref>), the functional form of the data likelihood does not need to be specified but is learned by the Generator. Such implicit latent variable models or likelihood-free networks allow the learning of arbitrarily complex probability distributions in an unsupervised manner while assuming minimal prior assumptions on the data distribution.</p><p>GANs have been applied to multiple problems, such as semi-supervised learning, stabilizing sequence learning methods for speech and language, and 3D modelling ( <ref type="bibr" target="#b8">Denton et al. 2015;</ref><ref type="bibr" target="#b31">Radford et al. 2015;</ref><ref type="bibr" target="#b37">Salimans et al. 2016;</ref><ref type="bibr" target="#b23">Lamb et al. 2016;</ref><ref type="bibr" target="#b52">Wu et al. 2016</ref>). Notable examples of GANs applied in an astrophysical context are given by <ref type="bibr" target="#b33">Rodriguez et al. (2018)</ref>; <ref type="bibr" target="#b43">Stark et al. (2018)</ref>; <ref type="bibr" target="#b38">Schawinski et al. (2017)</ref>, who used GANs trained on existing N-body simulations to efficiently generate new, physically realistic realisations of the cosmic web, learn Point Spread Function from data or de-noise groundbased observations of galaxies.</p><p>In the field of exoplanets, the use of GANs or similar deep architectures has not yet been explored. In this work, we base ExoGAN on a Deep Convolutional Generative Adversarial Network (DCGAN, <ref type="bibr" target="#b31">Radford et al. 2015</ref>).</p><p>DCGANs are an evolution from the classical GAN by replacing the multilayer perceptrons (MLPs; <ref type="bibr" target="#b35">Rumelhart et al. 1986;</ref><ref type="bibr" target="#b3">Bengio 2009</ref>) in the Generator and Discriminator networks with all convolutional layers. Their characteristics makes DCGAN significantly more robust to discrete-mode and manifold model collapse ( <ref type="bibr" target="#b29">Metz et al. 2016;</ref><ref type="bibr" target="#b1">Arjovsky &amp; Bottou 2017)</ref> and are found to be stable in most training scenarios ( <ref type="bibr" target="#b31">Radford et al. 2015</ref>). The use of batch normalisation (appendix B further increases training speed and robustness. Besides, we note that convolutional networks are ideally suited to capturing the highly correlated signals of broad, roto-vibrational spectral bands in NIR and IR wavelengths.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.">Adversarial Training</head><p>As described in the previous section, both Generator and Discriminator networks are pitted against one another during training. The goal of the training phase is to reach a Nash Equilibrium, i.e. when neither player can improve by unilaterally changing one's strategy. <ref type="figure" target="#fig_0">Figure 1</ref> shows a schematic of the ExoGAN setup.</p><p>In order to return the generator distribution p g over the data x we start from a prior distribution of Gaussian distributed latent variables p(z) and define G(z; θ G ) as the mapping from latent variable space to generated data. Here θ G are the hyperparameters of the Generator network (see <ref type="table">table 6</ref>). Let D(x) be the probability that x came from the data rather than p g . Hence, in the state of convergence, we have p g = p data and D(x) = 1 2 . In the training phase we need D to maximise the probability of assigning the correct label to both training examples and samples from G. At the same time we want G to minimize the probability log (1 − D(G(z))). We can now define the cross-entropy cost-function of the Discriminator as:</p><formula xml:id="formula_0">J (D) = − [log D(x) + log (1 − D (G(z)))]<label>(1)</label></formula><p>During training, we employ batch training, with the cost function of a batch of n data samples being</p><formula xml:id="formula_1">J (D) = − n i=1 log D(x i )+ + n i=1 log (1 − D(G(z i )))<label>(2)</label></formula><p>which can be written as the expectation values over the data and generated samples:</p><formula xml:id="formula_2">J (D) = −{E x∼p data [log D(x)] (3) + E z∼pz [log (1 − D(G(z)))]}.</formula><p>Since the discriminator wants to minimize the cost function and the generator wants to maximise it, we can summarise the training as a zero-sum game where the cost function for the generator is given by: J (G) = −J <ref type="bibr">(D)</ref> . Hence, to capture the entire game, we only need to specify the loss-function of the Discriminator since it encompasses both θ (D) and θ (G) hyperparameters.</p><p>We then optimise the value function</p><formula xml:id="formula_3">V (θ (D) , θ (G) ) = −J (D) (θ (D) , θ (G) ), min G max D V (D, G) = E x∼p data [log D(x)]<label>(4)</label></formula><formula xml:id="formula_4">+ E z∼pz [log (1 − D(G(z)))].</formula><p>As stated earlier, equation 4 constitutes a minmax game since it involves minimising over G in an outer loop and maximising over D in an inner loop.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.">Application to exoplanet spectra</head><p>Here we explain the data format of the input and training data. In <ref type="figure">figure 2</ref> we show an example a transmission spectrum of a cloud-free hot-Jupiter with water as the only trace-gas at 3·10 −4 volume mixing ratio at a constant resolution of ∆λ λ = 100. We train ExoGAN on a wavelength range of 0.3µm −50µm. For this paper, we restrict our sampling resolution to be R = 100 for every spectrum. This choice, however, does not preclude training with higher resolution data in the future.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.1.">Normalisation</head><p>For the neural network to learn efficiently, we must normalise the data to lie between zero and unity. We have experimented with various normalisation schemes. The most obvious scheme is a 'global' normalisation, where we normalise the full training set by its global maximum and minimum values. This approach proved problematic as spectral signatures for planets with low trace-gas abundances, and small atmospheric scale heights, would be too weak/flat to be recognisable by the neural network for reasonable training times. We have therefore opted to normalise each training spectrum to amplify the spectral features. Assuming that the most common broadband absorber is water in an exoplanetary atmosphere, we divide the spectral range along its major water bands in the IR, see dashed red lines in <ref type="figure">Fig  2.</ref> Note this does not mean that water-free atmospheres cannot be detected. Additionally, we divide the spectrum by the pass-bands of the JWST/NIRISS, NIRCam  </p><formula xml:id="formula_5">( R p /R s) 2</formula><p>Input spectrum water bins JWST range WFC3 range <ref type="figure">Figure 2</ref>. Spectral binning used in this work. The black line is a simulated spectrum of the hot-Jupiter HD 189733b. The red vertical lines represent the bin edges of prominent water bands. The blue and orange areas are the Hubble/WFC3 and JWST band-passes considered in this paper, respectively . and MIRI instruments (?) and the Hubble/WFC3 instrument passband. In total, we have 14 spectral bands. We now normalise each spectral band between 0 and 1 and record the minimum and maximum normalisation factors for each. This normalisation scheme ensures a maximum amplification of the spectral features while retaining reversibility.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.2.">The Atmospheric Spectrum and Parameters Array</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>(ASPA)</head><p>To store all aspects of an atmospheric transmission spectrum, we define the Atmospheric Spectrum and Parameters Array (ASPA). It is a 2D array encoding the 1D normalised spectral bands, each band's minimum and maximum normalisation factors and the associated forward model parameter values. We parametrise each training spectrum with seven forward model parameters, φ, namely: H 2 O, CO 2 , CH 4 and CO volume mixing ratios, the mass of the planet M p , the radius R p and its isothermal temperature T p at the terminator. <ref type="figure" target="#fig_2">Figure 3</ref> shows a false-colour ASPA. For this paper, the ASPA is a 33×33 pixel array, with the main part (section 1) encoding the spectral information. Sections 2 -5 encode the normalisation factors and 6 -12 the atmospheric parameters. By design, the planet's water abundance takes a significantly large range area of the ASPA, reflecting the relative importance of water in forming the spectral continuum. The ASPA format is adaptable to other configurations in the future.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4.">The training</head><p>To train ExoGAN on a wide range of possible exoplanetary atmospheres, we generated a very comprehensive training set of atmospheric forward models using the TauREx retrieval code ( <ref type="bibr">Waldmann et al. 2015a,b)</ref>. We sampled each of the seven previously mentioned forward model parameters (H 2 O, CO 2 , CH 4 and CO abundances, the mass of the planet M p , the radius R p and the temperature T p ) 10 times within the parameter ranges denoted in table 1. This configuration yields 10 7 forward models, which are split into 90% training set and 10% test set. The test set is used to validate the accuracy of the network on previously unseen data. As discussed later on, we find this training set to be overcomplete and only require a smaller subset of the full training set for convergence.</p><p>During the training, we perform two training iterations of the discriminator to every training step of the generator. We used an NVIDIA TESLA V100 GPU with minibatch sizes of 64 training ASPAs. We required ∼ 9 hours per epoch on the V100 GPU and comparatively about three days on 20 CPU cores in parallel. . Each area is dedicated to a particular atmospheric characteristic: Area 1 is the spectrum between 1µm and 50µm at resolution 100 normalised between 0 and 1 in each spectral bin. Areas 2 to 5 give information about the normalisation factors used in the different section of the spectrum, clear and dark area give, respectively, information about the maximum values and the minimum values. In areas 6 to 8 we encode the atmospheric trace-gas volume mixing ratios of CO2, CO and CH4 respectively. Areas 9 to 11 are, respectively Mp, Rp and Tp. Area 12 gives information on the H2O trace-gas volume mixing ratio.</p><p>The convergences of the loss functions during the training phase are shown in <ref type="figure" target="#fig_3">figure 4</ref>. The full model setup can be found in the appendix <ref type="table">(table 7)</ref>. We tested three different sizes of our latent variable space z, with z dim = 50, 100 and 200. We found z dim = 50, to yield significantly noisier reconstructions at the end of one epoch of training, whereas no discernible differences between z dim = 100 and z dim = 200 could be observed. We hence settled on z dim = 100. We have adopted a training minibatch size of 64 ASPAs and found no significant effect of larger training batch sizes on network convergence.</p><p>During minibatch training, the algorithm is presented with a sub-set of the full training data (in this case 64 ASPAs) rather than the full training set (or batch). This eases memory requirements of large training set, in particular for memory limited devices such as GPUs. By only considering a sub-set of training data at a time, a gradient descent optimiser, such as ADAM, is still able to perform well, despite the increase in variance on the gradient estimated. In order to avoid biased estimations and convergence to local minima, minibatches must be selected randomly from the training set at each iteration.  </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.5.">Data reconstruction</head><p>Once we have trained ExoGAN, we can now define our 'retrieval' model. As alluded to above, we use the inpainting properties of a GAN to complete the missing data, in this case, the forward model parameters, in our ASPA. In other words, we convert our observed spectrum into the ASPA format and keep unknown values (parameters and missing wavelength ranges) masked. Given the information available, the ExoGAN will then attempt to fill in the missing information to complete the full ASPA. Here we follow the semantic inpainting algorithm by <ref type="bibr" target="#b53">Yeh et al. (2016)</ref>.</p><p>We can define our reconstructed data, x recon , from the incomplete observed data, y, using</p><formula xml:id="formula_6">x recon = M y + (1 − M ) G(ˆ z)<label>(5)</label></formula><p>where M is a binary mask set to zero for missing values in y, i.e. forward model parameter values and, possibly, missing wavelength ranges. Here, constitutes the Hadamard product and G(ˆ z) is the GAN generated data. We note that after the ExoGAN has been trained, z represents an encoding manifold of p data and we denote the closest match of (M G(z)) to (M y) withˆzwithˆ withˆz, wherê z ⊆ z. The aim is now to obtainˆzobtainˆ obtainˆz that accurately completes x recon .</p><p>Let us define the following optimisation.</p><formula xml:id="formula_7">ˆ z = arg min z L(z).<label>(6)</label></formula><p>where L is a loss function of z that finds its minimum whenˆzwhenˆ whenˆz is reached. Following Yeh et al. <ref type="formula" target="#formula_0">(2016)</ref>, we define the loss function to be comprised of two parts, contextual loss and perceptual loss,</p><formula xml:id="formula_8">L = L cont (z) + λL perc (z).<label>(7)</label></formula><p>The contextual loss, L cont (z) is the difference between the observed data and the generated data. Here we follow the definition by Amos (2016):</p><formula xml:id="formula_9">L cont (z) = M G(z) − M y 1 .<label>(8)</label></formula><p>Empirically, <ref type="bibr" target="#b53">Yeh et al. (2016)</ref> find the l 1 norm to yield slightly better results, though the l 2 norm can equally be used. Whereas the conceptual loss compares the generated data with the observed data directly, the perceptual loss, L perc (z), uses the discriminator network to verify the validity of the generated data given the training set.</p><formula xml:id="formula_10">L perc (z) = log (1 − D(G(z)))<label>(9)</label></formula><p>To solve equation 6 we use the ADAM optimiser <ref type="bibr" target="#b19">(Kingma &amp; Ba 2014</ref>) with a learning rate of 0.1. For a deeper discussion about the ADAM optimiser, see Appendix A.</p><p>We investigated the ratio of perceptual loss (Eq 9) to contextual loss (Eq 8) and found λ = 0.1 to be optimal but note that λ &gt; 0.1 gives too much emphasis to the perceptual loss term and yielded less reliable results.</p><p>In figures 5 &amp; 6 we show the three phases associated to a prediction: Left, the ground truth; Middle: the masked spectrum/parameters; Right: the reconstructed ASPA. <ref type="figure" target="#fig_6">Figure 7</ref> shows a water-dominated atmosphere of a test-set hot-Jupiter (black) and the ExoGAN reconstructed spectrum based on the Hubble/WFC3 bandpass only (red). We find a very good agreement between reconstructed and ground-truth spectra.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">ATMOSPHERIC PARAMETER RETRIEVAL</head><p>To retrieve the atmospheric forward model parameters, we assume the observational uncertainties on the spectrum to be Gaussian distributed. We then generate 1000 noisy instances of the observed spectrum, x i (λ), by     <ref type="table">Table 2</ref>. ExoGAN prediction accuracies associated to each parameters for the training set. The A(0 σ φ ) column represent the absolute accuracy of the prediction without taking into account the error bar of the retrieval. The 2 nd and 3 rd columns are taking into account the 1 σ and 2 σ retrieved errors following equation 10.</p><p>sampling from a normal distribution with a mean of x(λ) and standard deviation σ λ . From these noisy spectrum instances, we generate 1000 corresponding ASPAs with missing information (may they be parameters, spectral ranges or both) masked. We now let ExoGAN predict and inpaint these ASPAs. Finally, we collect all parameter predictions and calculate the mean and standard deviation of the resulting distribution. Hence, the resulting distributions are not posterior distributions derived from a Nested or MCMC sampling atmospheric retrieval, but are conceptually more similar to running a retrieval based on optimal-estimation multiple times and collecting the distribution of results.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">ACCURACY TESTS</head><p>We defined the accuracy of the retrieved parameter, A, as the function of the ground-truth parameter value, φ, the retrieved value, φ recon , and its corresponding error σ φ ,</p><formula xml:id="formula_11">A(φ, σ φ ) = 1 N N i (φ i,recon − φ i ) 2 φ i 2 + σ 2 φi (10)</formula><p>where N is the number of reconstructed ASPA instances. We compute the reconstruction accuracies for 1000 randomly selected planets for each, the test and training sets. The accuracies are summarised in tables 2 &amp; 3 for 0 σ (an exact match), 1 σ and 2 σ confidence intervals. <ref type="figure" target="#fig_7">Figure 8</ref> shows an example of the parameter distributions retrieved for a test-case planet.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">Comparison with a classical retrieval model</head><p>In this section, we compare the ExoGAN results with a 'classical' retrieval result obtained with the TauREx retrieval code. For this comparison and tests in subsequent sections, we used as example the hot-Jupiter   We now retrieve the forward model parameters for both TauREx and ExoGAN for spectra across the Hubble/WFC3 only band and a broad (0.3 -15 µm) wavelength band. Here the Hubble/WFC3 spectrum was taken from <ref type="bibr" target="#b46">Tsiaras et al. (2018)</ref> and interpolated to the ExoGAN resolution using a quadratic interpolation (figure 9). The large wavelength range spectrum is synthetic, based on table 4.</p><p>In <ref type="figure" target="#fig_0">figure 10</ref> we compare both sets of results. The Hubble/WFC3 and large wavelength retrievals are shown with square and circular markers respectively. In both cases, the ExoGAN predictions are consistent with the TauREx retrievals within the error bars. We note that in the case of CO in the Hubble/WFC3 data, neither TauREx nor ExoGAN feature detections as expected.</p><p>We then generated a second synthetic spectrum of HD 189733 b between 0.3 − 15 µm, using the parameters of <ref type="bibr" target="#b48">Venot et al. (2012)</ref>  distribution. The only significant difference is the CO abundance, where the ExoGAN abundances are higher. Note that both, TauREx and ExoGAN show tails in their CO abundance posteriors indicating the difficulties of retrieving CO even for classical retrieval algorithms. Comparisons of run-time are remarkable. Using the TauREx Retrieval code with seven free parameters a standard nested-sampling analysis takes ∼ 10 hours on 24 CPU cores using absorption cross-sections at a resolution of R = 15,000 and spanning a large (0.3 -15 µm) wavelength range. The trained ExoGAN requires ∼ 2 minutes for the same analysis. This result constitutes a speed up of ∼ 300 times and is independent of the number of free parameters and of the resolution of the input spectrum. Similarly, training ExoGAN on higher resolution data, does not significantly impact its runtime after training as both the size and architecture of the underlying network remain unchanged.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">ROBUSTNESS TESTS</head><p>To test the limits of ExoGAN we simulate three conditions previously encountered by the network. We use the same example planet as in the previous section (table 4) and simulate the following three scenarios unseen by ExoGAN during training phase:</p><p>• the presence of clouds; • the addition of a trace gas unknown to the network;</p><p>• atmospheric temperatures outside the training range.</p><p>Each test is discussed below, and the ExoGAN predicted abundances versus the ground-truth are summarised in table 5. Furthermore, we test the ExoGAN's robustness against varying signal-to-noise (S/N) levels of the observed spectrum.  TauREx WFC3/full ExoGAN WFC3/full <ref type="figure" target="#fig_0">Figure 10</ref>. Comparison between the ExoGAN predictions (red points) and TauREx (black points). For the molecules we show the value −log(mixing-ratio). The squared points show the results for a real spectrum of HD 189733b using Hubble/WFC3. The round points are the results for a synthetic model of HD 189733b between 0.3 -15 µm. The results from the two retrievals are in both cases consistent with each others within the error bars.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1.">Presence of clouds</head><p>Here we test the response of ExoGAN to the presence of clouds in the atmospheric spectrum. We simulate a grey cloud deck at 10 mbar pressure ( <ref type="figure" target="#fig_0">figure 12</ref>) and let ExoGAN reconstruct the atmospheric parameters, see <ref type="figure" target="#fig_0">figure 13</ref>. The lack of information due to the clouds presence results in a wider distribution of parameters. However, ExoGAN is still able to retrieve all trace-gas abundances within 1 σ confidence. We find that temperature estimates can be overestimated. This result is likely a consequence of the normalisation procedure used in the presence of clouds.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2.">Presence of molecules outside of the training set</head><p>In this test, we simulate the impact of unknown features on the retrievability of known trace gases. We here consider a spectrum containing water at the default test value and NH 3 with a mixing ratio of 10 −4 . Though Venot et al. (2012) estimated an NH 3 mixing ratio of 10 −6 , we use an unrealistically high value as a worst-case scenario. By removing all other trained tracegases but water, we also test for spurious detections in non-existing trace-gases. <ref type="figure" target="#fig_0">Figure 14</ref> shows the ExoGAN parameter distributions. We find the network to recognise the absence of trace-gases and does not detect 'false positives', while still recovering the exact mixing ratio of H 2 O.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.3.">Parameters outside the training range</head><p>In the third robustness test we simulated a default planetary atmosphere but an effective temperature of 2500 K, 500 K above the temperature training range. In this test, as shown in <ref type="figure" target="#fig_0">figure 15</ref>, all parameters converge toward the real solution within 1 σ, except for the planetary temperature. Here, the network does not retrieve the correct temperature but assigns a large error bar suggesting that the temperature value is unconstrained if the input value is not contained in the domain range of ExoGAN.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.4.">Impact of spectral signal-to-noise</head><p>We test ExoGAN for varying levels of observational noise. Here we take the default planet (table 4) and add noise in steps of 10ppm in the range <ref type="bibr">[0,</ref><ref type="bibr">100]</ref> ppm. In <ref type="figure" target="#fig_0">figure 16</ref> we show examples of spectra at σ λ : 20, 50, 60 and 100 ppm noise level.</p><p>For each noise level, we calculated the accuracy of the prediction following equation 10, but setting A(σ φ = 0), <ref type="figure" target="#fig_0">figure 17</ref>. We note that figure 17 only shows the difference between the predicted value and an exact match and prediction accuracies increase when retrieval error bars are taken into account. Here we want to demonstrate the relative degradation of the prediction accuracy as a function of σ λ . As intuitively expected, the noisier the spectra, the less accurate the model. The Radius of the planet can be easily recognised by the ExoGAN in the entire error range tested. The most difficult parameter to identify is the CO abundance and the mass of the planet.</p><p>6. DISCUSSION</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.1.">Training and training data</head><p>In this work, we used 10 7 forward models over seven atmospheric forward model parameters. We find that this training set is significantly over-complete and the ExoGAN training can be completed successfully with ∼ 50 % of the existing training set. Optimising training  in future iterations will allow for the inclusion of more complex atmospheric forward models. One of the main difficulties for training neural networks with transmission spectra is the normalisation of the spectra in R p /R * . A consistent normalisation across a broad range of possible atmospheres is required during the training process, but difficult to achieve in reality given strongly varying atmospheric scale heights and trace-gas abundances. In this work, we adopted a normalisation based on instrument pass-bands as well as water bands. Though in practice this approach works for most scenarios, it can introduce biases when highaltitude clouds are present. In these cases, we find that the normalisation procedure stretches the observed spectrum too much, leading the network to identify higher atmospheric temperatures than it otherwise would. In future work, we plan to mitigate this effect by including grey clouds in the training set as well as further refining the normalisation scheme. We note that for emission spectroscopy a consistent normalisation is more readily achieved if the planetary and stellar equilibrium temperatures are assumed to be known ( <ref type="bibr" target="#b49">Waldmann 2016)</ref>.</p><p>ExoGAN has been trained on a large set of simulated forward models. By including ExoGAN as an integral part in the TauREx retrieval framework, we will be able to use forward models created during a standard re-   <ref type="figure" target="#fig_0">Figure 16</ref>. Four examples of spectra used to calculate the accuracy of the ExoGAN. The green line represents the input spectrum and the blue part is the area representing the error bars, σ λ in which we varied the input signal to simulate a noisy spectrum. In the top left we seen the 20ppm error bars, in the top right the 50ppm, in the bottom left the 60 ppm and the bottom right the 100ppm one.  <ref type="figure" target="#fig_0">Figure 17</ref>. Accuracy as a function of spectral error bars, σ λ . As discussed in the text, we note that this figure does not take into account the retrieval error bar, i.e. A(σ φ = 0) following equation 10.</p><formula xml:id="formula_12">CO CO 2 H 2 O CH 4 R p M p T p</formula><p>trieval run (of the order of 10 5 -10 6 models per retrieval) to perform online learning and continuously improve the accuracy of ExoGAN over time.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.2.">Comparison with other machine learning architectures</head><p>In the previous sections, we have explored the use of DCGANs to retrieve atmospheric parameters from observations. GANs belong to the class of semi-supervised and unsupervised generative models and since their inception have been subject to significant research. In this paper, our use of DCGAN is unsupervised as we provide the parameters together with the data to be modelled. Such an approach allows for a high degree of flexibility in using ExoGAN, as we only need to re-define the ASPA array to train on new problem sets.</p><p>Most other generative models require the likelihood function of the data to be defined, something we do not intrinsically know for many exoplanet observations, whereas GAN based models are likelihood-free methods and p θ (x) does not need to be computed during training. This characteristic has obvious advantages over pure variational autoencoders which require a parametrised form of the probability space from which it draws its latent variables.</p><p>Whilst we have explored the use of GANs in the scope of this paper, we note that other neural network architectures, such as simpler deep believe networks or VAEs, may yield comparable results. In fact, recent work by the 2018 NASA Frontier Development Lab 1 has explored various deep learning architecture in the context of atmospheric retrievals with promising results. Similarly, other machine learning frameworks may also be successfully used to model exoplanetary spectra. For example, ? recently presented an atmospheric retrieval algorithm based on random forests regression (?) and demonstrated the algorithm on Hubble/WFC3 observations.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.3.">Future work</head><p>In this work, we have used the 'vanilla' DCGAN as underlying algorithm. Since its inception, various interesting additions to the classical GAN have been proposed which we intend to explore in future work. Notable amongst them are the VAE-GAN hybrids, random forest and GAN hybrids and Bayesian-GAN models. The VAE-GAN models (e.g. <ref type="bibr" target="#b34">Rosca et al. 2017;</ref><ref type="bibr">Dosovit- skiy &amp; Brox 2016;</ref><ref type="bibr" target="#b47">Ulyanov et al. 2017;</ref><ref type="bibr" target="#b27">Makhzani et al. 2015</ref>), allow direct inference using GANs. Something that is not possible using purely generative models. To further guard against model collapse, ? have recently proposed a random forest and GAN hybrid algorithm, GAF, where the fully connected layer of the GAN's discriminator is replace by a random forest classifier. <ref type="bibr" target="#b36">Saatchi &amp; Wilson (2017)</ref> proposed a Bayesian-GAN by drawing probability distributions over θ (D) and θ (G) , allowing for fully bayesian predictive models and further guarding against model collapse.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.">CONCLUSION</head><p>In the era of JWST and ARIEL observations, nextgeneration atmospheric retrieval algorithms must reflect the higher information content of the observation with an increase in atmospheric model complexity. Complex models are computationally heavy, creating potential bottlenecks given current state-of-the-art sampling schemes. Artificial intelligence approaches will provide essential tools to mitigate the increase in computational burden while maintaining retrieval accuracies.</p><p>In this work, we introduced the first deep learning approach to solving the inverse retrieval of exoplanetary atmospheres. We trained deep convolutional generative adversarial network on an extensive library of atmospheric forward models and their associated model parameters. The training set spans a broad range of atmospheric chemistries and planet types. Once trained, the ExoGAN algorithm achieves comparable performances to more traditional statistical sampling based retrievals, and the ExoGAN results can be used to constrain the prior ranges of subsequent retrievals (to significantly cut computation times) or be used as stand-alone results. We found ExoGAN to be up to 300 times faster than a standard retrieval for large spectral ranges. ExoGAN is designed to be universally applicable to a wide range of instruments and wavelength ranges without additional training.</p><p>All codes used in this publication are open-access and their latest versions are hosted at https://github.com/ orgs/ucl-exoplanets. Manuals and links to the training sets can be found at http://exoai.eu. Furthermore, the training data and the corresponding ExoGAN software (at the time of paper acceptance) have been assigned the DOI:10.17605/OSF.IO/6DXPS and are permanently archived at https://osf.io/6dxps/.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 .</head><label>1</label><figDesc>Figure 1. The ExoGAN scheme. The Generator produces datasets sampling from a latent variable space z. The Discriminator compares the generated dataset with data drawn from the training set (top left). The network has converged when the Discriminator cannot differentiate Real spectra from Generated Spectra any longer.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 3 .</head><label>3</label><figDesc>Figure 3. The Atmospheric Spectra and Parameters Array (ASPA). Each area is dedicated to a particular atmospheric characteristic: Area 1 is the spectrum between 1µm and 50µm at resolution 100 normalised between 0 and 1 in each spectral bin. Areas 2 to 5 give information about the normalisation factors used in the different section of the spectrum, clear and dark area give, respectively, information about the maximum values and the minimum values. In areas 6 to 8 we encode the atmospheric trace-gas volume mixing ratios of CO2, CO and CH4 respectively. Areas 9 to 11 are, respectively Mp, Rp and Tp. Area 12 gives information on the H2O trace-gas volume mixing ratio.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 4 .</head><label>4</label><figDesc>Figure 4. Discriminator (golden) and Generator (blue) cross-entropies as function of the iteration steps.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Figure 5 .</head><label>5</label><figDesc>Figure 5. Left: input spectrum together with the parameters pixels. Centre: masked ASPA leaving Hubble/WFC3 wavelengths only. Right: ExoGAN completed ASPA given the middle ASPA.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Figure 6 .</head><label>6</label><figDesc>Figure 6. Same as figure 5 but only masking the atmospheric forward model parameters.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Figure 7 .</head><label>7</label><figDesc>Figure 7. Spectral reconstruction of ExoGANof a water dominated Hubble/WFC3 spectrum. Black: the ground-truth spectrum; Red: the ExoGAN reconstructed spectrum across all wavelengths giving as input only the Hubble/WFC3 band-pass.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Figure 8 .</head><label>8</label><figDesc>Figure 8. ExoGAN parameter distribution of the default test planet. Blue vertical line: Mean predicted value; green vertical line: ground truth value; vertical dotted lines: 1 σ bounds estimated by ExoGAN.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head>Figure 9 .</head><label>9</label><figDesc>Figure 9. Real HD 189733b observation with the Hubble WFC3 camera (Tsiaras et al. 2018). The black points are the observed data and the green line is the interpolated spectrum to the ExoGAN resolution.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head>Figure 11 .</head><label>11</label><figDesc>Figure 11. TauREx posterior distributions (in blue) compared to a ExoGAN prediction (in golden). As input spectrum, we used a synthetic spectrum of HD 189733 b with planetary and atmospheric parameters from Venot et al. (2012) and a wavelength range of 0.3 -15 µm. The two results are in agreement with each other.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_10"><head>Figure 12 .</head><label>12</label><figDesc>Figure 12. Simulated spectra of the default test planet HD 189733b without clouds (left) and with grey clouds at 10 mbar cloud top pressure. (right).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_11"><head>Figure 13 .</head><label>13</label><figDesc>Figure 13. Same as figure 8 but for the clouds robustness test for the default test planet, section 5.1.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_12"><head>Figure 14 .Figure 15 .</head><label>1415</label><figDesc>Figure 14. Same as figure 8 but for the ExoGAN analysis for a spectrum with only water and NH3, section 5.2.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" validated="true"><head>Table 3 .</head><label>3</label><figDesc></figDesc><table>Same as table 2 but for the test set. 
+
+Test planet parameters 
+Parameter 
+Value 
+R *  
+0.752 R 
+Rp 
+1.151 RJ 
+Mp 
+1.150 MJ 
+Tp 
+1117 K 
+H2O 
+3 · 10 −4 
+CO 
+4 · 10 −4 
+CO2 
+2 · 10 −7 
+CH4 
+5 · 10 −6 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4" validated="true"><head>Table 4 .</head><label>4</label><figDesc>Test-case atmospheric and planetary parameters used based on HD 189733b. The molecular abundances are given in volume mixing ratios.</figDesc><table>HD 189733b with planetary/orbital parameters taken 
+from Torres et al. (2008); Butler et al. (2006) and at-
+mospheric chemistry based on Venot et al. (2012), see 
+table 4. 
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_6" validated="false"><head>Table 5 .4 CO 2 CO H 2 O 10 0</head><label>5</label><figDesc></figDesc><table>Summary of all the robustness test results. For each value we show the input value used for the spectrum and the 
+predicted result from ExoGAN. For the unknown gases test we used ammonia with a volume mixing ratio of 10 −4 . 
+
+R p T p CH 10 1 
+
+10 2 
+
+10 3 
+</table></figure>
+
+			<note place="foot" n="1"> frontierdevelopmentlab.org</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+			</div>
+
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>APPENDIX</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A. THE ADAM OPTIMISER</head><p>The Adaptive Moment Estimation (ADAM) is a very popular algorithm in deep learning and it computes adaptive learning rate for the parameters of a neural network. It stores the exponentially decaying average of past squared gradients v t together with the exponentially decaying average of the past gradients m t . Keeping the notation of ?, the past and the squared past gradients, m t and v t are defined as:</p><p>and,</p><p>with β 1 and β 2 being the decay rates, and g t = z L(z t ) the gradient of the L function defined in Equation 7 Equations A1 and A2 estimates, respectively, the mean (or first moment) and the variance (or second moment) of the gradients. Since the two moments are initialised as vectors of 0's, they are biased towards zero, particularly during the first time steps or when the decay rates β 1 and β 2 are small. To correct the biases <ref type="bibr" target="#b19">Kingma &amp; Ba (2014)</ref> defined the bias-corrected moments as:</p><p>and,</p><p>(A4) At this point it is possible to update the z variable using the Adam update rule:</p><p>We used the values suggested by <ref type="bibr" target="#b19">Kingma &amp; Ba (2014)</ref> for the hyperparameters, shown in <ref type="table">Table 7</ref>. </p><p>with µ B , σ B , respectively, the mean and the standard deviation of the batch and γ and β the learned parameters. BN allows to have an output with a mean µ and a standard deviation σ independently on the input distribution.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>C. ExoGAN ARCHITECTURE AND PARAMETERS</head><p>ExoGAN is made up of two neural networks, the generator and the discriminator, whose parameters are shown in Tab 6. Constant which prevents the denominator in Equation A5 to be zero </p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Amos</surname></persName>
+		</author>
+		<idno>accessed: 12/05/2018</idno>
+		<ptr target="http://bamos.github.io/2016/08/09/deep-completion" />
+	</analytic>
+	<monogr>
+		<title level="j">Image Completion with Deep Learning in TensorFlow</title>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Arjovsky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Bottou</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1701.04862</idno>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+<note type="report_type">ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">K</forename><surname>Barstow</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">G J</forename><surname>Irwin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">K</forename><surname>Sing</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">834</biblScope>
+			<biblScope unit="page">50</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Bengio</surname></persName>
+		</author>
+		<title level="m">Learning Deep Architectures for AI</title>
+		<imprint>
+			<publisher>Now Publishers Inc</publisher>
+			<date type="published" when="2009" />
+			<biblScope unit="volume">2</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Benneke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Seager</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">APJ</title>
+		<imprint>
+			<biblScope unit="volume">778</biblScope>
+			<biblScope unit="page">153</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Bruno</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">K</forename><surname>Lewis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">B</forename><surname>Stevenson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">155</biblScope>
+			<biblScope unit="page">55</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P</forename><surname>Butler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Wright</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Marcy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">646</biblScope>
+			<biblScope unit="page">505</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">BART: Bayesian Atmospheric Radiative Transfer fitting code</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Cubillos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Blecic</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Harrington</surname></persName>
+		</author>
+		<idno>ascl:1608.004</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Astrophysics Source Code Library</title>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Denton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Chintala</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Szlam</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Fergus</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1506.05751</idno>
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+<note type="report_type">ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Dosovitskiy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Brox</surname></persName>
+		</author>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<editor>D. D. Lee, M. Sugiyama, U. V. Luxburg, I. Guyon, &amp; R. Garnett</editor>
+		<imprint>
+			<publisher>Curran Associates, Inc</publisher>
+			<date type="published" when="2016" />
+			<biblScope unit="volume">29</biblScope>
+			<biblScope unit="page" from="658" to="666" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Feroz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Gair</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">P</forename><surname>Hobson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">K</forename><surname>Porter</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Classical and Quantum Gravity</title>
+		<imprint>
+			<biblScope unit="volume">26</biblScope>
+			<biblScope unit="page">215003</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Feroz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">P</forename><surname>Hobson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Monthly Notices of the Royal Astronomical Society</title>
+		<imprint>
+			<biblScope unit="volume">384</biblScope>
+			<biblScope unit="page">449</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Gandhi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Madhusudhan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Monthly Notices of the Royal Astronomical Society</title>
+		<imprint>
+			<biblScope unit="volume">474</biblScope>
+			<biblScope unit="page">271</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Gardner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">C</forename><surname>Mather</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Clampin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Space Science Reviews</title>
+		<imprint>
+			<biblScope unit="volume">123</biblScope>
+			<biblScope unit="page">485</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Goodfellow</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Bengio</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Courville</surname></persName>
+		</author>
+		<ptr target="http://www.deeplearningbook.org" />
+		<title level="m">Deep Learning</title>
+		<imprint>
+			<publisher>MIT Press</publisher>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">J</forename><surname>Goodfellow</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Pouget-Abadie</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Mirza</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1406.2661</idno>
+		<imprint>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+<note type="report_type">ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">C</forename><surname>Gregory</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">410</biblScope>
+			<biblScope unit="page">94</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">G J</forename><surname>Irwin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">A</forename><surname>Teanby</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>De Kok</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Quantitative Spectroscopy &amp; Radiative Transfer</title>
+		<imprint>
+			<biblScope unit="volume">109</biblScope>
+			<biblScope unit="page">1136</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Jimenez Rezende</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Mohamed</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Wierstra</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1401.4082</idno>
+		<imprint>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+<note type="report_type">ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">P</forename><surname>Kingma</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Ba</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1412.6980</idno>
+		<imprint>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+	<note>ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">P</forename><surname>Kingma</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Welling</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1312.6114</idno>
+		<imprint>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+	<note>ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Kipping</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Lam</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">465</biblScope>
+			<biblScope unit="page">3495</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Kreidberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Line</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Parmentier</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1805.00029</idno>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+<note type="report_type">ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Lamb</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Dumoulin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Courville</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1602.03220</idno>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+	<note>ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Lavie</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Mendonça</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Mordasini</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">154</biblScope>
+			<biblScope unit="page">91</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Line</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">S</forename><surname>Wolf</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Zhang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">775</biblScope>
+			<biblScope unit="page">137</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Madhusudhan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Seager</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">707</biblScope>
+			<biblScope unit="page">24</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Makhzani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Shlens</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Jaitly</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Goodfellow</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Frey</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1511.05644</idno>
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+	<note>ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Mansfield</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Bean</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Line</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1805.00424</idno>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+<note type="report_type">ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Metz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Poole</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Pfau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Sohl-Dickstein</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1611.02163</idno>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+<note type="report_type">ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">A</forename><surname>Pearson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Palafox</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">A</forename><surname>Griffith</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">474</biblScope>
+			<biblScope unit="page">478</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Radford</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Metz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Chintala</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1511.06434</idno>
+		<title level="m">ArXiv e-prints</title>
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Rocchetto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">P</forename><surname>Waldmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Venot</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">O</forename><surname>Lagage</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">833</biblScope>
+			<biblScope unit="page">120</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">C</forename><surname>Rodriguez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Kacprzak</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Lucchi</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1801.09070</idno>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+<note type="report_type">ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Rosca</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Lakshminarayanan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Warde-Farley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Mohamed</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1706.04987</idno>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+<note type="report_type">ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">E</forename><surname>Rumelhart</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">E</forename><surname>Hinton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Williams</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1986" />
+			<publisher>MIT Press</publisher>
+			<biblScope unit="page" from="318" to="362" />
+			<pubPlace>Cambridge, MA, USA</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Saatchi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Wilson</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1705.09558</idno>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+<note type="report_type">ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Salimans</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Goodfellow</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Zaremba</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1606.03498</idno>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+<note type="report_type">ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Schawinski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Fowler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">K</forename><surname>Santhanam</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Monthly Notices of the Royal Astronomical Society: Letters</title>
+		<imprint>
+			<biblScope unit="volume">467</biblScope>
+			<biblScope unit="page">110</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">J</forename><surname>Shallue</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vanderburg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">155</biblScope>
+			<biblScope unit="page">94</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">B</forename><surname>Sheppard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">M</forename><surname>Mandell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Tamburo</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal Letters</title>
+		<imprint>
+			<biblScope unit="volume">850</biblScope>
+			<biblScope unit="page">32</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Skilling</surname></persName>
+		</author>
+		<title level="m">Bayesian Inference and Maximum Entropy Methods in Science and Engineering: 24th International Workshop on Bayesian Inference and Maximum Entropy Methods in Science and Engineering</title>
+		<imprint>
+			<date type="published" when="2004" />
+			<biblScope unit="page">395</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Spake</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">K</forename><surname>Sing</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">M</forename><surname>Evans</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">557</biblScope>
+			<biblScope unit="page">68</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Stark</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Launet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Schawinski</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">477</biblScope>
+			<biblScope unit="page">2513</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Drossart</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Eccleston</surname></persName>
+		</author>
+		<title level="m">Space Telescopes and Instrumentation 2016: Optical, Infrared, and Millimeter Wave</title>
+		<imprint>
+			<date type="published" when="2016" />
+			<biblScope unit="volume">9904</biblScope>
+			<biblScope unit="page">99041</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Torres</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">N</forename><surname>Winn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Holman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">677</biblScope>
+			<biblScope unit="page">1324</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Tsiaras</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">P</forename><surname>Waldmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Zingales</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">155</biblScope>
+			<biblScope unit="page">156</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Ulyanov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vedaldi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Lempitsky</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1704.02304</idno>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+<note type="report_type">ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Venot</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Hébrard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Agúndez</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">546</biblScope>
+			<biblScope unit="page">43</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">P</forename><surname>Waldmann</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">820</biblScope>
+			<biblScope unit="page">107</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">P</forename><surname>Waldmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Rocchetto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">813</biblScope>
+			<biblScope unit="page">13</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">P</forename><surname>Waldmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Rocchetto</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">802</biblScope>
+			<biblScope unit="page">107</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b52">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Schuster</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Chen</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1609.08144</idno>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+<note type="report_type">ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b53">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Yeh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Yian Lim</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1607.07539</idno>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+<note type="report_type">ArXiv e-prints</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

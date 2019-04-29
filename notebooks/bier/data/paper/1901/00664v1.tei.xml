@@ -1,0 +1,1638 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2019-01-22T13:24+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Data Reduction Pipeline of the TOU Optical Very High Resolution Spectrograph and Its sub-m s −1 Performance</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2018">2018</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Bo</forename><surname>Ma</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Astronomy</orgName>
+								<orgName type="institution">University of Florida</orgName>
+								<address>
+									<addrLine>211 Bryant Space Science Center</addrLine>
+									<postCode>32611-2055</postCode>
+									<settlement>Gainesville</settlement>
+									<region>FL</region>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+							<affiliation key="aff1">
+								<orgName type="department">School of Physics and Astronomy</orgName>
+								<orgName type="institution">Sun Yat-sen University</orgName>
+								<address>
+									<postCode>519082</postCode>
+									<settlement>Zhuhai</settlement>
+									<country>People&apos;s Republic of China</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jian</forename><surname>Ge</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Astronomy</orgName>
+								<orgName type="institution">University of Florida</orgName>
+								<address>
+									<addrLine>211 Bryant Space Science Center</addrLine>
+									<postCode>32611-2055</postCode>
+									<settlement>Gainesville</settlement>
+									<region>FL</region>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Data Reduction Pipeline of the TOU Optical Very High Resolution Spectrograph and Its sub-m s −1 Performance</title>
+					</analytic>
+					<monogr>
+						<title level="j" type="main">MNRAS</title>
+						<imprint>
+							<biblScope unit="volume">000</biblScope>
+							<biblScope unit="page" from="1" to="12"/>
+							<date type="published" when="2018">2018</date>
+						</imprint>
+					</monogr>
+					<note type="submission">Accepted XXX. Received YYY; in original form ZZZ</note>
+					<note>Preprint 4 January 2019 Compiled using MNRAS L A T E X style file v3.0</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>techniques: radial velocities -techniques: spectroscopic -planets and satellite: detection -instrumentation: spectrographs</keywords>
+			</textClass>
+			<abstract>
+				<p>TOU is an extremely high resolution optical spectrograph (R=100, 000, 380-900 nm), which is designed to detect low mass exoplanets using the radial velocity technique. We describe an IDL-based radial velocity (RV) data reduction pipeline for the TOU spectrograph and its performance with stable stars. This pipeline uses a least-squares fitting algorithm to match observed stellar spectra to a high signal-to-noise template created for each star. By carefully controlling all of the error contributions to RV measurements in both the hardware and data pipeline, we have achieved ∼0.9 m s −1 long-term RV precision with one of the most RV stable stars, Tau Ceti, similar to what has been achieved with HARPS. This paper presents steps and details in our data pipeline on how to reach the sub-m s −1 RV precision and also all major error sources which contribute to the final RV measurement uncertainties. The lessons learned in this pipeline development can be applied to other environmentally controlled, very high resolution optical spectrographs to improve RV precision.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">INTRODUCTION</head><p>Discovery of an abundant population of exoplanets is one of the most exciting developments in astronomy in the last two decades, and radial velocity (RV) technique has made significant contributions to these discoveries. To date, RV surveys have detected ∼500 exoplanets (RV planets from Exoplanet.org; <ref type="bibr" target="#b29">Han et al. 2014</ref>), which show an fascinating diversity in terms of masses, orbital periods, and eccentricities distributions, from the short period hot Jupiters, to planets in very elongated orbits, to planetary systems with multiple Jupiter-mass planets, to massive planets in very close binaries, and to close-in super-Earths with periods of less than 100 days ( <ref type="bibr" target="#b12">Butler et al. 2004;</ref><ref type="bibr" target="#b41">McArthur et al. 2004;</ref><ref type="bibr" target="#b50">Santos et al. 2004</ref>; <ref type="bibr" target="#b48">Rivera et al. 2005;</ref><ref type="bibr" target="#b36">Lovis et al. 2006;</ref><ref type="bibr" target="#b58">Udry et al. 2006;</ref><ref type="bibr" target="#b31">Howard et al. 2010;</ref><ref type="bibr" target="#b40">Mayor et al. 2011;</ref><ref type="bibr" target="#b32">Howard et al. 2014;</ref><ref type="bibr" target="#b38">Ma et al. 2016</ref>). New observations from innovative new RV instruments will continually reveal the unanticipated diversity of planetary systems.</p><p>Motivated by the investigation of the close-in superEarth populations around nearby FGKM dwarfs and the search for habitable super-Earths, we developed a compact, ⋆ E-mail:mabo8@mail.sysu.edu.cn † E-mail:jge@astro.ufl.edu extremely high resolution optical spectrograph with a broad wavelength coverage, called TOU from 2010−2013, and commissioned it at the 2 meter Automatic Spectroscopic Telescope <ref type="bibr">(AST, Eaton &amp; Williamson 2004a,b)</ref>, a robotic telescope at Fairborn Observatory in Arizona in 2013 July. TOU is a fiber-fed, cross-dispersed echelle spectrograph with a spectral resolution of about 100K, a wavelength coverage of 3800−9000Å9000Å, and a 4k×4k Fairchild CCD detector ( <ref type="bibr" target="#b23">Ge et al. 2012;</ref><ref type="bibr" target="#b24">Ge et al. 2014a</ref><ref type="bibr" target="#b26">Ge et al. , 2016</ref>. This instrument holds a very high vacuum of less than 1 micro torr and about 1mK (rms) temperature stability over a few months. We carried out a pilot RV survey of 20 nearby bright FGK dwarfs (V &lt; 9) at AST between 2014−2015 with the goal of fine tuning performance of the TOU spectrograph and achieving sub-m s −1 RV precision. Thanks to the unique design of a vacuum-sealed chamber, high mechanical stability, and accurate thermal control, the instrument is very stable. The measured wavelength solution on each pixel of the CCD shows nearly no sign of changing during each observing night. This spectrograph is designed to potentially reach better than 0.3 m s −1 long-term RV precision.</p><p>Given that a few next generation RV stabilized spectrographs targeting 0.1 m s −1 are under construction or being commissioned (such as ESPRESSO/ESO; <ref type="bibr" target="#b45">Pepe et al. 2013</ref>, https://www.eso.org/public/usa/news/eso1739) and the significant investment in hardware development to achieve higher RV stability, it is critical that the data analysis tools are also as optimal as possible. There are three popular algorithms aiming at computing RVs, including a direct cross-correlation with a numerical binary mask (hereafter the CCF technique; <ref type="bibr" target="#b1">Baranne et al. 1996;</ref><ref type="bibr" target="#b43">Pepe et al. 2002)</ref>, an optimized least-square fit to a spectral template (hereafter the template-matching technique; <ref type="bibr" target="#b0">Anglada-Escudé &amp; Butler 2012;</ref><ref type="bibr" target="#b66">Zechmeister et al. 2017)</ref>, and the forward modeling spectral synthesis technique (hereafter the forward-modeling technique; <ref type="bibr" target="#b11">Butler et al. 1996</ref>). The first two techniques are generally chosen for RV instruments with stabilized point spread functions such as HARPS (High-Accuracy Radial Velocity Planetary Searcher; <ref type="bibr" target="#b42">Mayor et al. 2003</ref>). According to <ref type="bibr" target="#b43">Pepe et al. (2002)</ref> and <ref type="bibr" target="#b0">Anglada-Escudé &amp; Butler (2012)</ref>, the templatematching technique is more precise at extracting RV information from stellar spectra than the CCF technique, especially for M dwarfs. However, the CCF technique is faster for RV data extraction than the template-matching one after an observations is concluded because there is no requirement to acquire 10−20 more stellar spectra from the same star to combine and generate a high signal-to-noise ratio (SNR) spectral template for RV extraction as required in the latter. The forward-modeling technique is generally applied to RV instruments that have their wavelength calibration sources located within the light paths of target stars, which can be used to model the line spread function variations of the instrument and effectively track and correct instrument drifts. For example, Keck/HIRES uses an iodine gas cell as its wavelength calibration source ( <ref type="bibr" target="#b11">Butler et al. 1996)</ref>, and use it to model its instrument line spread function variations using extreme high resolution (&gt; 1000K) spectra from the iodine gas cell to obtain high precision RV measurements after instrument RV drifts are corrected.</p><p>We use the template-matching technique for the TOU RV data pipeline. This paper presents all the steps in our data processing and RV extraction pipeline, which has achieved sub-m s −1 precision. It also includes lessons learned during the pipeline development. This knowledge can help pipeline development for the next generation of stabilized RV instruments and help reveal main areas that need to be improved in order to reach 0.1 m s −1 RV precision. The paper is organized as follows. We first introduce our RV observations and the basic algorithms used in the TOU pipeline in Section 2. Section 3 reports our instrument on-sky performance results for one stable star. In Section 4 we present the detailed error budget analysis for each step of the TOU data reduction pipeline. In Section 5 we present the summary of the paper and discuss possible paths toward achieving 0.1 m s −1 Doppler RV precision.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">DATA REDUCTION AND RADIAL</head><p>VELOCITY MEASUREMENT</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Observations</head><p>We obtained stellar spectra with the TOU spectrograph at the 2-m AST at Fairborn observatory between 2014 and 2015. The exposure time for a typical star ranges from 10 to 30 min to obtain data with sufficient SNRs (&gt; 100 per pixel at 5500Å5500Å) and to average out shortterm high frequency stellar oscillations ( <ref type="bibr" target="#b42">Mayor et al. 2003;</ref><ref type="bibr" target="#b16">Dumusque et al. 2011</ref>). Under good weather conditions, we can reach a SNR∼100 per pixel for a V=6 mag G-type dwarf at 5500Å5500Å with a 15minute exposure. The CCD image of a bright G-type RV stable star, Tau Ceti, with a 10 min exposure time using TOU is displayed in <ref type="figure" target="#fig_0">Figure 1</ref>. The spectral orders are closely aligned in the vertical direction of the CCD while different spectral orders are separated horizontally by a two-prism cross-disperser ( <ref type="bibr" target="#b23">Ge et al. 2012;</ref><ref type="bibr" target="#b67">Zhao &amp; Ge 2012</ref>). We use a 2×2 40µm fiber bundle to couple with the 80 micron diameter fiber from the telescope and slice the input image four times and rearrange the four sliced images in a linear row at the spectrograph entrance to double the spectrograph spectral resolving power ( <ref type="bibr" target="#b23">Ge et al. 2012</ref>). This fiber image slicer is the key to enable the compact design of the spectrograph while achieving the required very high spectra resolution of R = 100, 000. We took daily master calibration frames in the afternoon. The master calibration data obtained every night include bias frames, flat-fielding frames using a tungsten lamp, and wavelength calibration frames using two Thorium-Argon (ThAr) lamps. One ThAr lamp is called the 'reference' lamp, while the other is called the 'operation' lamp. Following the HARPS operation, we use calibration data from both ThAr lamps to calibrate RV measurements. The reference lamp was turned on once per day to take calibration frames for wavelength calibration and instrument long-term drift tracking while the operation lamp was on for the entire night for tracking intra-night instrument drifts. Because the TOU spectrograph is extremely stable with typical instrument drifts less than 1 m s −1 each night, we only took operation ThAr data at the beginning, the middle, and the end of each night to track intra-night instrument drifts.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Spectrum Extraction</head><p>In the next several sections, we will describe the pipeline steps taken to transfer stellar exposure CCD images to RV data. The detailed error budget will be presented in section 4. We reduce the TOU CCD spectral images using a standard optimal extraction technique <ref type="bibr" target="#b30">(Horne 1986;</ref><ref type="bibr" target="#b46">Piskunov &amp; Valenti 2002;</ref><ref type="bibr" target="#b65">Zechmeister et al. 2014</ref>) to trace spectral orders on the two dimensional echelle CCD image, rectify the orders, and then sum pixel flux in columns to obtain a one-dimensional spectrum for each order. The standard bias subtraction, scattered-light subtraction, and flatfielding are also included in this extraction step. We use a master bias image created from a combined frame from ten 0 s exposures taken before each night's observation for the bias subtraction. Scattered-light are modeled by fitting a three order polynomial function to the inter-order background flux among the 10 nearest orders on both sides of the order we want to extract, then interpolate to obtain the background flux values on the location of the current working order. Flats with different exposure times are used to optimize the SNR in the blue and red part of the CCD, because the tungsten lamp has far more flux at longer wavelengths than at shorter ones. The flat fielding spectrum is constructed from a large number of Tungsten lamp spectra (each with a median SNR &gt; 400 per pixel) extracted in the same way as stellar spectra obtained in the same day. The spectral profile in the X-direction (the spatial direction) is modeled using high SNR Tungsten lamp exposures on each night for summing the two dimensional (2D) stellar spectra and create the final extracted one dimensional (1D) stellar spectra. Cosmic rays are also rejected at the same time when one dimensional spectra are extracted. <ref type="figure">Figure 2</ref> shows part of the reduced 1D spectrum of Tau Ceti, which has not been de-blazed.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Wavelength Solution</head><p>We created a wavelength solution by first developing a code to automatically identify stable Thorium lines in our  <ref type="bibr">1</ref> We will upload our line list online for others to use. This has been verified after we took high resolution spectra of two of our ThAr lamps using the 2-m Fourier Transform Spectrometer (FTS) at the National Institute of Standards and Technology (NIST) in August 2016. We then make a high precision two-dimensional wavelength solution by fitting the line centroid pixels, spectral orders, and wavelengths of these stable Thorium lines. The wavelength solution model used is as follows: <ref type="figure">Figure 2</ref>. One dimensional optimally extracted TOU spectrum of Tau Ceti, before removing the blaze function of the order. In our RV extraction pipeline, we do not normalize the spectrum using its continuum as this process is not necessary in our RV extraction as described in section 2.5.</p><formula xml:id="formula_0">λo,i = ao,0 + ao,1 * i + ao,2 * i 2 + ao,3 * i 3 ,<label>(1)</label></formula><p>where o is the order number and i is the pixel number, ao,0, ao,1, ao,2, and ao,3 are the wavelength solution coefficients for order o. We fit this wavelength solution model using the identified Thorium lines. We were able to identify about 2000 Thorium lines in the 4000−6200Å6200Å wavelength range. The wavelength residuals for all the Thorium lines with respect to the fitting values have an rms of 0.0008Å0008Å.</p><p>To test the repeatability of the wavelength solution, we did an experiment. In this experiment, we first created five wavelength solutions from ThAr exposures obtained in the same hour. Then we compute the RVs of one bright stellar exposure using these wavelength solutions. The RVs have a scatter of ∼0.3 m s −1 , which demonstrates the error of the 'zero-point' of the wavelength solution. We want to note that the relative stableness of this 'zero-point' is important when masking telluric lines, but not as critical when deriving differential RVs.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4">Building a Stellar Template</head><p>We build a stellar template with the highest possible SNR for each star in order to deliver an optimal RV precision. In the first pass of all the spectra, the preliminary RV for each epoch is obtained with respect to a preliminary stellar template using the same algorithm described in section 2.5. The preliminary stellar template is chosen as the stellar spectrum with the highest SNR. These preliminary RV measurements are then used to shift stellar spectra at each epoch and combine them to create a final stellar template. Specifically, spectra obtained in different epochs are not sampled at the same wavelength grid and cannot be co-added directly without interpolation. The preliminary template is served as a reference to generate a grid of reference wavelength in each order. Each stellar spectrum is then interpolated to the reference wavelength grid using a cubic spline function. The spline interpolation used in our pipeline is not flux conserving. However, this interpolation has an negligible effect on RV measurements based on our simulations. The final stellar template flux value on each re-sampled wavelength grid is computed using a 3 sigma clipped weighted mean over <ref type="figure">Figure 3</ref>. A spectrum matching result from a 10Å10˚10Å chunk of Tau Ceti spectrum. The spectra shown here are normalized for display purposes. The SNR per pixel of the observation is 173, which corresponds to a residual rms of 0.58% assuming that the observed spectrum only contains photon noises and the spectral template has a negligible amount of photon noises. Since the template is generated by combining over one hundred Tau Ceti spectra, it has a very high SNR per pixel (&gt; 1000) and negligible amount of photon noises. The actual spectrum matching residuals shown in the bottom panel have an rms value of 0.66%. The slight excess of residual rms comparing with photon noises suggests that assuming Poisson statistics is usually slightly optimistic.</p><p>all epochs. Telluric absorption features deeper than 1% of the continuum level are masked out during this co-adding process since these features do not co-move together with stellar absorption lines and would compromise the quality of the template.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.5">Global Continuum and Template-Matching</head><p>The RVs are derived using a method that we call the global continuum and template-matching technique, which is similar to that used in Anglada- <ref type="bibr" target="#b0">Escudé &amp; Butler (2012)</ref> and <ref type="bibr" target="#b66">Zechmeister et al. (2017)</ref>. In this process, we use the RV shift of the star, the blaze function derived from the Tungsten lamp calibration spectra, and a three order polynomial function to match an observed spectrum to the template using a non-linear Levenberg-Marquardt least squares technique. The initial guesses of the RVs are estimated from a 400 pixel trunk in the order 110 using a fast cross-correlation algorithm (Anglada-Escudé &amp; Butler 2012), which are typically within 100 m s −1 of the final RVs, to minimize the required number of computationally expensive least-squares iterations.</p><p>The shape of the continuum from the Tungsten lamp spectrum in each spectral order is largely determined by the combination of the Tungsten intrinsic spectrum and the echelle grating blaze function. Due to the temperature difference between a star observed and the Tungsten lamp, their black body radiation spectrum continuum shapes are different. The continuum shape difference between two black bodies in a narrow wavelength range covered by each spectral order can be approximately described as a low-order polynomial function <ref type="bibr" target="#b10">(Brahm, Jordán, &amp; Espinoza 2017)</ref>. To measure relative RVs, we only need to know the variation of this low-order polynomial from one stellar exposure to the next exposure, which can be modeled using another low-order polynomial <ref type="bibr" target="#b0">(Anglada-Escudé &amp; Butler 2012)</ref>. This use of the new low-order polynomial correction can also account for instrumental/observational effects, such as the impact of airmass and atmospheric dispersion/extinction, and wavelength-dependent fiber coupling <ref type="bibr" target="#b0">(Anglada-Escudé &amp; Butler 2012;</ref><ref type="bibr" target="#b66">Zechmeister et al. 2017)</ref>. <ref type="bibr" target="#b0">Anglada-Escudé &amp; Butler (2012)</ref> investigated the impact of the choices of this new polynomial function on the RV measurements using HARPS data and found that a three order polynomial is optimal in their pipeline (see also <ref type="bibr" target="#b66">Zechmeister et al. 2017</ref>). In our data pipeline, we also use a three order polynomial to correct wavelength-dependent flux variations between different stellar exposures, which are uncorrected by the Tungsten calibration spectra.</p><p>The parameters that yield the best fit between the template and the observed spectrum are derived using the standard Levenberg-Marquardt least-squares algorithm. The adopted uncertainty in the determined RV is derived from the square root of the variance of the best fit. <ref type="figure">Figure 3</ref> illustrates this matching result for a small trunk of the spectrum of Tau Ceti. The rms of the residuals is a little higher than the rms estimated from the Poisson photon noise distribution, which suggests there are other errors involved in this matching process, e.g., an imperfect template.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.6">Barycentric Velocity Correction</head><p>To calculate the differential RV with respect to the barycentric reference, we also need to correct the observer's heliocentric motion against the barycenter of the solar system, the Earth's rotation, and the influence of all the other bodies in the solar systems. The barycentric velocity is derived for each stellar exposure using the flux weighted centroid exposure time and code from <ref type="bibr" target="#b64">Wright &amp; Eastman (2014)</ref>. The flux weighted centroid time is calculated from the Photomultiplier Tube (PMT) counts recorded simultaneously during a stellar exposure using ∼4% of the photons from the science fiber output.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.7">Instrumental RV Drift Correction</head><p>The final correction to apply in our RV pipeline is the instrumental RV drift correction using reference ThAr frames taken in the afternoon and operation ThAr calibration frames taken every night in-between stellar exposures. <ref type="figure" target="#fig_1">Fig- ure 4</ref> shows typical intra-night instrument drifts, which are less than 1 m s −1 . Since the TOU instrument is very stable in each night, we can interpolate these measured instrumental RV drifts at the beginning, middle and end of the night to derive the drift correction for each stellar exposure. The drifts measured by reference frames are used for correcting the instrument long-term drifts in stellar RV measurements.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">ON-SKY RV PERFORMANCE</head><p>The short-term velocity rms is a good metric for characterizing instrumental precision. Tau Ceti (HD 10700, V = 3.5, G8V) is known as one of the most RV-stable bright G dwarfs ( <ref type="bibr" target="#b44">Pepe et al. 2011</ref>), which makes it an ideal target for the  purpose of calibrating our processing pipeline. Thus, we observed this target near meridian three times each night within a 40 min window whenever the weather was good, for a total of 35 nights over 60 days. Most of the exposures were acquired at an airmass between 1.4−1.7. Each exposure is 10 minutes to ensure that high SNR (SNR∼330 per resolution element, including 3.3 pixels, at 5500Å5500Å on average) spectra are collected. <ref type="figure" target="#fig_2">Figure 5</ref> shows these RV measurements, which have an rms value of 0.9 m/s. Each RV measurement is derived by combining three consecutive 10 min exposures on each night, which can effectively minimize the high frequency stellar oscillation noise. We only applied instrument drift correction using Th-Ar exposures for these RV measurements. This rms is consistent with that from HARPS measurements reported by ( <ref type="bibr" target="#b44">Pepe et al. 2011</ref>). The RV rms before we combine the three data points on each night is ∼1.3 m s −1 . Sources which contribute to this RV measurement error are further analyzed and reported in the following section. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">RV ERROR BUDGET ANALYSIS</head><p>In this section we discuss all error sources that are relevant to the sub-m s −1 RV precision from the observations, instrument, and data reduction pipeline. All error sources discussed in this section are summarized in <ref type="table" target="#tab_1">Table 1</ref>, which have a combined value of 0.92 m s −1 . This total estimated error is consistent with our on-sky measurement performance.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Photon Limited Errors</head><p>We compute here the errors in the RV measurements due entirely to the poisson noise of the spectral images ( <ref type="bibr" target="#b11">Butler et al. 1996;</ref><ref type="bibr" target="#b8">Bouchy et al. 2001</ref>). We used two methods to calculate the error values: one using a theoretical method by calculating the 'Q' factor ( <ref type="bibr" target="#b8">Bouchy et al. 2001)</ref> and the other using a simulation method by putting simulated spectra with poisson noise through the pipeline. For the theoretical 'Q' factor method, the photonlimited RV error is given by:</p><formula xml:id="formula_1">σ photon = c Q √ N ,<label>(2)</label></formula><p>where N is the total number of photons over the entire spectral range, c is the speed of light, and Q is the quality factor of the stellar spectra.</p><p>In the simulation method, we generate simulated spectra of Tau Ceti by adding poisson noises to the stellar template. All the simulated Tau Ceti spectra have an input RV of 0 m s −1 . The wavelength coverage of the stellar template is ∼4250−6200Å6200Å. We then calculate RVs for these simulated spectra and the standard deviation of the final RV's distribution is treated as the photon-limited error, σ photon . <ref type="figure" target="#fig_3">Figure 6</ref> displays the σ photon results for Tau Ceti as a function of SNR from both methods, which shows a linear inverse relation as expected. With a SNR of 300 per pixel at 5500Å5500Å, the photon limited RV error is ∼0.33 m s −1 for Tau Ceti, which is included in <ref type="table" target="#tab_1">Table 1</ref>. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Wavelength Calibration Errors</head><p>As described in section 2.3, our derived wavelength solution has a typical wavelength solution error of ∼0.0008Å0008Å for each pixel. This wavelength solution error would lead to RV measurement uncertainties. We conducted simulations to study its resulting RV error. First, we simulate stellar spectra using an input barycentric velocity variation from -30 to +30 km s −1 in steps of 5 km s −1 with a spectral template of Tau Ceti and a 'correct' wavelength solution. We then create 'noisy' wavelength solutions by injecting Gaussian distributed errors with σ ∼0.0008Å0008Å onto each pixel of the 'correct' wavelength solution. By matching the simulated spectra having 'noisy' wavelength solutions to the perfect stellar template with a 'correct' wavelength solution, the RV error induced by the 'noisy' wavelength solution can be derived. The results of the simulation are shown in <ref type="figure" target="#fig_4">Figure 7</ref>. We do not add any Poisson photon noises to the simulated stellar spectra to ensure the derived RVs only contain effects from the wavelength calibration error, which have an rms of ∼0.4 m s −1 . This rms value of ∼0.4 m s −1 represents the RV error induced by the wavelength calibration error, which is included in <ref type="table" target="#tab_1">Table 1</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3">Micro-Telluric Line Contamination</head><p>Another source of RV error is the Earth's atmospheric contamination, which creates telluric line features on stellar spectra obtained on the ground. Although telluric lines are known to be strong in the infrared bands (beyond 6000Å6000Å), there exists many micro-telluric lines in the optical band (4500−6000Å6000Å; <ref type="bibr" target="#b13">Cunha et al. 2014;</ref><ref type="bibr" target="#b53">Smette et al. 2015</ref>). Since these stellar absorption lines move against micro-telluric lines when the star moves relative to the observatory, these lines will produce systematic noises when measuring stellar line movements. We masked out parts of the stellar spectra where telluric lines are deeper than 1% during the RV extraction step. We also make the mask bigger to take into account the fact that these lines can move by as much as ±30 km s −1 per year due to the barycentric motion, which can make some spectral orders useless when deriving RVs. However, according to the simulation study by <ref type="bibr">Sithajan et al. (2018, in preparation)</ref>, micro-telluric lines shallower than 1% in the optical band can still create an RV error around 0.1−0.2 m s −1 , which is included in <ref type="table" target="#tab_1">Table 1</ref> as an error from the micro-telluric line contamination. The size of this error is mainly dependent on stellar spectral type and the Earth's atmospheric water vapor column density distribution during the observation ( <ref type="bibr" target="#b13">Cunha et al. 2014</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.4">Instrument Drift Correction Error</head><p>We estimated the instrument drift correction error based on the combined error of the instrument long-term drift calibration error and the intra-night drift calibration error. For the long-term drift calibration error, we estimate that the error of each instrument drift measurement using one single ThAr exposure from the 'reference lamp' is on the order of ∼0.3 m s −1 , which mainly comes from the photon counting errors of the Thorium emission lines used in the calculation. We took three 'reference lamp' exposures every night, and found that the drift measurement from the first exposure is usually off by 1 to 2 m s −1 comparing with the next two measurements. Thus, we decided to skip the first exposure, and use the second and third exposures from the 'reference lamp' to calculate the nightly instrument drift, which results in an instrument long-term drift correction error of ∼0.2 m s −1 . We currently do not know why the first exposure shows poor performance for RV drift measurements. We have verified that thorium line intensities did not change significantly from the first to the third exposure. We thus can only speculate that it likely occurred because the lamp was only turned on an hour ago and still warmed up.</p><p>For the intra-night drift correction error, we estimate the error from the residual after we took the linear fit to each night instrument drifts as illustrated in <ref type="figure" target="#fig_1">Figure 4</ref> and subtracted the linear trend in instrument drifts. <ref type="figure">Figure 8</ref> shows <ref type="figure">Figure 8</ref>. Intra-night instrument drift residuals tracked using the ThAr 'operation lamp'. We first fit a linear function to these measurements from the 'operation lamp' on each night, then remove this best fit to calculate the residuals. The rms of the residuals is ∼0.3 m s −1 . This best linear fit from each night will be used to derive the instrument drift corrections for stellar exposures on that night. the overall instrument RV drift residuals after removing the best linear fit from the instrument drifts measured using the 'operation lamp' exposures on each of the 60 nights, with an rms value of ∼0.3 m s −1 . This ∼0.3 m s −1 is the error we adopt for the intra-night instrument drift correction. We can reduce this error down to 0.1 m s −1 by committing more telescope time on each night to take more ThAr exposures. But we choose not to do that because the RV precision improvement is not significant, and more ThAr exposures on each night would yield less stellar exposures.</p><p>By combining the error of ∼0.2 m s −1 for nightly instrument drift correction and ∼0.3 m s −1 for intra-night instrument drift correction, we have the total instrument drift correction error on the order of ∼0.36 m s −1 for each stellar exposure, which is included in <ref type="table" target="#tab_1">Table 1</ref>.</p><p>There is a second method to estimate the instrument drift correction error. We conducted an experiment in which we used both of the 'reference lamp' and 'operation lamp' to track the same long-term instrument drifts. During the experiment, we took sequential exposures from both lamps separated by less than 10mins on each night, so the nightly instrument drifts between these exposures are negligible. We subtracted one instrument drift from the other, and the result is shown in <ref type="figure">Figure.</ref> 9. The rms of the residuals is 0.38 m s −1 , which is very close to the theoretically estimated value of 0.36 m s −1 introduced above. This experiment demonstrates the use of 0.36 m s −1 as our instrument drift correction error in <ref type="table" target="#tab_1">Table 1</ref> is reasonable.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.5">Barycentric velocity correction</head><p>We estimated barycentric velocity correction errors using simulations of stellar observations incurred from errors in the stellar coordinate (∼3 mas), observatory coordinate and altitude (∼10 meters), proper motion (∼1 mas/yr), parallax (∼0.2 mas), and timing error of the flux weighted exposure centroid time (∼1 s). The accumulated error is &lt;0.05 m s −1 for Tau Ceti, which is also included in <ref type="table" target="#tab_1">Table 1</ref>. However, for a fainter star with a longer exposure time, this barycentric velocity correction error is larger, and is dominated by the timing error of the flux weighted exposure centroid time. We use simulations to estimate this timing error for fainter stars. For a star with V = 9 magnitude, the stellar PMT count rate is ∼10 counts/s, including the background noise level of 2.4 counts/s for the PMT. Under variable weather conditions, our simulations show the timing error can reach ∼11 seconds for a 50 min exposure of a V = 9 star. This would generate a barycentric velocity correction error as large as ∼ 0.2 m s −1 .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.6">Template Interpolation Error</head><p>We use a spline function to interpolate the stellar template spectrum at certain wavelengths, which is the best guess using all the information from the observation. This can introduce mathematical errors. We estimate these errors by carrying out a simulation using just one absorption line. A Gaussian function is used to represent this absorption line. We then create 121 spectral lines to represent the same spectral line with barycentric velocity movements from -60 to +60 km s −1 . For this Gaussian-shaped narrow spectral line, the interpolation brings an error on the order of 2 m s −1 for TOU's spectral resolution and pixel sampling of each resolution element. If the absorption line profile is broader due to fast rotation of a star, this interpolation error is smaller because the line is better sampled in the pixel space. Thus, the sharper the line is, the larger this interpolation error is for each line. Since this error is only dependent on the pixel position of the line center, it will average out with hundreds of absorption lines in each spectral order. Since we use more than ∼400 stellar absorption lines to calculate RVs, this error is likely smaller than 0.1 m s −1 , which is included in <ref type="table" target="#tab_1">Table 1</ref> as the template interpolation error.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.7">PSF Variation</head><p>In our pipeline, we choose not to use deconvolution to correct variations in our instrument PSF, which are usually induced by unforeseeable optics or optical illumination changes due to instrument temperature and pressure variations and/or fiber coupling. Although the environment of the TOU instrument is very well controlled, there still exist minor variations, which affect RV extraction in the spectrum matching process and produce RV measurement uncertainties. We use a set of 400 strong and un-saturated Thorium emission lines to trace the instrument PSF variations. We use a function that contains three Gaussians to fit each Thorium line. This three-Gaussian function profile contains a large central Gaussian function and two small Gaussian functions with their centroids ±1 pixel away from the central Gaussian function. The full width at half maximum (FWHM) is derived using the central Gaussian function. We also defined an asymmetry index, which is the area difference between the left and the right Gaussian functions divided by the total area under all three Gaussians. <ref type="figure" target="#fig_0">Figure 10</ref> shows the variations of PSF FWHM and asymmetry index during two months of observations. These plots show that the FWHM is stable within 0.001 pixel, and the asymmetry index is stable within 1 × 10 −4 dex.</p><p>The PSF variation with time can introduce systematic errors in RV measurements by changing the shapes of stellar lines. These spectral line profile variations can be interpreted as RV shifts when matching with a stellar template. Using the measured PSF variations, we have simulated their effects on TOU RV measurements for Tau Ceti. Our results show that PSF variations over time can cause an rms of ∼0.2 m s −1 RV error, which is included in <ref type="table" target="#tab_1">Table 1</ref> as an error caused by PSF Temporal Variation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.8">Flat-Fielding Variation</head><p>In this section, we will study the impact of flat-fielding variations on RV measurements. Since the flat-fielding modulates with the flux intensity of a stellar spectrum in each spectral order. For a perfectly stable instrument, the effective flatfielding function for each echelle order should be constant over time. However, it is never constant due to some instrument effects, which can cause a problem when we match observed stellar spectra with a spectral template. <ref type="figure" target="#fig_0">Figure 11</ref> shows the flat-fielding variations during our two months of Tau Ceti Observations. The relative value (rms) changes by ∼0.1−0.4%. The best method to correct this small flatfielding variation is to take sufficient calibration data on each observation night and generate high SNR (∼1000 per pixel) flat-fielding spectra for correction.</p><p>Our simulations show that flat-fielding variations of ∼0.4% can induce up to 0.4 m s −1 RV errors for G-type stars, and 0.2 m s −1 RV errors for K-and M-type stars in the optical band. The impacts are bigger for G-type stars than Kand M-type stars because spectra of K-and M-type stars contain more RV information than those of G-type stars and the flat-fielding variation effect can be averaged out by some degree when assuming all spectra have the same SNRs ( <ref type="bibr" target="#b8">Bouchy et al. 2001;</ref><ref type="bibr" target="#b61">Wang &amp; Ge 2011</ref>). High SNR calibration data from the Tungsten lamp allow us to correct most of the flat-fielding variations, which leaves &lt; 0.1 m s −1 RV noise. This error is included in <ref type="table" target="#tab_1">Table 1</ref> as an RV error from the flat-fielding variation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.9">Color Effect</head><p>Because of the atmospheric dispersion and extinction effect at different airmass between many exposures of the same star, we anticipate the flux weighted centroid time of observation, which is used to calculate the barycentric velocity correction, is color dependent. Since we optimized the schedule to observe Tau Ceti at a low and similar airmass each night, the atmospheric dispersion effect is minimal. However, the light transmission through the atmosphere is also strongly dependent on wavelength and airmass due to the atmospheric extinction. Therefore, the flux weighted centroid time of a stellar exposure, and the barycentric velocity correction calculated using the flux weighted centroid time, is also wavelength dependent. This can create an RV error smaller than 0.1 m s −1 for a 30 min exposure using 3800−6800Å6800Å according to the simulation work of <ref type="bibr" target="#b6">Blackman et al. (2017)</ref>, in which the authors suggest using a multiple-channel exposure meter to correct this effect.</p><p>Here we estimate the impact of this effect on our RV measurements of Tau Ceti from TOU. The flux weighted centroid time in the blue spectral orders (tB) and red spectral orders (tR) are slightly different due to the atmospheric dispersion/extinction. When calculating errors of relative RV measurements, we only need ∆(tB − tR), which can be estimated using the flux distribution variation from the red to blue spectral orders of the Tau Ceti exposures. We first calculate the flux ratios between the red spectral orders and blue spectra orders FB/FR using the total photon numbers from order 125−130 (FB) and order 105−110 (FR), then normalize them using the median value of all the FB/FR. The normalized ratios, hereafter FB/FR, are shown in <ref type="figure" target="#fig_0">Fig- ure 12</ref>, from which ∆(FB/FR) is derived and has an rms value 1.5%. The amplitude of this variation mainly depends on the airmass of the target during the observation, the extinction law, and the total exposure time ( <ref type="bibr" target="#b6">Blackman et al. 2017</ref>). The flux weighted centroid time difference between the blue order and red order ∆(tB − tR) can be expressed as ∼ 0.21 × ∆(FB/FR) × Exposure Time. The factor of 0.21 comes from the fact that in an extreme case where the transmittance in the blue order changes linearly with time from T Initial to 0 due to atmospheric dispersion change while the transmittance in the red order does not decrease at all, thus ∆(FB/FR) = 1, this flux weighted centroid time would decrease by a 21% of the total exposure time from the red order to blue order. With the rms value of ∆(FB/FR) as 1.5%, this results in a 1.9 seconds rms of centroid time difference from a 10 min exposure of Tau Ceti, which can induce an error of 0.035 m s −1 (rms) when measuring relative RVs. Our result estimated from real observation data is similar to that from the simulation work of <ref type="bibr" target="#b6">Blackman et al. (2017)</ref>, in which they would predict an RV error smaller than 0.15 × 10 mins 30 mins ∼ 0.05 m s −1 for a 10 min exposure. Since we use three consecutive 10 min exposures of Tau Ceti to calculate one RV point, the error from this color effect is 0.035 × 3 0.5 = 0.06 m s −1 , which is included in <ref type="table" target="#tab_1">Table 1</ref> as an error from the color effect.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.10">CCD Effect</head><p>If a spectral line passes over an imperfection of the CCD, this spectral line can undergo a deformation to introduce an  RV variation that is correlated or anti-correlated with the Barycentric velocity. This effect can potentially create a false one year periodical RV signal ( <ref type="bibr" target="#b18">Dumusque et al. 2015b</ref>). We have not been able to identify such a one year period signal in our TOU data, thus we are not able to estimate the amount of error due to the CCD imperfections in this study. 5 × 10 −6 pixel −1 . Based on the analysis of <ref type="bibr" target="#b9">Bouchy et al. (2009)</ref>, our best guess of the RV measurement error for bright stars from CTI for TOU is smaller than 0.1 m s −1 , which is included in <ref type="table" target="#tab_1">Table 1</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.11">Telescope Guiding</head><p>Another error source is the telescope guiding. The small image movements feeding into the fiber tip can cause tiny spectral line shifts on the CCD image, which translates to RV noises. Our telescope has a measured guiding error of ∼0.3 arcsec (rms value). With a mode scrambling gain factor of 2000 from the science fiber with an optical mode double scrambler ( <ref type="bibr" target="#b24">Ge et al. 2014a</ref>) used in the TOU spectrograph, this guiding error can lead to stellar absorption line shifts on the scale of 3×10 −4 pixel on the CCD. These randomly generated line shifts from telescope guiding error can produce an RV error on the order of 0.3 m s −1 for TOU, which is summarized in <ref type="table" target="#tab_1">Table 1</ref> as the RV error from telescope guiding.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.12">Stellar Activity Jitter</head><p>Stellar activity, including stellar oscillations, granulation, spots, and plages, can affect RV measurements ( <ref type="bibr" target="#b17">Dumusque et al. 2015a</ref>). However, it is hard to directly measure this error as it is usually mixed with other measurement uncertainties. Wright (2005) studied stellar RV jitters from RV measurements of ∼450 FGK stars from Keck Observatory and concluded that RV jitter amplitude depends on stellar activity levels and spectral types, varying from ∼1 m s −1 to a few tens m s −1 . Isaacson &amp; Fischer (2010) studied chromospheric activity for more than 2600 main-sequence and subgiant stars in the California Planet Search (CPS) program and showed that solar-type stars typically have a few m s −1 RV noise induced by stellar activity. Suárez <ref type="bibr" target="#b56">Mascareño et al. (2017)</ref> also studied the RV jitter induced by stellar activity using HAPRS data for 55 FGKM dwarf stars and were able to provide jitter measurements and fitting down to the sub m s −1 level. Using the equation provided by <ref type="bibr" target="#b56">Suárez Mascareño et al. (2017)</ref> for G-type stars, we derive an RV jitter of ∼0.45 m s −1 for Tau Ceti using log 10 (R ′ HK ) = −4.98 from <ref type="bibr" target="#b33">Isaacson &amp; Fischer (2010)</ref>, which is included in <ref type="table" target="#tab_1">Table 1</ref> as stellar jitter.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">SUMMARY AND DISCUSSION</head><p>In this paper, we present our data reduction pipeline for the TOU high-resolution spectrograph and its RV performance. To understand the RV error budget when observing bright targets with the TOU spectrograph, we also conducted a detailed study using a bright RV stable star, Tau Ceti, as an example. Our results indicate that TOU has reached a sub-m s −1 RV precision, which can be used to detect close-in super-earths around nearby bright stars and monitor their stellar activity properties. The TOU spectrograph was relocated to the UF 50-inch robotic telescope, called the Dharma Endowment Foundation Telescope (DEFT), at Mt. Lemmon in 2015. From 2016-2021, TOU is mainly used for the high cadence and high precision Dharma Planet Survey (DPS, <ref type="bibr" target="#b26">Ge et al. 2016;</ref><ref type="bibr" target="#b39">Ma et al. 2018</ref>) and the TESS (Transiting Exoplanet Survey Satellite, <ref type="bibr" target="#b47">Ricker et al. 2015</ref>) planet candidates follow-up.</p><p>As illustrated in our error budget discussions in Section 4, major efforts are needed to achieve 0.1 m s −1 precision with the next generation Doppler RV instruments. This includes, but are not limited to, improving the PSF deconvolution and micro-telluric line removal, deriving a better wavelength calibration solution, building a more stable instrument, and getting a better understanding of stellar activity jitter and its removal.</p><p>Our study shows that wavelength dispersion of a high resolution optical spectrograph must be known with an incredible precision to deliver the ultra-high RV precision necessary for the detection of an Earth analog. Due to the limitations of the currently widely used emission lamps (such as ThAr lamps) and absorption cells (such as iodine cells) as wavelength calibration sources ( <ref type="bibr" target="#b11">Butler et al. 1996;</ref><ref type="bibr" target="#b22">Fischer et al. 2016</ref>), many research groups are actively developing new calibration sources to reach better than 0.1 m s −1 calibration precision in the optical band. These calibration sources include laser-frequency combs ( <ref type="bibr" target="#b35">Li et al. 2008;</ref><ref type="bibr" target="#b55">Steinmetz et al. 2008</ref>), Fabry-Perot interferometer calibration sources ( <ref type="bibr" target="#b62">Wildi et al. 2011;</ref><ref type="bibr" target="#b52">Schwab et al. 2015;</ref><ref type="bibr" target="#b2">Bauer et al. 2015)</ref>, and the SINE source developed by our group <ref type="bibr" target="#b60">(Wan &amp; Ge 2010;</ref><ref type="bibr" target="#b25">Ge et al. 2014b</ref>). These new calibration sources pose significant improvements of the wavelength calibration from the currently widely used ThAr lamps and iodine cells with precise RV instruments, and make it possible to reduce the wavelength calibration error to the 0.1 m s −1 level or better. These new calibration sources can also improve the instrument drift correction efficiency by reducing the calibration exposure time needed on each night. This is because there are more strong and stable lines from these new calibration sources available to calibrate instrument drifts, comparing with only several hundred strong Thoriums lines available to use from a ThAr lamp.</p><p>The stellar activity jitter, including but not limited to, RV perturbations induced by stellar spots, plages, and granules, is probably the strongest limitation for Doppler measurements aiming at the sub-m s −1 precision. It would be even more challenging to detect an Earth-twin in the habitable zone around a sun-like star as the RV signal caused by the planet is on the order of ∼0.1 m s −1 which is much smaller than typical stellar noises (e.g. <ref type="bibr" target="#b63">Wright 2005;</ref><ref type="bibr" target="#b33">Isaacson &amp; Fischer 2010;</ref><ref type="bibr" target="#b56">Suárez Mascareño et al. 2017</ref>). In order to correct RV jitters caused by stellar activities, it is important to study stellar activities and mitigation techniques. On the other hand, our Tau Ceti measurements show that this star has a relatively low stellar jitter level of ∼0.45 m s −1 . This suggests that it is quite possible that some solar type stars may be very quiet in stellar activities, which can be ideal targets for searching for Earth analogs in the future. Since stellar activities from a star have a certain temporal structure, one way to tackle this stellar activity noise problem is to acquire as many RV data points as possible to mitigate the noise. This process can be done simply by using an advanced observation scheduling scheme like the one proposed by <ref type="bibr" target="#b16">Dumusque et al. (2011)</ref>. Another way to reduce the stellar jitter impact is to use a better stellar jitter model, like time-dependent moving average models ( <ref type="bibr" target="#b57">Tuomi et al. 2013</ref>) or wavelength-dependent noise models <ref type="bibr" target="#b21">(Feng et al. 2017</ref>), both of which require larger than usual RV datasets to constrain the jitter model. Imaging or photometry data can also help remove some of the stellar jitter noise. Since activity jitter can be color dependent, <ref type="bibr" target="#b37">Ma &amp; Ge (2012)</ref> proposed a multi-band RV technique to remove activity jitter induced by stellar spots and detect planet signals. <ref type="bibr" target="#b17">Dumusque et al. (2015a)</ref> studied the Sun using HARPS-N and developed a technique to extract its true RVs using fulldisk photometry data. <ref type="bibr" target="#b14">Dai et al. (2017)</ref> used a Gaussian process regression based on both RV and photometric data to successfully detect a planet signal in addition to stellar activity jitter noises. <ref type="bibr" target="#b15">Davis et al. (2017)</ref> proposed a statistical technique to disentangle stellar activity jitter from planet signals using principal component analysis <ref type="bibr">(PCA)</ref>.</p><p>For the errors caused by micro-telluric lines, we cannot use the mask method ( <ref type="bibr" target="#b43">Pepe et al. 2002)</ref> to reduce them because there are too many micro-telluric lines to mask. There are three possible methods to reduce these errors. The first one is to launch the spectrograph to space together with an optical/IR telescope, which is expensive. It is also difficult to maintain the stability of the spectrograph in space. The second way is to create synthetic models of microtelluric lines using weather data collected during observations <ref type="bibr" target="#b51">(Seifahrt &amp; Käufl 2008;</ref><ref type="bibr" target="#b3">Bean et al. 2010;</ref><ref type="bibr" target="#b34">Kausch et al. 2015</ref>), then apply these synthetic models to remove telluric lines from stellar spectra. This method strongly depends on the completeness of the telluric line list, the accuracies of the telluric line parameters, and the accuracies of air molecular column densities (such as H2O and O2) measured during observations ( <ref type="bibr" target="#b28">Gullikson et al. 2014;</ref><ref type="bibr" target="#b5">Bertaux et al. 2014</ref>). The last method is to collect spectra from early-type (B-or Atype) telluric standard stars to derive empirical models of micro-telluric lines ( <ref type="bibr" target="#b59">Vacca et al. 2003)</ref>. To obtain an accurate telluric line model, observations of the telluric standard star and the science target should be conducted around the same time and airmass to ensure similar light paths through the atmosphere for both stars. Such scheduling is not always easy to arrange, and a significant amount of telescope time is needed to acquire high SNR (&gt; 1000 per pixel) spectra from telluric standard stars.</p><p>A better optimized schedule of observations can also improve the performance of next generation of RV instruments. Achieving the same SNR for each exposure of the same star can help reduce the error from CTI ( <ref type="bibr" target="#b7">Blake et al. 2017</ref>), because CTI is known to be a function of the flux level. Nevertheless, the best way to minimize this CTI effect is to arrange the CCD orientation to let its readout direction perpendicular to the dispersion direction like what we did for TOU. Repeatedly observing the same star under the same airmass condition can reduce the RV noises from color effect. These errors are negligible for now when targeting ∼1 m s −1 RV precision, but will be significant for the next generation of instruments which are targeting ∼0.1 m s −1 RV precision.</p><p>Major efforts have been made by us to develop and test the data reduction pipeline for the TOU spectrograph, which has delivered a sub-m s −1 RV precision. Our pipeline study using the TOU spectrograph demonstrates it is necessary to carefully go through all the steps in the data reduction to fully understand all error sources which contribute to RV performance on stars. Only after we understand all of the RV error sources and can make precise correction, there is a possibility of achieving 0.1 m s −1 using a stable and very high-resolution optical spectrograph.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 .</head><label>1</label><figDesc>Figure 1. The CCD image of Tau Ceti with a 10 min exposure time using the TOU spectrograph. The spectrum is taken by the 2-m Automatic Spectroscopic Telescope at Fairborn observatory in 2014 November. The horizontal (X-axis) and vertical axes (Yaxis) are corresponding to the spatial and dispersion directions, respectively.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 4 .</head><label>4</label><figDesc>Figure 4. Intra-night instrument drifts on a typical night tracked with the ThAr 'operation lamp'. We use a linear function to fit these measurements from the 'operation lamp'. The rms of the fitting residuals is ∼0.3 m s −1 .</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 5 .</head><label>5</label><figDesc>Figure 5. Radial velocity measurements of an RV stable star, Tau Ceti, using the TOU spectrograph.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 6 .</head><label>6</label><figDesc>Figure 6. Photon limited RV errors for Tau Ceti using the TOU spectrograph at 4250−6200Å6200Å. The blue diamonds are results from our simulation and the solid curve is calculated from the 'Q' factor.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Figure 7 .</head><label>7</label><figDesc>Figure 7. Simulation study of RV errors induced by the wavelength solution errors. In the simulation, we calculate the RV by matching a simulated stellar spectrum with a 'noisy' wavelength solution with an error of 0.0008Å0008Å in each pixel to a perfect stellar template with the 'correct' wavelength solution. The final RVs are shown as black filled circles, with an rms value of 0.4 m s −1 . If we use the 'correct' wavelength solution for all the simulated spectra, the final RVs are zeros, which are shown as red open circles here. No noises are added to the simulated stellar spectra.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Figure 9 .</head><label>9</label><figDesc>Figure 9. Investigation of the instrument drift correction error. We use both ThAr lamps to track the instrument drifts over 60 days. The residuals after one drift is subtracted by the other drift is shown in this figure. The rms of the residuals is ∼0.38 m s −1 .</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Figure 10 .</head><label>10</label><figDesc>Figure 10. Illustration of PSF shape evolution with time. The left panel displays variations of FWHM (in pixels) of the PSF with time. The right panel displays variations of the asymmetry index as defined in Section 4.7 with time. The FWHM is stable within 0.001 pixel, and the asymmetry index is stable within 1 × 10 −4 dex.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Figure 11 .</head><label>11</label><figDesc>Figure 11. Evolution of normalized flat-fielding curve over time for the TOU spectrograph order 110. From top to bottom, there is an increment of 10 days between each flat-fielding curve. An offset of 0.05 unit of normalized flux is added between each curve for display purposes. The flat-fielding curves are derived using high SNR calibration spectra of Tungsten lamp on each observation night. The rms value of each normalized curve is also shown in the figure.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head>Figure 12 .</head><label>12</label><figDesc>Figure 12. Histogram distribution of the normalized flux ratios between the blue orders and the red orders from the TOU exposures of Tau Ceti. The normalized flux ratios are calculated between the total photons from order 105−110 and order 125−130, then normalized by the median value of all the flux ratios. The normalized flux ratios have an rms value of 1.5%.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" validated="true"><head>Table 1 . Error budget for Tau Ceti with SNR∼300 per pixel at 5500Å5500˚5500Å.</head><label>1</label><figDesc></figDesc><table>Error Sources 
+RV Error 
+(m s −1 ) 
+
+Photon Noise 
+0.27 
+Wavelength Calibration 
+0.4 
+Micro-Telluric Lines Contamination 
+0.1−0.2 
+Instrument Drift Correction 
+0.36 
+Barycentric Velocity Correction 
+&lt; 0.05 
+Template Interpolation 
+&lt; 0.1 
+PSF Temporal Variation 
+0.2 
+Flat-Fielding Variation 
+&lt; 0.1 
+Charge Transfer Inefficiency 
+&lt; 0.1 
+Color Effect 
+0.06 
+Stellar Jitter 
+0.45 
+Telescope Guiding 
+0.3 
+
+Total Combined Error 
+∼0.88 
+
+</table></figure>
+
+			<note place="foot">MNRAS 000, 1-12 (2018)</note>
+
+			<note place="foot" n="1"> ThAr lamps were manufactured by Photron Pty Ltd (Part no. P858A), which are metallic-thorium lamps.</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>ACKNOWLEDGMENTS</head><p>We would like to thank Dr.Gill Nave at NIST for the help of calibrating our Thorium-Argon lamps using their ultra-high resolution Fourier Transform Spectrograph, Frank Varosi from the University of Florida for his kind help on studying the instrument stability, and Nolan Grieves from the University of Florida for his kind suggestions to improve this paper. We thank the referee for the constructive suggestions which have helped improve the paper quality. We would also like to thank Matthew Muterspaugh and Michael Williamson from Tennessee State University for their help TOU observations using the 2-m Automatic Spectroscopic Telescope at Fairborn Observatory. The Dharma Planet Survey was supported by the Dharma Endowment Foundation. Bo Ma thanks the support of the NASA-WIYN observation award. This research has made use of the Exoplanet Orbit Database and the Exoplanet Data Explorer at exoplanets.org.</p></div>
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Anglada-Escudé</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P</forename><surname>Butler</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="page">15</biblScope>
+			<date type="published" when="0200" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Baranne</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;AS</title>
+		<imprint>
+			<biblScope unit="volume">119</biblScope>
+			<biblScope unit="page">373</biblScope>
+			<date type="published" when="1996" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">F</forename><surname>Bauer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Zechmeister</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Reiners</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">581</biblScope>
+			<biblScope unit="page">117</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Bean</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Seifahrt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Hartman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">713</biblScope>
+			<biblScope unit="page">410</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">C</forename><surname>Becker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vanderburg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Morton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">217</biblScope>
+			<biblScope unit="page">29</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Bertaux</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Lallement</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Ferron</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Boonne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Bodichon</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">564</biblScope>
+			<biblScope unit="page">46</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">T</forename><surname>Blackman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">E</forename><surname>Szymkowiak</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Fischer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">A</forename><surname>Jurgenson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">837</biblScope>
+			<biblScope unit="page">18</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">H</forename><surname>Blake</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Halverson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Roy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Instrumentation</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="page">4003</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Bouchy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pepe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Queloz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">374</biblScope>
+			<biblScope unit="page">733</biblScope>
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Bouchy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Isambert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Lovis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Boisse</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Figueira</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Hébrard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pepe</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">EAS</title>
+		<imprint>
+			<biblScope unit="volume">37</biblScope>
+			<biblScope unit="page">247</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Brahm</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Jordán</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Espinoza</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">129</biblScope>
+			<biblScope unit="page">34002</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P</forename><surname>Butler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Marcy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Williams</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">108</biblScope>
+			<biblScope unit="page">500</biblScope>
+			<date type="published" when="1996" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P</forename><surname>Butler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">S</forename><surname>Vogt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Marcy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Fischer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Wright</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Henry</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Laughlin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Lissauer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">617</biblScope>
+			<biblScope unit="page">580</biblScope>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Cunha</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">C</forename><surname>Santos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Figueira</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">568</biblScope>
+			<biblScope unit="page">35</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Dai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">N</forename><surname>Winn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Gandolfi</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1710.00076</idno>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">B</forename><surname>Davis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Cisewski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Dumusque</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Fischer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Ford</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">846</biblScope>
+			<biblScope unit="page">59</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Dumusque</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Udry</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Lovis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">C</forename><surname>Santos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J P F G</forename><surname>Monteiro</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">525</biblScope>
+			<biblScope unit="page">140</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Dumusque</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Glenday</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">F</forename><surname>Phillips</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">814</biblScope>
+			<biblScope unit="page">21</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Dumusque</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pepe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Lovis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Latham</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">808</biblScope>
+			<biblScope unit="page">171</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Eaton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">H</forename><surname>Williamson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">SPIE</title>
+		<imprint>
+			<biblScope unit="volume">5496</biblScope>
+			<biblScope unit="page">710</biblScope>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Eaton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">H</forename><surname>Williamson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AN</title>
+		<imprint>
+			<biblScope unit="volume">325</biblScope>
+			<biblScope unit="page">522</biblScope>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Feng</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Tuomi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">R A</forename><surname>Jones</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">154</biblScope>
+			<biblScope unit="page">135</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Fischer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Anglada-Escude</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Arriagada</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">128</biblScope>
+			<biblScope unit="page">66001</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Ge</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">SPIE</title>
+		<imprint>
+			<biblScope unit="volume">8446</biblScope>
+			<biblScope unit="page">84468</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Ge</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Powell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Zhao</surname></persName>
+		</author>
+		<title level="m">Proc. SPIE</title>
+		<meeting>SPIE</meeting>
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="volume">9147</biblScope>
+			<biblScope unit="page">914786</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Ge</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Ma</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Powell</surname></persName>
+		</author>
+		<title level="m">Proc. SPIE</title>
+		<meeting>SPIE</meeting>
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="volume">9146</biblScope>
+			<biblScope unit="page">914608</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Ge</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">SPIE</title>
+		<imprint>
+			<biblScope unit="volume">9908</biblScope>
+			<biblScope unit="page">99086</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Goudfrooij</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">C</forename><surname>Bohlin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Maíz-Apellániz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Kimble</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">118</biblScope>
+			<biblScope unit="page">1455</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Gullikson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Dodson-Robinson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Kraus</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">148</biblScope>
+			<biblScope unit="page">53</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Han</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">X</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Wright</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">126</biblScope>
+			<biblScope unit="page">827</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Horne</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">98</biblScope>
+			<biblScope unit="page">609</biblScope>
+			<date type="published" when="1986" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Howard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">330</biblScope>
+			<biblScope unit="page">653</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Howard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">794</biblScope>
+			<biblScope unit="page">51</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Isaacson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Fischer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">725</biblScope>
+			<biblScope unit="page">875</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Kausch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Noll</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Smette</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">576</biblScope>
+			<biblScope unit="page">78</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C.-H</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">J</forename><surname>Benedick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Fendel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">452</biblScope>
+			<biblScope unit="page">610</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Lovis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">441</biblScope>
+			<biblScope unit="page">305</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Ma</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Ge</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">750</biblScope>
+			<biblScope unit="page">172</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Ma</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">152</biblScope>
+			<biblScope unit="page">112</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Ma</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Ge</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Muterspaugh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">480</biblScope>
+			<biblScope unit="page">2411</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Mayor</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1109.2497</idno>
+		<imprint>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">E</forename><surname>Mcarthur</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">614</biblScope>
+			<biblScope unit="page">81</biblScope>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Mayor</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Msngr</title>
+		<imprint>
+			<biblScope unit="volume">114</biblScope>
+			<biblScope unit="page">20</biblScope>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pepe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Mayor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Galland</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">388</biblScope>
+			<biblScope unit="page">632</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pepe</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">534</biblScope>
+			<biblScope unit="page">58</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pepe</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Msngr</title>
+		<imprint>
+			<biblScope unit="volume">153</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">E</forename><surname>Piskunov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Valenti</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">385</biblScope>
+			<biblScope unit="page">1095</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">R</forename><surname>Ricker</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">JATIS</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page">14003</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Rivera</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">634</biblScope>
+			<biblScope unit="page">625</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">L</forename><surname>Redman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Nave</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">J</forename><surname>Sansonetti</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">211</biblScope>
+			<biblScope unit="page">4</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">C</forename><surname>Santos</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">426</biblScope>
+			<biblScope unit="page">19</biblScope>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Seifahrt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">U</forename><surname>Käufl</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">491</biblScope>
+			<biblScope unit="page">929</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b52">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Schwab</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Stürmer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><forename type="middle">V</forename><surname>Gurevich</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proc. SPIE</title>
+		<meeting>SPIE</meeting>
+		<imprint>
+			<date type="published" when="2008" />
+			<biblScope unit="volume">127</biblScope>
+			<biblScope unit="page">70145</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b53">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Smette</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Sana</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Noll</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">576</biblScope>
+			<biblScope unit="page">77</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b54">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">F P</forename><surname>Spronck</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Fischer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Kaplan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">127</biblScope>
+			<biblScope unit="page">1027</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b55">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Steinmetz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Wilken</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Araujo-Hauck</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">321</biblScope>
+			<biblScope unit="page">1335</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b56">
+	<analytic>
+		<title level="a" type="main">Esposito M</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Suárez</forename><surname>Mascareño</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Rebolo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">González</forename><surname>Hernández</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">I</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">468</biblScope>
+			<biblScope unit="page">4772</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b57">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Taylor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Tuomi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">R A</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">S</forename><surname>Jenkins</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">A Series of Books in Physics</title>
+		<imprint>
+			<date type="published" when="1982" />
+			<biblScope unit="volume">551</biblScope>
+			<biblScope unit="page">79</biblScope>
+		</imprint>
+		<respStmt>
+			<orgName>Oxford: University Press, and Mill Valley: University Science Books</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b58">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Udry</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">447</biblScope>
+			<biblScope unit="page">361</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b59">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">D</forename><surname>Vacca</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">C</forename><surname>Cushing</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Rayner</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">115</biblScope>
+			<biblScope unit="page">389</biblScope>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b60">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Wan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Ge</surname></persName>
+		</author>
+		<title level="m">Proc. SPIE</title>
+		<meeting>SPIE</meeting>
+		<imprint>
+			<date type="published" when="2010" />
+			<biblScope unit="volume">7734</biblScope>
+			<biblScope unit="page">77343</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b61">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Ge</surname></persName>
+		</author>
+		<idno>arXiv, 1107.4720</idno>
+		<imprint>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b62">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Wildi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pepe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Chazelas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Lo Curto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Lovis</surname></persName>
+		</author>
+		<title level="m">Proc. SPIE</title>
+		<meeting>SPIE</meeting>
+		<imprint>
+			<date type="published" when="2011" />
+			<biblScope unit="volume">8151</biblScope>
+			<biblScope unit="page">81511</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b63">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Wright</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">117</biblScope>
+			<biblScope unit="page">657</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b64">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Wright</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Eastman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">126</biblScope>
+			<biblScope unit="page">838</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b65">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Zechmeister</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Anglada-Escudé</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Reiners</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">561</biblScope>
+			<biblScope unit="page">59</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b66">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Zechmeister</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1710.10114</idno>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+<note type="report_type">arXiv</note>
+</biblStruct>
+
+<biblStruct xml:id="b67">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Zhao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Ge</surname></persName>
+		</author>
+		<title level="m">Proc. SPIE</title>
+		<meeting>SPIE</meeting>
+		<imprint>
+			<date type="published" when="2012" />
+			<biblScope unit="volume">8446</biblScope>
+			<biblScope unit="page">844684</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

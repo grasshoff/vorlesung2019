@@ -1,0 +1,2356 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-04T16:09+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Of &apos;Cocktail Parties&apos; and Exoplanets</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2011-12-13">13 Dec 2011</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">P</forename><surname>Waldmann</surname></persName>
+							<email>ingo@star.ucl.ac.uk</email>
+							<affiliation key="aff0">
+								<orgName type="institution">University College London</orgName>
+								<address>
+									<addrLine>Gower Street</addrLine>
+									<postCode>WC1E 6BT</postCode>
+									<country key="GB">UK</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Of &apos;Cocktail Parties&apos; and Exoplanets</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2011-12-13">13 Dec 2011</date>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>Subject headings: methods: data analysis -methods: statistical -methods: data analysis -tech- niques: photometric -techniques: spectroscopic</keywords>
+			</textClass>
+			<abstract>
+				<p>The characterisation of ever smaller and fainter extrasolar planets requires an intricate understanding of one&apos;s data and the analysis techniques used. Correcting the raw data at the 10 −4 level of accuracy in flux is one of the central challenges. This can be difficult for instruments that do not feature a calibration plan for such high precision measurements. Here, it is not always obvious how to de-correlate the data using auxiliary information of the instrument and it becomes paramount to know how well one can disentangle instrument systematics from one&apos;s data, given nothing but the data itself. We propose a non-parametric machine learning algorithm, based on the concept of independent component analysis, to de-convolve the systematic noise and all non-Gaussian signals from the desired astrophysical signal. Such a &apos;blind&apos; signal de-mixing is commonly known as the &apos;Cocktail Party problem&apos; in signal-processing. Given multiple simultaneous observations of the same exoplanetary eclipse, as in the case of spectrophotometry, we show that we can often disentangle systematic noise from the original light curve signal without the use of any complementary information of the instrument. In this paper, we explore these signal extraction techniques using simulated data and two data sets observed with the Hubble-NICMOS instrument. Another important application is the de-correlation of the exoplanetary signal from time-correlated stellar variability. Using data obtained by the Kepler mission we show that the desired signal can be de-convolved from the stellar noise using a single time series spanning several eclipse events. Such non-parametric techniques can provide important confirmations of the exis-tent parametric corrections reported in the literature, and their associated results. Additionally they can substantially improve the precision exoplanetary light curve analysis in the future.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>The field of transiting extrasolar planets and especially the study of their atmospheres is one of the youngest and most dynamic subjects in current astrophysics. Permanently at the edge of technical feasibility, we have come from the first radial velocity and transit detections <ref type="bibr" target="#b64">(Mayor &amp; Queloz 1995;</ref><ref type="bibr" target="#b63">Marcy et al. 1998;</ref><ref type="bibr" target="#b22">Charbonneau et al. 2000)</ref>, via the first detections of molecular features in hot-Jupiter atmospheres ( <ref type="bibr" target="#b23">Charbonneau et al. 2002)</ref> to ever more detailed characterisations of multitudes of systems ( <ref type="bibr" target="#b40">Grillmair et al. 2008;</ref><ref type="bibr" target="#b25">Charbonneau et al. 2008;</ref><ref type="bibr" target="#b79">Snellen et al. 2010b;</ref><ref type="bibr" target="#b5">Bean 2011;</ref><ref type="bibr" target="#b83">Swain et al. 2008</ref><ref type="bibr">Swain et al. , 2009a</ref><ref type="bibr" target="#b88">Tinetti et al. 2007</ref><ref type="bibr" target="#b89">Tinetti et al. , 2010</ref>. With over 700 exoplanets discovered ( <ref type="bibr" target="#b73">Schneider et al. 2011</ref>) and over 1200 exoplanetary candidates that await confirmation ( <ref type="bibr" target="#b13">Borucki et al. 2011</ref>), the focus of interest shifts from the detection to the characterisation of smaller and smaller targets. The governing factor of this progression is the precision at which we can control our instrument and/or stellar systematics, hence the accuracy with which we can analyse the data.</p><p>To minimise the impact of the systematic noise components, different approaches have been proposed in the past.</p><p>For space and ground-based observations, eg.</p><p>Spitzer and 1 Hubble (eg. <ref type="bibr" target="#b1">Agol et al. 2010;</ref><ref type="bibr" target="#b7">Beaulieu et al. 2008</ref><ref type="bibr">Beaulieu et al. , 2011</ref><ref type="bibr" target="#b23">Charbonneau et al. 2002</ref><ref type="bibr" target="#b24">Charbonneau et al. , 2005</ref><ref type="bibr" target="#b25">Charbonneau et al. , 2008</ref><ref type="bibr" target="#b32">Deming et al. 2007;</ref><ref type="bibr" target="#b38">Gillon et al. 2010;</ref><ref type="bibr" target="#b40">Grillmair et al. 2008;</ref><ref type="bibr">Knutson et al. 2007a,b;</ref><ref type="bibr" target="#b76">Sing et al. 2011;</ref><ref type="bibr" target="#b79">Snellen et al. 2010b;</ref><ref type="bibr" target="#b6">Bean et al. 2011;</ref><ref type="bibr" target="#b83">Swain et al. 2008</ref><ref type="bibr">Swain et al. , 2009a</ref><ref type="bibr" target="#b88">Tinetti et al. 2007</ref><ref type="bibr" target="#b89">Tinetti et al. , 2010</ref>, instrumental systematic noise has been approximated using parametric models, often based on auxiliary information (optical state vectors) such as instrumental temperature, orbital inclination, inter and intra-pixel positions of the pointspread-function. Using optical state vectors to de-correlate one's data is an effective technique ( <ref type="bibr" target="#b83">Swain et al. 2008</ref>). However for instruments that lack a calibration plan at the precision of 10 −4 , the accuracy of the retrieved optical state vectors (e.g. sensor sampling rates) and the adequacy of the instrument model's definition itself become difficult to determine. Some of the recent controversy over results reported by various teams can be attributed to this circumstance ( <ref type="bibr" target="#b52">Knutson et al. 2011;</ref><ref type="bibr" target="#b80">Stevenson et al. 2010;</ref><ref type="bibr">Beaulieu et al. 2011;</ref><ref type="bibr" target="#b83">Swain et al. 2008;</ref><ref type="bibr" target="#b69">Pont et al. 2010;</ref><ref type="bibr" target="#b42">Hatzes et al. 2010;</ref><ref type="bibr">Brunt et al. 2010</ref>).</p><p>The situation is even further complicated by brightness variability of the planet hosting star, in particular for small, very active M-stars. Hence, it is important to work towards an alternative route to quantify or remove systematic noise using non-parametric models that work as independent confirmations of existing results. <ref type="bibr" target="#b20">Carter &amp; Winn (2009)</ref>, <ref type="bibr" target="#b90">Thatte et al. (2010)</ref>,  and <ref type="bibr">Waldmann et al. (2011)</ref> have progressed towards non-parametric noise models and signal separation using wavelets, principal component, Gaussian processes and Fourier based analysis.</p><p>In this publication, we propose a new nonparametric method to separate systematic noise from the desired lightcurve signal. Given multiple lightcurves, observed simultaneously using spectrographs for example, we can disentangle our desired astrophysical signal from other time-correlated or non-Gaussian systematic noise sources using un-supervised machine learning algorithms.</p><p>We furthermore explore the decorrelation of individual time series spanning several consecutive eclipse events. The importance of this work lies with the fact that no additional knowledge of the system or the star is required, besides the observations themselves. Such nonparametric methods provide a potential new route to de-correlate one's date in the case where the instrument does not feature an adequate calibration plan, the quality of the auxiliary information of the instrument is non-optimal or the host star shows significant activity. Such blind deconvolution techniques provide new insight and powerful validation of the established parametric instrumental models reported in the literature.</p><p>Here we will briefly introduce the more general theory of blind-source separation and proceed with a description of the algorithm proposed. The efficiency of said algorithm is tested with two synthetic models and two HST/NICMOS data sets available in the public domain and one Kepler (Q2 &amp; Q3 data release) time series featuring strong time-correlated stellar variability. Future publications will focus on in-depth discussion of the proposed algorithm to specific data sets.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Background: the Cocktail Party Problem</head><p>In this section we will briefly describe the fundamental concepts on which the following analysis is based. Readers familiar with independent component analysis may proceed straight to section 3.</p><p>Let us consider the analogy of three people talking simultaneously in one room. The speech signals of these people are denoted by s 1 (t), s 2 (t) and s 3 (t). In the same room are three microphones recording the observed signals x 1 (t), x 2 (t) and x 3 (t). The observed signals can be expressed in terms of the original speech signals:</p><p>x 1 (t) = a 11 s 1 (t) + a 12 s 2 (t) + a 13 s 3 (t) (1) x 2 (t) = a 21 s 1 (t) + a 22 s 2 (t) + a 23 s 3 (t)</p><p>x 3 (t) = a 31 s 1 (t) + a 32 s 2 (t) + a 33 s 3 (t) instead of assuming x(t) and s(t) to be proper time signals, we drop the time dependence and assume them to be random variables x k = a k1 s 1 +a k2 s 2 +...+a kN s N , for all k = 1, ..., N</p><p>where a kl is a weighting factor (in this case the square of the distance of the speakers to the microphone) and k, l = 1, ..., N are some real coefficients with N being the maximum number of observed signals. The individual time series can also be expressed in terms of vectors where bold lowercase letters denote column vectors and upper-case letter denote matrices:</p><formula xml:id="formula_1">x = As<label>(3)</label></formula><p>where the rows of x comprise the individual time series, x k , and similarly s is the signal matrix of the individual source signals s l . A is the 'mixing matrix' consisting of the weights a lk . Equation 3 is also known as the instantaneous mixing model and often referred to as the classical 'Cocktail Party Problem' <ref type="bibr" target="#b47">(Hyvärinen &amp; Oja. 2001;</ref><ref type="bibr" target="#b44">Hyvärinen 1999</ref>).</p><p>The challenge is to estimate the mixing matrix, A and its (pseudo)inverse the de-mixing matrix, W,</p><formula xml:id="formula_2">W = A −1<label>(4)</label></formula><p>given the observations contained in x without any additional prior knowledge of either A or s, or for some methods without restrictions of A &amp; s. Several algorithms have been proposed to find the linear transformation of equation 3. Amongst these are principal component analysis (PCA) <ref type="bibr" target="#b68">(Pearson 1901;</ref><ref type="bibr" target="#b62">Manly 1994;</ref><ref type="bibr" target="#b49">Jolliffe 2002;</ref><ref type="bibr" target="#b70">Press et al. 2007;</ref><ref type="bibr" target="#b67">Oja 1992)</ref>, factor analysis (FA) <ref type="bibr" target="#b49">(Jolliffe 2002;</ref><ref type="bibr" target="#b41">Harman 1967)</ref>, projection pursuit (PP) <ref type="bibr" target="#b35">(Friedman 1987;</ref><ref type="bibr" target="#b43">Huber 1985)</ref> and the more recently developed independent component analysis (ICA) <ref type="bibr" target="#b28">(Comon 1994;</ref><ref type="bibr" target="#b44">Hyvärinen 1999;</ref><ref type="bibr" target="#b45">Hyvärinen et al. 1999;</ref><ref type="bibr" target="#b46">Hyvärinen &amp; Oja 2000;</ref><ref type="bibr" target="#b47">Hyvärinen &amp; Oja. 2001;</ref><ref type="bibr" target="#b29">Comon &amp; Jutten 2000;</ref><ref type="bibr" target="#b82">Stone 2004</ref>).</p><p>The underlying differences between PCA and FA on one hand and ICA and PP on the other are the underling assumptions on the probability distribution functions (pdfs) of the signals comprising x. The former group assumes the signals to follow: 1) a Gaussian distribution whilst the latter assume the signals to be, 2) predominantly nonGaussian or sparse with specific signatures in the spectral domain (e.g. SMICA <ref type="bibr" target="#b31">Delabrouille et al. 2003)</ref>. This results in significant differences in the way we estimate our signal components. 1) If the observed signals comprising x follow Gaussian distributions, we can define their statistics by the first and second statistical moments (mean and covariance) only. Algorithms such as PCA and FA find a linear transformation from the correlated observed signals, x, to a set of uncorrelated signals, s. In this case, uncorrelatedness is equivalent to mutual independence and the source signals are at their most separated (please see Appendix A for a more in-depth discussion on independence). Such a linear transformation is always possible and easily achieved using, for example, single value decompositions (SVD) <ref type="bibr" target="#b68">(Pearson 1901;</ref><ref type="bibr" target="#b62">Manly 1994;</ref><ref type="bibr" target="#b49">Jolliffe 2002;</ref><ref type="bibr" target="#b70">Press et al. 2007</ref>). An application of PCA to exoplanetary light curve de-trending is given by <ref type="bibr" target="#b90">Thatte et al. (2010)</ref>.</p><p>2) In the case of the observed signals following non-Gaussian distributions, significant information is contained in the higher statistical moments (skew &amp; kurtosis) and it can be shown that uncorrelated signals (as produced by PCA &amp; FA) are not necessarily mutually independent and hence not optimally separated from one another. Here uncorrelatedness is a weaker constraint than independence and it can be said that independent signals are always uncorrelated but not vice versa (see appendix A). As a consequence using PCA or FA algorithms may only yield a partially separated result for non-Gaussian sources.</p><p>It is important to note that most observed signals, astrophysical or stellar/instrumental noise, are predominantly non-Gaussian by nature. We can also state that most of these signals should be statistically independent from one another (e.g. an exoplanet light curve signal is independent of the systematic noise of the instrument with which it was recorded). These properties have led to a surge in ICA based analysis methods in current cosmology and extra-galactic astronomy. Here ICA is used to separate the cosmic microwave background (CMB) or signatures of distant galaxies from their galactic foregrounds (e.g. <ref type="bibr" target="#b81">Stivoli et al. 2006;</ref><ref type="bibr" target="#b59">Maino et al. 2002</ref><ref type="bibr" target="#b60">Maino et al. , 2007</ref><ref type="bibr" target="#b92">Wang et al. 2010)</ref>.</p><p>Aumont &amp; Macías-Pérez (2007) furthermore separates instrumental noise from the desired astrophysical signal. Other applications include data-compression of sparse, large data sets to improve model fitting efficiencies (e.g. <ref type="bibr" target="#b58">Lu et al. 2006;</ref><ref type="bibr" target="#b31">Delabrouille et al. 2003</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">ICA in the context of exoplanetary lightcurves</head><p>In this publication, we focus on the application of ICA to exoplanetary lightcurve analysis. Let us consider multiple time series observations of the same exoplanetary eclipse signal either in parallel, by performing spectrophotometry with a spectrograph, or consecutive in time (as explained in section 5.3).</p><p>Without excluding the most general case, let us focus on a time-resolved spectroscopic measurement of an exoplanetary eclipse. For most observations, the signal recorded is a mixture of astrophysical signal, Gaussian (white) noise and systematic noise components originating from instrumental defects and other sources such as stellar activity and telluric fluctuations. We can therefore write the individual time series as sum of the desired astrophysical signal, s a , systematic (nonGaussian) noise components, s sn , and Gaussian noise, s wn . We can now define the underlying linear model of our time series data to be</p><formula xml:id="formula_3">x(t) =a 1 s a (t) + a 2 s sn1 (t) + a 3 s sn2 (t) + ... + s wn (t)<label>(5)</label></formula><p>or</p><formula xml:id="formula_4">x k = a k1 s a + Nsn l2=1 a kl2 s sn,l2 + Nwn l3=1 a kl3 s wn,l3 (6)</formula><p>where N sn and N wn are the number of systematic and white noise components respectively and N = N sn + N wn + 1 assuming only one component is astrophysical.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.">Demixing signals using ICA</head><p>The basic assumptions of ICA are that the elements comprising s, s l , are mutually independent random variables with probability densities, p l (s l ). We further assume that all (or at least one) of the probability densities, p l (·), are non-Gaussian. This non-Gaussianity is key since it allows the de-mixing matrix, W, to be estimated. From the central limit theorem, we know that a convolution of any arbitrary probability distribution functions (pdfs) that feature a formal mean and variance, asymptotically approaches a Gaussian distribution in the limit of large N ( <ref type="bibr" target="#b72">Riley et al. 2002)</ref>. In other words, the sum of any two nonGaussian pdfs (ie. p l (·) and p l+1 (·)) is more Gaussian than the respective original pdfs. Therefore by maximising the non-Gaussianity of the individual signals, we maximise their statistical independence. <ref type="bibr" target="#b28">(Comon 1994;</ref><ref type="bibr" target="#b44">Hyvärinen 1999;</ref><ref type="bibr" target="#b46">Hyvärinen &amp; Oja 2000;</ref><ref type="bibr">Koldovsk´yKoldovsk´y et al. 2006;</ref><ref type="bibr" target="#b47">Hyvärinen &amp; Oja. 2001;</ref><ref type="bibr" target="#b29">Comon &amp; Jutten 2000;</ref><ref type="bibr" target="#b82">Stone 2004</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.1.">Information Entropy</head><p>Although several measures of non-Gaussianity exist (we refer the reader to <ref type="bibr" target="#b26">Cichocki &amp; Amari (2002)</ref>, <ref type="bibr" target="#b46">Hyvärinen &amp; Oja (2000)</ref>, <ref type="bibr" target="#b47">Hyvärinen &amp; Oja. (2001)</ref> and <ref type="bibr" target="#b29">Comon &amp; Jutten (2000)</ref> for detailed summaries), we here use the concept of 'negentropy' <ref type="bibr" target="#b14">(Brillouin 1953)</ref>. Negentropy is derived from the basic information-theoretical concept of differential entropy. In information theory, in close analogy to thermodynamics, the entropy of a system is at its maximum when all data points are at its most random. In thermodynamics we measure the distribution of particles, in information theory it is the probability distribution of a random variable. From information theory we can derive the fundamental result that a Gaussian distribution has the largest entropy among all random variables of equal variance and known mean. Hence, by minimising the entropy of a variable, we maximise its non-Gaussianity. For a random vector y, with random variables y i , i = 1, ..., n, the entropy is given by H(y) = − p(y)log 2 p(y)dy</p><p>where H(y) is the differential or Shannon entropy <ref type="bibr" target="#b75">(Shannon 1948</ref>) and p(y) is the pdf of the random vector y. H(y) is at its minimum when p(y) is at its most non-Gaussian. We can now normalise equation 7 to yield the definition of negentropy:</p><formula xml:id="formula_6">J(y) = H(y gauss ) − H(y)<label>(8)</label></formula><p>where y gauss is a random Gaussian vector with the same covariance matrix as y. Now y is at its most non-Gaussian when J(y) is at its maximum. It is important to note that negentropy is insensitive to a multiplication by a scalar constant. This has the important consequence of introducing a sign and scaling ambiguity into the retrieved signal components of s. We will discussed the implications of this limitation in section 4.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.2.">Contrast functions</head><p>In practice it is very difficult to calculate the negentropy of a system and various methods were devised to approximate J(y). The classic method is to measure the kurtosis of mean-subtracted y with unit variance. However, kurtosis is very prone to distortions by outliers in the data and hence lacks the robustness required as measure of negentropy <ref type="bibr" target="#b47">(Hyvärinen &amp; Oja. 2001)</ref>. To overcome this limitation, more robust measures of negentropy have been devised. One can approximate negentropy by equation 9 <ref type="bibr" target="#b47">(Hyvärinen &amp; Oja. 2001;</ref><ref type="bibr" target="#b44">Hyvärinen 1999;</ref><ref type="bibr" target="#b29">Comon &amp; Jutten 2000;</ref><ref type="bibr" target="#b82">Stone 2004</ref>)</p><formula xml:id="formula_7">J(y) ∝ (E[G(y)] − E[G(ν)]) 2 (9)</formula><p>where ν is a random Gaussian variable with zero mean and unit variance and G is a non-quadratic contrast function chosen to approximate the underlying probability distribution. There are usually three types of contrast functions: G 1 as general purpose function, G 2 optimised for superGaussian (leptokurtic) distributions and G 3 optimised for sub-Gaussian (platykurtic) distributions <ref type="bibr" target="#b44">(Hyvärinen 1999;</ref><ref type="bibr" target="#b47">Hyvärinen &amp; Oja. 2001;</ref><ref type="bibr" target="#b29">Comon &amp; Jutten 2000)</ref>:</p><formula xml:id="formula_8">G 1 (y) = 1 a 1 log[cosh(a 1 y)]<label>(10)</label></formula><formula xml:id="formula_9">G 2 (y) = −exp(−y 2 /2) G 3 (y) = 1 4 y 4</formula><p>The choice of contrast function is only important if one wants to optimise the performance of the ICA algorithm as it is done for the EFICA <ref type="bibr">(Koldovsk´yKoldovsk´y et al. 2006</ref>) algorithm where choices of contrast functions are tried iteratively.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.3.">FastICA</head><p>Finally, we can maximise the negentropy given in equation 9 by finding a unit vector w that maximises the non-Gaussianity of the projection y i = w T x, so that J(w T x) is at its maximum. For the fixed-point FastICA algorithm, this can be achieved by the simple iterations scheme <ref type="bibr" target="#b44">(Hyvärinen 1999;</ref><ref type="bibr" target="#b46">Hyvärinen &amp; Oja 2000):</ref> 1. Choose initial (i.e. random) weight vector w 2. Increment:</p><formula xml:id="formula_10">w + = E[xg(w T x)]−E[g ′ (w T x)]w</formula><p>3. Normalise: w = w + /||w + ||</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Repeat steps 2 &amp; 3 until converged</head><p>where g and g ′ are the first and second derivatives of the contrast function G(·). The iteration scheme above estimates only one weight vector at a time, for estimating all non-Gaussian components in parallel the iteration scheme and derivates of G(·) are given in appendix C.1 and in the standard literature (e.g. <ref type="bibr" target="#b44">Hyvärinen 1999;</ref><ref type="bibr" target="#b47">Hyvärinen &amp; Oja. 2001;</ref><ref type="bibr" target="#b29">Comon &amp; Jutten 2000;</ref><ref type="bibr">Koldovsk´yKoldovsk´y et al. 2006</ref>). For a comprehensive summary of other ICA algorithms please refer to <ref type="bibr" target="#b29">(Comon &amp; Jutten 2000)</ref>. Throughout this paper, we use a variant of the FastICA algorithm.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.4.">Projection Pursuit and ICA</head><p>Projection Pursuit and Independent Component Analysis are inherently linked as both algorithms try to represent the most non-Gaussian components in an multidimensional data set. In this sense, one can think of ICA as a variant of PP with two major differences: 1) PP only estimates one non-Gaussian component at a time whilst ICA is the multivariate definition of PP and estimates all non-Gaussian components simultaneously, 2) as opposed to ICA, PP does not need an underlying data model and no assumptions about independent components are made. If the ICA model holds, optimizing the ICA non-Gaussianity measures produce independent components; if the model does not hold, then what we get are the projection pursuit directions <ref type="bibr" target="#b46">(Hyvärinen &amp; Oja 2000;</ref><ref type="bibr" target="#b82">Stone 2004</ref>). This is an important point to make with regards to time-consecutive transit observations, which break the underlying ICA assumptions otherwise.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">The algorithm</head><p>Following from the discussion above, we can understand the signal de-mixing to be a two step process: de-correlation of the Gaussian components in the observed data using PCA, followed  The input data is first transformed into an orthogonal set using PCA. The latent signals comprising the input data are then separated using the MULTI-COMBI algorithm which is followed by a signal sorting step. The separated lightcurve and systematic noise components are then fitted to the original data.</p><p>by the de-correlation of non-Gaussian components using ICA and WASOBI algorithms. The decorrelation of Gaussian components to form a new uncorrelated vectors set can be understood as preprocessing step to the ICA procedure. The algorithm proposed here consists of five main parts: 1) Pre-processing of the observed data, 2) Signal separation, 3) Signal reconstruction 4) Lightcurve fitting and 4) Post-analysis. <ref type="figure" target="#fig_1">Figure 1</ref> lays out the individual processing steps of the algorithm.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Signal pre-processing</head><p>Similarly to section 2, the observed signals can be expressed as k×m dimensional matrix X where each row constitutes an individual time series, x k , with m number of data points. Multiple time series observations are needed to separate the instantaneously mixed non-Gaussian components. The process of identifying statistical independent components is greatly simplified if the input signals to any ICA algorithm have previously been whitened (also referred to as sphering). Whitening is essentially a transformation of our input data matrix X into a mean subtracted, (X − ¯ X), orthogonal matrix˜Xmatrix˜ matrix˜X, where its auto-covariance matrix, C ˜ x , equals the identity matrix, C ˜ x = E[ ˜ X ˜ X T ] = I. The instantaneous mixing model for the whitened data is now given by˜X</p><formula xml:id="formula_11">by˜ by˜X = C −1/2 x (X − ¯ X) = ˜ AS (11)</formula><p>where</p><formula xml:id="formula_12">C −1/2 x</formula><p>is the inverse square root of C x and˜A and˜ and˜A the corresponding mixing matrix of˜Xof˜ of˜X. For a more detailed explanation see Appendix.</p><p>This whitening is easily achieved by performing a principal component analysis on the data (see Appendix). This step has two distinct advantages:</p><p>1) It reduces the complexity of the un-whitened mixing matrix, A, from n 2 parameters, to n(n − 1)/2 for a whitened, orthogonal matrix˜Amatrix˜ matrix˜A <ref type="bibr" target="#b47">(Hyvärinen &amp; Oja. 2001</ref>). 2) Using whitening by principal components, we can reduce the dimensionality of the data-set by only maintaining a sub-set of eigenvectors. This reduces possible redundancies of the components comprising the data and prevents the later to be employed ICA algorithm from overlearning for over-complete sets.</p><p>We also like to note that any type of additional linear signal cleaning or pre-processing step, such as those described by <ref type="bibr" target="#b20">Carter &amp; Winn (2009)</ref>; <ref type="bibr">Waldmann et al. (2011)</ref>, are allowed. Linear data filtering or cleaning can be understood as multiplying equation 3 from the left with a linear transformation B to get: BX = BAS. The underlying data model assumed in this paper is hence not affected.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">Signal separation</head><p>After the observed signals have successfully been whitened ( ˜ X), we estimate the mixing matrix of the whitened signal, ˜ A, using the MULTI-COMBI algorithm <ref type="bibr">(Tichavsk´yTichavsk´y et al. 2006a</ref>). MULTI-COMBI comprises two complimentary algorithms, EFICA <ref type="bibr">(Koldovsk´yKoldovsk´y et al. 2006</ref>) and WASOBI <ref type="bibr" target="#b95">(Yeredor 2000)</ref>. EFICA, an asymptotically efficient variant of the FastICA algorithm <ref type="bibr" target="#b44">(Hyvärinen 1999)</ref>, is designed to separate non-Gaussian, instantaneously mixed signals. WASOBI, on the other hand, is an asymptotically efficient version of the SOBI algorithm ( <ref type="bibr" target="#b9">Belouchrani et al. 1997)</ref>, and is geared towards separating Gaussian auto-regressive (AR) and time-correlated components. It uses second-order statistics and can be understood to be similar to principal component analysis. The use of both algorithms is necessary since a real life data set will always contain a mixture of both, non-Gaussian and Gaussian AR processes. For a more in-depth discussion of the algorithms employed here, we like to refer the interested reader to the appendices C.1 &amp; C.2 and the original publications.</p><p>The EFICA and WASOBI algorithm can be shown to be asymptotically efficient, i.e. the estimators approach the Cramér-Rao lower bound <ref type="bibr" target="#b30">(Davison 2009</ref>). In other words, the algorithms employed here can be shown to converge to the correct solution given the original source signals and in the limit of N → ∞ iterations. In reality the number of iterations is finite and and imperfect convergence results in traces of other sources to remain in the individual signals comprising S. We can hence state that equation 4 becomes</p><formula xml:id="formula_13">W ≃ A −1<label>(12)</label></formula><p>A measure of this error is the deviation of WA (or˜W˜Aor˜ or˜Wor˜W˜ or˜W˜A for the whitened case) from the unity matrix by inspecting the variance of its elements <ref type="bibr">(Koldovsk´yKoldovsk´y et al. 2006;</ref><ref type="bibr" target="#b47">Hyvärinen &amp; Oja. 2001)</ref>. This leads to the concept of the interference-oversignal ratio (ISR) matrix. The ISR is the standard measure in signal processing of how well a given signal has been transmitted or de-convolved from a mixture of signals. It can be understood as the inverse of the signal-to-noise ratio (SNR). The higher the ISR for a specific signal, the less well has it been separated from the original mixture. For a real case example, A is unknown and the ISR needs to be estimated. An analytic approximation to the ISRs for the EFICA and WASOBI algorithms are found in the appendices C.1 &amp; C.2. Finally, we check the stability of the signal separation by perturbing the input matrix˜Xmatrix˜ matrix˜X by a random and known matrix P to give˜X</p><formula xml:id="formula_14">give˜ give˜X 2 = P ˜ X = P ˜ AS (13)</formula><p>We now re-run the MULTI-COMBI procedure using˜Xusing˜ using˜X 2 as input and estimate P ˜ A. Knowing P we can work backwards to obtaiñ A as we are dealing with a linear transformation. This step is repeated several times to check the convergence of the algorithm by inspecting the variation on the mean ISR values of each separation attempt and the variations in consecutive estimations of˜Aof˜ of˜A directly.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.">Signal reconstruction</head><p>Once the mixing matrix, ˜ A is estimated, we need to identify which signals are astrophysical, which ones are white and which are systematic noise. This is done in a two step process: 1) We construct the estimated signal matrix, ˆ S, and for its individual componentsˆscomponentsˆcomponentsˆs l compute the Pearson correlation coefficient betweenˆsbetweenˆbetweenˆs l and the first principal component of the PCA decomposition in section 3.1. For medium signal to noise (SNR) observations, the first principal component (PC), ie. the one with the highest eigenvalue associated to it, will contain the predominant lightcurve shape. As previously discussed, the first PC is not perfectly separated from the systematic signals and hence cannot be used directly for further analysis but it is good enough to use it as lightcurve identification. The identified lightcurve signal is labeledˆSlabeledˆ labeledˆS a .</p><p>2) Once the lightcurve signal is identified, we exclude this row fromˆSfromˆ fromˆS and proceed to classify the remaining signals with respect to their nonGaussianity (ie. systematic noise sources). Here we use the Ljung-Box portmanteau test (see <ref type="bibr">Ap- pendix and Brockwell &amp; Davis 2006</ref>) to test for the hypothesis that the time series is statistically white (ie. Gaussian). This test was originally designed to check the residuals of auto-regressive moving-average (ARMA) models for significant departures from Gaussianity. It is hence ideally suited for our need to identify which estimated signal components are the desired non-Gaussian ones.</p><p>The identified non-Gaussian, systematic noise, signals are hence labeledˆSlabeledˆ labeledˆS sn and the remaining white noise signalsˆSsignalsˆ signalsˆS wn to givê</p><formula xml:id="formula_14">give˜ give˜X 2 = P ˜ X = P ˜ AS (13)</formula><p>wherê S has dimensions k × l andˆSandˆ andˆS a , ˆ S sn , ˆ S wn , have dimensions of k×1, k×l sn and k×l wn respectively where l = l sn + l wn + 1. The de-mixing matrix is given by˜Wby˜ by˜W = ˜ A −1 . As previously mentioned, the components ofˆSofˆ ofˆS have ambiguities in scaling and sign and can be thought to be similar to the eigenvectors of a principal component analysis with missing eigenvalues. Fortunately there exist two approaches to resolving this degeneracy:</p><p>1. In the case ofˆSofˆ ofˆS a being well separated as individual component, we can takê S a and the de-mixing matrix˜Wmatrix˜ matrix˜W and only retain the row containing the astrophysical signal component forming the row-vector˜wvector˜ vector˜w a . We then reconstruct the original datã X using only the separated signal component:</p><formula xml:id="formula_16">˜ X a = ˜ w −1 a ˆ S a = ˜ w −1 a ˜ W ˜ X<label>(15)</label></formula><p>where˜Xwhere˜ where˜X a is the reconstructed whitened data with all but the astrophysical signal components removed. Using equation 11, we can now calculate the un-whitened matrix X a .</p><formula xml:id="formula_17">X a = Z(X − ¯ X) + ¯ X<label>(16)</label></formula><formula xml:id="formula_18">Z = ˜ w −1 a ˜ W<label>(17)</label></formula><p>Hence we can think of Z as a linear, optimal filter for the signal component in X. Please note that this linear filtering does not impair the scaling information as this is re-instated going fromˆSfromˆ fromˆS a to X a .</p><p>2. In the case ofˆSofˆ ofˆS a not being well separated but other systematic noise components are, a different, more indirect approach can be used. Here, the systematic noise components, ˆ S sn which do not contain sign or scaling information, are simultaneously fitted to the time series data (preferably outof-transit data), x k . We therefore define the systematic noise model for an individual time series by M sn ,</p><formula xml:id="formula_19">M sn = O ˆ S sn (18)</formula><p>where O is a k × k diagonal scaling matrix ofˆSofˆ ofˆS sn , which needs to be fitted iteratively as free parameters in the following section.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4.">Lightcurve fitting</head><p>Having either filtered the data to obtain X a or constructed the noise model M sn , we can now fit the original time series, x k using the standard analytical lightcurve models <ref type="bibr" target="#b61">(Mandel &amp; Agol 2002;</ref><ref type="bibr" target="#b74">Seager &amp; Mallén-Ornelas 2003</ref>) in addition to the diagonal matrix O, if necessary. For the purpose of this paper, which focuses on blind-sourceseparation, we will restrict ourselves to demonstrating the feasibility of estimating O and only leave the transit depth as variable lightcurve parameter. We use the analytic lightcurve model by <ref type="bibr" target="#b61">Mandel &amp; Agol (2002)</ref> and a Nelder-Mead minimisation algorithm ( <ref type="bibr" target="#b70">Press et al. 2007</ref>). For real data applications, we advise the reader to use Markov Chain Monte Carlo methods, or similar, which have become standard in the field of exoplanets and allow the estimation of the posterior probability distributions and their associated errors ( <ref type="bibr" target="#b3">Bakos et al. 2007;</ref><ref type="bibr" target="#b17">Burke et al. 2007;</ref><ref type="bibr" target="#b21">Cameron et al. 2007;</ref><ref type="bibr" target="#b34">Ford 2006</ref>; Gregory 2011).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.5.">Post-analysis</head><p>Once the model fitting stage has been completed, we are left with fitting residual, r k , i.e. r k = x k − m k . Several tests are useful to determine how well the signals have been removed from the original time series, x k . In the case of a full Markov Chain Monte Carlo fitting, the posterior distributions of the fitting parameters may be used to asses the impact of the remaining systematic noise in the data when compared to a simu-lated data set only containing white noise. Portmanteau tests on individual time series are useful to test for non-white noise signals and allow a measure of the overall performance of the algorithm <ref type="bibr">(Brockwell &amp; Davis 2006</ref>). Additionally, we can determine the Kullback-Leibler divergence <ref type="bibr" target="#b56">(Kullback &amp; Leibler 1951)</ref> of our residual's probability distribution function (pdf) to an idealised Gaussian case.</p><p>For the simulations and real-data examples presented in the following section, we have merely plotted the autocorrleation functions (ACF) of the residuals obtained to determine whether for a given lag, these are within the 3σ confidence limit of the residual being dominated by whitenoise <ref type="bibr">(Brockwell &amp; Davis 2006;</ref><ref type="bibr" target="#b30">Davison 2009)</ref>. Here the ACF is given by:</p><formula xml:id="formula_20">ACF (k, τ ) = 1 m m−τ t=1 (r k,t − ¯ r k )(r k,t+τ − ¯ r k )<label>(19)</label></formula><formula xml:id="formula_21">τ = 0, 1, 2, 3, ...m/2</formula><p>where m is the number of data points in the time series, τ the specific lag and the confidence intervals are given by ±σ/ √ m.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Simulations</head><p>In order to test the behaviour and efficiency of the algorithm described above, we produced a toy model simulation with five observed signals: 1) a secondary eclipse <ref type="bibr" target="#b61">Mandel &amp; Agol (2002)</ref> lightcurve; 2) a sinusoidal signal; 3) a sawtooth function; 4) a fourth order auto-regressive signal to simulate time-correlated signals; 5) Gaussian noise with a full width half maximum (FWHM) of 0.01 magnitudes. The premixed signals are displayed in <ref type="figure" target="#fig_2">figure 2</ref>. This gives us our signal matrix, S, which needs to be recovered later on. We have then proceeded to mix the signals in <ref type="figure" target="#fig_2">figure 2</ref> using a random mixing matrix, A, to obtain our 'observed signals', X, in <ref type="figure" target="#fig_3">figure 3</ref>. For the sake of comparability we keep the mixing matrix A to be the same for all simulations.</p><p>We now subdivide the simulations to illustrate the two possible methods of the signal reconstruction. Method 1 computes X a using equation 16 whilst Method 2 fits the noise model M sn (equation 18) simultaneously with the <ref type="bibr" target="#b61">Mandel &amp; Agol (2002)</ref> lightcurve. These two examples demonstrate that both techniques work equally well for a well behaved data set.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">Method 1: Filtering out the signal</head><p>In this example, we use the 'observed' signals in <ref type="figure" target="#fig_3">figure 3</ref> as input to the algorithm. We however do not perform a dimensionality reduction using PCA since we are not dealing with an overcomplete set in this example. The results of the separation are shown in <ref type="figure">figure 5</ref>. Here the top three, red lightcurves are the estimated systematic noise components as identified by the algorithm. The fourth component is Gaussian noise and the bottom is an inverse of the lightcurve signal. It should again be noted here that the blindsource separation does not preserve the scaling nor the signs of the signals inˆSinˆ inˆS. However, when the original data is reconstructed using only the signal component, ˆ S a , to obtain X a (equation 16), the scaling and sign informations are re-instated. For a well behaved data set, i.e. one that obeys the instantaneous mixing model and has negligible Gaussian noise in their signal components, it is therefore possible to re-construct the lightcurve signal from the raw data as explained in section 3.3. <ref type="figure">Figure 4</ref> shows the top lightcurve of <ref type="figure" target="#fig_3">figure  3</ref> (blue circles) and overplotted the retrieved signal component (red crosses) and offset below the systematic noise component (black squares).</p><p>As a useful by-product of the algorithm, we obtain the interference over signal matrices (ISR, equations C7 &amp; C11 in the Appendix C) for both the EFICA and WASOBI algorithms. These give us valuable information on the efficiency at which the signals have been separated. <ref type="figure" target="#fig_5">Figure 6</ref> shows the Hinton diagrams of the EFICA and WASOBI ISR matrices. Here, the smaller the off-diagonal elements of the matrix, the better the signal separation. In this example, the EFICA algorithm outperforms the WASOBI one, which is to be expected since all signals but one are non-Gaussian.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.">Method 2: Fitting a noise model to the data</head><p>In the previous section, we have shown that in the case that the astrophysical componentˆScomponentˆ componentˆS a is well separated as individual signal, we can create  a filter for the raw data that directly filters the lightcurve signal from the noise. However, in most real data applications, ˆ S a , is not perfectly separated but the components ofˆSofˆ ofˆS sn may be more so. In this case we can construct the noise model M sn given by equation 18 and the diagonal elements of O are fitted as described in section 3.4. The starting position of the algorithm is the same as for the previous example ( <ref type="figure" target="#fig_3">figure 3</ref>). The model fit of the first lightcurve in <ref type="figure" target="#fig_3">figure 3</ref> and its residuals are shown in <ref type="figure" target="#fig_6">figure 7</ref>. The autocorrelation function for 100 lags is plotted in <ref type="figure" target="#fig_7">figure 8</ref>. All but two lags are within the 3σ confidence limit that the residual is white noise dominated, indicating that all signals have been removed effectively.</p><p>Finally we simulate the convergence properties of both EFICA and WASOBI under varying white noise conditions. Here we repeatedly run the algorithm until signal separation is completed and record the mean ISRs of the source separation. We performed this simulation 300 times for Gaussian noise FWHMs varying from 0.0 -0.3 magnitudes (figure 7 has a FWHM gauss = 0.01) and every ISR measurement reported is the mean of 10 iterations. <ref type="figure">Figure 9</ref> summarises the results. Here, the red circles represent the mean ISR or the EFICA algorithm and the blue crosses that of WASOBI. It can clearly be seen that for this example the EFICA algorithm outperforms WASOBI and on average reaches lower ISR values. We can further note that the blind source separation is not significantly affected by the magnitude of the white noise and performs well under difficult signal to noise conditions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Application to data</head><p>The previous examples illustrated the two methods available to correct the observed data: Method 1: Filtering the astrophysical signal out of the systematic noise or Method 2: fitting a systematic noise model to the raw data. Here we apply these techniques to two primary eclipse data sets of HD 189733b and XO1b recorded by the NIC-MOS instrument on the Hubble Space Telescope as well as a single time-correlated time series obtained by the Kepler spacecraft . The top three signals in red were identified by the algorithm to comprise the systematic noise model, ˆ S sn . The 4th signal was correctly identified to be Gaussian noise and the bottom to be the lightcurve signal. Note that the blind-sourceseparation does not preserve signs nor scaling of the estimated signals. The scaling of the ordinate is identical for all subplots.     <ref type="figure">Fig. 9</ref>.-showing the mean interference over signal ratios (ISRs) for both the EFICA (red circles) and WASOBI (blue crosses) algorithms for Example 1. In this example, the EFICA algorithm clearly outperforms WASOBI by reaching lower ISR values. Both algorithms are stable even under low signal to noise conditions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1.">HST/NICMOS: HD 189733b</head><p>First presented by <ref type="bibr" target="#b83">Swain et al. (2008)</ref>, this data set of the primary eclipse of HD 189733b was recorded using HST/NICMOS in the G206 grism setting spanning five consecutive orbits. The HST-pipeline calibrated data were downloaded from the MAST 1 archive and the spectrum was extracted using both standard IRAF 2 routines as well as a custom built routine for optimal spectral extraction. Both extractions are in good accord with each other but the custom built routine was found to yield a better signal to noise and was subsequently used for all further analysis. A binning of 10 spectral channels (∼ 0.08µm) was used resulting in 10 light curves across the G206 grism band. <ref type="figure" target="#fig_1">Figure 10</ref> shows the obtained time series which serve as input to the algorithm. It can be seen that each time series is strongly affected by instrument systematics propagating from the blue side of the spectrum (bottom light curve) to the red with varying intensity and even sign. <ref type="bibr" target="#b83">Swain et al. (2008)</ref> showed that these systematics are correlated to instrument state vectors such as orbital phase, relative positions and angles of the spectrum on the detector, instrument temperature, etc. We can hence expect that these systematics are statistically independent from the recorded astrophysical signal (the light curve) and it should therefore be in principle possible to decorrelate the signal.</p><p>We here demonstrate the de-trending on an individual light curve at ∼1.694µm (8 th one down in <ref type="figure" target="#fig_1">figure 13</ref>). All time series in <ref type="figure" target="#fig_1">figure 13</ref> were taken as input to the algorithm described above to estimate the de-mixing matrix˜Wmatrix˜ matrix˜W, the astrophysical signal vectors, ˆ S a and the systematic noise vectors, ˆ S sn . The interference over signal (ISR) matrix indicated the good separation of four main components <ref type="figure" target="#fig_1">figure 11</ref> with the rest of the components being classified as predominantly Gaussian or weakly systematic. The existence of more than one Gaussian component (l wn &gt; 1) indicates that the set is overcomplete. However since the data-set is small enough, no PCA dimensionality reduction was performed. After the algorithm has identified the correct astrophysical signal, it proceeded to reconstruct the light curve using both methods described above.</p><p>Method 1: The astrophysical signal was filtered using equations <ref type="bibr">15 &amp; 16</ref>. <ref type="figure" target="#fig_1">Figure 12</ref> shows the raw light curve (blue circles) with the de-trended time series, X a underneath (green squares). Superimposed light curves were computed using <ref type="bibr" target="#b61">Mandel &amp; Agol (2002)</ref> with orbital parameters were taken from <ref type="bibr" target="#b94">Winn et al. (2007)</ref> and limbdarkening parameters from <ref type="bibr" target="#b27">Claret (2000)</ref>. It is clear that the de-trended light curve is an improvement to the raw time series but that systematics still remain in the data. This is further illustrated by plotting the autocorrelation function of the model-fit residual in <ref type="figure" target="#fig_1">figure 16</ref> (red circles). Here, residual correlation can be observed in particular at low lags. This is a consequence of the astrophysical signal, ˆ S a , being well separated but as shown in <ref type="figure" target="#fig_1">figure 11</ref> (component 1), there remains some weak interference between thê S a and other vectors, which is a consequence of equation 12 and to be expected for real data-sets.</p><p>Method 2: The second method is a less direct approach. Instead of filtering for the astrophysical signal directly, we try to construct a 'systematic noise model' that is then subtracted off the raw data. Using equation 18 and a simplex downhill algorithm <ref type="bibr">(Nedler &amp; Mead 1965)</ref> we estimated the scaling matrix, O, by fitting the the systematic noise vectors, ˆ S sn to the four out of transit orbits. The scaled systematic noise vectors are shown in <ref type="figure" target="#fig_1">figure 14</ref> which combine to form the systematic noise model, M sn , in <ref type="figure" target="#fig_1">figure 13</ref>. It should be noted that O is only a scaling matrix of the individual vectors as the scaling information is not preserved by the independent component analysis. Hence, relative intra and inter-orbit variations are preserved. <ref type="figure" target="#fig_1">Figure 15</ref> shows the corrected data by subtracting the systematic noise model off the raw data. Inspecting the fitting residual's autocorrelation function in <ref type="figure" target="#fig_1">figure 16 (black circles)</ref> indicates the residual to be statistically white and a maximal de-correlation of the data has been achieved.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2.">HST/NICMOS: XO1-b</head><p>Originally presented by <ref type="bibr" target="#b89">Tinetti et al. (2010)</ref>, the primary eclipse of XO1b was observed using the HST/NICMOS instrument in the G141 grism setting. The HST-pipeline calibrated data was downloaded and the spectra extracted using the same settings as for section 5.1. This yielded 10  14 light curves and which serve as input to the algorithm, see <ref type="figure" target="#fig_1">figure 17</ref>. Similar to the HD 189733b the algorithm retrieved four main components, the light curve signal and three main systematic noise components. The ISR matrix can is shown in <ref type="figure">fig- ure</ref> 18. We now proceeded to de-trending the light curve at the very red end of the spectrum (first from top in <ref type="figure" target="#fig_1">figure 17)</ref> as it, after visual inspection, exhibits the most prominent systematics of the 10 time series. Light curve fits assumed limbdarkening and orbital parameters by <ref type="bibr" target="#b18">Burke et al. (2010)</ref>. Method 1: <ref type="figure" target="#fig_1">Figure 19</ref> shows the raw time series and the de-trended light curve using equation 16. The light curve is significantly de-trended but systematics remain in the data as also shown by the autocorrelation function (red circles) in <ref type="figure" target="#fig_2">figure 23</ref>.</p><p>Method 2: As described in previous sections, <ref type="figure" target="#fig_1">figure 21</ref> shows the retrieved systematic noise vectors and <ref type="figure" target="#fig_2">figure 22</ref> features the 'raw' data with the combined systematic noise model (red) underneath. The autocorrelation function of the model fit residual is shown in <ref type="figure" target="#fig_2">figure 23</ref> (black crosses) and shows a factor 2 improvement on the decorrelation in the lower lags. <ref type="figure" target="#fig_2">Figure 20</ref> compares the de-trended light curves of method 1 and method 2 and shows the residual of method 1 -method 2 (black crosses). There is little difference between both methods indicating that the signal separation for this data-set is close to its maximum with the data being partially decorrelated. This is in contrast to the HD 189733b example where a near perfect de-correlation was achieved and can be attributed to the systematics being mostly wavelength invariant in the case of XO1b. In other words, systematic noise components which have a constant weighting throughout the data set cannot be de-correlated using ICA or PCA methods, which is to be expected following equations 1 -3.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.3.">Kepler: Star 10118816</head><p>In the previous examples we have shown that spectroscopic datasets can be de-correlated effectively. We test here how well the proposed algorithm can de-correlate consecutively observed data-sets. This is of particular interest in cases where no multi-channel data are available and the time series data are contaminated with time-      <ref type="figure" target="#fig_1">Figure 19</ref> (blue crosses) and the calculated systematic noise model using the systematic noise vectors in <ref type="figure" target="#fig_1">figure 21</ref>. The fitting residual of method 1 shows residual correlation, particularly at lower lags whilst the fitting residual of method 2 is by a factor of two better de-correlated in the lower lags. correlated noise, be it stellar or instrumental. As opposed to the previous examples, where several time series, x k , were observed simultaneously, here we take a single time series covering several consecutive eclipse features and cut the time series into segments spanning equal lengths over each eclipse event. Using these segments as inputs to the algorithm clearly violates the underlying assumptions of the independent component analysis, as the mixing is not instantaneous. In this case, the ICA analysis can be understood as a Projection Pursuit (PP) analysis, see section 2.2.4 and <ref type="bibr" target="#b46">(Hyvärinen &amp; Oja 2000;</ref><ref type="bibr" target="#b82">Stone 2004;</ref><ref type="bibr" target="#b43">Huber 1985)</ref>. Here the ICA algorithm, in the absence of a working ICA data-model, will try to extract as many non-Gaussian components as possible and return the rest of the data in its original form. This is very similar to Projection Pursuit, where the data is not described by an underlying data model at all but only the most non-Gaussian component is retrieved. In other words, we can only expect to retrieve the eclipse signal component, ˆ S a , with any degree of accuracy. As a result we will not be able to retrieve systematic noise components, ˆ S sn , and we can only use M ethod 1 (in section 3.3) to de-trend the data.</p><p>We have downloaded data observed by the Kepler space telescope ( <ref type="bibr" target="#b11">Borucki et al. 1996</ref><ref type="bibr" target="#b12">Borucki et al. , 2010</ref><ref type="bibr" target="#b48">Jenkins et al. 2010;</ref><ref type="bibr" target="#b19">Caldwell et al. 2010;</ref><ref type="bibr" target="#b53">Koch et al. 2010</ref>) for a planet-hosting candidate star observed over the second and third datarelease quarters (Q2 &amp; Q3). The time series, with the Kepler ID: 10118816, exhibits highly variable features and significant time-correlated noise (see <ref type="figure" target="#fig_2">figure 24</ref>, blue crosses). Given Kepler's superb instrument calibration, we can assume this timecorrelated noise to be due to stellar variability. Using the periodogram calculator on the NSteD database 3 , we identified four main periodically recurring signals in the data-set. Choosing the second strongest feature with a period of 0.040915 days, we phase folded the data and cut the time series in 10 equally sized segments. As for the previous examples we now took these time series segments as input to the algorithm.</p><p>We performed our de-correlation as for the previous examples but using Method 1 only. <ref type="figure" target="#fig_2">Figure 25</ref> shows the ISR matrix of the separation indicating a relatively poor separation of the components but two (components 4 &amp; 9). As discussed above, this behaviour is to be expected with the breaking of the instantaneous mixing model. Nonetheless, we obtained a clear feature (component 4) in our analysis which is over plotted (red circles) on the mean, phase-folded data (blue crosses) in <ref type="figure" target="#fig_2">figure 26</ref>. Here the de-correlated signal has a much reduced scatter compared to the mean of the phase-folded feature, which indicates that much of the unwanted stellar variability has been removed. It is also clear from this figure that we are not dealing with an exoplanetary light curve but a stellar pulsation feature. As expected, the remaining components returned from the algorithm ( <ref type="figure" target="#fig_2">figure 27</ref>) are the residuals of the input data minus the component shown in <ref type="figure" target="#fig_2">figure 26</ref>. Hence we only used the component in <ref type="figure" target="#fig_2">figure 26</ref> to re-construct the original time series. This was done by using equation 16 on each segment of the time series, followed by adding the segments back together in the order they were originally split up. <ref type="figure" target="#fig_2">Figure 24</ref> shows the original input data (blue crosses) with the filtered signal (red circles) over plotted on top. In the bottom plot (a zoomed in version of the time series), it is clear that the desired feature remains in the filtered time series whilst the contribution of other time-correlated stellar noise is substantially reduced.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">Discussion</head><p>In the previous sections we have shown that for a set of simultaneously observed time series data (e.g. following an exoplanetary eclipse with a spectrograph) we can describe the data by an instantaneous mixing model (equation 3). This allows the separation of non-Gaussian, time and spatially-correlated signals from one another. The degeneracy caused by not being able to retrieve the component's signs or amplitudes can be circumvented in two ways: Method 1) The separated signals are used to construct a linear transformation to filter the astrophysical signal from the originally observed data and hence preserve all scaling information; Method 2) The separated astrophysical signal is not used directly but instead all systematic noise components are combined to form a 'systematic noise model' which can then be used to correct the original observed data.  We have explored the efficiency of the signal detrending on two simulated and two HST/NICMOS data sets with different types of systematic noise due to different grisms. The simulations demonstrate the two methods of de-trending the data in an idealised case and explore the efficiency of the signal separation in the presence of varying Gaussian noise in the data. In the instantaneous mixing model employed here, Gaussian noise sources are only indirectly allowed and can interfere with the effectiveness of separating non-Gaussian vectors. We tested this point by adding additional Gaussian noise components of variable amplitude to the simulations but did not observe any significant reductions in the signal separation efficiency.</p><p>We proceeded to analyse two HST/NICMOS data sets: the primary eclipses of HD189733b and XO1b. For both data sets we find the Method 2 to yield better results. In the case of HD189733b, we can achieve a near perfect de-correlation of astrophysical signal and systematic noise and no further steps are necessary to the de-correlation process. A more in depth discussion of this data set and HST/NICMOS systematics is beyond the scope of this publication. In the case of XO1b the de-correlation is significant but incomplete. The difference in maximum de-correlation achievable can be attributed to the systematic noise sources being strong functions of wavelength in the case of HD189733b whilst almost with constant weighting (a kl in equation 2) in the case of XO1b.</p><p>Whenever systematics have constant weighting per channel observed (x k ) and/or time, it becomes very difficult for PCA or ICA based approaches to de-correlate the signal from the systematics. Here auxiliary information of the instrument is needed to proceed with the de-correlation process. This is very well possible in the case of dedicated instruments such as Kepler, as these have been specifically designed with such high precision and stability measurements in mind ( <ref type="bibr" target="#b11">Borucki et al. 1996;</ref><ref type="bibr" target="#b48">Jenkins et al. 2010</ref>). For instruments that do not feature the calibration plan required to further decorrelate with instrument state parameters, the solution is far less obvious.</p><p>We furthermore explored the de-correlation of eclipse signals observed consecutively rather than in parallel. We demonstrated, using Kepler data, that despite the formal violation of the 'instantaneous mixing model', the proposed algorithm is able to retrieve the desired signal component with good accuracy. Such an application is particularly important for treating variability of the host-star which can significantly impair the quality of the final science result (eg. <ref type="bibr">Czesla et al. 2009;</ref><ref type="bibr" target="#b10">Boisse et al. 2011;</ref><ref type="bibr" target="#b0">Aigrain et al. 2011;</ref><ref type="bibr" target="#b4">Ballerini et al. 2011</ref>).</p><p>It is furthermore interesting to note that pre and post-processing steps (e.g. wavelets <ref type="bibr" target="#b20">(Carter &amp; Winn 2009)</ref>, Fourier based techniques ( <ref type="bibr">Waldmann et al. 2011</ref>), de-correlation using instrument state parameters ( <ref type="bibr" target="#b83">Swain et al. 2008</ref>)), do not break the instantaneous mixing model and can be run in conjunction with ICA methods. This makes independent component analysis a very powerful and versatile tool for non-parametric decorrelation of exoplanetary data sets.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.">Conclusion</head><p>In the light of searching and characterising ever smaller and fainter exoplanetary targets, the development of novel de-trending routines becomes increasingly critical. Based on the concepts of blind source deconvolution of instantaneously mixed signals, we have presented a first step towards non-parametric corrections and data filters that do not require additional information on the systematic noise of the instrument or stellar activity. Such algorithms have two important applications:</p><p>1) For instruments that lack a calibration plan at the accuracy of 10 −4 in flux variation, which is required for spectroscopy of exoplanetary atmospheres, the spectroscopic signatures become inherently entangled and dependent on the method used to correct instrument and other systematics in the data. The de-correlation of spectroscopic data was demonstrated using two HST/NICMOS data sets.</p><p>2) Detections of faint exoplanetary eclipses are often made difficult by time-correlated activity of the host star. We demonstrated, using a single Kepler time series, that much of the stellar variability can be removed in time series that span several exoplanetary eclipse events.</p><p>The algorithm proposed is a powerful tool for lightcurve de-trending, which can be used by its own or in conjunction with any other type of data filtering or cleaning technique. This becomes an invaluable advantage for data analysis when the instrument's response function is unknown or poorly characterised.</p><p>I.P.W. would like to thank Prof. E. Feigelson, the referee, Dr. G. Tinetti, Dr. F. Abdalla and Dr. S. Fossey for comments and suggestions that helped to greatly improve this paper. I.P.W. is supported by an STFC Studentship.</p><p>This appendix provides some additional notes to the methods employed in this paper. For a more in-depth discussion of the topics presented here, please refer to the cited publications.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A. Uncorrelatedness, orthogonality and independence of Gaussian and non-Gaussian signals</head><p>In Gaussian statistics, our probability densities are fully defined by the first and second statistical moments, i.e. their means and covariances. Two random vectors, s l and s l+1 , are said to be uncorrelated when their covariance (C s l ,s l+1 ) is zero:</p><formula xml:id="formula_22">C s l ,s l+1 = E[(s l − E[s l ])(s l+1 − E[s l+1 ])] (A1) = E[s l , s l+1 ] − E[s l ]E[s l+1 ] = 0 where E[s l ]</formula><p>is the expectation value of s l which can be approximated by the mean in this case by</p><formula xml:id="formula_23">E[s l ] ≈ 1 M M t=1 s l (t) (A2)</formula><p>with M being the number of data points in the time series. Furthermore, we define two random variables (s l and s l+1 ) to be orthogonal, when both their expectation values, in addition to their covariance are zero:</p><formula xml:id="formula_24">E[s l ] = E[s l+1 ] = C s l ,s l+1 = 0 (A3)</formula><p>We can always find an affine, linear transformation from a correlated set of variables to an orthogonal one.</p><p>Finally, our two random vectors s l and s l+1 are independent from one another if and only if the joined probability distribution P (s l , s l+1 ) of both signals are factorizable into the product of their marginal pdfs, P (s l ) and P (s l+1 ):</p><formula xml:id="formula_25">P (s l , s l+1 ) = P (s l )P (s l+1 ) (A4)</formula><p>and satisfy the property</p><formula xml:id="formula_26">E[g(s l )h(s l+1 )] = E[g(s l )]E[h(s l+1 )] (A5)</formula><p>where g(s l ) and h(s l+1 ) are absolutely integrable functions of s l and s l+1 respectively. From the definition of independence in equation A5, we obtain the definition of uncorrelatedness (equation A3) in the special case where both s l and s l+1 are linear and are only defined by their covariances (i.e. no higher order statistical moments) <ref type="bibr" target="#b46">(Hyvärinen &amp; Oja 2000;</ref><ref type="bibr" target="#b47">Hyvärinen &amp; Oja. 2001;</ref><ref type="bibr" target="#b72">Riley et al. 2002)</ref>. In other words, uncorrelatedness is a special case of independence. Uncorrelated Gaussian random variables are always also independent and the definitions of uncorrelatedness, orthogonality (for zero mean) and statistical independence become identical.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>B. Preprocessing</head><p>The covariance matrix of X, C x , is given by C x = EDE T , where E is the matrix of eigenvectors and D the diagonal matrix of eigenvalues, D = diag(d 1 , d 2 , ..., d n ). Using principal component analysis (PCA), we compute E and D and the whitening matrix is hence the inverse square root covariance matrix C −1/2 x is then given by equation B2 <ref type="bibr" target="#b47">(Hyvärinen &amp; Oja. 2001;</ref><ref type="bibr" target="#b49">Jolliffe 2002)</ref>.</p><formula xml:id="formula_27">24˜X 24˜ 24˜X = C −1/2 x (X − ¯ X) = ˜ AS (B1) C −1/2 x = ED −1/2 E T (B2)</formula><p>where˜Wwhere˜ where˜W △ = ˜ A −1 and is the de-mixing matrix of the whitened observed signals˜Xsignals˜ signals˜X.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>C. Blind source separation</head><p>At the heart of the algorithm lies the blind-source separation routine. To attain the demixing matrix˜W matrix˜ matrix˜W, many different types and varieties of algorithms are being used in the literature. Here we will use the 'Multi-COMBI' algorithm developed by Tichavsk´yTichavsk´y et al. (2006a) combining a fixed point high-order ICA algorithm to separate non-Gaussian sources with a second-order statistics blind-source-separation (BSS) algorithm for separating auto-regressive (AR) sources. We will briefly outline these algorithms and explain how it is applied to the whitened datã X obtained in section 3.1.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>C.1. Parallel FastICA and EFICA</head><p>In section 2.2 we briefly outlined the measures of non-Gaussianity, negentropy (equation 8), used throughout this paper and stated that negentropy can be approximated via the kurtosis of the random vector y or via the use of contrast functions, equation 9 &amp; 10. In section 2.2.3 we showed stated the iteration scheme to obtain a single independent component (IC) at a time. This is called a deflationary algorithm where the computed IC is subtracted from the data before the second IC is computed. Such an iteration scheme has the property of finding the ICs in the order of decreasing non-Gaussianity. However, the main drawback of a serial computation of ICs is that estimation errors in the first ICs propagate in the extraction of later ICs via the orthogonalization step. This effect is cumulative and may signficantly impair weaker ICs. This predicament can be circumvented by estimating all ICs in parallel.</p><p>Similar to the single unit iteration, the whitened demixing matrix˜Wmatrix˜ matrix˜W is at its most mutually independent when the projection Y = ˜ W T ˜ X is at its most non-Gaussian. The FastICA fixed point iteration step is then given by˜W</p><formula xml:id="formula_28">by˜ by˜W + ← g( ˜ W ˜ X) ˜ X T − diag[g ′ ( ˜ W ˜ X)1 N ] ˜ W (C1)</formula><p>where˜Wwhere˜ where˜W + is the unnormalised next iteration of˜Wof˜ of˜W, 1 N is an N x 1 vector of 1's and g(.) and g ′ (.) are the first and second order derivatives of the nonlinear function G(.):</p><formula xml:id="formula_29">g 1 (y) = tanh(a 1 y) (C2) g 2 (y) = yexp(−y 2 /2) g 3 (y) = y 3</formula><p>This is followed by a symmetric orthogonalisation step:</p><formula xml:id="formula_30">˜ W ← ( ˜ W + ˜ W +T ) −1/2 ˜ W + (C3)</formula><p>Equations C1 &amp; C3 are iterated until the result has converged. For a full derivation we refer you to <ref type="bibr" target="#b44">Hyvärinen (1999)</ref> and <ref type="bibr" target="#b47">Hyvärinen &amp; Oja. (2001)</ref>. Whereas the convergence of the FastICA algorithm is often dependent on the non-linearity chosen by the user, the EFICA (Koldovsk´y <ref type="bibr">Koldovsk´y et al. 2006</ref>) algorithm employed here is a variant of the above iteration scheme and allows for different non-linearities to be assigned adaptively to different sources. Koldovsk´y <ref type="bibr">Koldovsk´y et al. (2006)</ref> showed that EFICA is asymptotically efficient, ie. reaches the Cramer-Rao Lower Bound (CRLB) in an ideal case where the nonlinearity G(.) equals the score function.</p><p>To assert a good degree of separation, we can define G as the gain matrix. For a perfectly estimated de-mixing matrix, W, the gain matrix is equal to its identity matrix</p><formula xml:id="formula_31">G = WA = I (C4)</formula><p>In signal processing, the performance of blind-source separation algorithms is usually measured by the interference over signal ratio matrix, ISR</p><formula xml:id="formula_32">ISR kl = G 2 kl G 2 kk , k, l = 1, 2, ..., d<label>(C5)</label></formula><p>where k and l denote the observed and estimated sources. The ISR for and individual observed signal k is given by</p><formula xml:id="formula_33">isr k = d l=1,l =k G 2 kl G 2 kk , k = 1, 2, ..., d<label>(C6)</label></formula><p>However, the original mixing matrix, A, is not generally known for real data sets and equations C5 &amp; C6 are only useful in the case of simulations. Tichavsk´y <ref type="bibr">Tichavsk´y et al. (2006a)</ref> have shown that the whole ISR matrix for the EFICA algorithm can be approximated by</p><formula xml:id="formula_34">ISR EF kl ≃ 1 N γ k (γ l + τ 2 l ) τ 2 l γ k + τ 2 k (γ l + τ 2 l ) (C7) γ k = β k − µ 2 k (C8) µ k = E[ˆ s k g k (ˆ s k )] τ k = |µ k − ρ k | ρ k = E[g ′ k (ˆ s k ] β k = E[g 2 k (ˆ s k ]</formula><p>wherê s k andˆsandˆandˆs l are the k'th and l'th observed and estimated signals of S in equation 3, g k (.) and g ′ k (.) the first and second derivative of G(.) for signal k and N is the number of signals estimated. Here it should be mentioned that, of course, the true realisation of each ISR component is unknown and a mean-ISR is computed leading to the best 'on average' separation of the signals.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>C.2. WASOBI</head><p>Whilst EFICA is optimised for the separation of instantaneously mixed, non-Gaussian sources, secondorder statistics BSS algorithms rely on time-structure in the sources' correlation function to estimate˜Westimate˜ estimate˜W. A variety of algorithms exist in the literature, here we use a derivative of the popular SOBI algorithm <ref type="bibr" target="#b9">(Belouchrani et al. 1997</ref>), WASOBI <ref type="bibr" target="#b95">(Yeredor 2000;</ref><ref type="bibr">Tichavsk´yTichavsk´y et al. 2006a</ref>) to separate Gaussian autoregressive (AR) sources in the input datã X. Here, the blind source separation follows the same linear model as in equation 3 and the mixing matrix˜Amatrix˜ matrix˜A is estimated by a joint diagonalisation of the signals' autocorrelation matrices. The unknown correlation matrices of the observed signals for a given lag τ , R x [τ ]  <ref type="table">Yeredor 2000)</ref>. Hence, if the correlation matrices are diagonal, ie. the off-diagonal components are zero, the separated signals can be said to be independent from each other. The SOBI &amp; WASOBI algorithms estimate˜Aestimate˜ estimate˜A as the joint diagonoliser of a set of correlation matrices. Similar to the EFICA code, we can define an asymptotic estimate of the ISR matrix</p><formula xml:id="formula_35">ISR W A kl ≃ 1 N φ kl 1 − φ kl φ lk σ 2 k R l [0] σ 2 l R k [0] (C11) φ kl △ = 1 σ 2 k M−1 i,j=0 a il a jl R k [i − j]<label>(C12)</label></formula><p>where k and l denote the observed and the estimated sources, {R k [τ ]} M−1 τ =0 is the covariance sequence of the k-th source, σ 2 k is the variance of the source and {a il } M−1 i=0 are the auto-regression coefficients of the l-th source <ref type="bibr">(Tichavsk´yTichavsk´y et al. 2006a</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>C.3. Multi-COMBI</head><p>The algorithms introduced above are highly complementary to each other. Whilst EFICA has an asymptotically efficient performance in separating non-Gaussian instantaneous mixtures, WASOBI is asymptotically efficient in separating Gaussian time-correlated signals. Both these properties are necessary since a real data set will have both of the aforementioned properties and its components would hence not be optimally de-mixed if one would only employ one type of algorithm. MULTI-COMBI <ref type="bibr">(Tichavsk´yTichavsk´y et al. 2006a</ref>) uses a clustering technique in which both algorithms are run on the set of unseparated sources˜Xsources˜ sources˜X and their interference over signal matrices, ISR EF and ISR WA , are estimated. The signals are then clustered depending on whether their specific ISR kl is lower for the EFICA or WASOBI case. Then, the process is repeated until all clusters are singeltons, ie. only contain one signal per cluster, and the signals are hence optimally separated.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>D. Convergence check</head><p>From the MULTI-COMBI algorithm, we obtain the estimated signal matrixˆSmatrixˆ matrixˆS, an overall ISR matrix as well as final ISR EF and ISR WA . Since the algorithms used here use fixed-point convergence techniques, the problem of non-repeatability of the separation process is less than for neural network based approaches. However, it is common sense to check the stability of the result obtained and to estimate the error onˆSonˆ onˆS.</p><p>In order to estimate the stability of the convergence, we perturb the unknown mixing matrix A with a random and known mixing matrix P to give a new mixing matrix A 2 = PA and equation 3 becomes: X = PAS = A 2 S. This is equivalent to multiplying the whitened signal˜Xsignal˜ signal˜X with P ˜ X 2 = P ˜ X = PC −1/2</p><formula xml:id="formula_36">x (X − ¯ X) = ˜ A 2 S (D1)</formula><p>We re-run the separation step and estimate A 2 . Since P is known, we can reconstruct the original mixingmatrix and compare it with the new result. In the scope of an automated algorithm, the sum of all terms of ISR A is compared to the sum of ISR A2 and the result is reported.</p><p>To identify the stochastic nature of the retrieval we furthermore re-run the separation step with the same whitened signal, ˜ X, akin to a Monte Carlo simulation. We perform i realisations (where i = 10−100 typically) and use the de-mixing matrices˜Wmatrices˜ matrices˜W i to construct mean noise models later on. This way, we propagate the signal separation error to the model-fitting in a coherent manner.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>E. Signal separation</head><p>In order to identify the non-white (i.e. systematic) signals in our estimated signal matrixˆSmatrixˆ matrixˆS, we use the Ljung-Box portmanteau test <ref type="bibr">(Brockwell &amp; Davis 2006</ref>). The test statistic, usually denoted by Q, is defined by summing the normalised autocorrelations of the individual time series, ˆ s l over a range of lags:</p><formula xml:id="formula_37">Q = n(n + 2) m τ =1ˆρ =1ˆ =1ˆρ 2 τ m − τ (E1)</formula><p>wherê ρ 2 τ is the autocorrelation at lag τ and m is the number of observations in the time series. The hypothesis of the time series being solely white noise is rejected if Q is bigger than a pre-specified fraction of the chi-squared distribution</p><formula xml:id="formula_38">Q &gt; χ 2 1−α,h (E2)</formula><p>where χ 2 1−α,h is the α-quantile of the chi-squared distribution with h degrees of freedom <ref type="bibr">(Brockwell &amp; Davis 2006</ref>). Here we take α = 0.05.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Fig. 1 .</head><label>1</label><figDesc>Fig. 1.-Flowchart illustrating the algorithm. The input data is first transformed into an orthogonal set using PCA. The latent signals comprising the input data are then separated using the MULTI-COMBI algorithm which is followed by a signal sorting step. The separated lightcurve and systematic noise components are then fitted to the original data.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Fig. 2 .</head><label>2</label><figDesc>Fig. 2.-Simulated input signals before mixing. From top to bottom: 1) secondary eclipse Mandel &amp; Agol (2002) curve, 2) sinusoidal function, 3) sawtooth function, 4) time-correlated auto-regressive function, 5) Gaussian noise. The scaling of the ordinate is identical for all subplots.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Fig. 3 .</head><label>3</label><figDesc>Fig. 3.-The signals, S, in figure 2 were mixed using a random mixing matrix A to obtain the 'observed signals', X normalised to unity, shown in this diagram. The algorithm takes the lightcurves in this diagram as starting values. No further input is provided or assumptions on the underlying signals made. The scaling of the ordinate is identical for all subplots.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Fig. 4 .Fig. 5 .</head><label>45</label><figDesc>Fig. 4.-Results of the blind-source separation. The blue circles present the the first lightcurve of the raw data X, the red crosses the retrieved signal component, X a , and the black squares the systematic noise component X sn .</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Fig. 6 .</head><label>6</label><figDesc>Fig. 6.-Hinton diagram of the EFICA and WA-SOBI interference-over-signal matrices for Example 1. The polygon areas are normalised to the highest value in the matrix (given in the bottom corners). The smaller the off-diagonal elements of the matrix, the higher the signal separation efficiency of the algorithm. In this case we can see the EFICA algorithm to perform better than the WASOBI one.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Fig. 7 .</head><label>7</label><figDesc>Fig. 7.-showing the raw lightcurve (first row in figure 3, blue) normalised to unity, with the model fit (red) overlaid and the fitting residuals plotted underneath (black).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Fig. 8 .</head><label>8</label><figDesc>Fig. 8.-showing the auto-correlation function for 250 lags (red). The 3σ confidence limits that the observed residual is normally distributed are shown in blue. All but two lags are within the confidence limits, strongly suggesting that the residual is dominated by white noise and correlations were efficiently removed.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head></head><label></label><figDesc>Fig. 10.-showing 'raw', extracted HST/NICMOS light-curves of HD 189733b primary eclipse. Light curves are offset for clarity.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_10"><head>Fig. 11 .Fig. 12 .Fig. 13 .Fig. 14 .Fig. 15 .</head><label>1112131415</label><figDesc>Fig. 11.-the Interference over Signal (ISR) matrix of the component separation for both the EFICA and the WASOBI algorithms. All values were normalised with the maximum ISR = 0.0626. Components 1, 3, 5 &amp; 8 yielding the lowest ISR values and correspond to the astrophysical light curve signal (comp. 1) and the three most prominent systematic noise vectors in figure 14. Other components were identified as predominantly Gaussian or weakly systematic by the pipeline.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_11"><head>Fig. 16 .</head><label>16</label><figDesc>Fig. 16.-showing the autocorrelation function for 100 lags of the fitting residual in figure 12 (red squares) and figure 15 (black circles). The blue lines signify 3σ limits for a Gaussian distribution. The fitting residual of figure 12 shows high amounts of residual correlation, particularly at lower lags whilst the fitting residual of figure 15 follows a Gaussian distribution.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_12"><head>Fig. 17 .</head><label>17</label><figDesc>Fig. 17.-showing 'raw', extracted HST/NICMOS light-curves of HD 189733b primary eclipse. Light curves are offset for clarity.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_13"><head>Fig. 18 .</head><label>18</label><figDesc>Fig. 18.-same than for figure 11. The light curve vector (component 1) shows residual interference with other vectors for both EFICA and WASOBI algorithms. Overall the EFICA algorithm outperforms WASOBI.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_14"><head>Fig. 19 .Fig. 20 .</head><label>1920</label><figDesc>Fig. 19.-showing the raw-data light curve (blue crosses) and the corrected light curve (green squares) offset below. In this example, we used equations 15 &amp; 16 as light curve filter. The systematic noise components were reduced but residual systematics remain in the final light curve.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_15"><head>Fig. 21 .Fig. 22 .</head><label>2122</label><figDesc>Fig. 21.-Individual systematic noise vectors, ˆ S sn , of XO1b, with the appropriate scaling. Combined they form the systematic noise model in figure 13 (red circles).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_16"><head>Fig. 23 .</head><label>23</label><figDesc>Fig. 23.-showing the autocorrelation function for 100 lags of the fitting residual for method 1 (red squares) and method 2 (black circles). The blue lines signify 3σ limits for a Gaussian distribution. The fitting residual of method 1 shows residual correlation, particularly at lower lags whilst the fitting residual of method 2 is by a factor of two better de-correlated in the lower lags.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_17"><head>Fig. 24 .</head><label>24</label><figDesc>Fig. 24.-Input time series (blue crosses) with filtered signal using M ethod 1 over plotted (red circles). Bottom plot is a zoomed in part of the time series above.The algorithm effectively filtered for the desired feature and strongly decreased contributions from autocorrelated noise.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_18"><head>Fig. 25 .Fig. 26 .Fig. 27 .</head><label>252627</label><figDesc>Fig. 25.-the Interference over Signal (ISR) matrix of the component separation for both the EFICA and the WASOBI algorithms. All values were normalised with the maximum ISR = 0.09293. Components 4 and 9 are the best separated, with component 4 being the desired signal component.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_19"><head>x</head><label></label><figDesc>[n]x T [n + τ ], τ = 0, ..., M − 1 (C9) satisfies the relation R x [τ ] = ˜ AR s [τ ] ˜ A T , ∀τ (C10) where R s [τ ] △ = E[s[n]s T [n + τ ]] are the source signals' diagonalised correlation matrices (</figDesc></figure>
+
+			<note place="foot" n="1"> http://archive.stsci.edu/ 2 http://iraf.noao.edu/</note>
+
+			<note place="foot" n="3"> http : //nsted.ipac.caltech.edu/applications/ET SS/Kepler index.html</note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pont</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Zucker</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1110.1034</idno>
+		<imprint>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">B</forename><surname>Cowan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">A</forename><surname>Knutson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Deming</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">721</biblScope>
+			<biblScope unit="page">1861</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Aumont</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Macías-Pérez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">376</biblScope>
+			<biblScope unit="page">739</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">´ A</forename><surname>Bakos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Shporer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Pál</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Torres</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Kovács</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJL</title>
+		<imprint>
+			<biblScope unit="volume">671</biblScope>
+			<biblScope unit="page">173</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Ballerini</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Micela</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">F</forename><surname>Lanza</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Pagano</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+	<note>submitted</note>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Bean</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">478</biblScope>
+			<biblScope unit="page">41</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Bean</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-M</forename><surname>Désert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Kabath</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">743</biblScope>
+			<biblScope unit="page">92</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Beaulieu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Carey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Ribas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">677</biblScope>
+			<biblScope unit="page">1343</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Beaulieu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Kipping</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Batista</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Ribas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Carey</surname></persName>
+		</author>
+		<idno>arXiv,0909.0185</idno>
+		<imprint>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Belouchrani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Abed-Meraim</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">F</forename><surname>Cardoso</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Moulines</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">IEEE Trans. Signal Processing</title>
+		<imprint>
+			<biblScope unit="volume">45</biblScope>
+			<biblScope unit="page">434</biblScope>
+			<date type="published" when="1997" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Boisse</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Bouchy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Hébrard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">528</biblScope>
+			<biblScope unit="page">4</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Borucki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">W</forename><surname>Dunhm</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">G</forename><surname>Koch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">D</forename><surname>Cochran</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astrophys. &amp; Space Science</title>
+		<imprint>
+			<biblScope unit="volume">241</biblScope>
+			<biblScope unit="page">111</biblScope>
+			<date type="published" when="1996" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Borucki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Koch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Basri</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">327</biblScope>
+			<biblScope unit="page">977</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Borucki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">G</forename><surname>Koch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Basri</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">736</biblScope>
+			<biblScope unit="page">19</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Brillouin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. of Applied Physics</title>
+		<imprint>
+			<biblScope unit="volume">24</biblScope>
+			<biblScope unit="page">1152</biblScope>
+			<date type="published" when="1953" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">J</forename><surname>Brockwell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">D</forename><surname>Richard</surname></persName>
+		</author>
+		<title level="m">Time Series: Theory and Methods</title>
+		<imprint>
+			<publisher>Springer Verlag</publisher>
+			<date type="published" when="2006" />
+			<biblScope unit="page" from="1" to="4419" />
+		</imprint>
+	</monogr>
+	<note>second edition</note>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Bruntt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Deleuil</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Fridlund</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Alonso</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">519</biblScope>
+			<biblScope unit="page">51</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">J</forename><surname>Burke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">R</forename><surname>Mccullough</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Valenti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">M</forename><surname>Johns-Krull</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">A</forename><surname>Janes</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">671</biblScope>
+			<biblScope unit="page">2115</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">J</forename><surname>Burke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">R</forename><surname>Mccullough</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">E</forename><surname>Bergeron</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">719</biblScope>
+			<biblScope unit="page">1796</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Caldwell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Kolodziejczak</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Van Cleve</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJL</title>
+		<imprint>
+			<biblScope unit="volume">713</biblScope>
+			<biblScope unit="page">92</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Carter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">N</forename><surname>Winn</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">704</biblScope>
+			<biblScope unit="page">51</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+	<note>ApJ</note>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Collier Cameron</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Wilson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">G</forename><surname>West</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Hebb</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">380</biblScope>
+			<biblScope unit="page">1230</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Latham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Mayor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">529</biblScope>
+			<biblScope unit="page">45</biblScope>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">M</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">W</forename><surname>Noyes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">L</forename><surname>Gilliland</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">568</biblScope>
+			<biblScope unit="page">377</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">E</forename><surname>Allen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">T</forename><surname>Megeath</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Torres</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Alonso</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">M</forename><surname>Brown</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">626</biblScope>
+			<biblScope unit="page">523</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">A</forename><surname>Knutson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Barman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">E</forename><surname>Allen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Mayor</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">686</biblScope>
+			<biblScope unit="page">1341</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Cichocki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Amari</surname></persName>
+		</author>
+		<title level="m">Adaptive Blind Signal and Image Processing</title>
+		<imprint>
+			<publisher>John Wiley &amp; Sons Inc</publisher>
+			<date type="published" when="2002" />
+			<biblScope unit="page">471607916</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Claret</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">363</biblScope>
+			<biblScope unit="page">1081</biblScope>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Comon</surname></persName>
+		</author>
+		<title level="m">Signal Processing</title>
+		<imprint>
+			<date type="published" when="1994" />
+			<biblScope unit="volume">36</biblScope>
+			<biblScope unit="page">287</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title level="a" type="main">Handbook of Blind Source Separation: Independent Component Analysis and Applications</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Comon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">; S</forename><surname>Jutten</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Huber</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Wolter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><surname>Schröter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Schmitt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">505</biblScope>
+			<biblScope unit="page">1277</biblScope>
+			<date type="published" when="2000" />
+			<publisher>Academic Press Czesla</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">C</forename><surname>Davison</surname></persName>
+		</author>
+		<title level="m">Statistical Models</title>
+		<imprint>
+			<publisher>Cambridge University Press</publisher>
+			<date type="published" when="2009" />
+			<biblScope unit="page">9780521734493</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Delabrouille</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-F</forename><surname>Cardoso</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Patanchon</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">346</biblScope>
+			<biblScope unit="page">1089</biblScope>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Deming</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">J</forename><surname>Richardson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Harrington</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">378</biblScope>
+			<biblScope unit="page">148</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Doron</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Yeredor</surname></persName>
+		</author>
+		<title level="m">Proc. of ICA</title>
+		<meeting>of ICA</meeting>
+		<imprint>
+			<date type="published" when="2004" />
+			<biblScope unit="page">390</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Ford</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">642</biblScope>
+			<biblScope unit="page">505</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Friedman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. of the American Statistical Association</title>
+		<imprint>
+			<biblScope unit="volume">82</biblScope>
+			<biblScope unit="page">249</biblScope>
+			<date type="published" when="1987" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">P</forename><surname>Gibson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pont</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2011" />
+			<biblScope unit="volume">411</biblScope>
+			<biblScope unit="page">2199</biblScope>
+			<pubPlace>MN-RAS</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">P</forename><surname>Gibson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Roberts</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1109.3251</idno>
+		<imprint>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Gillon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">A</forename><surname>Lanotte</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Barman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Miller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B.-O</forename><surname>Demory</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">511</biblScope>
+			<biblScope unit="page">3</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">C</forename><surname>Gregory</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">410</biblScope>
+			<biblScope unit="page">94</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">J</forename><surname>Grillmair</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Burrows</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Armus</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Stauffer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Meadows</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Van Cleve</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Von Braun</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Levine</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">456</biblScope>
+			<biblScope unit="page">767</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<monogr>
+		<title level="m" type="main">Modern Factor Analysis</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Harman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1967" />
+			<publisher>University of Chicago Press</publisher>
+		</imprint>
+	</monogr>
+	<note>2nd edition</note>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">P</forename><surname>Hatzes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Fridlund</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Nachmani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Mazeh</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1105.3372v1</idno>
+		<imprint>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<monogr>
+		<title level="m" type="main">The Annals of Statistics</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Huber</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1985" />
+			<biblScope unit="volume">13</biblScope>
+			<biblScope unit="page">435</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Hyvärinen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">IEEE Trans. on Neural Networks</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page">626</biblScope>
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Hyvärinen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Pajunen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neural Networks</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="page">429</biblScope>
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Hyvärinen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Oja</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neural Networks</title>
+		<imprint>
+			<biblScope unit="volume">13</biblScope>
+			<biblScope unit="page">411</biblScope>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Hyvärinen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Karhunen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Oja</surname></persName>
+		</author>
+		<idno>ISBN: 0-471-40540-X</idno>
+		<imprint>
+			<date type="published" when="2001" />
+			<publisher>John Wiley &amp; Sons Inc., Independent Component Analysis</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Jenkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Caldwell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Chandrasekaran</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJL</title>
+		<imprint>
+			<biblScope unit="volume">713</biblScope>
+			<biblScope unit="page">87</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">T</forename><surname>Jolliffe</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2002" />
+			<publisher>Springer Verlag New York Inc</publisher>
+			<biblScope unit="page" from="0" to="387" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">A</forename><surname>Knutson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">E</forename><surname>Allen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Fortney</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">447</biblScope>
+			<biblScope unit="page">183</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">A</forename><surname>Knutson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">W</forename><surname>Noyes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">M</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">L</forename><surname>Gilliland</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">655</biblScope>
+			<biblScope unit="page">564</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b52">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">A</forename><surname>Knutson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Madhusudhan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">B</forename><surname>Cowan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Christiansen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Deming</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1104.2901</idno>
+		<imprint>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b53">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">G</forename><surname>Koch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Borucki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Basri</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJL</title>
+		<imprint>
+			<biblScope unit="volume">713</biblScope>
+			<biblScope unit="page">79</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b54">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Koldovsk´ykoldovsk´y</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Tichavsk´ytichavsk´y</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Oja</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neural Networks</title>
+		<imprint>
+			<biblScope unit="volume">17</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page">1265</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b55">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Koldovsk´ykoldovsk´y</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Tichavsk´ytichavsk´y</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Oja</surname></persName>
+		</author>
+		<title level="m">Proc.of IEEE/SP 13th Workshop on Stat. Signal Processing</title>
+		<meeting>.of IEEE/SP 13th Workshop on Stat. Signal essing</meeting>
+		<imprint>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b56">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Kullback</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Leibler</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Annals of Mathematical Statistics</title>
+		<imprint>
+			<biblScope unit="volume">22</biblScope>
+			<biblScope unit="page">79</biblScope>
+			<date type="published" when="1951" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b57">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">C</forename><surname>Lagarias</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Reeds</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">H</forename><surname>Wright</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">&amp;amp;</forename><forename type="middle">P E</forename><surname>Wright</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Optimization</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">112</biblScope>
+			<date type="published" when="1998" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b58">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Lu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Wang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">131</biblScope>
+			<biblScope unit="page">790</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b59">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Maino</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Farusi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Baccigalupi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">334</biblScope>
+			<biblScope unit="page">53</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b60">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Maino</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Donzelli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Banday</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Stivoli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Baccigalupi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">374</biblScope>
+			<biblScope unit="page">1207</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b61">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Mandel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJL</title>
+		<imprint>
+			<biblScope unit="volume">580</biblScope>
+			<biblScope unit="page">171</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b62">
+	<monogr>
+		<title level="m" type="main">Multivariate Statistical Methods -A Primer</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Manly</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1994" />
+			<publisher>Chapman &amp; Hall</publisher>
+		</imprint>
+	</monogr>
+	<note>2nd Ed</note>
+</biblStruct>
+
+<biblStruct xml:id="b63">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Marcy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Butler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Vogt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Fischer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lissauer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJL</title>
+		<imprint>
+			<biblScope unit="volume">505</biblScope>
+			<biblScope unit="page">147</biblScope>
+			<date type="published" when="1998" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b64">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Mayor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Queloz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">378</biblScope>
+			<biblScope unit="page">355</biblScope>
+			<date type="published" when="1995" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b65">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">A</forename><surname>Nadaraya</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Prob. &amp; its Applic</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="page">186</biblScope>
+			<date type="published" when="1964" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b66">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Nelder</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Mead</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Computer Journal</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="page">308</biblScope>
+			<date type="published" when="1965" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b67">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Oja</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neural Networks</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="page">927</biblScope>
+			<date type="published" when="1992" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b68">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Pearson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Phil. Mag</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page">559</biblScope>
+			<date type="published" when="1901" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b69">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pont</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Zucker</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">411</biblScope>
+			<biblScope unit="page">1953</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b70">
+	<monogr>
+		<title level="m" type="main">Numerical Recipes</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">H</forename><surname>Press</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">A</forename><surname>Teukolsky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">T</forename><surname>Vetterling</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">P</forename><surname>Flannery</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2007" />
+			<publisher>Cambridge Uni. Press</publisher>
+			<biblScope unit="page" from="978" to="978" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b71">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Redfield</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Endl</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">D</forename><surname>Cochran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Koesterke</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJL</title>
+		<imprint>
+			<biblScope unit="volume">673</biblScope>
+			<biblScope unit="page">87</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b72">
+	<monogr>
+		<title level="m" type="main">Mathematical Methods for Physics and Engineering</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">F</forename><surname>Riley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Hobson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Bence</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2002" />
+			<publisher>Cambridge Uni. Press</publisher>
+			<biblScope unit="page" from="0" to="521" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b73">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Schneider</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Dedieu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Le Sidaner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Savalle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Zolotukhin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">532</biblScope>
+			<biblScope unit="page">79</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b74">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Seager</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Mallén-Ornelas</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">585</biblScope>
+			<biblScope unit="page">1038</biblScope>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b75">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Shannon</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Bell System Tech. J</title>
+		<imprint>
+			<biblScope unit="volume">27</biblScope>
+			<biblScope unit="page">379</biblScope>
+			<date type="published" when="1948" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b76">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">K</forename><surname>Sing</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pont</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">416</biblScope>
+			<biblScope unit="page">1443</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b77">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">A G</forename><surname>Snellen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Albrecht</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J W</forename><surname>De Mooij</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Le</forename><surname>Poole</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">487</biblScope>
+			<biblScope unit="page">357</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b78">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">A G</forename><surname>Snellen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>De Kok</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J W</forename><surname>De Mooij</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Albrecht</forename></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">465</biblScope>
+			<biblScope unit="page">1049</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b79">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">A G</forename><surname>Snellen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>De Mooij</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">E. J. W. and Burrows</title>
+		<imprint>
+			<biblScope unit="volume">513</biblScope>
+			<biblScope unit="page">76</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+	<note>A&amp;A</note>
+</biblStruct>
+
+<biblStruct xml:id="b80">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">B</forename><surname>Stevenson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Harrington</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Nymeyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Madhusudhan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Seager</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">464</biblScope>
+			<biblScope unit="page">1161</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b81">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Stivoli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Baccigalupi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Maino</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Stomper</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">372</biblScope>
+			<biblScope unit="page">615</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b82">
+	<monogr>
+		<title level="m" type="main">Independent Component Analysis: A tutorial Introduction</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Stone</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2004" />
+			<pubPlace>Bradford Book</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b83">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Swain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Vasisht</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">452</biblScope>
+			<biblScope unit="page">329</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b84">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Swain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Vasisht</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Bouwman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Chen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJL</title>
+		<imprint>
+			<biblScope unit="volume">690</biblScope>
+			<biblScope unit="page">114</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b85">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Swain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Vasisht</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Deroo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Griffith</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">704</biblScope>
+			<biblScope unit="page">1616</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b86">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Tichavsk´ytichavsk´y</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Doron</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Yeredor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Gomezherrero</surname></persName>
+		</author>
+		<title level="m">Proc. EUSIPCO-2006</title>
+		<meeting>EUSIPCO-2006</meeting>
+		<imprint>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b87">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Tichavsk´ytichavsk´y</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Doron</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Yeredor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Nielsen</surname></persName>
+		</author>
+		<title level="m">Proc. EUSIPCO-2006</title>
+		<meeting>EUSIPCO-2006</meeting>
+		<imprint>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b88">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vidal-Madjar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M.-C</forename><surname>Liang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-P</forename><surname>Beaulieu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Yung</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">448</biblScope>
+			<biblScope unit="page">169</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b89">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Deroo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Swain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">A</forename><surname>Griffith</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Vasisht</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJL</title>
+		<imprint>
+			<biblScope unit="volume">712</biblScope>
+			<biblScope unit="page">139</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b90">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Thatte</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Deroo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Swain</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">523</biblScope>
+			<biblScope unit="page">35</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b91">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">P</forename><surname>Waldmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Drossart</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">A</forename><surname>Griffith</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Swain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Deroo</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint/>
+	</monogr>
+	<note>in press</note>
+</biblStruct>
+
+<biblStruct xml:id="b92">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Xu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Gu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>An</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1008.3391v1</idno>
+		<imprint>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b93">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">S</forename><surname>Watson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Sanky Series A</title>
+		<imprint>
+			<biblScope unit="volume">26</biblScope>
+			<biblScope unit="page">359</biblScope>
+			<date type="published" when="1964" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b94">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">N</forename><surname>Winn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Holman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Henry</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">133</biblScope>
+			<biblScope unit="page">1828</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b95">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Yeredor</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">IEEE Sig. Proc. Letters</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="page">197</biblScope>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

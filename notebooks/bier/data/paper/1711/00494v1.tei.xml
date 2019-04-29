@@ -1,0 +1,908 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-11T13:19+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">SPIDERMAN: an open-source code to model phase curves and secondary eclipses</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2016">2016</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Tom</forename><surname>Louden</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Physics</orgName>
+								<orgName type="institution">University of Warwick</orgName>
+								<address>
+									<postCode>CV4 7AL</postCode>
+									<settlement>Coventry</settlement>
+									<country key="GB">UK</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Laura</forename><surname>Kreidberg</surname></persName>
+							<affiliation key="aff1">
+								<orgName type="institution">Harvard-Smithsonian Center for Astrophysics</orgName>
+								<address>
+									<postCode>02138</postCode>
+									<settlement>Cambridge</settlement>
+									<region>MA</region>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+							<affiliation key="aff2">
+								<orgName type="institution">Harvard Society of Fellows</orgName>
+								<address>
+									<postCode>02138</postCode>
+									<settlement>Cambridge</settlement>
+									<region>MA</region>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">SPIDERMAN: an open-source code to model phase curves and secondary eclipses</title>
+					</analytic>
+					<monogr>
+						<title level="j" type="main">MNRAS</title>
+						<imprint>
+							<biblScope unit="volume">000</biblScope>
+							<biblScope unit="page" from="1" to="15"/>
+							<date type="published" when="2016">2016</date>
+						</imprint>
+					</monogr>
+					<note type="submission">Accepted XXX. Received YYY; in original form ZZZ</note>
+					<note>Preprint 3 November 2017 Compiled using MNRAS L A T E X style file v3.0</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>planets and satellites: individual (WASP 43b)-stars: individual (WASP 43)-techniques: spectroscopic-planets and satellites: atmospheres-celestial mechanics-atmospheric effects</keywords>
+			</textClass>
+			<abstract>
+				<p>We present spiderman, a fast code for calculating exoplanet phase curves and secondary eclipses with arbitrary surface brightness distributions in two dimensions. Using a geometrical algorithm, the code solves exactly the area of sections of the disc of the planet that are occulted by the star. The code is written in C with a user-friendly Python interface, and is optimised to run quickly, with no loss in numerical precision. Approximately 1000 models can be generated per second in typical use, making Markov Chain Monte Carlo analyses practicable. The modular nature of the code allows easy comparison of the effect of multiple different brightness distributions for the dataset. As a test case we apply the code to archival data on the phase curve of WASP-43b using a physically motivated analytical model for the two dimensional brightness map. The model provides a good fit to the data; however, it overpredicts the temperature of the nightside. We speculate that this could be due to the presence of clouds on the nightside of the planet, or additional reflected light from the dayside. When testing a simple cloud model we find that the best fitting model has a geometric albedo of 0.32 ± 0.02 and does not require a hot nightside. We also test for variation of the map parameters as a function of wavelength and find no statistically significant correlations. spiderman is available for download at https://github.com/tomlouden/ spiderman.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">INTRODUCTION</head><p>Secondary eclipses and phase curves can give direct insight into the climate of exoplanet atmospheres. The details of heat transport in the atmosphere will affect how efficiently energy can be transported between the two hemispheres of the planet, controlling the day-night temperature contrast, and persistent wind patterns can move the brightest point of the planet from the sub-stellar point. As different wavelengths probe different depths of the atmosphere, spectroscopic phase curves and eclipses also contain information on the vertical temperature structure.</p><p>General Circulation Models (GCMs), are currently the state of the art for predicting the wind patterns and temperature distributions of the surface of exoplanets (e.g. <ref type="bibr">Show- man et al. 2008</ref>). An important early prediction of these E-mail: t.m.louden@warwick.ac.uk GCMs was that hot, tidally locked Jupiters would display peak brightness significantly offset from the substellar point. The hotspot offset is the result of fast superotating equatorial winds in the atmosphere that arise from a coupling of planetary scale circulation and day night advection <ref type="bibr">(Show- man &amp; Polvani 2011</ref>).</p><p>The high equilibrium temperature of hot Jupiters affords them contrasts with their parent stars of order 0.1%, making direct detection with current generation instruments feasible. <ref type="bibr" target="#b4">Deming et al. (2005)</ref> detected the infrared flux of HD 209458b by observing the secondary transit of the planet with the MIPS instrument on Spitzer. Using Spitzer /IRAC, <ref type="bibr" target="#b15">Knutson et al. (2007)</ref> went on to measure the secondary eclipse of HD 189733b with high precision, and also show that the system displayed a sinusoidal phase curve, caused by the bright regions of the planet rotating into and out of view. Intriguingly, the phase of this sinusoidal curve was significantly offset from the time of secondary eclipse, vali-dating earlier predictions from GCMs. This effect can also be mimicked by a high eccentricity, but de <ref type="bibr" target="#b30">Wit et al. (2012)</ref> show that this is not the case for HD 189733b.</p><p>There appear to be two broad classes of exoplanet atmosphere heat circulation. Hot Jupiters like HD 189733b, with relatively low temperatures have highly significant hotspot offsets and efficient day-night redistribution ( <ref type="bibr" target="#b15">Knutson et al. 2007</ref>). In the other class, µ Andromedae, HD 179949b and HD 209458b are all significantly hotter than HD 189733b and display much higher temperature contrasts between the day and nightsides, implying inefficient redistribution of energy. ( <ref type="bibr" target="#b9">Harrington et al. 2006;</ref><ref type="bibr" target="#b2">Cowan et al. 2007;</ref><ref type="bibr" target="#b28">Zellem et al. 2014</ref>). This behavior can be explained with the results of General Circulation Models <ref type="bibr" target="#b16">(Komacek &amp; Showman 2015;</ref><ref type="bibr" target="#b17">Komacek et al. 2016)</ref> The high velocity winds transporting this energy have been predicted to be on the order of kilometers per second, which would leave a measurable imprint on the spectral absorption lines in the planet's atmosphere through Doppler shifting (e.g. <ref type="bibr" target="#b24">Showman et al. 2013</ref>), and indeed, this effect has been observed in the transit of HD 209458b <ref type="bibr" target="#b25">(Snellen et al. 2010</ref>) and HD 189733b <ref type="bibr" target="#b19">(Louden &amp; Wheatley 2015)</ref>.</p><p>As well as longitudinal mapping with phase curves, it is possible to get a two-dimensional map of the dayside of an exoplanet from the secondary eclipse, provided that there is a non-zero impact parameter ( <ref type="bibr" target="#b21">Rauscher et al. 2007</ref>). This technique works because the inclination of the system results in the occulting limb of the star scanning across the disc of the planet in both longitude and latitude during ingress and egress. The brightness distribution of the planet's permanent dayside will be imprinted on the precise shape of the ingress and egress curves. This has been demonstrated for HD 189733 b by ( <ref type="bibr" target="#b20">Majeau et al. 2012</ref>) and (J. de <ref type="bibr" target="#b30">Wit et al. 2012</ref>).</p><p>When phase curves are spectrally resolved, they can provide an extremely powerful tool for accessing the vertical structure of an exoplanet atmosphere as a function of longitude. <ref type="bibr" target="#b26">Stevenson et al. (2014)</ref> use the Wide Field Camera 3 instrument on the Hubble Space Telescope HST/WFC3 to measure the emission spectrum and recover the temperature-pressure profile of WASP-43b as a function of phase.</p><p>An open-source code for calculating both exoplanet eclipses and phase curves in a self-consistent way for arbitrary brightness distributions does not currently exist. batman <ref type="bibr" target="#b18">(Kreidberg 2015</ref>) is an open source code to model exoplanet primary transits with a fast C-based analytical integrator, making it suitable for use with Markov chain Monte Carlo (MCMC) analysis, and has found broad use in the exoplanet community. spiderman is designed to fulfill the same role for secondary eclipses and phase curves.</p><p>In the past, authors studying phase curves have generally used non-physically motivated models to fit the data, such as sine curves or orange slices <ref type="bibr" target="#b1">(Cowan &amp; Agol 2008)</ref>. Whilst these approaches are still useful, spiderman enables a direct fit to the underlying brightness distribution, and an easy way to compare different models.</p><p>In this paper we first describe the model, and provide a brief overview of the code, and then an example of use on the hot Jupiter WASP-43b.  <ref type="figure">Figure 1</ref>. Schematic representation of the planet grid. All sectors have equal area. The co-ordinate scheme is defined as 0,0 at the centre of the planetary disc, and the planet is internally defined as having a dimensionless radius of 1.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">THE MODEL</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Integration scheme</head><p>In order to accurately calculate both the phase curve and secondary eclipse the code must integrate over the portion of the planet that is facing the observer and is not occulted by the star at each time step. In order to be general use and "model agnostic" the integrator cannot assume any specific properties or symmetries in the brightness distribution. This can be done numerically, by sampling a square grid of points on the planet's surface and summing those that are visible, but to achieve high precisions a large number of points would need to be sampled, which would be slow and computationally inefficient.</p><p>Instead, spiderman uses a novel integration scheme where the planet is divided into a relatively small number of regions, and the area of each region that is not occulted by the star is calculated exactly through geometry. The average surface brightness of each region is determined by the chosen model and multiplied by the visible area to get the total flux. spiderman uses a radial co-ordinate system centered on the visible hemisphere of the planet. The planet is defined to have a radius of unity and the visible disc of the planet is divided into a series of annuli, and then these in turn are separated in polar angle θ, as shown in the schematic in <ref type="figure">Figure 1</ref>. The number of segments in each annulus are chosen so that the area of every sector is the same. This results in one circular segment in the center, then three regions in the second annuli and five in the third -with the number of segment in the nth annulus being 2n − 1. Using this scheme, dividing the planet n times radially results in a total of n 2 integration elements. Each of the grid segments is a well defined geometric shape for which it is simple to calculate the fraction blocked by the planet passing behind the star, which in the model is represented as an occulting circle.</p><p>The area of one of these geometrical segments that has been blocked by the star can always be calculated by breaking the area into a combination of circle segments and triangles, for which the areas are known.</p><p>There are a small number of different general "cases" for the numbers of triangles and segments that must be used, that can be selected based on the number and types of "collision points" between the planet region and the stellar circle. Therefore, the first step for calculating the occulted area for each segment of the planet is to calculate these collision points. Within spiderman the region boundaries are stored as the radius of the inner and outer arcs, and the θ angle of the two radial lines.</p><p>Finding the collision points between an arc or a line and a circle (the star), if any exist, are trivial and fast to calculate. The code then classifies the geometric "case" of the collision based on the number of collision points on the four boundary sides.</p><p>For example, if there are two collision points between the outer arc and the edge of the star, then this falls into the case where the occulted area can be described by the sum of two circular segments. Other cases include larger numbers of components, but can still be described by a small number of circle segments and triangles. A list of the major classes are given below.</p><p>An individual region is defined as having an inner and outer circle edge, and a first and second straight edge, which is the radial line from the center of the planet. Definitions are given in terms of the intersection points with the stellar disc (I 1 and I 2 in 2), and the corners of the region (C 1−4 in 2). The two corners closest to the center of the planet are referred to as "inner" and the other two as "outer" corners.</p><p>An example of one geometric case is given below, the remaining 11 cases are listed in the Appendix.</p><p>2.2 Case 1: Outer circle crossed once, one straight edge crossed once.</p><p>This case takes two forms: either one corner is blocked by the star, or three are.</p><p>The case for when one corner is blocked is illustrated in <ref type="figure" target="#fig_1">Figure 2</ref>. The total blocked area is recovered from the sum of three elements:</p><formula xml:id="formula_0">A tot = A 1 + A 2 + A 3 (1)</formula><p>A 1 is the circle segment of the outer circular edge of the planet between the intersection point and the outer corner blocked by the stellar disc. A 2 is the the circle segment of the stellar disc between the two intersection points. A 3 is the triangle formed by the two intersection points and the corner blocked by the disc. In <ref type="figure" target="#fig_1">Figure 2</ref>, areas A 1 , A 2 and A 3 are coloured in orange, blue, and green, respectively.</p><p>If instead the case is flipped such that 3 corners are blocked:</p><formula xml:id="formula_1">A tot = A R − (A 1 + A 2 − A 3 ) (2)</formula><p>A R is the total area of the region. A 1 is the segment of the outer circle edge defined by the corner that is outside of the stellar disc and the intersection point. A 2 is the triangle defined by the two intersection points and the corner that is not blocked by the disc. A 3 is the circle segment defined by the stellar disc and the two intersection points.</p><p>While the calculation of overlapping errors is correct to within machine precision, numerical errors can be introduced by this approach due to averaging if the brightness distribution changes significantly faster than the area elements. The size of the elements can be adjusted as necessary by the user, at the cost of computation time. In practice, we found that dividing the planet into five radial segments (25 total elements) gave sufficient precision for the smoothly varying brightness profile in our WASP-43b test case, and increasing the mesh density beyond this point did not change the results. Other grid schemes could also be defined by the user. For example, if the information content is higher in some parts of the planet than others, then the grid could be made finer in these regions.</p><p>We performed a simple validation check to demonstrate that the integrator is working correctly. Assuming a uniform brightness distribution, the number of sections that the planet is broken into for the integration should have no impact on the final light curve.</p><p>To test that the integrator is performing correctly we compare the case of a single segment model, i.e., a circle, for which there is a single analytical solution to the area blocked by another circle, to one with 400 segments. In both cases the planet is assumed to have a total luminosity that is 1% that of the star.  If the integrator is correct, then there should be no difference between these two models. The bottom panel shows that the results are identical, apart from errors at the level of floating point precision (dotted lines) during ingress and egress.</p><p>A light curve is calculated for each of these cases, and then the difference is taken. The results of this test can be seen in <ref type="figure" target="#fig_2">Figure 3</ref>, where it is clear that there is no difference between the two light curves greater than floating point precision (2.22e-16). We therefore consider the geometric integrator of spiderman to be validated.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Brightness models</head><p>spiderman has been written in a modular way, so that users will be able to choose from a variety of models to fit to their data, or provide their own. The currently available models range from fully non-informative to basic physical models. We also provide utilities to allow the results of forward models to be quickly converted into phase curves and eclipses. spiderman projects the model temperature or brightness map onto the visible sphere of the planet, and then directly calculates the secondary eclipse and phase curve. The option also exists to include an additional planetary limb darkening component to the brightness distribution, which is parameterised as a quadratic law. The major currently available models are listed below. This list is not exhaustive, as it is intended that new models will be added to spiderman over time.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.1">Spherical harmonics</head><p>A useful and physics-independent model is a sum of spherical harmonics. This method was used for the case of the phase curve of HD 189733b by <ref type="bibr" target="#b20">Majeau et al. (2012)</ref>. An example map generated by spiderman is displayed in <ref type="figure" target="#fig_3">Figure  4</ref>. The main observational features of a phase curve, including the offset hotspot, can typically be recovered with a only the first spherical harmonic, with the centre offset from the substellar point. ( <ref type="bibr" target="#b3">Cowan et al. 2017</ref>) explore the effects of odd harmonics in phase curve data, and find that these can correspond to weather features in the planet atmosphere. spiderman uses a standard geodesy normalisation for calculating the harmonics, and can output maps in brightness or in temperature.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.2">Hotspot models</head><p>The simplest physical model that one can construct involves defining a bulk planetary temperature or flux, and then a "hotspot" where the size, contrast, and offset from the substellar point in longitude and latitude are model parameters. This model can be used to represent a "two-temperature" planet with different fluxes on the dayside versus the nightside. The hotspot model could also be used to represent the reflection of light due to clouds in optical phase curves, which have been shown to be present in K2 lightcurves <ref type="bibr" target="#b5">(Demory et al. 2013</ref>) and are even found to be time varying in HAT-P-7 (Armstrong et al. 2016).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.3">Physical model</head><p>We implement the kinematic model from <ref type="bibr">Zhang &amp; Show- man (2017)</ref>, which is a simple analytic function that closely replicates the temperature distributions of GCMs with only three free parameters. These parameters are physically motivated: the temperature of the nightside of the planet, T n , the difference in temperature between the day and nightside, ∆T, and the ratio between the advective and radiative timescales in the atmosphere, ξ.</p><p>The ξ parameter effectively parameterises the degree to which the hotspot of the planet will be offset from the substellar point by the circulation of the plant's atmosphere. The effects of this can be seen in 5, where both the position of the maxima of the phase curve, and the shape of the ingress and egress of the secondary eclipse are clearly affected by this asymmetry. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.4">Reflected light</head><p>Most physical models assume that that the flux from a phase curve is nearly or entirely thermally emitted from the planet; however, in the optical and near-infrared a portion of the light will be reflected starlight. spiderman can use a stand alone reflection model, or combine it with a thermal emission model to get the total observable flux. The simplest model of reflection assumes a Lambertian sphere with a reflecting layer that reflects evenly at all phase angles, and can be characterized by a geometric albedo.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.5">Forward model</head><p>spiderman also has the capability to quickly calculate a phase curve and secondary eclipse from a pre-calculated forward model. The code can read in a grid of either temperatures or brightnesses, in longitude and latitude, and will use a two dimensional bicubic interpolation within this grid to assign brightnesses to the grid points at each time step. Continuity is assumed east-west and across the poles to minimise edge effects. This is significantly slower than the other models due to the interpolation scheme, but it is assumed that the generation of the forward model is by far the biggest bottle-neck in the calculation, so in this instance speed is not the priority. This mode is intended to be used in particular for modelling eclipse mapping observations from 3D GCM calculations, either for comparison to data or to test analytical theories.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.6">Converting temperature to fluxes</head><p>Some physical models, such as the one adapted from <ref type="bibr" target="#b29">(Zhang &amp; Showman 2017)</ref>, are defined in terms of temperature, so spiderman must convert that to a flux. To do so we make the assumption that the temperature corresponds to the brightness temperature of the planet's photosphere. This will be valid for band passes that are narrower than strong molecular bands in the spectrum, such as water or carbon monoxide, but will not hold over wide band-passes.</p><p>There is not an analytical expression for the total amount of flux emitted by a blackbody between two arbitrary wavelengths, so spiderman calculates this value numerically. A grid of blackbody curves multiplied by the instrument response is pre-calculated as a function of temperature, and the flux in the chosen wavelength region is summed numerically. spiderman then linearly interpolates on this grid when assigning fluxes to the planet integration regions based on their temperature.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4">Stellar model</head><p>spiderman models the stellar spectrum using a grid of PHOENIX stellar atmospheres calculated by <ref type="bibr" target="#b12">Husser et al. (2013)</ref>. It is also possible to use alternative models, or a simple blackbody spectrum, which will typically be sufficient for broadband observations. Using the user provided wavelength bandpass and instrument response, spiderman calculates the total observed flux for the stellar models as a function of effective temperature, it then interpolates on this grid using a spline.</p><p>Since the shape and depth of an eclipse and phase curve are determined by the ratio of the fluxes between the two bodies, there will clearly be an exact degeneracy between the planet and star brightness. In order to recover physical parameters of the planet, such as temperature, it is necessary to place constraints on the absolute scale or brightness of the system. These constraints only need to be on flux as a function of surface area, i.e., on the specific intensity of the system components, and on their radius ratio, not on their total luminosity or radii.</p><p>(R p /R * ) 2 is well constrained from primary transits -the small variation as a function of wavelength is of little importance. There are usually good measurements of the effective temperature of the star from spectroscopy and stellar modelling. These additional parameters fix the flux scale of the system, allowing useful constraints to be placed on the absolute surface flux and brightness temperature of the planet.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.5">Light curve calculation</head><p>The primary purpose of spiderman is to produce light curves to compare with the data. Now that the functioning of the geometric integrator has been described, light curve generation is quite simple.</p><p>Given a series of points in time, the ephemeris of the system, the system scale and the planet/star radius ratio, the position of the planet relative to the star can be calculated for each timestep. Light time of travel effects are accounted for, with the semi-major axis in physical units as a parameter.</p><p>Since we assume that the planet is tidally locked, at each time step the geometric grid representing the planet is populated with the appropriate fluxes from the chosen flux distribution model.</p><p>Then, for each segment on the planet, it is checked whether it is currently being occulted. This is quickly achieved by checking for contact between the edges of the region and the edge of the star. If there are no contact points, and the distance from the center point to the center point of the star is greater than the stellar radius, then the segment is fully visible, and the full flux is counted. If the distance is less then the stellar radius, then it is fully occulted and no flux is added. For cases of partial coverage, the previously described geometric integrator is used to calculate the flux that should be added.</p><p>To this, the pre-calculated stellar total flux is added to give the total system flux. This is then divided by the stellar flux to give a relative light curve that can easily be compared to data.</p><p>Note that spiderman does not calculate primary transits. To fit models to data that contain both primary and secondary eclipses, spiderman should be combined with another package such as batman. The parameter naming convention and call sequence from spiderman has been chosen to be compatible with batman for this reason.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.6">Code availability</head><p>spiderman is an open-source project and is being actively developed on github. The code is available on PyPI and github at https://github.com/tomlouden/spiderman. Installation instructions and documentation are available at http://spiderman.readthedocs.io.</p><p>The code is written in Python with C extensions, and was optimized to run quickly. In typical usage, SPIDER-MAN is capable of producing over 1000 models per second on a single core. This means that a 1 million MCMC sample can be generated in approximately a quarter of an hour. <ref type="figure">Figure 7</ref> shows the result of a performance test carried out on a single core of an Intel Core I5-3470 Processor, where we calculated the length of time to produce a model with 1000 time points as a function of the number of segments of the model. The test shows that the execution time scales linearly with the number of segments in the model, which is expected, showing the overhead to run the model is very small. The precision required for typical usage can easily be reached using 16 or 25 segments, but larger numbers of segments can be used to produce better looking diagrams. The diagrams in this paper were generated with a 400-segment model.</p><p>In addition to light curve generation, spiderman also includes plotting functions to visualise the brightness or temperature distributions. An example plot is given in 6, which is a scale diagram of the system at a specified time or phase. Plots like this are useful for visualising the effects of varying the parameters.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">APPLICATION TO DATA</head><p>We tested spiderman's performance for a phase curve and secondary eclipse of the hot Jupiter WASP-43b observed with HST /WFC3. These data have previously been published in <ref type="bibr" target="#b26">Stevenson et al. (2014)</ref>. However, in their paper the phase curve is fit with a sinusoid function. Here we instead apply the physically motivated model of <ref type="bibr" target="#b29">Zhang &amp; Showman (2017)</ref> to test its applicability to observed data. This also reduces the total number of parameters needed for the fit. For our model fit we take the raw lightcurves from these observations and detrend them simultaneously with our model fit.</p><p>Planetary limb darkening is a potential sources of uncertainty on the final brightness distribution that would require more detailed atmosphere models to predict. spiderman has the option to include planetary limb darkening in addition to the chosen brightness model with a quadratic law. In principle, measurements of planetary limb darkening can constrain the vertical temperature profile of the planet; however, this would require a full radiative transfer treatment calculation of the atmosphere. For the case of WASP-43b, where the limb darkening is unknown, we initially fix the limb darkening to zero, and then test the impact of varying the limb darkening, treating the additional freedom as a test of the sensitivity to uncertainties of the radial brightness profile of the planet.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Systematics model</head><p>As with most exoplanet observations with Hubble, the data are affected by instrument-based systematic errors. Fortunately, the sources of these errors are relatively well understood, and are generally repeatable between observations. They are therefore straightforward to fit for and remove.</p><p>The systematics have effects on scales of visits, orbits and individual exposures, where a visit is a continuous set of orbits directed at a target. Due to the low Earth orbit of Hubble, each complete orbit lasts 96 minutes, and for approximately half of this time the target will be unobservable because it is behind the Earth. For this reason, a complete exoplanet transit can not be observed with one "visit", and it is necessary to observe several transits with different temporal phasing to completely cover the full orbital phase of the system. In this study, three visits, each with 13 or 14 orbits was used to cover the full phase of WASP-43. The phasing can be seen in <ref type="figure" target="#fig_3">Figure 14</ref>, and a phase-folded lightcurve can be seen in <ref type="figure" target="#fig_6">Figure 8</ref> The systematics model we use to fit WASP-43 is the same that was used in the previous treatment <ref type="bibr" target="#b26">(Stevenson et al. 2014</ref>). There are three components to the systematics model, the scan direction offset, "hook effect" and visit long slopes. The scan direction offset depends on which way the the detector was scanning during the readout. In one half of exposures the scan direction is in the same direction as the readout, and in the other half it is the opposite. This leads to a very repeatable offset in the fluxes between the two scan directions, which can be captured with a single parameter scale Each orbit displays a characteristic exoponential "ramp" signal, which can be modelled as Where F is the flux before correction and F cor is the corrected flux t or b is the time from the start of each orbit, r1, r2, r3 are the fitted coefficients. This exponential ramp has a different shape during the first orbit of a visit, so the δ fo function takes a value of 1 if the orbit is the first, and 0 at all other times. The exponential ramp shape is believed to be related to charge trapping, and is a characteristic and repeatable feature across orbits, so these parameters are fit simultaneously over visits. Each visit displays a decreasing slope, which is modelled as a second order polynomial. The cause of these features is unknown, and they have not been linked to any physical parameters of the telescope ( <ref type="bibr" target="#b27">Wakeford et al. 2016</ref>). The shape of these visit-long effects is slightly different between the three visits used here, so the three parameters of the polynomial are fit seperately for the three visits.</p><formula xml:id="formula_2">F cor = F * (1 − exp(−r1t orb − r2 − r3δ fo ))<label>(3</label></formula><p>The feature that is the greatest cause for concern is the visit-long slope in the data, as this has a comparable timescale and amplitude to the planet's phase curve, so there is potential for degeneracies between the systematics and physical models. Fortunately, the phasing of the observations is such that the three visits cover different portions of the phase curve, which helps to alleviate the degeneracy.</p><p>For HST systematics, where the major sources of error are fairly well understood, a parameterised systematics model of this form works well <ref type="bibr" target="#b27">Wakeford et al. (2016)</ref>. Alternatively, detailed instrumental models can recover the same features with fewer free parameters. However, if the form of the systematics changes over time then this approach might underestimate the uncertainty in the shape of the systematics and thus artificially constrain the planet models. An alternative, powerful technique which does not make assumptions about the form of the systematics is Gaussian Processes (e.g. <ref type="bibr" target="#b7">Gibson et al. 2012</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">MCMC</head><p>In order to determine the errors on the parameter values of interest and test for degeneracies with the systematics model, we perform an MCMC analysis. We use the emcee affine invariant Monte Carlo implementation of Foreman- <ref type="bibr" target="#b6">Mackey et al. (2013)</ref>.</p><p>The initial parameter positions are found with a least squares minimization approach, and the 1000 walkers were initialized around these best fitting values. For the orbital and system parameters we use published values and error bars as priors. For the period, inclination and a/R * we use the results of <ref type="bibr" target="#b11">Hoyer et al. (2016)</ref>, and for a the value from Hellier et al. (2011), The eccentricity was fixed at zero, which is supported by the findings of <ref type="bibr" target="#b11">Hoyer et al. (2016)</ref>. The stellar log g and effective temperature priors are from <ref type="bibr" target="#b8">Gillon et al. (2012)</ref>, and we calculate the stellar fluxes using the PHOENIX model stellar atmospheres calculated by <ref type="bibr" target="#b12">Husser et al. (2013)</ref>. We assume that the planet is tidally locked to the star in all model fits.</p><p>To test for the potential impact of planetary limb darkening, we ran a separate MCMC with this effect modeled by a simple quadratic limb darking law with parameters p u1 and p u2 . We place the constraint that the limb darkening must be monotonic across the disc of the planet, i.e., there can be no change in the sign of the gradient. This results in profiles that are either flat, wholly limb darkened or wholly limb brightened, with no overly flexible profiles.</p><p>For both models, the MCMC was run for 100,000 steps with 1000 walkers, with the first 10,000 steps discarded as burn-in. Convergence was checked by visual inspection of the chains for each model parameter.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Results and discussion</head><p>The best fitting model and the residuals are shown in <ref type="figure" target="#fig_6">Fig- ure 8</ref> as a function of planetary phase, after correction for instrument systematics. The data and model are also plotted as a function of time in <ref type="figure" target="#fig_3">Figure 14</ref>. To demonstrate the systematics model the data are plotted with and without systematics correction.</p><p>The model fit implies that the nightside of the planet is significantly hotter than expected at 1290 ±39 K, whereas it is not significantly detected in <ref type="bibr" target="#b26">Stevenson et al. (2014)</ref>. To establish the significance of this result, we test whether the flux immediately before and after primary transit is significantly different to the star-only flux visible during the secondary eclipse. Drawing 10,000 lightcurves from the parameters in the non-limb darkened MCMC posterior, we plot the median, 1 σ and 3 σ contours for the lightcurve in <ref type="figure" target="#fig_9">Figure 10</ref>. The flux is found to be greater than 1.0 at the 3 σ level.</p><p>The visual representation of the flux maps for the nonlimb darkened case can be seen in <ref type="figure" target="#fig_1">Figure 12</ref>. The best fitting model is displayed at four phases, as well as the relative error on the flux distribution. The error map was generated by drawing 10,000 maps from the MCMC posterior and taking the standard deviation of the fluxes in each segment. The offset hotspot is significant and clearly visible. The underlying temperature maps, and the errors in these, are shown in <ref type="figure" target="#fig_2">Figure 13</ref>.</p><p>The correlation between the physical model with the other model parameters can be seen in <ref type="figure" target="#fig_8">figure 9</ref>. T s and ∆T are clearly correlated parameters, since between them they determine the average temperature of the dayside and hence the amplitude of the phase curve. ξ is not strongly degenerate with the other parameters. This indicates that the ξ parameter is robust to any errors in the absolute flux level of the system.</p><p>The fit was repeated with limb darkening enabled to test the impact of the additional radial flexibility on the model. With the exception of T n , which is lower by more than 3σ in the fit with planetary limb darkening, the physical parameters are consistent. In particular, ξ is only weakly affected by the presence of limb darkening, the difference being much less than 1σ. This is not unexpected, as ξ effectively parametrises the asymmetry in the flux distribution, while the limb darkening is symmetrical. ξ is directly tied to the details of heat transport in the atmosphere, so the insensitivity of this parameter to limb darkening is useful, as it shows that it can be recovered even with systematic uncertainties in the flux distribution, so long as they are symmetric.</p><p>That the fit with limb darkening enabled finds a significantly fainter nightside flux suggests that the nightside flux may be an artifact of using a simple physical model. This may be due to a correlation between model parameters making the fit inflexible and the simultaneous fit with the systematics model. Alternatively, the model may be unable to parametrize a feature of the nightside that is blocking the emitted flux, such as clouds.</p><p>Another possibility is that the apparently anomalously high nightside flux may be a consquence of the physical model missing some relevent atmospheric physics on the dayside, which will artificially constrain the result. One potential factor is that the presence of clouds in the atmosphere could provide additional reflected light in addition to the thermally emitted light on the dayside of the planet. Since reflected light is not included in the model, and the parameters of the physical model are correlated, the best-fitting model may favour making the entire planet hotter in order to recover the dayside flux. <ref type="bibr" target="#b14">Keating &amp; Cowan (2017)</ref> investigated the impact of adding reflective clouds to the phase curve of WASP-43b, and found a surprisingly high near-infrared geometric albedo of 0.24 ± 0.01.</p><p>We add an additional very simple cloud model to demonstrate the potential impact of this effect on the model fit. We add an additional geometric albedo parameter for the planet, and for our toy model assume uniform cloud coverage and that the planet behaves as a Lambertian sphere. spiderman is capable of combining models, so the brightness from the reflected light is added to that emitted by the thermal model. The MCMC fit is repeated with this additional one free parameter and with planetary limb darkening set to zero.</p><p>We find that allowing a non-zero planetary albedo makes a significant difference to the model fit, and the emitted flux from the nightside becomes consistent with zero, with a 99.7% upper limit for the nightside temperature of 860 K, significantly lower than the value of 1076±11 K Keating &amp; Cowan (2017) find using both WFC3 and Spitzer data. The best fitting albedo is found to be 0.32 ± 0.02, which is somewhat higher than the best fit value of 0.24 ± 0.01 reported by <ref type="bibr" target="#b14">(Keating &amp; Cowan 2017)</ref>; however, the results are alike in that they emphasize the potential importance of bright dayside clouds. The differences in our results are likely due to the differences in our thermal emission models and the difference in spectral coverages considered. <ref type="bibr">Keating &amp;</ref>   Cowan (2017) only consider continuum emission of WASP43b (excluding the water absorption feature), whereas we fit the broadband WFC3 phase curve.</p><p>We emphasize here that the "temperatures" of the Zhang &amp; Showman (2017) model parameters do not correspond trivially to the average temperatures of the generated temperature map -for example, one cannot take the addition of the T n and ∆ T parameters as a representative dayside temperature for the model. When comparing the average temperature of the maps we will use the brightness temperature of a uniform sphere that produces the same total flux, to remove ambiguity.</p><p>The addition of the reflecting clouds significantly changes the parameters of the temperature distribution, with the dayside also becoming correspondingly cooler, equivalent to an average dayside brightness temperature of 1220 K, compared to 1640 K in the model that did not include reflective clouds.</p><p>The ratio of the radiative to advective timescales is increased to 2.2 ± 0.5, corresponding to a more significantly offset hotspot, though due to the combination of the emitted and reflected light the brightest point of the planet in this bandpass is in the same place as the other models.</p><p>The results of all three runs are presented in <ref type="table">Table 1</ref> 3.3.1 Spectrally-resolved phase curves</p><p>Spectrally resolving the phase offset in principle allows information on the heat transport as a function of depth. To test for this effect we break the data down into 15 spectral bins and repeat the MCMC analysis described for the white The dark grey region is the 1 σ confidence region, light grey is 3 σ. The implied flux from the nightside is greater than 1 at the 3 σ level. The apparent non-zero nightside flux is model dependent due to degeneracies with the systematics detrending and is not significant in the other two models tested. light data, without allowing the additional radial freedom from limb darkening. We fix the system parameters to those found in the white light fit. We report the measurement of ξ parameter as a function of wavelength in <ref type="table" target="#tab_3">Table 2</ref>. We test if there is a significant dependence of the value of ξ on the wavelength in microns by attempting to fit several simple models to the data with a Levenberg Marquardt least squares technique. We choose to fit using the logarithm of the ξ value, since the best fitting value is seen to vary by several orders of magnitude across spectral channels.</p><p>The null model, which assumes there is no dependence on wavelength is simply a flat line. This model gave an acceptable fit, with a χ 2 of 15.1 ( χ 2 R of 1.16) with 14 DOF with a best fitting average value of -0.36 -which is consistent with <ref type="table">Table 1</ref>. The full results from the MCMC fit for the three models considered in detail: with planetary limb darkening fixed to zero, with planetary limb darkening as additional free parameters, and with reflective dayside clouds parameterized as a lambertian sphere with a geometric albedo. Note that while the parameters for the model of <ref type="bibr" target="#b29">(Zhang &amp; Showman 2017)</ref> have units of K they should not be interpreted as average values for the day and nightside of the planet. We report the mode and 1 σ Highest Probability Density region for all parameters: this is identical to the median and 1 σ percentiles except for the T n parameter in the reflecting cloud case, which has a highly asymmetric posterior that approaches 0. </p><formula xml:id="formula_3">- 0 - 0 - - R p /R * 0.159692 ±0.000093 0.159650 ±0.000091 0.159620 ±0.000091 - u1 0.3880 ±0.0083 0.3875 ±0.0083 0.3875 ±0.0083 - u2 0 - 0 - 0 - - c 1 3.687319e+08 ±0.000090e+08 3.687522e+08 ±0.000088e+08 3.68757e+08 ±0.000067e+08 - c 2 3.693661e+08 ±0.000097e+08 3.693653e+08 ±0.000098e+08 3.693776e+08 ±0.000093e+08 - c 3 3.689717e+08 ±0.000093e+08 3.68984e+08 ±0.00010e+08 3.689801e+08 ±0.000073e+08 - v1 1 -1.484e+06 ±0.045e+06 -1.558e+06 ±0.048e+06 -1.533e+06 ±0.044e+06 - v1 2 -6.31e+05 ± 0.50e+05 -6.18e+05 ± 0.55e+05 -6.74e+05 ± 0.49e+05 - v1 3 -8.56e+05 ± 0.49e+05 -8.56e+05 ± 0.54e+05 -8.01e+05 ± 0.48e+05 - v2 1 1.004e+06 ±0.059e+06 1.076e+06 ±0.063e+06 1.027e+06 ±0.058e+06 - v2 2 1.83e+05 ± 0.61e+05 1.92e+05 ± 0.68e+05 2.6e+05 ± 0.62e+05 - v2 3 4.08e+05 ± 0.62e+05 3.76e+05 ± 0.67e+05 3.16e+05 ± 0.61e+05 - r1</formula><p>123.2 ± 3.5 122.8 ± 3.5 123.1 ± 3.5 -r2</p><p>5.874 ±0.011 5.876 ±0.011 5.876  the white light value. We fit a simple gradient model to test for linear trends in the data. The best fitting model had a g -0.86 micron − 1 and a value of c of 0.85 and gave a χ 2 of 8.8</p><formula xml:id="formula_4">±0.011 - r3 -0.087 ±0.028 -0.112 ±0.028 -0.112 ±0.028 - scale -0.0024748 ±0.0000061 -0.0024749 ±0.0000060 -0.0024749 ±0.0000060 - p u1 0 - -1.1 ± 0.9 0 - - p u2 0 - -2.8 ± 1.1 0 - - a 0.01421</formula><p>( χ 2 R 0.67) with 13 DOF. We also test a function approximating a step function, this form might be expected since the wavelength region covers the water band; values inside the water band will probe lower pressures than those outside, due to the increased optical depth. The function has three parameters: δ out , which is the average value outside of the step function, δ in which is the value on the other side of the step, and γ, which is the wavelength which separates the two sides of the step function. The best fitting model was found to have γ of 1.4225 microns, which is close to what would be expected for a water features, δ out of -0.52 and δ in of -0.21. This model gave a χ 2 of 8.0 ( χ 2 R of 0.62) with 12 DOF.</p><p>Using a Bayesian Information Criterion, the improvement of χ 2 is marginal for the gradient model and the step function model, and not enough to constitute significant evidence in favour of either model, so we prefer the interpretation of a flat line. While we find that there is weak evidence for a trend with wavelength in the data, the flat line model provides a satisfactory fit to the data. A full treatment would require calculating the pressure contribution function for each wavelength as was done in <ref type="bibr" target="#b26">Stevenson et al. (2014)</ref>, which is beyond the scope of this work.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">CONCLUSIONS</head><p>In this paper we have introduced spiderman, an open source code for modelling phase curves and secondary eclipses with arbitrary brightness distributions. The code is modular and able to use a variety of different brightness distributions.</p><p>The C-based algorithm analytically calculates the area occulted of radial segments on the planet's surface, and is designed to run rapidly to enable statistical techniques such as MCMCs to run quickly.</p><p>We demonstrate the use of spiderman by applying the code to the case of WASP-43b. We use a physically motivated analytical model presented by <ref type="bibr" target="#b29">Zhang &amp; Showman (2017)</ref> which captures the major features of exoplanet phase curves. We find that the model provides a good fit to the data, but overpredicts the nightside flux compared to noninformative models. We hypothesise that this may be due to the presence of clouds on the planet's nightside, or alternatively, that the dayside possesses a non-zero near infrared albedo.  </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>APPENDIX A: ALL COLLISION CASES Case 2: zero collisions</head><p>The trivial case where the segment is either entirely blocked, or entirely unobscured. If the distance from the center of the segment to the center of the star is less than the stellar radius then the entire area is added, otherwise nothing is.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Case 3: Inner and outer circles crossed once</head><p>The case where both the inner and outer circle segments are both intersected by the disc of the star, and the straight edges are untouched. In this case the total area is calculated as follows</p><formula xml:id="formula_5">A tot = A 1 + A 2 + A 3 − A 4 (A1)</formula><p>A 1 is the circle segment of the stellar disc bounded by the intersection points with the inner and outer circles. A 2 is the circle segment of the outer circle edge bounded by the intersection point with the stellar disc and the outer corner that is blocked by the stellar disc. A 3 is the quadrilateral defined by the two intersection points and the two corners blocked by the stellar disc. A 4 is the circle segment of the inner circle edge bounded by the intersection point with the stellar disc and the inner corner that is blocked by the star.</p><p>Case 4: Inner and outer circles crossed once, one straight edge crossed twice.</p><formula xml:id="formula_6">A tot = A 1 + A 2 + A 3 − A 4 − A 5 (A2)</formula><p>This is calculated the same as Case 2, but an additional area element is subtracted, A 5 , which is the circle segment  <ref type="figure" target="#fig_3">Figure 14</ref>. Top: raw data from HST, the systematic components are all visible. second panel shows the physical model fit (red) and the systematic model (blue). The third panel shows the model fit to the data with the systematic noise component removed, the fourth panel is the residuals of the fit.</p><p>formed by the disc of the star and the two intersection points with the straight edge.</p><p>Case 5: inner edge crossed twice, both straight edges crossed.</p><p>There are two subcases; if the inner edges are covered by the star, then:</p><formula xml:id="formula_7">A tot = A R − (A 1 + A 2 + A 3 − A 4 − A 5 ) (A3)</formula><p>A R is the total area of the region. otherwise, if the inner edges are outside the disc of the star:</p><formula xml:id="formula_8">A tot = A R − (A 1 + A 2 − A 3 − A 4 − A 5 − A 6 ) (A4)</formula><p>A R is the total area of the region. A 1 is the area of the triangle formed by the two corners on one straight edge, and the contact point with the inner edge that is closest to them, A 2 is the same for the other side. A 3 and A 4 are the circle segments of the inner edge, each formed by an inner corner and the intersection of the inner edge that is closest to them. A 5 and A 6 are the circle segments of the stellar disc, each formed by an intersection of a straight edge and the intersection of the inner edge that is closest to them.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Case 6: A straight edge crossed twice</head><p>In this case, only a single area needs to be calculated, the area of a circle segment defined by the stellar disc, and the two intersection points Case 7: Inner edge and one straight edge Similar to Case 2, this case has two subcases, one where there are three blocked corners, and one where one corner is blocked. For the case with one corner inside:</p><formula xml:id="formula_9">A tot = A 1 + A 2 − A 3 (A5)</formula><p>A 1 is the triangle defined by the corner that is blocked by the disc and the two intersection points. A 2 is the circle segment of the star disc defined by the two intersection points. A 3 is the segment area of the inner edge defined by the intersection point and the corner that is blocked by the stellar disc.</p><p>For the case with three corners inside:</p><formula xml:id="formula_10">A tot = A R − (A 1 − A 2 − A 3 ) (A6)</formula><p>A R is the total area of the region. A 1 is the segment of the inner edge defined by the intersection point and the corner not blocked by the star. A 2 is the segment of the star defined by the intersection and the corner not blocked by the star. A 3 is the triangle defined by the corner not blocked by the star and the two intersection points.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Case 8: Outer edge crossed twice</head><p>If no corners are covered by the star, then this is simply the sum of two circle segments, for the outer edge and the star, defined by the two interestion points.</p><p>If all corners are covered by the star, then:</p><formula xml:id="formula_11">A tot = A R − (A 1 − A 2 )<label>(A7)</label></formula><p>Where A 1 is the segment of the outer edge defined by the two interestion points, and A 2 is the segment of the stellar disc defined by the two interestion points.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Case 9: Both straight edges crossed</head><p>This is divided further into two subcases, if the two outer corners are covered by the star, then:</p><formula xml:id="formula_12">A tot = A 1 + A 2 + A 3 (A8)</formula><p>A 1 is the quadrilateral defined by the intersection points and the outer corners. A 2 is the circle segment defined by the stellar disc and the intersection points. A 3 is the circle segment defined by the outer edge and the outer corners.</p><p>Otherwise, if the two inner corners are covered:</p><formula xml:id="formula_13">A tot = A 1 + A 2 − A 3 (A9)</formula><p>A 1 is the quadrilateral defined by the intersection points and the inner edges. A 2 is the circle segment defined by the stellar disc and the intersection points. A 3 is the circle segment defined by the inner edge and the inner corners.</p><p>Case 10: 2 inner, one outer, one edge This case has two subcases. In the first case the center of the star is external to the outer circle edge of the segment, the area is:</p><formula xml:id="formula_14">A tot = A 1 + A 2 + A 3 − A 4 (A10)</formula><p>Where A 1 is the triangle formed by the intersection with the outer circle edge and the two segment corners blocked by the star, A 2 is the circle segment of the formed by the interestion with the outer circle edge and the outer corner which is blocked by the star, A 3 is the circle segment of the star formed by the interestion with the outer circle and the intersection with the edge and A 4 is the area of the intersection of the circles describing the inner circle edge and the disc of the star.</p><p>in the second case the center of the star is interior to the inner circle edge, and:</p><p>A tot = (A 1 + A 2 + A 3 − A 4 ) + (A 5 + A 6 − A 7 ) (A11)</p><p>A 1 is the area of the quadrilateral definted by the corners of the straight edge that is fully covered, (hereafter edge 1), the interesection with the outer circle, and the closest intersection with the inner edge (hereafter c 1 ). A 2 is the segment of the outer circle formed by the intersection with the outer circle and the outer corner of edge 1. A 3 is the circle segment of the star formed by the interesction with the outer circle and c 1 . A 4 is the circle segment of the inner circle formed by the inner corner of edge 1 and c 1 . A 5 is the triangle formed by the intersection with edge 2, the inner corner of edge 2 and the remaining inner circle intersection, c 2 . A 6 is the circle segment of the star defined by the intersection with edge 2 and c 2 . A 7 is the circle segment of the inner circle defined by the inner corner of edge 2 and c 2 .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Case 11: 2 inner, two outer</head><p>This case only occurs when the star is smaller than the planet.</p><formula xml:id="formula_15">A tot = A 1 + A 2 + A 3 + A 4 − A 5 (A12)</formula><p>A 1 is the quadrilateral formed by the 4 intersection points. A 2 and A 3 are the circle segments of the stellar disc defined by the two pairs of inner and outer intersection points. A 4 is the circle segment of the outer edge formed by the two intersection points on the outer edge. A 5 is the circle segment of the outer edge formed by the two intersection points on the inner edge.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Case 12: tangent solutions</head><p>The remaining posible cases are all tangent solutions, where the disc of the star touches the boundary of the region exactly once, and no area is blocked.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 2 .</head><label>2</label><figDesc>Figure 2. An example of the area calculation algorithm. Here the planet (light orange) passes behind the star (light blue). The occulted area of the highlighted region defined by the corners C 1 , C 2 , C 3 and C 4 is calculated. The disc of the star intersects with the boundary of the region at I 1 and I 2 . The overlapping area can be recovered exactly as the sum of two circle segments (blue and orange) and a triangle (green).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 3 .</head><label>3</label><figDesc>Figure 3. A comparison between a uniform flux distribution eclipse model generated with 400 segments and a single segment. If the integrator is correct, then there should be no difference between these two models. The bottom panel shows that the results are identical, apart from errors at the level of floating point precision (dotted lines) during ingress and egress.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 4 .</head><label>4</label><figDesc>Figure 4. An example spiderman model output generated using spherical harmonics. The planet is displayed as it would appear at 4 phases, clockwise from top left: 0.0,0.25,0.75,0.5.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Figure 5 .</head><label>5</label><figDesc>Figure 5. The phase curve and secondary eclipses of an example planet generated with a simple spherical harmonics flux model (blue dashed) and the Zhang &amp; Showman (2017) physical model (red dot). Note in the physical model how the brightest point of the phase curve is significantly offset from the time of secondary transit, and the slightly different shape of the ingress and egress, both caused by the asymmetry in the flux distribution on the planet.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Figure 6 .Figure 7 .</head><label>67</label><figDesc>Figure 6. An example of the graphical output that spiderman can produce. This image is a scale representation of the system, with the planetary flux map included. This is useful for visualising the model. It was generated with the spiderman.plot system() command. The image of the star is purely aesthetic and is not related to any model parameters (image credit Solar Dynamics Observatory).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Figure 8 .</head><label>8</label><figDesc>Figure 8. The final fitted lightcurve using the (Zhang &amp; Showman 2017) brightness model. The primary transit is fit by batman and is off the scale of this figure. The model flux immediately before and after primary transit is non-zero, indicating the presence of non-zero nightside flux.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head>Figure 9 .</head><label>9</label><figDesc>Figure 9. A corner plot for the fixed limb darkening fit focusing on the key model parameters. The parameters for the Zhang model fit are all loosely correlated. The distribution for the stellar temperature, T s , is set by the prior</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head>Figure 10 .</head><label>10</label><figDesc>Figure 10. The uncertainty on the model from the MCMC fit not of the Zhang model including clouds or planetary limb darkening. The dark grey region is the 1 σ confidence region, light grey is 3 σ. The implied flux from the nightside is greater than 1 at the 3 σ level. The apparent non-zero nightside flux is model dependent due to degeneracies with the systematics detrending and is not significant in the other two models tested.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_10"><head>Figure 11 .</head><label>11</label><figDesc>Figure 11. The values of log(ξ) as a function of wavelength. Several simple models are fit to the data to test for wavelength dependence. A flat line in blue, a gradient model in green and a step function in orange.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_11"><head>Figure 12 .</head><label>12</label><figDesc>Figure 12. Left: The best fitting flux distribution for the model where the planetary limb darkening was switched off at four phases. From top left clockwise the phases are 0, 0.25, 0.75 and 0.5. Right: The respective constraints on the brightness distribution.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_12"><head>Figure 13 .</head><label>13</label><figDesc>Figure 13. The underlying temperature distributions generated by the Zhang model corresponding to figure 12 with the precision attained.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" validated="false"><head>Table 2 .</head><label>2</label><figDesc></figDesc><table>The best fitting value of ξ as a function of wavelength. 
+The value is poorly constrained compared to the white-light curve 
+due to the lower signal to noise, and in several channels no sig-
+nificant value is detected. 
+
+Central wavelength 
+log10(xi) 
+(microns) 
+1.1425 
+-0.32 ± 0.27 
+1.1775 
+-0.51 ± 0.32 
+1.2125 
+-0.00 ± 0.18 
+1.2475 
+-0.20 ± 0.19 
+1.2825 
+-0.74 ± 0.39 
+1.3175 
+-0.32 ± 0.19 
+1.3525 
+-0.82 ± 0.62 
+1.3875 
+-0.07 ± 0.20 
+1.4225 
+-0.09 ± 0.34 
+1.4575 
+-0.71 ± 0.31 
+1.4925 
+-0.42 ± 0.17 
+1.5275 
+-0.76 ± 0.37 
+1.5625 
+-0.43 ± 0.14 
+1.5975 
+-0.66 ± 0.25 
+1.6325 
+-0.59 ± 0.19 
+
+</table></figure>
+
+			<note place="foot">MNRAS 000, 1-15 (2016)</note>
+
+			<note place="foot">This paper has been typeset from a T E X/L A T E X file prepared by the author. MNRAS 000, 1-15 (2016)</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>ACKNOWLEDGEMENTS</head><p>T.L. is supported by STFC consolidated grant (ST/P005586/1). Much of this work was carried out at the kavli summer program in physics 2016. T.L extends his gratitude to the program organisers, in particular Jonathan Fortney and Pascale Garaud. The authors thank Xi Zhang, Emily Rauscher, Nick Cowan, Jacob Arcangeli, and Jean-Michel Désert for useful discussions that led to improvements to spiderman.</p></div>
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J</forename><surname>Armstrong</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>De Mooij</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Barstow</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">P</forename><surname>Osborn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Blake</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">F</forename><surname>Saniee</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature Astronomy</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page">4</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">B</forename><surname>Cowan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">678</biblScope>
+			<biblScope unit="page">129</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">B</forename><surname>Cowan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Monthly Notices of the Royal Astronomical Society</title>
+		<imprint>
+			<biblScope unit="volume">379</biblScope>
+			<biblScope unit="page">641</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">B</forename><surname>Cowan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Chayes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Bouffard˜abouffard˜ Bouffard˜a</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Meynig</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Haggard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Monthly Notices of the Royal Astronomical Society</title>
+		<imprint>
+			<biblScope unit="volume">000</biblScope>
+			<biblScope unit="page">133</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Deming</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Seager</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">J</forename><surname>Richardson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">434</biblScope>
+			<biblScope unit="page">740</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Demory B.-O</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">776</biblScope>
+			<biblScope unit="page">25</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Goodman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Publications of the Astronomical Society of the Pacific</title>
+		<imprint>
+			<biblScope unit="volume">125</biblScope>
+			<biblScope unit="page">306</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">P</forename><surname>Gibson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">M</forename><surname>Evans</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Osborne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pont</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Monthly Notices of the Royal Astronomical Society</title>
+		<imprint>
+			<biblScope unit="volume">419</biblScope>
+			<biblScope unit="page">2683</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Gillon</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astronomy &amp; Astrophysics</title>
+		<imprint>
+			<biblScope unit="volume">542</biblScope>
+			<biblScope unit="page">4</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Harrington</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">M</forename><surname>Hansen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">H</forename><surname>Luszcz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Seager</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Deming</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Menou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">Y</forename><surname>Cho</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">-K</forename><surname>Richardson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">J</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">314</biblScope>
+			<biblScope unit="page">623</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Hellier</surname></persName>
+		</author>
+		<idno type="doi">10.1051/0004-6361/201117081</idno>
+		<imprint>
+			<date type="published" when="2011" />
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="page">4</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Hoyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Pallé</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Dragomir</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Murgas</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astronomical Journal</title>
+		<imprint>
+			<biblScope unit="volume">151</biblScope>
+			<biblScope unit="page">137</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T.-O</forename><surname>Husser</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Wende-Von Berg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Dreizler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Homeier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Barman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">H</forename><surname>Hauschildt</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astronomy &amp; Astrophysics</title>
+		<imprint>
+			<biblScope unit="volume">553</biblScope>
+			<biblScope unit="page">6</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+	</analytic>
+	<monogr>
+		<title level="j">Astronomy &amp; Astrophysics</title>
+		<editor>J. de Wit M. Gillon B.-O. Demory S. Seager</editor>
+		<imprint>
+			<biblScope unit="page">128</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Keating</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">B</forename><surname>Cowan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal Letters</title>
+		<imprint>
+			<biblScope unit="volume">849</biblScope>
+			<biblScope unit="page">5</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">A</forename><surname>Knutson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">447</biblScope>
+			<biblScope unit="page">183</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Komacek</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">P</forename><surname>Showman</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Komacek</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">P</forename><surname>Showman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Tan</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Kreidberg</surname></persName>
+		</author>
+		<title level="m">Publications of the Astronomical Society of the Pacific</title>
+		<imprint>
+			<date type="published" when="2015" />
+			<biblScope unit="volume">127</biblScope>
+			<biblScope unit="page">1161</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Louden</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">J</forename><surname>Wheatley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">814</biblScope>
+			<biblScope unit="page">24</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Majeau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Cowan</surname></persName>
+		</author>
+		<idno type="doi">10.1088/2041-8205/747/2/L20</idno>
+		<imprint>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Rauscher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Menou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Seager</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Deming</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">Y</forename><surname>Cho</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">-K</forename><surname>Hansen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">M S</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">664</biblScope>
+			<biblScope unit="page">1199</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">P</forename><surname>Showman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">M</forename><surname>Polvani</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">738</biblScope>
+			<biblScope unit="page">71</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">P</forename><surname>Showman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Fortney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Lian</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Marley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Freedman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Knutson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="page">20</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">P</forename><surname>Showman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Fortney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">K</forename><surname>Lewis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Shabram</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">762</biblScope>
+			<biblScope unit="page">24</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">A G</forename><surname>Snellen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>De Kok</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J W</forename><surname>De Mooij</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Albrecht</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">465</biblScope>
+			<biblScope unit="page">1049</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">B</forename><surname>Stevenson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Bean</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Madhusudhan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Harrington</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">791</biblScope>
+			<biblScope unit="page">36</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">R</forename><surname>Wakeford</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">K</forename><surname>Sing</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Evans</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Deming</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Mandell</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">819</biblScope>
+			<biblScope unit="page">10</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">T</forename><surname>Zellem</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">790</biblScope>
+			<biblScope unit="page">53</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">P</forename><surname>Showman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">836</biblScope>
+			<biblScope unit="page">73</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>De Wit</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Gillon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B.-O</forename><surname>Demory</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Seager</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astronomy &amp; Astrophysics</title>
+		<imprint>
+			<biblScope unit="volume">548</biblScope>
+			<biblScope unit="page">128</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

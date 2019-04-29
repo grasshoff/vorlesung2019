@@ -1,0 +1,547 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-11T13:19+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Asteroseismic Data Analysis with DIAMONDS</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2017-11-16">16 Nov 2017</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Enrico</forename><surname>Corsaro</surname></persName>
+							<email>enrico.corsaro@oact.inaf.it</email>
+							<affiliation key="aff0">
+								<orgName type="department" key="dep1">Instituto de Astrofísica de Canarias</orgName>
+								<orgName type="department" key="dep2">Departamento de Astrofísica</orgName>
+								<orgName type="laboratory">Laboratoire AIM Paris-Saclay, CEA/DRF -CNRS -Université Paris Diderot, IRFU/SAp, L&apos;Orme des Merisiers, bat. 709</orgName>
+								<orgName type="institution">INAF -Osservatorio Astrofisico di Catania</orgName>
+								<address>
+									<addrLine>via S. Sofia 78, E-38205 -Universidad de La Laguna, E-38206, La Laguna</addrLine>
+									<postCode>I-95123, 91191</postCode>
+									<settlement>Gif-sur-Yvette Cedex, Tenerife</settlement>
+									<region>Catania</region>
+									<country>Italy, France, Spain</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Enrico</forename><surname>Corsaro</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department" key="dep1">Instituto de Astrofísica de Canarias</orgName>
+								<orgName type="department" key="dep2">Departamento de Astrofísica</orgName>
+								<orgName type="laboratory">Laboratoire AIM Paris-Saclay, CEA/DRF -CNRS -Université Paris Diderot, IRFU/SAp, L&apos;Orme des Merisiers, bat. 709</orgName>
+								<orgName type="institution">INAF -Osservatorio Astrofisico di Catania</orgName>
+								<address>
+									<addrLine>via S. Sofia 78, E-38205 -Universidad de La Laguna, E-38206, La Laguna</addrLine>
+									<postCode>I-95123, 91191</postCode>
+									<settlement>Gif-sur-Yvette Cedex, Tenerife</settlement>
+									<region>Catania</region>
+									<country>Italy, France, Spain</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Asteroseismic Data Analysis with DIAMONDS</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2017-11-16">16 Nov 2017</date>
+						</imprint>
+					</monogr>
+					<note>1</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<abstract>
+				<p>Since the advent of the space-based photometric missions such as CoRoT and NASA&apos;s Kepler, asteroseismology has acquired a central role in our understanding about stellar physics. The Kepler spacecraft, especially, is still releasing excellent photometric observations that contain a large amount of information not yet investigated. For exploiting the full potential of these data, sophisticated and robust analysis tools are now essential, so that further constraining of stellar structure and evolutionary models can be obtained. In addition, extracting detailed asteroseismic properties for many stars can yield new insights on their correlations to fundamental stellar properties and dynamics. After a brief introduction to the Bayesian notion of probability, I describe the code DIAMONDS for Bayesian parameter estimation and model comparison by means of the nested sampling Monte Carlo (NSMC) algorithm. NSMC constitutes an efficient and powerful method, in replacement to standard Markov chain Monte Carlo, very suitable for high-dimensional and multi-modal problems that are typical of detailed asteroseismic analyses, such as the fitting and mode identification of individual oscillation modes in stars (known as peak-bagging). DIAMONDS is able to provide robust results for statistical inferences involving tens of individual oscillation modes, while at the same time preserving a considerable computational efficiency for identifying the solution. In the tutorial, I will present the fitting of the stellar background signal and the peak-bagging analysis of the oscillation modes in a red-giant star, providing an example to use Bayesian evidence for assessing the peak significance of the fitted oscillation peaks.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Bayesian statistics</head><p>Let us assume to consider a given physical problem, e.g., the fitting of an observational dataset through the use of a predictive model. We term the dataset D and the fitting model M k , the latter having a number of k free parameters that we represent with the k-dimensional parameter vector θ θ θ = (θ 1 , θ 2 , . . . , θ k ). The number of free parameters sets the dimensionality of the problem, to which a k-dimensional parameter space Ω M k is associated, representing the space of the solutions. Our aim is to obtain optimal estimates of each free parameter and a corresponding statistical weight of the model M k that takes into account both the number of dimensions and the fit quality. This statistical inference can be properly addressed through the means of Bayesian statistics <ref type="bibr" target="#b12">(Jeffreys, 1961;</ref><ref type="bibr" target="#b17">Sivia &amp; Skilling, 2006;</ref><ref type="bibr" target="#b19">Trotta, 2008;</ref><ref type="bibr" target="#b0">Bolstad, 2013;</ref><ref type="bibr" target="#b4">Corsaro et al., 2013;</ref><ref type="bibr" target="#b2">Corsaro &amp; De Ridder, 2014</ref>). In particular, the core of the statistical representation is given by Bayes' theorem:</p><formula xml:id="formula_0">p(θ θ θ | D, M k ) = L (θ θ θ | D, M k )π(θ θ θ | M k ) p(D | M k ) ,<label>(1)</label></formula><p>where L (θ θ θ | D, M k ) (hereafter, L (θ θ θ ) for simplicity) is the likelihood function, which represents the way we sample the data, while π(θ θ θ | M k ) is the prior probability density function (PDF) that reflects our knowledge about the model parameters. The left-hand side of Eq. (1) is the posterior PDF, which has a key role in the parameter estimation problem. Through a marginalization of the posterior PDF, namely an integration over the uninteresting free parameters, we estimate the free parameters of the model. Among the different estimators for each parameter, in Bayesian statistics the median is usually preferred because it represents the most resistant estimator, namely the least sensitive to possible outliers, and because it is invariant for variable change. The denominator on the right-hand side of Eq. (1) is instead a normalization factor, generally known as the Bayesian evidence (or marginal likelihood), which is defined as</p><formula xml:id="formula_1">E ≡ p(D | M k ) = Ω M k L (θ θ θ | D, M k )π(θ θ θ | M k )dθ θ θ .<label>(2)</label></formula><p>The Bayesian evidence is used for as a statistical weight for model comparison because it encompasses the principle of the Occam's razor, meaning that models are favored if they provide a better fit to the data but are penalized if their number of free parameters is larger than that of a competitor model. For our study, the model comparison is performed by computation of the Bayes' factor B i j = E i /E j (see also Sect. 5), in which the model corresponding to a larger Bayesian evidence is statistically more likely <ref type="bibr" target="#b12">(Jeffreys, 1961;</ref><ref type="bibr" target="#b19">Trotta, 2008;</ref><ref type="bibr" target="#b4">Corsaro et al., 2013;</ref><ref type="bibr" target="#b2">Corsaro &amp; De Ridder, 2014</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Nested sampling Monte Carlo</head><p>Since Eq. (2) is a multi-dimensional integral, with increasing number of dimensions its evaluation becomes quickly unsolvable both analytically and by numerical approximations. For overcoming this problem, a NSMC algorithm was developed <ref type="bibr" target="#b18">(Skilling, 2004</ref>). This algorithm allows for an efficient evaluation of the Bayesian evidence for any number of dimensions and provides the sampling of the posterior probability distribution (PPD) for parameter estimation as a straightforward byproduct. Detailed descriptions of the algorithm can be found in Skilling <ref type="formula" target="#formula_1">(2004)</ref>  <ref type="bibr">(2014)</ref>. In short, a prior mass X is defined such that</p><formula xml:id="formula_2">X(L * ) = L (θ θ θ )&gt;L * π(θ θ θ | M )dθ θ θ ,<label>(3)</label></formula><p>with L * being some fixed value of the likelihood function. As a consequence, 0 ≤ X ≤ 1 because π(θ θ θ | M ) is a PDF. Equation <ref type="formula" target="#formula_2">(3)</ref> is therefore the fraction of volume under the prior PDF that is contained within the hard constraint L (θ θ θ ) &gt; L * . This means that the higher is the constraining value L * , the smaller is the prior mass considered. This is equivalent to considering a portion of parameter space delimited by the iso-likelihood contour L (θ θ θ ) = L * , in which also the maximum value L max is contained.</p><p>In the NSMC, the sampling of the posterior PDF is performed by starting with a prior mass X = 0 (thus considering the entire parameter space) and an initial sampling of N live points that are distributed according to the prior, hence drawn from the prior PDF itself. At each new iteration, a new sampling point is drawn from the prior PDF with a corresponding likelihood value that satisfies the hard constraint L &gt; L * , with L * the worst likelihood value of the previous iteration. The point associated to the worst likelihood value is then removed from the sample and a new iteration starts. At the end, the prior mass reached corresponds to X = 1 and the sampling terminates in a region that is located around the maximum (or the maxima) of the likelihood function.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">The DIAMONDS code</head><p>The high-DImensional And multi-MOdal NesteD Sampling (DIAMONDS) code 1 is a C++11 software for Bayesian parameter estimation and model comparison that uses a version of the NSMC algorithm. A major difficulty in implementing the NSMC algorithm is the drawing from the prior PDF that satisfies the hard con- straint in the likelihood value of the drawn point. Following on the developments made for other existing codes that implement NSMC (see, e.g., <ref type="bibr" target="#b17">Shaw et al., 2007;</ref><ref type="bibr" target="#b7">Feroz &amp; Hobson, 2008;</ref><ref type="bibr" target="#b8">Feroz et al., 2009</ref>), DIAMONDS overcomes this problem by adopting a simultaneous ellipsoidal sampling algorithm <ref type="bibr">(Corsaro &amp; De Rid- der, 2014</ref>). This means that the posterior PDF is actually sampled by means of multi-dimensional ellipsoids, which decompose the parameter space Ω M k into small hyper-volumes, as shown in the left panel of <ref type="figure" target="#fig_0">Fig. 1</ref>. Each ellipsoid can thus be used to easily draw new points from, and it is reduced in its volume as the nested iteration proceeds toward a termination condition. In particular, one crucial parameter to control the behavior of the ellipsoids is the initial enlargement fraction, f 0 , which is used to enlarge their axes along each direction for as many dimensions as imposed by the number of free parameters. This parameter, whose effect is depicted in the right panel of <ref type="figure" target="#fig_0">Fig. 1</ref>, tunes the efficiency of the sampling throughout the nested iterations and therefore requires a careful calibration, which I show in <ref type="figure" target="#fig_2">Fig. 2</ref> as a function of the number of dimensions, k. A calibrated relation, already implemented in DIAMONDS, reads</p><formula xml:id="formula_3">f 0 = (0.267 ± 0.014) k 0.643±0.017<label>(4)</label></formula><p>and allows for using DIAMONDS for a wide range of applications without the need to adjust the parameter f 0 every time a new model or a different number of parameters is involved in the analysis. DIAMONDS includes a library of likelihood functions and prior PDFs that can be used for a wide range of applications. As for any inference problem, the code requires an input dataset, a model to be fit to the observations, and the adoption of a given likelihood function and of prior PDFs for each free parameter of the model. The termination condition that allows the code to finalize its computations is based on the remaining Bayesian evidence, as described by <ref type="bibr" target="#b15">Keeton (2011)</ref>   code and a description of its different parts can be found in the online user guide 2 . In the following examples, DIAMONDS is set up in different ways depending on the specific inference problem that is considered.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Fitting the background signal</head><p>The first step in the asteroseismic analysis process is to estimate the background signal in the power spectrum of a star <ref type="bibr">3</ref> . This is an important phase of the analysis because if not properly performed it can introduce significant systematics in the asteroseismic parameters that characterize individual oscillation modes <ref type="bibr" target="#b2">(Corsaro &amp; De Ridder, 2014</ref>). The first part of the tutorial is therefore focused on the estimation of the background signal in the red giant KIC 12008916, observed by NASA's Kepler mission ( <ref type="bibr" target="#b1">Borucki et al., 2010;</ref><ref type="bibr" target="#b16">Koch et al., 2010</ref>) for more than four years. The dataset has been prepared following <ref type="bibr" target="#b9">García et al. (2011</ref><ref type="bibr" target="#b10">García et al. ( , 2014</ref>, thus optimized for asteroseismic analysis.</p><p>In order to run the tutorial, one needs to have the DIAMONDS code already installed in a local machine. This procedure can be accomplished by following the instructions provided in the installation guide section of the code website 4 . Subsequently it is required to download the code extension for background fitting 5 , containing the specific fitting model, priors, and dataset to be used in the tutorial. The extension contains a library of Python routines that can be used to plot the results obtained with DIAMONDS. We note that throughout this tutorial we will adopt an exponential likelihood function, as appropriate for datasets deriving from a Fourier transform of a time series <ref type="bibr" target="#b6">(Duvall &amp; Harvey, 1986;</ref><ref type="bibr" target="#b2">Corsaro &amp; De Ridder, 2014</ref>).</p><p>The background model, considered as a function of the cyclic frequency in the PSD of the star, reads</p><formula xml:id="formula_4">P bkg (ν) = W + R (ν) [B (ν) + G (ν)] ,<label>(5)</label></formula><p>where W is a flat noise level and R (ν) the response function that considers the sampling rate of the observations for Kepler data,</p><formula xml:id="formula_5">R (ν) = sinc 2 πν 2ν Nyq ,<label>(6)</label></formula><p>with ν Nyq = 283.212 µHz the Nyquist frequency in the case of long-cadence data ( <ref type="bibr" target="#b13">Jenkins et al., 2010)</ref>. We fit three Harvey-like profiles <ref type="bibr" target="#b11">(Harvey, 1985)</ref> given by</p><formula xml:id="formula_6">B (ν) = 3 ∑ i=1 ζ a 2 i /b i 1 + (ν/b i ) 4 ,<label>(7)</label></formula><p>with a i the amplitude in ppm, b i the characteristic frequency in µHz, and ζ = 2 √ 2/π the normalization constant ( <ref type="bibr" target="#b14">Kallinger et al., 2014</ref>). The power excess containing the oscillations is described as</p><formula xml:id="formula_7">G (ν) = H osc exp − (ν − ν max ) 2 2σ 2 env (8)</formula><p>and is only considered when fitting the background model to the overall PSD of the star. The global model given by Eq. (5) therefore accounts for ten free parameters.</p><p>The resulting fit obtained with DIAMONDS is shown in <ref type="figure" target="#fig_3">Fig. 3</ref>.</p><p>Questions &amp; Problems: <ref type="bibr">4</ref> The installation guide of DIAMONDS can be found at https://fys.kuleuven.be/ ster/Software/Diamonds/installation-guide. <ref type="bibr">5</ref> The Background extension of DIAMONDS can be downloaded from https: //fys.kuleuven.be/ster/Software/Diamonds/package/AzoresSC16_ background_extension.tar.gz. Further information on how to run the tutorial can be found at http://www.iastro.pt/research/conferences/faial2016/ files/presentations/TA1.pdf. • For any of the estimated free parameters, which Bayesian parameter estimator should be preferred among the mode, the median and the mean? And why?</p><p>• What is the value of ν max for this star?</p><p>• Could you guess what the evolutionary stage of this red-giant star is from its ν max value? • Using your fitted ν max , and assuming ∆ ν = 12.9 µHz as the large frequency separation <ref type="bibr" target="#b20">(Ulrich, 1986)</ref>, T eff = 5100 K, and solar reference values ν max, = 3100 µHz, ∆ ν = 134.9 µHz, and T eff, = 5777 K, estimate the mass and radius of the star through scaling relations.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Fitting the oscillation modes</head><p>The second part of the tutorial is related to the fitting of the oscillation modes. For this purpose it is necessary to download and install the extension of DIAMONDS related to the peak-bagging analysis <ref type="bibr">6</ref> , similarly to what has been done for the background.</p><p>The model that is taken into account is the one presented by <ref type="bibr" target="#b3">Corsaro et al. (2015)</ref> and includes a mixture of resolved and unresolved oscillation mode profiles. For resolved modes, i.e., modes with lifetimes much shorter than the total observing time, the typical profile is a Lorentzian expressed as</p><formula xml:id="formula_8">P res,0 (ν) = A 2 0 / (πΓ 0 ) 1 + 4 ν−ν 0 Γ 0 2 ,<label>(9)</label></formula><p>where A 0 , Γ 0 , and ν 0 are the amplitude in ppm, the linewidth in µHz, and the centroid frequency in µHz, respectively, and represent the three free parameters to be estimated during the fitting process. For the unresolved modes, i.e., modes with a lifetime comparable or even longer than the total observing time, we consider the profile</p><formula xml:id="formula_9">P unres,0 (ν) = H 0 sinc 2 π (ν − ν 0 ) δ ν bin ,<label>(10)</label></formula><p>where H 0 and ν 0 are the height in PSD units and the centroid frequency in µHz of the oscillation peak, respectively, and must be estimated during the fitting process, while δ ν bin is fixed as the frequency resolution of the dataset, here corresponding to 0.008 µHz.</p><p>Following <ref type="bibr" target="#b2">Corsaro &amp; De Ridder (2014)</ref>; <ref type="bibr" target="#b3">Corsaro et al. (2015)</ref>, we fix the background parameters corresponding to the white noise, W = W , and the Harvey-like profiles, B (ν) = B (ν), to the median values estimated in the tutorial in Sect. 3. Then, the final peak-bagging model can be represented as</p><formula xml:id="formula_10">P (ν) = W + R (ν) B (ν) + P osc (ν) ,<label>(11)</label></formula><p>where</p><formula xml:id="formula_11">P osc (ν) = N res ∑ i=1 P res,i (ν) + N unres ∑ j=1 P unres, j (ν) ,<label>(12)</label></formula><p>with N res and N unres the number of resolved and unresolved peaks to be fitted, respectively. Clearly, any inference problem that takes into account this peak-bagging model will involve a total number of 3N res + 2N unres free parameters. The result of the fit for KIC 12008916 done with DIAMONDS is shown in <ref type="figure" target="#fig_4">Fig. 4</ref>.</p><p>Questions &amp; Problems:</p><p>• In <ref type="figure" target="#fig_4">Fig. 4</ref> spot the positions of the radial ( = 0), quadrupole ( = 2) and octupole ( = 3) modes, as follows from the asymptotic relation of the acoustic modes <ref type="bibr" target="#b18">(Tassoul, 1980</ref>). • Which oscillation modes are the most p-dominated mixed modes?</p><p>to run the tutorial can be found at http://www.iastro.pt/research/conferences/ faial2016/files/presentations/TA1.pdf. • Compute the spacing (expressed in seconds) between the frequency ν =1,m=0 = 165.178 µHz and another frequency that has to be computed as the average between the two frequency centroids of the unresolved profiles having the largest frequency (in the range 166-168 µHz). The frequency centroids of the unresolved profiles must be those from the fitting results obtained with DIAMONDS.</p><p>• Compare the derived period spacing in the ∆ P -∆ ν diagram shown in <ref type="figure">fig. 8</ref> of <ref type="bibr" target="#b5">Corsaro et al. (2012)</ref> and determine the evolutionary stage of the star assuming ∆ ν = 12.9 µHz.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Peak significance test</head><p>As shown by <ref type="bibr" target="#b2">Corsaro &amp; De Ridder (2014)</ref> and later on applied by <ref type="bibr" target="#b3">Corsaro et al. (2015)</ref> on red-giant stars, by means of the Bayesian evidence it is possible to perform a direct model comparison aimed at assessing the significance of a given oscillation peak. The final part of the tutorial with DIAMONDS foresees the computation of the peak significance test for one oscillation mode fitted during the peakbagging analysis. In order to achieve this result, it is required that the peak-bagging presented in Sect. 4 is performed with two different models. By selecting a specific oscillation peak that we want to test, then the competing models to be fitted to the PSD of the star have to be defined as follows: (i) the first model, M 1 , must contain the entire set of oscillation peaks to be fitted, including the peak that we intend to test; (ii) the second model, M 2 , must contain the entire set of peaks to be fitted, except the peak that we intend to test. This implies that the parameters that configure the prior PDFs of the models M 1 and M 2 should be identical, except for the peak to test. Using the set up of the PeakBagging extension of DIAMONDS, this can easily be achieved by removing the prior parameters of the corresponding peak when we have to fit model M 2 . Among the outputs of DIAMONDS, there will be the Bayesian evidence 7 . The best model, or statistically more likely, can be identified by computing the Bayes' factor (see Sect. 1) as ln B 1,2 = ln E 1 − ln E 2 . If, for example, ln B 1,2 &gt; 5, according to Jeffreys' scale of strength for the evidence <ref type="bibr" target="#b12">(Jeffreys, 1961;</ref><ref type="bibr" target="#b19">Trotta, 2008)</ref> we then conclude that the peak is significant and that it should be considered as a real oscillation mode.</p><p>Questions &amp; Problems:</p><p>• Why are two different models needed to test the significance of an individual peak?</p><p>• How many models are required to test the significance of two peaks?</p><p>• Perform the peak significance test for the = 3 mode shown in <ref type="figure" target="#fig_4">Fig. 4</ref> by means of DIAMONDS.</p><p>• Provide the value of the natural logarithm of the Bayes' factor for the aforementioned oscillation mode and assess the strength of the evidence according to Jeffreys' scale.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Fig. 1</head><label>1</label><figDesc>Fig. 1 Left panel: Three-dimensional ellipsoids containing two different clusters of sampling points in the parameter space. Right panel: The enlargement of an ellipsoid used to optimize the sampling efficiency throughout the nesting process.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head></head><label></label><figDesc>(see also Cor- saro &amp; De Ridder 2014 for additional details). Instructions on how to configure the</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Fig. 2</head><label>2</label><figDesc>Fig. 2 The initial enlargement fraction f 0 as a function of the number of dimensions k involved in the inference problem. The 152 independent computations provided by Corsaro et al. (2015) used 4 clusters each to sample the parameter space. The size of the circles is proportional to the number of processes for which the same f 0 was used. The colored band shows the 68.3 % confidence region for the power law fit (thick red line).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Fig. 3</head><label>3</label><figDesc>Fig. 3 Background fit of the star KIC12008916 by means of DIAMONDS. The original PSD is shown in gray. The red thick line represents the background model without the Gaussian envelope. The cyan dotted line accounts for the additional Gaussian component. The individual components of the background model as given by Eq. (5) are shown by blue dot-dashed lines.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Fig. 4</head><label>4</label><figDesc>Fig. 4 Peak-bagging fit of the star KIC 12008916 by means of DIAMONDS. The original PSD is shown in gray. The red thick line represents the estimated peak-bagging model (cf. Eq. 11), while the blue dashed lines mark the background signal and a scaled (by a factor of eight) version of it.</figDesc></figure>
+
+			<note place="foot" n="1"> DIAMONDS is publicly available at https://fys.kuleuven.be/ster/Software/ Diamonds/ or through its public GitHub repository at https://github.com/ EnricoCorsaro/DIAMONDS.</note>
+
+			<note place="foot" n="2"> A comprehensive user guide to DIAMONDS can be found at https://fys.kuleuven. be/ster/Software/Diamonds/DIAMONDS_UserGuide. 3 The power spectrum is usually converted into a power spectral density, PSD, to allow for direct comparisons independently of the observing length of the data. Its units are expressed in ppm 2 µHz −1</note>
+
+			<note place="foot" n="6"> The PeakBagging extension of DIAMONDS can be downloaded from https: //fys.kuleuven.be/ster/Software/Diamonds/package/AzoresSC16_ peakbagging_extension.tar.gz. The extension contains a library of Python routines that can be used to plot the results obtained with DIAMONDS. Further informations on how</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Bolstad</surname></persName>
+		</author>
+		<title level="m">Introduction to Bayesian Statistics</title>
+		<imprint>
+			<publisher>Wiley</publisher>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Borucki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Koch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Basri</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">327</biblScope>
+			<biblScope unit="page">977</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Corsaro</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>De Ridder</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">571</biblScope>
+			<biblScope unit="page">71</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Corsaro</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>De Ridder</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>García</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">579</biblScope>
+			<biblScope unit="page">83</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Corsaro</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H.-E</forename><surname>Fröhlich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Bonanno</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">430</biblScope>
+			<biblScope unit="page">2313</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Corsaro</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Grundahl</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Leccia</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">537</biblScope>
+			<biblScope unit="page">9</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jr</forename><surname>Duvall</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Harvey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename></persName>
+		</author>
+		<title level="m">NATO ASIC Proc. 169: Seismology of the Sun and the Distant Stars</title>
+		<editor>D. O. Gough</editor>
+		<imprint>
+			<date type="published" when="1986" />
+			<biblScope unit="page" from="105" to="116" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Feroz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">P</forename><surname>Hobson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">384</biblScope>
+			<biblScope unit="issue">FH08</biblScope>
+			<biblScope unit="page">449</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Feroz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">P</forename><surname>Hobson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Bridges</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">398</biblScope>
+			<biblScope unit="issue">F09</biblScope>
+			<biblScope unit="page">1601</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>García</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Hekker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Stello</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">414</biblScope>
+			<biblScope unit="page">6</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>García</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Mathur</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Pires</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">568</biblScope>
+			<biblScope unit="page">10</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Harvey</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Future Missions in Solar, Heliospheric &amp; Space Plasma Physics</title>
+		<editor>E. Rolfe &amp; B. Battrick</editor>
+		<imprint>
+			<date type="published" when="1985" />
+			<biblScope unit="volume">235</biblScope>
+			<biblScope unit="page" from="199" to="208" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Jeffreys</surname></persName>
+		</author>
+		<title level="m">Theory of Probability</title>
+		<meeting><address><addrLine>Oxford</addrLine></address></meeting>
+		<imprint>
+			<publisher>OUP</publisher>
+			<date type="published" when="1961" />
+		</imprint>
+	</monogr>
+	<note>3rd Ed</note>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Jenkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Caldwell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Chandrasekaran</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">713</biblScope>
+			<biblScope unit="page">120</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Kallinger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>De Ridder</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Hekker</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">570</biblScope>
+			<biblScope unit="page">41</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">R</forename><surname>Keeton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">414</biblScope>
+			<biblScope unit="issue">K11</biblScope>
+			<biblScope unit="page">1418</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">G</forename><surname>Koch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Borucki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Basri</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">713</biblScope>
+			<biblScope unit="page">79</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Shaw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Bridges</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">P</forename><surname>Hobson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Sivia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Skilling</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Data Analysis: A Bayesian Tutorial</title>
+		<meeting><address><addrLine>Oxford</addrLine></address></meeting>
+		<imprint>
+			<publisher>OUP</publisher>
+			<date type="published" when="2006" />
+			<biblScope unit="volume">378</biblScope>
+			<biblScope unit="page">1365</biblScope>
+		</imprint>
+	</monogr>
+	<note>Oxford science publications</note>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Skilling</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Tassoul</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AIP Conference Proceedings</title>
+		<imprint>
+			<biblScope unit="volume">735</biblScope>
+			<biblScope unit="issue">SK04</biblScope>
+			<biblScope unit="page">469</biblScope>
+			<date type="published" when="1980" />
+		</imprint>
+	</monogr>
+	<note>ApJS</note>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Trotta</surname></persName>
+		</author>
+		<title level="m">Contemporary Physics</title>
+		<imprint>
+			<date type="published" when="2008" />
+			<biblScope unit="volume">49</biblScope>
+			<biblScope unit="page">71</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">K</forename><surname>Ulrich</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">306</biblScope>
+			<biblScope unit="page">37</biblScope>
+			<date type="published" when="1986" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

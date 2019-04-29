@@ -1,0 +1,925 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-04T16:19+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">The EB Factory Project. II. Validation with the Kepler Field in Preparation for K2 and TESS</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Mahmoud</forename><surname>Parvizi</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Martin</forename><surname>Paegert</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Keivan</forename><forename type="middle">G</forename><surname>Stassun</surname></persName>
+						</author>
+						<title level="a" type="main">The EB Factory Project. II. Validation with the Kepler Field in Preparation for K2 and TESS</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>Subject headings: stars: variables: general − binaries: eclipsing − methods: statistical − meth- ods: data analysis</keywords>
+			</textClass>
+			<abstract>
+				<p>Large repositories of high precision light curve data, such as the Kepler data set, provide the opportunity to identify astrophysically important eclipsing binary (EB) systems in large quantities. However, the rate of classical &quot;by eye&quot; human analysis restricts complete and efficient mining of EBs from these data using classical techniques. To prepare for mining EBs from the upcoming K2 mission as well as other current missions, we developed an automated end-to-end computational pipeline-the Eclipsing Binary Factory (EBF)-that automatically identifies EBs and classifies them into morphological types. The EBF has been previously tested on ground-based light curves. To assess the performance of the EBF in the context of space-based data, we apply the EBF to the full set of light curves in the Kepler &quot;Q3&quot; Data Release. We compare the EBs identified from this automated approach against the human generated Kepler EB Catalog of ∼ 2, 600 EBs. When we require EB classification with ≥ 90% confidence, we find that the EBF correctly identifies and classifies eclipsing contact (EC), eclipsing semi-detached (ESD), and eclipsing detached (ED) systems with a false positive rate of only 4%, 4%, and 8%, while complete to 64%, 46%, and 32% respectively. When classification confidence is relaxed, the EBF identifies and classifies ECs, ESDs, and EDs with a slightly higher false positive rate of 6%, 16%, and 8%, while much more complete to 86%, 74%, and 62% respectively. Through our processing of the entire Kepler &quot;Q3&quot; dataset, we also identify 68 new candidate EBs that may have been missed by the human generated Kepler EB Catalog. We discuss the EBF&apos;s potential application to light curve classification for periodic variable stars more generally for current and upcoming surveys like K2 and the Transiting Exoplanet Survey Satellite.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>Periodic variable stars, in particular eclipsing binary (EB) star systems, continue to be of central importance to a variety of applications in stellar astrophysics. EBs are crucial astrophysical benchmarks for stellar evolution theory as they can provide fundamental physical parameters of stars with very high precision and accuracy. Fundamental issues, from the stellar mass-radius relation using EBs in nearby clusters and the field (e.g., <ref type="bibr" target="#b16">Lacy 1977)</ref>, to the extragalactic distance scale using EBs in the Large Magellanic <ref type="bibr" target="#b23">(Pietrzy´nskiPietrzy´nski et al. 2013</ref>) and Small Magellanic Cloud ( <ref type="bibr" target="#b7">Graczyk et al. 2014</ref>), rely on the discovery and analysis of statistically significant samples of EBs and/or of rare but astrophysically important EBs. Indeed, EBs in which at least one component is of very low mass, in a scarce evolutionary phase, or itself a periodic variable are astrophysically very interesting and useful, yet rare and thus only small numbers of these benchmark systems are found in current catalogs. For example, there is only one known EB system comprising two brown dwarfs ( <ref type="bibr" target="#b31">Stassun et al. 2006</ref><ref type="bibr" target="#b30">Stassun et al. , 2007</ref>, and only a couple EBs containing a Classical Cepheid pulsators are currently known (e.g., <ref type="bibr" target="#b22">Pietrzy´nskiPietrzy´nski et al. 2010</ref>). Repositories of large time-series photometric survey data, such as the Kepler archive, provide an ideal sample from which to identify periodic variables including these interesting EBs for focused followup investigation. However, constraints on the rate of human analysis make mining this data using classical techniques prohibitive.</p><p>An intelligent data pipeline (IDP) that contains an automated light curve classifier to replace the human bottleneck is then necessary for the future pace of large survey data rates. Ideally such an IDP would be capable of automatically finding EBs in light curve data sets and then accurately classifying these EBs by morphological type (e.g., eclipsing contact, eclipsing semi-detached, eclipsing detached) to enable focused followup analyses. Several algorithms have been developed for this purpose (e.g., <ref type="bibr" target="#b35">Wyrzykowski et al. (2003)</ref>; <ref type="bibr" target="#b4">Devor (2008)</ref>; <ref type="bibr" target="#b8">Graczyk et al. (2011)</ref>; <ref type="bibr" target="#b3">Devinney et al. (2012)</ref> these are discussed further in <ref type="bibr">Sec. 4</ref>), yet a fully-automated pipeline remains an open task.</p><p>An automated classification pipeline with parameters adaptable to multiple time series photometric surveys would be immediately applicable to the Kepler data set ( <ref type="bibr" target="#b0">Christiansen et al. 2013</ref>) as well as the follow-on K2 mission ( <ref type="bibr" target="#b10">Howell et al. 2014</ref>) and would be well suited to the upcoming Transiting Exoplanet Survey Satellite (TESS) ( <ref type="bibr" target="#b27">Ricker et al. 2014</ref>). In addition, the development of the Large Synoptic Survey Telescope (LSST) contains a requirement that data processing enable a fast and efficient response to transient sources (i.e., automated identification of variable stars and astrophysically interesting binaries) with a robust and accurate preliminary classification <ref type="bibr" target="#b11">(Ivezi´cIvezi´c et al. 2011</ref>). In short, there is a large need currently and into the near future for methods that can reliably process large quantities of light curve data and automatically identify astrophysical objects of interest such as EBs with minimal human intervention.</p><p>So motivated, especially the immediate applicability of an automated pipeline for the study of EBs in K2 ( <ref type="bibr" target="#b34">Welsh et al. 2013)</ref>, in this paper we present a fully automated, adaptive, end-to-end computational pipeline -the Eclipsing Binary Factory (EBF). The EBF first identifies EBs, and then morphologically classifies them as either eclipsing contact (EC), eclipsing semi-detached (ESD), or eclipsing detached (ED). The classification module of the EBF pipeline was described in the first paper in this series ( <ref type="bibr" target="#b19">Paegert et al. 2014</ref>); here we add the remaining computational modules for a complete automated pipeline. In this paper we also then measure the accuracy and completeness of our EBF generated catalog of Kepler EBs against the manually constructed <ref type="bibr">Kepler EB Catalog (Prša et al. 2011;</ref><ref type="bibr" target="#b29">Slawson et al. 2011</ref>).</p><p>The EBF takes a modular approach to automatically process large volumes of survey data into patterns suitable for recognition by an integrated, fully-trained artificial neural network (ANN). This modular pipeline is designed to accept as input the direct archival data from a time-series photometric survey where each module's parameters are adaptable to the specific characteristics of the data (e.g., photometric precision, data collection cadence, flux measurement uncertainty) and define the output options to produce the ANN generated catalog of EB classifications (i.e., EC, ESD, or ED). The computational efficiency of the ANN classifier, O(2N ) where N is the number of neurons in the neural network, is quite fast-of order 0.8 seconds for classification of ∼ 50, 000 light curves using a standard workstation. This then alleviates the current bottleneck by limiting followup human analysis to just the light curves automatically classified as EBs. In addition, the portability of this modular software pipeline makes the EBF a solution for the automated probabilistic identification and morphological classification of EBs in other large repositories of time-series, photometric data currently underway or planned for the near future.</p><p>The Kepler mission monitored ∼ 200, 000 targets brighter than the magnitude limit Kp ∼ 16 in the Kepler spacecraft's field of view (FoV). Kepler captured and summed these images as long cadence, 29.4 minutes, data files ( <ref type="bibr" target="#b12">Jenkins et al. 2010</ref>) that contain one quarter, or ∼ 90 days, of observations across the FoV for sixteen quarters until reaction wheel failure placed the instrument into safe mode. The complete scientific data set, archived in MAST at the Space Telescope Science Institute, provides simple aperture photometry (SAP) with the photometric precision necessary to detect planetary transits ( <ref type="bibr" target="#b14">Koch et al. 2010</ref>) and asteroseismological signals ( <ref type="bibr" target="#b6">Gilliland et al. 2010</ref>) from solar-like stars; about 20 ppm for 12 th magnitude G2V stars for a 6.5 hour integration (Van Cleve &amp; Caldwell 2009). As such, this data set provides both the appropriate sample size and precision for use in testing the EBF pipeline. In addition, the Kepler Eclipsing Binary Catalog Version 3 (KEBC3) of ∼ 2, 600 manually classified EBs and a corresponding catalog of manually identified false positives in the Kepler FoV ( <ref type="bibr" target="#b26">Prša et al. 2011;</ref><ref type="bibr" target="#b29">Slawson et al. 2011</ref>) provides a benchmark of the EBF's classification accuracy (i.e., false positive rate) and completeness (i.e., false negative rate). Moreover, full processing of the Kepler dataset with the EBF automated pipeline provides the opportunity to uncover some additional EBs that may have been missed by the human generated KEBC3.</p><p>We demonstrate the efficacy of the EBF by automatically identifying and morphologically classifying EBs in the ∼ 165, 000 Kepler Quarter 3 ("Q3") SAP light curves. In Section 2 of this paper we describe the procedures and methods of each EBF module. Section 3 presents the results of the EBF applied to the Kepler "Q3" light curves. Section 3.1.1 benchmarks the pre-classification data processing modules against the metrics of the manually corrected and phased light curves in the KEBC3 while Section 3.1.2 focuses on the EBF pipeline's false positives and false negatives as a measure of classification accuracy and completeness. Finally, in Section 4 we discuss the future expansion of the EBF to include the automated identification and classification of other periodic variable stars such as δ Cepheid fundamental mode (DCEP-FU) and first overtones (DCEP-FO), δ Scuti (DSCT), RR Lyrae ab (RRAB) and c (RRC), and Mira (MIRA) as well the EBF's applicability to other large time-series, photometric surveys. A set of newly identified candidate EBs that may have been missed by the human generated Kepler EB Catalog is provided in Appendix A. We conclude with a brief summary in Section 5.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Methods: The Eclipsing Binary Factory Pipeline</head><p>The EBF Pipeline, diagrammed in <ref type="figure">Figure 1</ref>, is a compilation of five fully automated, adaptable software modules that process light curves from large astronomical surveys in order to automatically identify EBs and classify the each EB's morphology. In this section we describe the parameters with which systematics are removed, periodic variable stars are identified, phased light curves are represented as ANN recognizable patterns, and constrain how EB candidate classifications are tuned and validated as a function of the survey instrument's photometric precision, the data set duration and cadence, the flux measurement uncertainty, and the desired level of classification confidence, respectively. The procedure of each EBF module is described below in turn, then we test the overall pipeline performance by the rate of correctly classified systems and the completeness of the EBF classified sample as compared to the KEBC3 benchmark sample classified by human analysis. We use the Kepler "Q3" long cadence data files as described in the Kepler Data Release 4 Notes KSCI-199044-001 (Van Cleve 2010), to tool and test the EBF pipeline.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">Data Correction Module</head><p>Corrections to the raw photometry collected from large survey instruments are generally necessary to remove systematic artifacts from the data. Though most surveys include their own data correction processes, there is no guarantee that the method employed preserves the necessary signal from which the EBF will identify and classify EBs. In the case of the Kepler "Q3" light curves corrections to the SAP flux are necessary to remove systematics such as differential velocity aberration, thermal gradients across the spacecraft, and pointing variations ( <ref type="bibr" target="#b13">Kinemuchi et al. 2012</ref>). Of course, the Kepler archive data reduction pipeline removes systematics in the "Q3" SAP data to produce pre-search conditioned data (PCD) using the method of cotrending basis vectors; however, PCD may lack the astrophysical signatures of variables whose harmonic thresholds were not met ( <ref type="bibr" target="#b17">McQuillan et al. 2012</ref>). Hence, we employ a data correction module (DCM) to remove trending artifacts while preserving the necessary signal as well as to normalize the flux in order to present the remainder of the pipeline with a standardized, detrended light curve. The DCM step is applied to all of the input light curves (i.e., no light curves are filtered out at this stage).</p><p>The DCM accepts as input the time-series flux with the associated uncertainty of each data point and detrends the flux via the sigma-clipping algorithm of <ref type="bibr" target="#b29">Slawson et al. (2011)</ref>; where data points outside a standard deviation interval of a least squares Legendre polynomial fit to order l, expressed by the generating function</p><formula xml:id="formula_0">P l (x) = 1 2 l l! d l dx l [(x 2 − 1) l ],<label>(1)</label></formula><p>are iteratively discarded until there are no remaining data points outside the interval. For each data point input, the DCM returns a point containing a normalized flux value with a new uncertainty. The EBF's implementation of this method allows the parameters of the module to be set to the specific characteristics of a data set by defining the sigma clipping thresholds and Legendre polynomial order. Additionally, the module allows for the input of the time intervals of known breaks in the light curves due to instrument operations. In this paper we detrend the Kepler "Q3" SAP light curves using asymmetric sigma-clipping thresholds of (−1σ, 3σ) with the 10 th order Legendre polynomial</p><formula xml:id="formula_1">P 10 (x) = 256 −1 (46, 189x 10 − 109, 395x 8 + 90, 090x 6 − 30, 030x 4 − 3, 465x 2 − 63)<label>(2)</label></formula><p>and known breaks in the "Q3" light curves beginning at BJD 281.0, 291.0, and 322.5. <ref type="figure" target="#fig_0">Figure 2</ref> shows the uncorrected Kepler "Q3" SAP light curve for a target and the EBF detrended, normalized light curve where  <ref type="figure">Fig. 1</ref>.-The fully automated and adaptive Eclipsing Binary Factory pipeline, diagrammed by module, for processing timeseries photometric data from large astronomical surveys in order to automatically identify EBs and sub-classify the system's morphology as eclipsing contact (EC), eclipsing semi-detached (ESD), or eclipsing detached (ED) by an artificial neural network classifier.</p><p>systematics were removed by the DCM and the red circles indicate data gaps given by the aforementioned breaks. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.">Harmonics Recognition Module</head><p>The EBF pipeline is currently optimized for identification and classification of EBs, which exhibit periodically varying light curves. Therefore the precursors to morphological classification of EBs via pattern recognition are the identification of a target's periodic variability and a subsequent phase folded light curve. Hence, the detrended normalized light curve is next processed by the harmonics recognition module (HRM) where periodic variability is probed by the analysis of variance (AoV) method <ref type="bibr" target="#b28">(Schwarzenberg-Czerny 1989;</ref><ref type="bibr" target="#b5">Devor 2005</ref>) included in the VARTOOLS1.202 package ( <ref type="bibr" target="#b9">Hartman et al. 2008</ref>). The HRM takes as input all of the normalized light curves output by the preceding DCM, but outputs only those light curves that are deemed to exhibit truly periodic behavior (of any kind, i.e., the output light curves from the HRM stage include EBs but also any other type of periodic variable).</p><p>Two separate searches for the first three harmonics, each with a coarse sub-sample setting of 0.1 and a fine-tune setting of 0.01, are conducted over the entire data set. The first search separates the data into five bins and the second uses fifty bins such that skewed harmonics from bin size related flux variance is minimized. We then compare the strongest harmonic signal from both periodograms and, in the event of disagreement between the primary periods, assign the period (along with all other associated AoV statistics) from the periodogram with the smallest false alarm probability (FAP).</p><p>To eliminate light curves that are unlikely to exhibit truly significant periodic variability, we use the AoV calculated signal to noise ratio (SNR). Specifically, periodograms with a SNR ≤ 100 are rejected by the module while the remaining light curves, now identified as candidate periodic variables, are accepted. These accepted candidates' light curves are phased by the standard equation</p><formula xml:id="formula_2">ρ = t − t ∅ p − int t − t ∅ p (3)</formula><p>where ρ is the phase of an associated time value, t, for a given reference time, t ∅ , and the assigned period, p.</p><p>For an EB, we want the reference or zero phase ρ ∅ , where t = t ∅ , to be associated with the primary eclipse. However, not all of the periodic variables identified by the HRM will be EBs; there will be other types of periodic variables where the most physically meaningful reference phase is not an eclipse but rather a flux maximum. Therefore, to maintain generality, we associate ρ ∅ with either the minimum or maximum flux, dependent upon whether the light curve spends most of its time above or below the median flux. Most true EBs will have flux points in the "high" state and will spend a minority of the time in eclipse. Here the determination is made by the value of the flux ratio (FR) as described by <ref type="bibr" target="#b2">Coughlin et al. (2011)</ref>:</p><formula xml:id="formula_3">F R = (MaximumFlux − MedianFlux) (MaximumFlux − MinimumFlux) .<label>(4)</label></formula><p>By definition, the FR has a value on the interval (0,1). For reference, a perfect sinusoid will have FR = 0.5. We assign ρ ∅ to the flux minimum, indicative of an EB, for a FR less than a defined threshold, and a flux maximum assigned at ρ ∅ otherwise.</p><p>The HRM's parameters that are adaptable to the data set are the period search interval, based on the duration of the survey data, and the FR threshold. The latter is based on the tolerance for ECs, which in general are not perfect sinusoids and whose FR may be greater than 0.5 if they spend more than half the time above the median flux. As we limited the Kepler input files to "Q3" (∼90 days), the harmonics search was limited to a period range of 0.11 to 20.1 days in order to ensure at least three primary eclipses would be present in each light curve. In addition, we set the FR threshold to 0.7 based on a simple analysis of KEBC3 FRs in order to include those ECs whose light curves are not perfectly sinusoidal. <ref type="figure" target="#fig_1">Figure 3</ref> shows a plot of the FR distribution in the KEBC3 versus cataloged morphology, and a "Q3" target as an example of an imperfect sinusoidal phased EC light curve with a F R &gt; 0.5. An example of a phased ESD light curve, and an example of a phased ED light curve, each with a F R &lt; 0.5, are shown in <ref type="figure" target="#fig_2">Figure 4</ref>.  Right: EBF phased, detrended light curve of KIC 1026032 as an example of an ED light curve with a F R &lt; 0.5.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.">Pattern Generation Module</head><p>As described in Section 2.4, the EBF's classification of the phased light curves for the candidate periodic variables output from the HRM is dependent upon the ANN evaluating these light curves as linearly separable patterns. In its simplest form linearly separable means two sets of points in a plane may be divided by at least one line such that each data point belonging to one set is on one side of the line and each data point belonging to the second set is on the other side of that line. When generalized to an n-dimensional space, linear separability is formalized such that every point x ∈ X 0 satisfies n i=1 w i x i &gt; k and every point x ∈ X 1 satisfies n i=1 w i x i &lt; k, where X 0 and X 1 are two sets of points in an n−dimensional Euclidean space and x i is the i th component of X j for n + 1 real numbers w 1 , w 2 ..., w n , k. The pattern generation module (PGM) therefore represents the phased light curves via piecewise smooth polynomial chains X j to pass to the ANN as linearly separable patterns.</p><p>Since EBF efficiency goes as O(N 2 ) where N is the number of elements in X j , it becomes computationally expensive to process light curves possessing on the order of 10 3 data points. Therefore, we condense the light curve by phase binning down to the order 10 2 data points over the phase interval (−0.5, 0.5), with the primary eclipse centered at ρ ∅ . In addition to meeting the efficiency requirements, the phase binning process also minimizes ρ ∅ error by smoothing over uncorrected systematics that may present a stray minimum flux below the true primary eclipse depth.</p><p>The PGM therefore fits the phase binned curves to piecewise smooth 2 nd order polynomial chains using the polyfit algorithm of <ref type="bibr" target="#b25">Prša et al. (2008)</ref>. However, the ANN's use of the sigmoid activation function (see Sec. 2.4) leads to errors in processing large polynomial coefficients that may arise during polynomial fitting. Hence, we modify the polyfit algorithm to fit polynomial chains X j with components x i described by three points in a 2−dimensional Euclidean space (phase, flux). These three data points represent the chain's two end-points, or knots, and the midpoint. Here each chain shares one knot with the next, thus a single chain is effectively described by two points in a plane. We add the additional modification of allowing either a four-polynomial chain {X 0 , X 1 , X 2 , X 3 } or two-polynomial chain {X 0 , X 1 } fit based on a χ 2 goodness of fit criterion. With these modifications the PGM processes phased light curves initially containing on order 10 3 ∼ 10 4 data points into at most four linearly separable patterns X j where N = 4 for each j = 1, 2, 3, 4.</p><p>That is, we reduce the recognizable pattern of the phase folded light curve which may contain a very large number of data points to a maximum of sixteen points.</p><p>Bin size selection is an adjustable parameter. This option allows for a condensed light curve based on the survey cadence and/or duration in order to manage the point density per bin. Of course, more bins lead to longer run times for the PGM and fewer bins lead to sparse light curves where the narrow eclipses of wide EBs might be smoothed over or missed. The minimum number of points per bin may also be adjusted in an attempt to capture narrow eclipses, however from trial and error we find that no fewer than 50 phase bins and no fewer than three bins per chain is optimal.</p><p>To fit the Kepler "Q3" phased light curves we bin each light curve's ∼5,000 long cadence data points into 200 (size = 0.005) phase bins with a polynomial chain that contains no fewer than three data points. The EBF generated binned light curves and linearly separable patterns, plotted as the knots and midpoints of the module's fitted flux, as examples of Kepler EBs with the morphology EC, ESD, ED are shown in <ref type="figure" target="#fig_4">Figure 5</ref>, <ref type="figure" target="#fig_5">Figure 6</ref>, and <ref type="figure" target="#fig_6">Figure 7</ref>, respectively.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4.">Artificial Neural Network Classifier (Pattern Recognition Module)</head><p>The EBF's trained, validated, and tested ANN is the single hidden layer feed forward perceptron network diagrammed in <ref type="figure" target="#fig_7">Fig. 8</ref>. This module takes as input the PGM output set of data points as a simple representation of the target light curve. These patterned inputs are recognized by the ANN and classified into the EB categories that it has been trained to recognize. The outputs of the ANN are therefore the classification of each light curve with an associated confidence level in the classification. A detailed description of the ANN, including its training, validation, and output classifications, is described in <ref type="bibr" target="#b19">Paegert et al. (2014)</ref>. Here we provide a summary of its specifications and functions.</p><p>The ANN functions as a two-stage pattern recognition classifier based on nonlinear statistical models. The input layer, nodes x 1 to x n , are populated with the PGM fitted polynomial chains X j as an input vector of n components that is then propagated via weighted connections w(h) to the hidden layer. The activation function a(h) is in the form of the sigmoid Training of the ANN was conducted by back-propagation, and gradient descent was used to minimize the error in the set of all weights θ, or err θ , where the error function is given by The PGM generated linearly separable patterns, plotted as the knots and midpoints for KIC 9004380 with a minimum of three phase bins per polynomial chain.   for i = 1, 2, 3, . . . n and j = 1, 2, 3, . . . o. f (x i ) j is described by the softmax function</p><formula xml:id="formula_4">σ(ν) = (1 + e −ν ) −1<label>(5)</label></formula><formula xml:id="formula_5">err θ = R(x, y) = n i=1 o j=1 (y ij − f (x i ) j ) 2<label>(6)</label></formula><formula xml:id="formula_6">f (x i ) j = g(T ) k = e T k o k=1 e T k<label>(7)</label></formula><p>as T → ∞, and was used to approximate the nonlinear input functions. As described in <ref type="bibr" target="#b19">Paegert et al. (2014)</ref>, training and validation of the ANN was done using 32,278 light curves from the Automated All-Sky Survey (ASAS) <ref type="bibr" target="#b24">(Pojma´nskiPojma´nski 1997)</ref>. These tests showed the ANN is capable of an accuracy of 90.6%, 76.5%, and 90.3%, and a completeness of 95.8%, 63.7%, and 87.8% for ECs, ESDs, and EDs, respectively.</p><p>In summary, for each input patterned light curve from the PGM, the ANN outputs a most likely classification and an associated confidence in that classification. The output classifications for EBs can be either EC, ESD, or ED. Because the ANN was originally developed on the ASAS sample ( <ref type="bibr" target="#b19">Paegert et al. 2014</ref>), there is also a classification of MISC for light curves that are not clearly identified as one of the three EB classes. In addition, the ANN outputs up to 9 additional possible classifications (and associated confidence levels) for each light curve. As we describe below, this permits us to identify possible EBs at lower confidence that, e.g., have a primary classification of MISC but secondary classification of EC, ESD, or ED.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.5.">Candidate Validation Module</head><p>Once ANN classifications are complete, candidate EC, ESD, and ED light curves are filtered for false positives by the candidate validation module (CVM). We position the CVM as a post classification process to provide the option to examine some or all of the filtered candidates.</p><p>The CVM filters candidates by two distinct metrics. The first is the polyfit algorithm's total goodness of fit, χ 2 T , such that</p><formula xml:id="formula_7">χ 2 T ≡ m j=0 l i=1 w ji (x ji − Φ ji ) 2 ;<label>(8)</label></formula><p>where Φ ji is the normalized, detrended flux of phase bin l and x ji is the i th component of the j th polynomial chain X j for j = 0, 1.., m that satisfies the requirement of linear separability from Section 2.3. The χ 2 T metric describes how well the PGM represents the candidate light curves and is a useful measure of whether the ANN's recognition of the EBF generated pattern translates to an accurate classification as an EB.</p><p>The second metric is the normalized, detrended light curve's scaled sum of all second derivatives for the portion of the curve between each and every data point, which we refer to as δ 2 and defined as</p><formula xml:id="formula_8">δ 2 ≡ 1 Φ max − Φ min n−1 i=2 1 ρ i+1 − ρ i−1 Φ i − Φ i−1 ρ i − ρ i−1 − Φ i+1 − Φ i ρ i+1 − ρ i<label>(9)</label></formula><p>where ρ i and Φ i are the phase and flux for the i th of n data points. As such, δ 2 is a measure of the dispersion in the detrended light curve and when compared to the average detrended flux measurement uncertainty calculated in the DCM provides a criterion for filtering a pseudo-periodic signal that may arise from random noise.</p><p>The CVM adapts the χ 2 T and δ 2 filter metrics by using ∼ 30 known EBs contained in the survey. The module then calculates the upper limits on both the χ 2 T and δ 2 from this benchmark subset. A CVM analysis of the KEBC3 EBs contained in the Kepler "Q3" data set and recovered by the ANN provides a χ 2 T upper limit of 100 and a δ 2 upper limit of 1,200 as shown by the histograms in <ref type="figure" target="#fig_8">Figure 9</ref>. <ref type="figure" target="#fig_9">Figure 10</ref> shows the light curves of two example Kepler targets where the PGM fits to some quasisystematic artifact that the ANN consequently mis-classifies as an ESD and where the PGM fits to a pseudo-sinusoidal signal generated by random noise that the ANN consequently mis-classifies as an EC. These examples demonstrate the CVM determined criteria of χ 2 T ≥ 100 and δ 2 ≥ 1, 200 filtering false positives from the automated EB catalog. Notice that a CVM filter with the criteria of only χ 2 T ≥ 100 would have passed the target, with χ 2 T of only 0.01, yet a δ 2 of 4,752 to the EBF catalog. Similarly, a CVM criteria of only δ 2 ≥ 1, 200 would have passed the target, with a δ 2 of 1,165 yet a, χ 2 T of 3,378 to the EBF catalog. Thus, we set the CVM cut-off parameters to χ 2 T = 100 and δ 2 = 1, 200 in order to minimize EB classification false positives.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Results</head><p>We use the 2,612 EBs cataloged in the KEBC3 to benchmark the EBF pipeline outputs as an initial assessment of pipeline capabilities on standard morphology ECs, ESDs, and EDs. Thus, we first remove from the benchmark sample those KEBC3 EBs flagged as eclipse timing variations (ETV) induced by third body candidates ( <ref type="bibr" target="#b1">Conroy et al. 2013</ref>), heart beat (HB), and those classified in the KEBC3 as uncertain (UNC). We also exclude those KEBC3 EBs with cataloged periods outside the Kepler "Q3" duration parameters of 0.11d ≤ period ≤ 20.1d and of course those cataloged EBs that do not appear in the Kepler "Q3" data set. Thus, we benchmark the EBF pipeline against an adjusted KEBC3 sample of 1,198 cataloged EBs.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">EBF Performance Metrics</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.1.">Pre-Classification Metrics from the DCM, HRM, and PGM</head><p>We compare the metrics of the EBF pipeline's pre-classification output to the same metrics of the manually determined KEBC3. Note that the KEBC3 light curves contain ∼ 50, 000 data points from more than ten quarters of observations while the "Q3" observations include only ∼ 5, 000.</p><p>We evaluate the DCM's performance by comparing the 200 phase binned, normalized flux values of each common target. We find the DCM's performance to be in excellent agreement, mean χ 2 = 0.00212, with the KEBC3 benchmark. This DCM light curve agreement breaks down to a mean χ 2 of 0.00373, 0.00264, 0.00052 for cataloged ECs, ESDs, and EDs respectively.</p><p>The HRM assigned period agrees to within ±0.09d for 99.67% of the EBF identified periodic variable candidates found in the KEBC3, though the HRM failed to identify statistically significant periodicity in 5.59% of the benchmark sample, and therefore were not considered for follow on classification by the ANN. A further comparison of the HRM assigned periods to those manually determined in the KEBC3 reveals a period alias rate of 21.65%, (i.e., the percentage of EBF determined periods that are an alias of the KEBC3 period). However, aliasing does not negatively impact ANN pattern recognition and the true period is easily determined by examining the candidate light curve. <ref type="figure" target="#fig_10">Figure 11</ref> shows examples of both the EBF generated and the manually determined KEBC3 light curves for targets where the EBF assigns a half-period alias. It  was also discovered that phase disagreement was common for targets with a F R &gt; 0.5. Though there is no adverse effect on pattern recognition for the example targeted EC in <ref type="figure" target="#fig_0">Figure 12</ref>, the ambiguity in phasing a light curve with an FR of ≤ 0.7 on the minimum flux led to diminished pipeline accuracy as other variable types mistaken by the pipeline for EBs (e.i., δ−cepheids incorrectly phased on the flux minimum) contributed to the false positive rate.  The PGM fitted the EBF phased, detrended light curves with either four-or two-polynomial chains and a goodness of fit described by a median χ 2 T of 5.39 as compared to the unaltered polyfit algorithm used to fit the KEBC3 samples with a median χ 2 T of 3.74. This goodness of fit includes cases where the PGM patterned fit is in excellent agreement with the manually determined KEBC3 light curves, such as the target shown in <ref type="figure" target="#fig_1">Figure 13</ref>, as well as instances where the patterned fit fails to capture to full depth of the eclipses as circled in <ref type="figure" target="#fig_2">Figure 14</ref>.  The subtle deviation between a phased light curve and an EBF generated pattern may present a challenge to an automated solution estimator, yet the PGM's representation of the light curves shape allows the ANN to successfully recover and classify these systems. This and other deviations, such as the small aberrant</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.2.">Classification Metrics from the ANN and CVM</head><p>The performance of the ANN for cataloged binaries in the Kepler "Q3" data set is benchmarked by KEBC3 EBs with period p where 0.11d ≤ p ≤ 20.10d while ETVs, HBs, and UNCs were excluded. The ANN reports each of its classifications with a posterior probability P interpreted as a level of confidence (LoC) for the morphological class of EC, ESD, ED, or any other periodic variable class contained in the ASAS training set ( <ref type="bibr" target="#b19">Paegert et al. 2014</ref>).</p><p>Before discussing the performance of the EBF pipeline as a whole, we consider the ANN performance alone. This is evaluated only for those light curves passed forward by the DCM, HRM, and PGM such that the ANN performance metrics are not hindered by the exclusion of light curves by the preceding modules. The ANN's classification accuracy metric is calculated using the KEBC3 targets flagged in the KEBC3 database as InCat:False (ICF), a false positive EB (e.g., blends, planets, pulsators, rotators). Thus we only select those targets designated ICF that lack a cataloged morphology (e.g., pulsators, rotators) as an inaccurate classification. That is, the ANN's accuracy is given as the percentage of ANN EC, ESD, ED classifications that are Kepler targets currently cataloged in the KEBC3 as an EB as opposed to those currently cataloged as a pulsating or rotating variable. The ANN's completeness metric is simply the percentage of the adjusted KEBC3 benchmark sample that the ANN successfully recovered as an EB. Using the Kepler "Q3" data set, the ANN accuracy is found to be 93.68%, 84.27%, and 83.03% with a completeness of 94.17%, 93.62%, and 93.63% for EC, ESD, and ED respectively.</p><p>The CVM's performance was evaluated by a manual inspection of the 91 high-confidence (P ≥ 0.90) EB candidate light curves generated by the EBF. Here we remove from these candidates 21 Kepler "Q3" targets that suffer from the phasing ambiguity discussed in section 3.1.1. This manual inspection of the remaining 68 candidates found that the high-confidence CVM validated EBs are likely reliable to ∼ 90% accuracy, commensurate with the integrated EBF pipeline's accuracy as discussed below.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.3.">Overall Performance</head><p>To evaluate the performance of the integrated EBF pipeline, we describe the EBF generated catalog for candidate ECs, ESDs, and EDs with two distinct queries in order to evaluate EBF accuracy and completeness in the Kepler FoV both at high-confidence (P ≥ 0.90) and with no regard to confidence (P ≥ 0.01). Here, no regard to confidence means either the primary ANN classification is EC, ESD, ED, or the primary classification is the placeholder MISC with a secondary classification of EC, ESD, or ED with any posterior probability on the interval (0,1). The accuracy and completeness for each condition are listed in <ref type="table" target="#tab_1">Table 1</ref>.</p><p>These two queries serve to exemplify the range of utility in the EBF's automated output of candidate Kepler FoV EBs. For example, a high-confidence (P ≥ 0.90) query for ECs in the interest of analyzing the characteristics of a homogeneous sample of Kepler ECs, with a high certainty of morphological classification, recovers ∼ 64% of those available in the "Q3" data set with only ∼ 4% false positives. Conversely, a query with no regard to confidence (P ≥ 0.01) in the interest of a statistical analysis using a large number of Kepler ECs, without regard to the certainty of their morphology (P ≥ 0.01), recovers ∼ 86% of those in the "Q3" data with ∼ 6% false positives.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">New High Confidence Candidate EBs Identified with the EBF</head><p>In addition, for the high-confidence condition we find 68 CVM validated EB candidates that do not appear in the KEBC3 catalog. The set of these newly identified candidates are provided in Appendix A. In general, these newly identified candidates are in many cases visually more complex and less obviously identified as EBs via manual visual inspection of the light curves. This is not surprising, as the EBs previously cataloged in the KEBC3 were by definition those EBs that could be readily identified by visual human analysis, and therefore these new candidates are only those that would have been most likely to be missed by human visual inspection. Nonetheless, visual inspection of these new candidates identified in an automated manner by the EBF indicates that most if not all of these are bona fide EBs. In any case, these new candidates will be examined further in a follow-on paper.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Discussion</head><p>Previous works have developed aspects of an automated EB classifier, although to date a fully automated end-to-end pipeline has remained an open challenge. For example, the EB identification algorithm of <ref type="bibr" target="#b35">Wyrzykowski et al. (2003)</ref> automatically identified candidates in the Optical Gravitational Lensing Experiment (OGLE), but then relied on visual inspection of all candidate light curves for manual classification. Similarly, the semi-automated method of <ref type="bibr" target="#b8">Graczyk et al. (2011)</ref> relied on visual inspection to manually remove artifacts from the OGLE-III candidate light curves. Though the pipeline of Devor (2008) automatically filtered 97% of the Trans-Atlantic Exoplanet Survey (TrES) data as non-periodic, a manual removal of 86% of the remaining light curves was necessary to finalize the catalog. More advanced algorithms described by <ref type="bibr" target="#b3">Devinney et al. (2012)</ref>, such as the Eclipsing Binaries via Artificial Intelligence (EBAI) method <ref type="bibr" target="#b25">(Prša et al. 2008)</ref>, used sophisticated ANNs to estimate the characteristic parameters of detached EBs in the Kepler Field; however, the classification of EB morphological sub-classes remained largely a manual task.</p><p>In contrast to the algorithm of <ref type="bibr" target="#b35">Wyrzykowski et al. (2003)</ref>, where the authors are only able to estimate that their EB catalog is complete to ∼ 85% with an efficiency of ∼ 95%, and where the classification of EB sub-classes is achieved only through visual inspection, the EBF's completeness and accuracy rates are precisely benchmarked by the KEBC3 and based upon the ANN's fully-automated classification of subclasses. Additionally, the EBF's single-layer ANN represents a much simpler representation of the classifier The OGLE-III analysis of <ref type="bibr" target="#b8">Graczyk et al. (2011)</ref> is based on a 13 step algorithm that, when complete, reports a false positive rate of ∼ 20% and thus requires a manual inspection of each and every EB candidate light curve. In contrast, the EBF's automated filter reduces false positives to less than ∼ 10%. The semiautomatic method of Devor (2008) also requires manual classification of the EB sub-classes and is further constrained to the analysis of ED and ESD TrES light curves while the EBF extends the result to include the EC class. The EBF pipeline again represents an advance in full automation and adds the ability to automatically classify the EC sub-class when compared to more advanced solution estimators, such as the EBAI method <ref type="bibr" target="#b25">(Prša et al. 2008</ref>).</p><p>The purpose of the EBF pipeline is to alleviate the human bottleneck in discovering astrophysically interesting eclipsing binary systems by automatically identifying and classifying these systems from large volumes of survey data as a foundation for an IDP designed for the future of astroinformatics. The performance results using the Kepler "Q3" Data Release demonstrate the EBF's accuracy for those EBs flagged at high confidence, however the completeness metric leaves room for improvement. An examination of the pipeline's unclassified KEBC3 EBs reflects the 5.59% exclusion rate of the AoV-SNR output filter, as well as the 3.33% failure rate of the PGM. Here we find that 8.92% of the benchmark sample never reaches the ANN. In addition, we discover that a simple evaluation of the flux ratio in relation to an arbitrary threshold of ∼ 0.5 is insufficient to discriminate between ECs and other variable types. Thus, the necessity for the pipeline to first reliably identify harmonics as well as correctly phase and fit the input data without manual adjustment is obviously an area in need of refinement.</p><p>These period and subsequent phasing errors can potentially be mitigated in the future by layering the HRM with multiple harmonic search methods for varied period length. For example, the computationally inexpensive Fast Chi Squared (Fχ 2 ) method of Palmer (2009) and the Boxed Least Squares (BLS) transit search algorithm ( <ref type="bibr" target="#b15">Kovács et al. 2002)</ref> may supplement the AoV method. This multi-layered harmonics search could be combined with a revised PGM where a post-fitting χ 2 analysis may be used to detect errors and validate assigned periods. Phasing may then be subjected to other constraints (e.g., the symmetry vs asymmetry of the primary eclipse ingress and egress for those targets with FR ∼ 0.5). Training deficits such as the lack of a sufficient number of wide EB light curves with narrow transits in the ASAS exemplars as well as an inherent morphological ambiguity in binary systems can potentially be rectified with further training, testing, and validation using expanded survey data sets.</p><p>The EBF's adaptability, facilitated by the modular parameters described in Section 2, and the automated catalog's query options, demonstrates the pipeline's utility for a variety of applications. Applying the EBF to other current time-domain photometric surveys, such as K2 and the upcoming TESS mission should provide similar results. In addition, the EBF's ANN is currently tooled and trained to recognize and classify the other types of periodic variables discussed in <ref type="bibr" target="#b19">Paegert et al. (2014)</ref> (i.e., the ASAS periodic variable classifications DCEP-FU, DCEP-FO, DSCT, RRAB, RRC, and MIRA). Only a benchmark of variables in the Kepler FoV, parallel to the KEBC3, is needed to tool and test the EBF's expansion into automatically cataloging these and other types of periodic variables.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Conclusion</head><p>The Eclipsing Binary Factory (EBF) generated a fully automated catalog of eclipsing binary systems in the Kepler field of view from the Kepler "Q3" Data Release. This catalog, benchmarked by the manually generated Kepler Eclipsing Binary Catalog v3, identified and classified to 90% certainty eclipsing contact (EC), eclipsing semi-detached (ESD), and eclipsing detached (ED) systems (0.11d ≤ period ≤ 20.10d) with an accuracy of 96.12%, 95.53%, and 91.93%, while complete to 63.93%, 45.80%, and 32.40% respectively. When classification certainty is not considered, the EBF catalog identified and classified ECs, ESDs, and EDs (0.11d ≤ period ≤ 20.10d) with an accuracy of 93.68%, 84.27%, and 91.93%, while complete to 86.07%, 73.95%, and 61.59% respectively. In addition, the EBF identified 68 new candidate EBs that may have been missed by the human generated KEBC3 (see Appendix A).</p><p>This demonstrates the EBF pipeline as an effective alternative to the constraints of human analysis when probing large time-domain, photometric data sets. As such, the EBF computational pipeline is a viable framework for the development of a more complex intelligent data pipeline containing a follow on automated solution estimator that would enable the automatic determination of physical EB parameters. Future work on the EBF will include enhancing the harmonics identification capabilities with multiple search methods and phasing constraints beyond the flux ratio, a revised pattern generator to constrain polynomial chain fits to smaller errors, and more robust training for the ANN on wide binary systems. In addition, an expansion of EBF searches in the Kepler data, and in the upcoming K2 data, to include the periodic variables of type δ−cepheid (fundamental and first overtones), δ−scuti, RR-Lyrae (ab and c), and Mira will be published in follow-up papers. Over the long term, the EBF general classification approach can be adopted by future surveys such as TESS and LSST.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Fig. 2 .</head><label>2</label><figDesc>Fig. 2.-Left: The Kepler "Q3" SAP light curve for target KIC 1026032. Right: The EBF detrended, normalized light curve for target KIC 1026032 where systematics were removed by the data correction module using the sigma-clipping algorithm of Slawson et al. (2011) for asymmetric sigma-clipping thresholds (−1σ, 3σ) with a least squares fit to the 10 th order Legendre polynomial. The red circles indicate data gaps that are accounted for by the pipelin.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Fig. 3 .</head><label>3</label><figDesc>Fig. 3.-Left: The flux ratio dispersion in the KEBC3 vs the cataloged morphology, where the cyan dots are EDs, the yellow dots are ESDs, and the blue dots are ECs.The red line marks the KEBC3 threshold for imperfect sinusoidal light curves. Right: EBF phased, detrended light curve of KIC 9004380 as an example of an imperfect sinusoidal EC light curve where 0.5 &lt; F R &lt; 0.7.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Fig. 4 .</head><label>4</label><figDesc>Fig. 4.-Left: EBF phased, detrended light curve of KIC 7258889 as an example of an ESD light curve with a F R &lt; 0.5.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>where</head><label></label><figDesc>ν is the variable used by the ridge function to derive the features H 1 to H m as linear combinations of the inputs. The signals are again weighted by w(o) and propagated to the output layer where there are o target classifications coded as a 0 to 1 categorical target variable ν for the o th −class classification using the same sigmoid activation function to model the target nodes y 1 to y o as linear combinations of H 1 to H m ; where n = 19, m = 20, and o = 10. In other words, the ANN accepts n = 19 input parameters - representing the 16 polynomial chain parameters from the PGM as well as the logarithm of the period in days, the total χ 2 as a measure of fit, and the maximal amplitude of the light curve's normalized flux -and outputs a probability associated with each of the o = 10 known light curve classifications. The 10 known classifications are the three EB categories (EC, ESD, ED), the other variable types (DCEP-FU, DCEP-FO, DSCT, RRAB, RRC, MIRA), and a miscellaneous classification (MISC).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Fig. 5 .</head><label>5</label><figDesc>Fig. 5.-Left: The PGM generated binned flux light curve for KIC 9004380 with 200, size = 0.005, phase bins. Right:</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Fig. 6 .</head><label>6</label><figDesc>Fig. 6.-Left: The PGM generated binned flux light curve for KIC 7258889 with 200, size = 0.005, phase bins. Right: The PGM generated linearly separable patterns, plotted as the knots and midpoints for KIC 7258889 with a minimum of three phase bins per polynomial chain.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Fig. 7 .</head><label>7</label><figDesc>Fig. 7.-Left: The PGM generated binned flux light curve for KIC 1026032 with 200, size = 0.005, phase bins. Right: The PGM generated linearly separable patterns, plotted as the knots and midpoints for KIC 1026032 with a minimum of three phase bins per polynomial chain.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Fig. 8 .</head><label>8</label><figDesc>Fig. 8.-The EBF single layer perceptron neural network classifier with input vector X, ridge function derived feature H, and output Y; where n = 19, m = 20, o = 10, and a(h) = a(o) = σ(ν) = (1 + e −ν ) −1 .</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head>Fig. 9 .</head><label>9</label><figDesc>Fig. 9.-Left: Histogram of the PGM χ 2 T over the ANN recovered sample of KEBC3 EBs used to calculate the CVM filter criteria of χ 2 T ≥ 100 Right: Histogram of the CVM δ 2 over the ANN recovered sample of KEBC3 EBs used to calculate the CVM filter criteria of δ 2 ≥ 1, 000.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head>Fig. 10 .</head><label>10</label><figDesc>Fig. 10.-Left: The EBF generated light curve of KIC 7116873 where the PGM fits to some quasi-systematic artifact that the ANN appropriately classifies as an ESD, however the CVM criteria of χ 2 T ≥ 100 filters this candidate as a false positive. Right: The EBF generated light curve of KIC 6774862 where the PGM fits to a pseudo-sinusoidal signal that the ANN appropriately classifies as an EC, however the CVM filter criteria of δ 2 ≥ 1, 200 prevents this false positive from populating the automated EB catalog.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_10"><head>Fig. 11 .</head><label>11</label><figDesc>Fig. 11.-Left: KEBC3 light curve vs. EBF phased, binned light curve of KIC 3848042 detrended by sigma-clipping over (−1σ, 3σ) interval of the Legendre function P 10 (x) with 200 phase bins. Right: KEBC3 light curve vs. EBF patterned curve of KIC 3848042 fit to polynomial chains of no less than three bins. Here the EBF recovers the cataloged EC in spite of a half-period alias and a small aberrant 3 rd chain circled in red.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_11"><head>Fig. 12 .</head><label>12</label><figDesc>Fig. 12.-Left: KEBC3 light curve vs. EBF phased, binned light curve of KIC 9004380 detrended by sigma-clipping over (−1σ, 3σ) interval of the Legendre function P 10 (x) with 200 phase bins. Right: KEBC3 light curve vs. EBF patterned curve of KIC 9004380 fit to polynomial chains of no less than three bins. Here the EBF recovers the cataloged EC in spite of a ρ ∅ disagreement with the manually adjusted benchmark.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_12"><head>Fig. 13 .</head><label>13</label><figDesc>Fig. 13.-Left: KEBC3 light curve vs. EBF phased, binned light curve of KIC 7258889 detrended by sigma-clipping over (−1σ, 3σ) interval of the Legendre function P 10 (x) with 200 phase bins. Right: KEBC3 light curve vs. EBF patterned curve of KIC 9004380 fit to polynomial chains of no less than three bins. Here the EBF recovers the cataloged ESD with excellent agreement between the KEBC3 light curve and the EBF generated pattern.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_13"><head>Fig. 14 .</head><label>14</label><figDesc>Fig. 14.-Left: KEBC3 light curve vs. EBF phased, binned light curve of KIC 1026023 detrended by sigma-clipping over (−1σ, 3σ) interval of the Legendre function P 10 (x) with 200 phase bins. Right KEBC3 light curve vs. EBF patterned curve of KIC 1026032 fit to polynomial chains of no less than three bins. Here the EBF recovers the cataloged EC in spite of failure to capture the full depth of the eclipses; circled in red.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" validated="false"><head>Table 1 :</head><label>1</label><figDesc></figDesc><table>EBF Pipeline Accuracy and Completeness with the Kepler "Q3" Data Release. 
+Query 
+EC ESD 
+ED </table></figure>
+
+			<note place="foot" n="3"> rd chain circled in red on Figure 11, are the result of the three data points per chain minimum parameter we adopted in the PGM in order to capture narrow eclipses. Though ∼10% of the non-recovered KEBC3 benchmark sample is comprised of wide EDs with narrow eclipses that contain less than three binned data points, the three data point rule remains a hard minimum to ensure pattern generation integrity. It is important to note that the PGM failed to pattern 3.33% of the benchmark sample and that these light curves were not considered for follow on recognition by the ANN.</note>
+
+			<note place="foot">Fig. 17.-EBF generated Kepler &quot;Q3&quot; EB candidate light curves for KIC 10817620, KIC 4175707, and KIC 8707639</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+			</div>
+
+			<div type="annex">
+			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Christiansen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Jenkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Caldwell</surname></persName>
+		</author>
+		<idno>KSCI-19040-004</idno>
+		<ptr target="http://archive.stsci.edu/kepler/manuals" />
+		<title level="m">Kepler Data Characteristics Handbook</title>
+		<meeting><address><addrLine>Moett Field, CA</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2013" />
+		</imprint>
+		<respStmt>
+			<orgName>NASA Ames Research Center</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Conroy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Prša</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">G</forename><surname>Stassun</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">147</biblScope>
+			<biblScope unit="page">45</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Coughlin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>López-Morales</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">E</forename><surname>Harrison</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Ule</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">I</forename><surname>Hoffman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">141</biblScope>
+			<biblScope unit="page">78</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Devinney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Prša</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">F</forename><surname>Guinan</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1017/S1743921311027712</idno>
+		<title level="m">From Interacting Binaries to Exoplanets: Essential Modeling Tools. Proceedings of the International Astronomical Union, Symposium No. 282</title>
+		<imprint>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Devor</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">135</biblScope>
+			<biblScope unit="page">850</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Devor</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">628</biblScope>
+			<biblScope unit="page">411</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">L</forename><surname>Gilliland</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">M</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Christensen-Dalsgaard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">122</biblScope>
+			<biblScope unit="page">131</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Graczyk</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Pietrzy´nskipietrzy´nski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">B</forename><surname>Thompson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">780</biblScope>
+			<biblScope unit="page">59</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Graczyk</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Soszy´nskisoszy´nski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Poleski</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Acta Astron</title>
+		<imprint>
+			<biblScope unit="volume">61</biblScope>
+			<biblScope unit="page">103</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Hartman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">S</forename><surname>Gaudi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Holman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">675</biblScope>
+			<biblScope unit="page">1233</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">B</forename><surname>Howell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Sobeck</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Haas</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">126</biblScope>
+			<biblScope unit="page">398</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Ivezi´civezi´c</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Tyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Acosta</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:0805.2366v2</idno>
+		<imprint>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Jenkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Caldwell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Chandrasekaran</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">713</biblScope>
+			<biblScope unit="page">160</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Kinemuchi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Barclay</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Fanelli</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">124</biblScope>
+			<biblScope unit="page">919</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Koch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Borucki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Basri</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">713</biblScope>
+			<biblScope unit="page">79</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Kovács</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Zucker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Mazeh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">391</biblScope>
+			<biblScope unit="page">369</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">H</forename><surname>Lacy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">218</biblScope>
+			<biblScope unit="page">444</biblScope>
+			<date type="published" when="1977" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Mcquillan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Roberts</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">539</biblScope>
+			<biblScope unit="page">137</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Paczy´nskipaczy´nski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Szczygiel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Pilecki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Pojma´nskipojma´nski</forename></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">368</biblScope>
+			<biblScope unit="page">1311</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Paegert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">G</forename><surname>Stassun</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Burger</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">148</biblScope>
+			<biblScope unit="page">31</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Palmer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">695</biblScope>
+			<biblScope unit="page">496</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Pepper</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">Z</forename><surname>Stanek</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">W</forename><surname>Pogge</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">135</biblScope>
+			<biblScope unit="page">907</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Pietrzy´nskipietrzy´nski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">B</forename><surname>Thompson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Gieren</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">468</biblScope>
+			<biblScope unit="page">542</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Pietrzy´nskipietrzy´nski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Graczyk</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Gieren</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">492</biblScope>
+			<biblScope unit="page">76</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Pojma´nskipojma´nski</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Acta Astron</title>
+		<imprint>
+			<biblScope unit="volume">47</biblScope>
+			<biblScope unit="page">467</biblScope>
+			<date type="published" when="1997" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Prša</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">F</forename><surname>Guinan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Devinney</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">687</biblScope>
+			<biblScope unit="page">542</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Prša</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Batalha</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">W</forename><surname>Slawson</surname></persName>
+		</author>
+		<ptr target="http://keplerEBs.villanova.edu" />
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">141</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">R</forename><surname>Ricker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">N</forename><surname>Winn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Vanderspek</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1406.0151v1</idno>
+		<imprint>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Schwarzenberg-Czerny</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">241</biblScope>
+			<biblScope unit="page">153</biblScope>
+			<date type="published" when="1989" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Slawson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Prša</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">F</forename><surname>Welsh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">142</biblScope>
+			<biblScope unit="page">160</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">G</forename><surname>Stassun</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">D</forename><surname>Mathieu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Valenti</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">664</biblScope>
+			<biblScope unit="page">1154</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">G</forename><surname>Stassun</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">D</forename><surname>Mathieu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Valenti</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">440</biblScope>
+			<biblScope unit="page">311</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<monogr>
+		<title level="m" type="main">Kepler Instrument Handbook (KSCI-10933-001)</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Van Cleve</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Caldwell</forename></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename></persName>
+		</author>
+		<ptr target="http://archive.stsci.edu/kepler/manuals" />
+		<imprint>
+			<date type="published" when="2009" />
+			<pubPlace>NASA Ames Research Center, Moett Field, CA</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<monogr>
+		<title level="m" type="main">Kepler Data Release 4 Notes (KSCI-10944-001)</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Van Cleve</surname></persName>
+		</author>
+		<ptr target="http://archive.stsci.edu/kepler/release_notes/release_notes4/" />
+		<imprint>
+			<date type="published" when="2010" />
+			<pubPlace>NASA Ames Research Center, Moett Field, CA</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Welsh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Bloemen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Conroy</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1309.1176</idno>
+		<imprint>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Wyrzykowski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Udalski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Kubiak</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Acta Astron</title>
+		<imprint>
+			<biblScope unit="volume">53</biblScope>
+			<biblScope unit="page">1</biblScope>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title level="a" type="main">Kepler magnitude for 68 high-confidence (P ≥ 0.9), astrophysically interesting EB candidates newly identified by the EBF pipeline from the Kepler &quot;Q3&quot; light curves that are not currently included in the human generated Kepler Eclipsing Binary Catalog v3. Figures 15-17 represent a sample of &quot;Q3&quot; candidate light curves. The list of candidates also includes three targets with a current disposition of &quot;CANDIDATE</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>High</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Confidence New EB Candidates In Table 2, we provide the KIC, RA, DEC, period, and</title>
+		<imprint/>
+	</monogr>
+	<note>in the Kepler Objects of Interest (KOI). Figure 18 shows the light curves for KOI K00188.01, K00830.01, and K00183.01</note>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<monogr>
+		<title level="m" type="main">High-confidence (P ≥ 0.9) candidate EBs newly identified by the EBF pipeline from the Kepler &quot;Q3&quot; light curves that are not currently included in the human generated Kepler Eclipsing Binary Catalog</title>
+		<idno>v3. KIC RA DEC Period</idno>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+		</imprint>
+	</monogr>
+	<note>d) KEPMAG</note>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title level="a" type="main">EB candidate light curves for KIC 5357901 (KOI K00188.01), KIC 5358624 (KOI K00830.01), and KIC 9651668 (KOI K00183.01) each with the current disposition of &quot;CANDIDATE</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Fig</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">EBF generated Kepler &quot;Q3</title>
+		<imprint>
+			<biblScope unit="volume">18</biblScope>
+		</imprint>
+	</monogr>
+	<note>in the Kepler Objects of Interest (KOI</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

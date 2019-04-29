@@ -1,0 +1,3533 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-11T13:21+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">The ExoMol project: Software for computing large molecular line lists</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2016-07-05">5 Jul 2016 August 31, 2018</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jonathan</forename><surname>Tennyson</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Physics and Astronomy</orgName>
+								<orgName type="institution">University College London</orgName>
+								<address>
+									<postCode>WC1E 6BT</postCode>
+									<settlement>London</settlement>
+									<country key="GB">UK</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Physics and Astronomy</orgName>
+								<orgName type="institution">University College London</orgName>
+								<address>
+									<postCode>WC1E 6BT</postCode>
+									<settlement>London</settlement>
+									<country key="GB">UK</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">The ExoMol project: Software for computing large molecular line lists</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2016-07-05">5 Jul 2016 August 31, 2018</date>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<abstract>
+				<p>The use of variational nuclear motion programs to compute line lists of transition frequencies and intensities is now a standard procedure. The ExoMol project has used this technique to generate line lists for studies of hot bodies such as the atmospheres of exoplanets and cool stars. The resulting line list can be huge: many contain 10 billion or more transitions. This software update considers changes made to our programs during the course of the project to allow for such calculations. This update considers three programs: Duo which computed vibronic spectra for diatomics, DVR3D which computes rotation-vibration spectra for triatomics, and TROVE which computes rotation-vibration spectra for general polyatomic systems. Important updates in functionality include the calculation of quasibound (resonance) states and Landé g-factors by Duo and the calculation of resonance states by DVR3D. Significant algo-rithmic improvements are reported for both DVR3D and TROVE. All three programs are publically available from ccpforge.cse.rl.ac.uk. Future developments are also considered .</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Graphical Table of Contents</head><p>Molecular spectra provide important remote sensing fingerprints. However hot molecules can undergoing very large numbers of possible transitions: billions for even fairly small molecules such as methane. Nuclear motion software based on the use of the variational principle used to compute line lists is discussed and the adaptation of the programs to the demands of computing huge lists of molecular transitions described. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>The ExoMol projects aims to compute line lists of molecular transitions which are important for the study of hot atmospheres, particularly those of exoplanets, brown dwarfs and cool stars. <ref type="bibr" target="#b0">1</ref> In practice these line lists are also useful for a variety of terrestrial applications as well as for models of non-thermal environments such as masers. The project has produced comprehensive line lists for a number of molecules including BeH, MgH and CaH 2 , SiO <ref type="bibr" target="#b2">3</ref>   <ref type="bibr" target="#b20">21</ref> ; the diatomic studies generally include consideration of all important isotopologues. These line lists are large with, for example, the line list for the diatomic <ref type="bibr" target="#b39">40</ref> Ca 16 O containing over 28 million transitions <ref type="bibr" target="#b13">14</ref> , and those for the polyatomic systems CH 4 , PH 3 , H 2 CO, HOOH and SO 3 containing 10 billion or more lines. These calculations can also be used for other purposes such computing radiative lifetimes of individual states <ref type="bibr" target="#b21">22</ref> and thermally-averaged properties.</p><p>Computing these line lists has led us to develop or improve specialist programs designed to study the nuclear motion problem of the various molecules under consideration. This software update describes these developments. A common theme of all these programs is the direct solution of the nuclear motion Schrödinger equation using a variational treatment. In the next section we outline the overall methodological approach adopted by ExoMol. In the following sections we consider the main programs used under the project. They are grouped by the type of system studied. Section 3 considers diatomic systems, for which we use Le Roy's program Level <ref type="bibr" target="#b22">23</ref> and our program especially developed for the project, Duo. <ref type="bibr" target="#b23">24</ref> Unlike the other programs considered here, Duo is designed for the calculation of vibronic spectra and can treat problems involving coupled potential energy curves. Section 4 considers triatomic systems for which the exact kinetic energy nuclear motion code DVR3D 25 has been employed. For tetratomic systems calculations have largely been performed with TROVE <ref type="bibr" target="#b25">26</ref> although WAVR4 27 has also been tested. <ref type="bibr" target="#b27">28</ref> TROVE, which has also been used to study methane, will be considered in section 5. Finally a new hybrid methodology based on the combined use of the variational principle and perturbation theory has been developed for larger systems. This will be considered in section 6. The final section considers our conclusions and prospects for the future.</p><p>A number of other groups are involved in projects computing extensive molecular line lists for astronomical or other purposes, again largely using especially developed software for the nuclear motion problem. These include the NASA Ames group of Huang, Schwenke and Lee who use the polyatomic nuclear motion program VTET <ref type="bibr" target="#b28">29</ref> and have also been undertaking theoretical developments. <ref type="bibr" target="#b29">30</ref> Tyuterev and Rey from the University of Rheims in collaboration with Nikitin from the Tomsk Institute of Atmospheric Optics have computed line lists for a number of polyatomic species 31,32 using either their variational polyatomic code or contact transformation approach. Bowman's group has developed a very efficient general approach to compute ro-vibrational intensity of polyatomic molecules using MULTIMODE <ref type="bibr" target="#b32">33</ref> which has also been used to generate hot line lists. <ref type="bibr" target="#b33">34</ref> Finally, we note that Bernath's group has produced a number of diatomic line lists based on the use of level with the effects of electron spin treated using perturbation theory <ref type="bibr" target="#b34">[35]</ref><ref type="bibr" target="#b35">[36]</ref><ref type="bibr" target="#b36">[37]</ref> . We note that there are also a number of studies which are the product of collaboration between the various groups. <ref type="bibr" target="#b5">6,</ref><ref type="bibr" target="#b14">15,</ref><ref type="bibr" target="#b37">38</ref> </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Method</head><p>The general methodology used by us for constructing line lists has been extensively discussed elsewhere; in particular <ref type="bibr">Lodi and Tennyson 39</ref> gave an introduction on how to perform such calculations and Tennyson 40 reviewed the methodology used by the ExoMol project which is summarised in <ref type="figure">Fig. 1</ref>.</p><p>The first step in the calculation is construction of a potential energy surface (PES) using a high-level, ab initio procedure, which we generally do with MOLPRO 41 . At the same time the computation of the appropriate dipole moment surfaces (DMS) is performed. These then form the input to the appropriate nuclear motion program; these programs are the focus of the present article. In only a very few cases 20,42-44 are completely ab initio procedures the best choice for obtaining an accurate line list. In general this is only true for systems with very few electrons. Otherwise it is necessary to refine the calculation using experimental data.</p><p>There are three methods of improving the calculated line list on the basis of empirical data. The most common one is to refine the PES in the manner illustrated in <ref type="figure">Fig. 1</ref>. This methodology, which is widely used by a number of groups, 45-47 involves either adjusting parameters in the original fit of the PES or adding an auxiliary function which captures changes to this PES. The second method, which can only be used in programs such as TROVE which uses uncoupled vibrational and rotational basis functions, the so-called J=0 representation of rotational excitation 48 , involves band origin shifts. In this method, the vibrational band origins that are computed in the rotationless (J=0) step of the calculation can be shifted to the observed one prior to solving the fully-coupled rotation-vibration problem <ref type="bibr" target="#b47">48</ref> . The third method involves substituting empirical energy levels at the end of the calculation. The format used for storing ExoMol line lists 49,50 involves creating a states file which contains all energy levels and associated quantum numbers. There are now well-established procedures for extracting experimentally-determined energy levels from high resolution spectra 51-54 and these energies can simply be used to replace the computed ones in the states file.</p><p>The situation with DMS is very different. The evidence is that DMS can be calculated ab initio more accurately than they can be obtained by inverting experimental data 55 . Furthermore theoretical procedures have been developed which allow the assignment of uncertainties to individual transition intensities 56,57 , although at present these are too onerous to be used routinely for the very large line lists being considered here. Reviews discussing the theoretical determination of accurate DMS have been given by each of us 58,59 .</p><p>The nuclear motion programs which are the focus of this software review can be thought of as solving the Schrödinger equation implied by the nuclear-motion Hamiltonian:</p><formula xml:id="formula_0">ˆ H = I − 2 2M I ∇ 2 I + V (Q),<label>(1)</label></formula><p>where I runs over the 3N coordinates of the N nuclei, each of mass M I , and V (Q) is the PES expressed in internal coordinates Q. Of course this expression already assumes the Born-Oppenheimer approximation and neglects any couplings between PESs. To make progress with Hamiltonian (1) it is necessary to separate out the centre-of-mass coordinates which represent the translation motion of the whole molecule. The methods below also all work in body-fixed coordinates which involve separating the rotations from the vibrations by fixing an axis system to the molecular frame and using internal coordinates to express the vibrational coordinates. Precisely how this is done varies between the different programs.</p><p>In the standard variational approach the energies and wave functions of the body-fixed Hamiltonian are obtained by using appropriate basis functions to represent the rotational and vibrational motion, and then diagonalizing the resulting matrix; see, for example, the review by Bowman et al. <ref type="bibr" target="#b59">60</ref> . For the rotational motions the choice of basis functions is straightforward as symmetric top eigenfunctions (Wigner D-matrices) form a complete set. For the vibrational coordinates it is often preferable to use a grid-based discrete variable representation (DVR) 61 rather than actual functions. Furthermore, rather than diagonalizing the resulting Hamiltonian matrix in a single step, our approach often uses intermediate diagonalizing steps so that the final matrix diagonalization is as compact as possible.</p><p>Ones ability to diagonalize the large matrices necessary for obtaining the many energies and wave functions required for computing hot line lists usually provides the computational bottleneck in these calculations. However, the very large number of transition probabilities, which we generally choose to represent as Einstein A coefficients, that need to be computed usually means that this step can come to dominate the actual computer time used. Measures to mitigate this are discussed below.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Diatomics systems</head><p>Le Roy's program LEVEL 23 is our choice for computing the spectra of closed shell ( 1 Σ) diatomic molecules. The program has been refined over many years by Le Roy and has been used by us without further changes.</p><p>However, for more complicated diatomic systems, in particular ones involving coupled electronic states or non-Σ states, we have developed our own program, Duo. A first release of Duo has just been published <ref type="bibr" target="#b23">24</ref> and the reader is refered to this paper and an associated topical review <ref type="bibr" target="#b61">62</ref> for full details. Duo is still under regular development and a number of improvements to the functionality of the published version have been made of which we highlight three here.</p><p>First, the published version of Duo only considers truly bound states. However, there are a number of situations where it is necessary to consider quasi-bound or resonance states, or indeed the continuum itself. Shape resonances arise when rotational excitation leads to quasi-bound states being trapped by the centrifugal barrier. There are also Feshbach resonances which undergo pre-dissociation caused by coupling to dissociative states. Finally, it is sometimes necessary to consider spin-orbit effects on bound states caused by coupling to either resonances or the continuum. A facility has been added to Duo which allows an artificial wall to be placed at large internuclear separation; this has the effect of discretizing the continuum and allowing localized, resonance states to be identified 63 .</p><p>Second, the energy levels of open shell molecules are sensitive to the effects of magnetic fields. The behaviour of molecules in a magnetic field provides a spectroscopic tool as well as being important in fields as diverse as molecular trapping <ref type="bibr" target="#b63">64</ref> and astrophysics <ref type="bibr" target="#b64">65</ref> . For an open shell diatomic, the splitting, ∆E JM , due to weak magnetic field of strength B, otherwise known as the Zeeman splitting, is given by</p><formula xml:id="formula_1">∆E JM = g J Mµ B B,<label>(2)</label></formula><p>where J is the total angular momentum quantum number and M is its projection along the direction of the magnetic field. Here g J is the effective Landé g-factor for the given level and µ B is the Bohr magneton. In simple cases g J can be evaluated in the Hund's case (a) basis used by Duo, using the expression</p><formula xml:id="formula_2">g J = n |C J,τ λ,n | 2 Λ n g L + 2Σ n g S J(J + 1) ,<label>(3)</label></formula><p>where g L = 1 and g S = 2.0023 are the orbital and spin g-factors respectively. In eq.</p><formula xml:id="formula_3">(3), C J,τ λ,n</formula><p>is the eigenvector of the λ th state with good quantum numbers J and τ (parity) and n is a compound basis index |n = |state, J, Ω, Λ, S, Σ, v.</p><p>In this 'state' denotes an electronic state with electron spin S and v an associated vibrational state. Ω(= Λ + Σ), Λ and Σ are projection of the orbital angular momentum and spin, S, onto the body-fixed molecular axis, respectively. In Eq. (3), Λ and Σ are subscripted by n to emphasize that they are not conserved quantities but their value depends on the state part of the basis. Berdyugina and Solanki 65 give a more complete expression for g J which allows it to be evaluated correctly using Duo wavefunctions even when the molecule is not wellrepresented by Hund's case (a). An extension to Duo to evaluates this general expression has recently been written and tested for a few diatomic systems, notably CrH, C 2 and AlO. 66 Finally, visualization of wave functions can be very helpful for interpreting results. The latest version of Duo has incorporated plotting routines to aid the inspection of the results.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Triatomic systems</head><p>The DVR3D program suite obtains variationally exact solutions for the bound-state, threeatom nuclear motion problem for a given PES within the Born-Oppenheimer approximation. The program has been developed over a number of years originally starting as a finite basis set procedure 67-70 before evolving 71 to one which is based on the use of DVR in all vibrational coordinates 72,73 . DVR3D and its predecessors have been benchmarked against other, similar, nuclear motion codes such VTET, and indeed TROVE, to confirm the accuracy of both the computed vibration-rotation energy levels 15,74 and transition moments 75 .</p><p>The current published release of the DVR3D program suite 25 is actually the third but dates back to 2003. Since then DVR3D has undergone a large series of developments, not least to facilitate the calculation of huge line lists. All modules have also been subject to a re-write to both make them more consistent and to bring the programming up to a more modern programming standard. <ref type="figure">Figure 2</ref> gives the flow structure for the current version of DVR3D. The main driving module, DVR3DRJZ, solves the vibration-only or Coriolis-decoupled vibration-rotation problem. For rotationally-excited molecules, the results of DVR3DRJZ provide the basis functions used in one of the ROTLEV modules to solve the fully-coupled vibration-rotation problem; where the choice of module depends on the axis embedding used. The solutions to vibration-rotation problem can be used to compute expectation values of given variable in XPECT, this module is particularly used in performing fits of the PES to spectroscopic data where the Hellmann-Feynman theorem can be used to evaluate the expectation values of derivatives of the PES with respect to parameters of the fit. These same vibration-rotation eigenvectors can be used to compute line strengths in DIPOLE which in turn provides the necessary information to generate spectra. The new modules and significantly amended modules have been highlighted in this figure and are discussed below.</p><p>A new module, RES3D, has been written 76 which can be used to characterize quasibound or resonance states lying above dissociation. The automated procedure for doing the analysis has been successfully used to study resonances in both H + 3 76 and water <ref type="bibr" target="#b76">77</ref> . Details of how this module works are given below.</p><p>In addition the functionality of DVR3D has been increased by a thorough re-write of the codes in which the z-axis is placed perpendicular to the plane of the molecule (zperpendicular embedding option <ref type="bibr" target="#b77">78,</ref><ref type="bibr" target="#b78">79</ref> ). This option is useful for molecules, such as H + 3 , whose projected rotational motion is usually quantised along this axis. A new module, DIPOLE3Z, is introduced which computes transition dipoles for the z-perpendicular embedding case.</p><p>Algorithmic improvements include the following:</p><p>• The automated Gauss-(associated) Legendre quadrature generation procedure, which was adapted from one given by Stroud and Secrest 80 has been replaced by a brute force one which involves finding zeros in the polynomial equation P k N (x) = 0 for the N point quadrature. This was found to be essential for grids with N &gt; 90 and has been successfully used for N up to 150 15 . The automatic check on the validity of grid obtained by comparing summed weights with the analytic value given by Stroud and Secrest has been retained.</p><p>• For large calculations, module ROTLEV3b in the published version of DVR3D can spend a long time constructing the final Hamiltonian matrix. ROTLEV3b uses vibrational functions generated in the first step of the calculation 81 to provide basis functions for the full ro-vibrational calculation performed by ROTLEV3b. For high J calculations this algorithm involves transforming large numbers of off-diagonal matrix elements to the vibrational basis set representation, see Eq. (31) in Tennyson and Sutcliffe <ref type="bibr" target="#b81">82</ref> . This step has been re-programmed as two successive summations rather than a double summation at the cost of requiring an extra, intermediate matrix <ref type="bibr" target="#b16">17</ref> . This had the effect of reducing the cost of Hamiltonian construction to below that of Hamiltonian diagonalization, which is generally the case for the other modules of DVR3D.</p><p>• Dipole3 by default computes all transition dipoles between the bra and ket wave functions it is asked to process. For large line lists, computing transition dipoles actually dominates computer usage and this can be inefficient. These line lists are usually characterized by a lower energy cut-off, which determines the temperature range for which the line list is valid, and an upper energy cut-off which determines the frequency range. Computing transition moments between these ranges is expensive and unnecessary. New input variables have been introduced to avoid this 83 .</p><p>• DVR3DRJZ employs an algorithm which relies on solving a Coriolis-decoupled vibrational problem for each <ref type="bibr">(J, k)</ref>, where k is the projection of the rotational angular momentum onto the chosen body-fixed z axis and J is the rotational motion quantum number. This provides a basis set from which functions used to solve the fully-coupled ro-vibrational problem are selected on energy grounds 80 . Hot line list can involve calculations with high J and experience has shown that in this case not all (J, k) combinations are actually needed. An option has been implemented where unneeded high k calculations are not performed <ref type="bibr" target="#b14">15</ref> . In practice, this does not save much computer time, since the initial (J, k) calculations are quick, but does save disk space.</p><p>• Again for large calculations, the algorithm used by module DIPOLE3 to read in the wave functions required a lot of redundant reads. DIPOLE3 has been re-structured to reduce the number of times the wave functions need to be read 15 .</p><p>Finally, matrix diagonalization is the rate-limiting step in most applications of DVR3D. A number of new real, symmetric matrix diagonalizers have been added to the LAPACK software package 84 . The diagonalizers implemented in DVR3D have been changed where appropriate.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Resonance detection</head><p>Resonances can be detected by the behaviour of states lying in the continuum upon the introduction of a complex absorbing potential (CAP). To do this the dissociating system's PES is augmented with a complex functional form that absorbs the continuum part of the wave function. This non-Hermitian Hamiltonian produces L 2 wave functions above the dissociation threshold that represent the resonant states in question 85 . Formally, an imaginary negative potential that acts on the dissociation coordinate, R, is added to the system's Hamiltonian, ˆ H:</p><formula xml:id="formula_5">ˆ H ′ = ˆ H − iλW (R) ,<label>(5)</label></formula><p>where λ is a parameter used to control the CAP's intensity. The resulting non-Hermitian Hamiltonian, ˆ H ′ , defines the energy of the n th resonance, E n , its width, Γ n , and the corresponding L 2 wave function, Ψ n , through the relationship:</p><formula xml:id="formula_6">ˆ H ′ (λ)Ψ n (λ) = E n (λ) − i Γ n (λ) 2 Ψ n (λ) .<label>(6)</label></formula><p>To solve Eq. (6), ˆ H ′ can be projected on a suitable basis set and diagonalized. In the infinite basis set limit, the eigenvalues corresponding to the resonant states will be found in the limit where λ → 0. Fortunately the use of a finite basis set is both necessary and beneficial: the error introduced by the CAP and the finite basis set have opposite phase. This implies that these errors will cancel each other out at some optimal value, λ op , thus yielding the complex "observables" associated with the resonant state.</p><p>The wavefunctions, Ψ n (λ), satisfying eq. (6) are naturally complex. This represents both transmission and reflection at the CAP. Theoretically it is best to minimize reflection 86 , which can be done by judicious choice of absorbing potential 87 . However, our calculations did not find much sensitivity to actual choice of CAP used. 76,88 However, the width in particular is found to be sensitive to convergence of the basis set representation employed. <ref type="bibr" target="#b88">89</ref> A search for λ op is made by studying the behaviour of the complex eigenvalues of Eq. (6) with values of λ ranging from zero to a large arbitrary value. This results in N trajectories in the complex plane, each associated with an eigenvalue E n − iΓ n /2. Through graphical analysis of these trajectories it is possible to identify the point in the complex plane that corresponds to the optimal value λ op , and hence estimate the value for the position, E n , and with, Γ n , of the resonant state. This graphical method consists of locating cusps, loops and stability points in the eigenvalue trajectory, which are known to occur in positions around the true eigenvalue for the resonances on the complex plane. 76, <ref type="bibr" target="#b89">90</ref> The approach taken in the new RES3D module of DVR3D is to first diagonalizê H of the system under study and store the basis elements φ i , and eigenvalues ε i lying near dissociation. As one can expand the functions Ψ n of Eq. (6) onto the basis set obtained from the bound state calculation:</p><formula xml:id="formula_7">|Ψ n (λ) = i c i n (λ)|φ i .<label>(7)</label></formula><p>The coefficients c i n (λ), the resonance energies E n (λ) and the resonance widths Γ n (λ)/2 can then be obtained by diagonalizing the Hamiltonian:</p><formula xml:id="formula_8">H ′ ji = φ j | ˆ H ′ |φ i = ε i δ ji − ıλφ j |W (R)|φ i ,<label>(8)</label></formula><p>where ε i is the i th eigenvalue and φ i is the i th eigenvector obtained from the diagonalization ofˆHofˆ ofˆH. For systems with many bound states, wave functions associated with the strongly bound states are not needed when diagonalizing the Hamiltonian so can be dropped. This means that the Hamiltonian matrix H ′ is small, easy to construct and cheap to diagonalize which is important as the graphical method relies on many diagonalizations with different values if λ.</p><p>The H ′ matrix is complex symmetric matrix which therefore yields the complex eigenvalues needed to characterize both the position and width of the resonance. RES3D uses LAPACK 84 routine zgeev to perform this diagonalization.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Polyatomic systems</head><p>Code WAVR4 27 provides tetratomic implementation of the DVR-style approach employed in DVR3D. 91 WAVR4 has been tested 28 against the alternative polyatomic code TROVE, described below, and found to considerably slower. There are a number of reasons for this. Firstly, DVR methods are diagonal in the potential and coupling appears through the kinetic energy operator. Although it is possible to formulate a DVR in general coordinates 92 , this is not efficient as it is only in orthogonal or polyspherical coordinates 93 in which the kinetic energy operator has a simple form that can be efficiently evaluated. Secondly, the J = 0 representation as implemented in TROVE and discussed below has proved highly efficient for calculations on rotationally excited polyatomics. This form is not supported by WAVR4 which employs theory which naturally samples linear geometries <ref type="bibr" target="#b90">91,</ref><ref type="bibr" target="#b93">94</ref> where the J = 0 representation fails.</p><p>TROVE is a variational method with an associated Fortran 2003 program to construct and solve the ro-vibrational Schrödinger equation for a general polyatomic molecule of arbitrary structure <ref type="bibr" target="#b94">95</ref> . The kinetic energy operator is constructed as an expansion in terms of internal vibrational coordinates with the expansion coefficients obtained numerically onthe-fly. The energies and eigenfunctions obtained via a variational approach can be used to model absorption/emission intensities (absorption coefficients) for a given temperature as well as to compute temperature independent line strengths and Einstein coefficients 96 . The latter is then used as the input to construct molecular ExoMol line lists. TROVE provides an integrated facility for refining the ab initio PES in the appropriate analytical representation <ref type="bibr" target="#b96">97</ref> . Being a general program TROVE requires modules for each molecular type with all individual specifications including descriptions of the molecular structure, internal coordinates, and their symmetry properties. TROVE uses a symmetry adapted product-type basis set representation with an automatic symmetrization procedure 98 . The Hamiltonian matrix constructed by TROVE is factorized into symmetry blocks corresponding to different irreducible representations. The molecular symmetry group 99 is used to classify the symmetries of the basis and wave functions. The construction of the ro-vibrational basis set is performed in three steps: (i) the 1D basis set functions are obtained either as numerical solution of 1D Schrödinger equations using the Numerov-Cooley method 100,101 or the harmonic oscillator wavefunctions; (ii) Schrödinger equations are solved for reduced Hamiltonians for different types of degrees of freedom connected by symmetry transformations in order to obtain a more compact, contracted basis set; the eigenfunctions of the J=0 Schrödinger equation are then contracted and used to form the final ro-vibrational basis set in the J=0 representation 48 ; (iii) the final step involves constructing and diagonalizing the symmetrized ro-vibrational Hamiltonian matrix.</p><p>Apart from computing energies and spectra for a series of polyatomic molecules, the program TROVE has being applied to study some of their properties, for example the so-called rotational energy clustering <ref type="bibr" target="#b101">102,</ref><ref type="bibr" target="#b102">103</ref> or the temperature-averaged nuclear spin-spin matrix elements 104 and isotropic hyperfine coupling constant <ref type="bibr" target="#b104">105</ref> .</p><p>Even prior to the ExoMol project a number of modifications had been implemented to TROVE subsequent to its original publication 95 , which have proved to be important for the project. These include:</p><p>1. Symmetry adapted basis set and contraction scheme based on the reduced Hamiltonian problems (to be reported soon 98 );</p><p>2. Intensity calculations 48 ;</p><p>3. J=0 representation 48 ;</p><p>4. Thermal averaging using an expansion of the matrix exponent 104 ;</p><p>5. Empirical band center corrections 48 .</p><p>The typical TROVE intensity project consists of the following steps:</p><p>1. Expansion of the Hamiltonian operator (generating kinetic and potential energy expansion coefficients numerically on-the-fly) as well as of any 'external' function (e.g. dipole moment, polarizability, spin-spin coupling or any other property; PES correction ∆V used in the refinement process 97 );</p><p>2. Numerov-Cooley solution of the 1D Schrödinger equations;</p><p>3. Eigen-solutions of the reduced Hamiltonian problems;</p><p>4. Symmetrization of the contracted eigenfunctions from Step 3 and construction of the symmetry-adapted vibrational basis set φ i ;</p><p>5. Calculation of the vibrational matrix of the Hamiltonian operator as well as external functions (e.g. dipole) when required;</p><p>6. Diagonalizaitons of the J=0 Hamiltonian matrices for each irreducible representation in question;</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.">Conversion of the primitive basis set representation (vibrational matrix elements from</head><p>Step 5) to the J=0 representation;</p><p>8. Construction of the symmetry-adapted ro-vibrational basis set as a direct product of the J=0 eigenfunctions and rigid rotor wavefunctions;</p><p>9. Construction of the ro-vibrational Hamiltonian matrices for each J ≥ 0 and irreducible representation Γ;</p><p>10. Diagonalization of the Hamiltonian matrices and storing eigenvectors for the postprocessing (e.g. intensity calculations) if necessary;</p><p>11. For the intensity calculations (line list production), all pairs of the ro-vibrational eigenvectors (bra and ket) from Step 10 (subject to the selection rules as well as to the energy, frequency and J thresholds) are cross-correlated with the dipole moment XY Z components in the laboratory-fixed frame via a vector-matrix-vector product, where the body-fixed xyz components of the dipole moment from Step 5 are transformed to the XY Z-frame using the Wigner-matrices.</p><p>The main challenge of the ExoMol project is that very high rotational and vibrational excitations are needed for for accurate descriptions of high-temperature molecular spectra. This in turn requires larger basis sets and therefore larger Hamiltonian matrices, which associated increase of the calculation costs in terms of memory (both RAM and storage) and time. For example, for the SO 3 line list 18 with extremely high rotational excitations (up to J = 130) due to the heavy character of the molecule, the size of the Hamiltonian matrices to be solved has to be as large as 400,000×400,000, which represents our biggest calculation so far. This is despite the fact that only the smallest matrix (A ′ 1 and A ′′ 1 symmetries of D 3h (M)) had to be considered due to the nuclear spin statistics of 32 S 16 O 3 . The sheer size of these matrices requires special measures not only on the software side (TROVE), which is discussed below, but also from the hardware. For this example of the 400K×400K matrices, the diagonalizations were performed on the Cambridge SMP facilities within the DiRAC II project, using about 1000 cores, 6 Tb of RAM and a specially adapted version of the eigensolver PLASMA 106 by the SGI team for TROVE.</p><p>In order to tackle these and other challenges associated with large basis sets and matrix sizes, the following critical modifications of TROVE have been performed.</p><p>Checkpointing. The production of a complete line list for a polyatomic molecule with four and more atoms, takes very long times, longer than the wall-clock limits of the high performance computers (HPC) we have access to would allow. Therefore it was important to implement the so-called 'checkpointing' feature (i.e. storing data required for a restart) for all calculation steps of the TROVE protocol, together with a control mechanism allowing a restart at any computational step. Moreover, the eigen-coefficients in different representations used at different stages are also stored in the form of 'checkpoints' thus treating them on the same footing. In order to prevent accidental usage of the wrong checkpoints, most of these files contain a built-in structure of 'signatures' with a header containing some key parameters representing a TROVE project (expansion orders of the kinetic and potential energy functions, sizes and types of the basis sets etc) and control-phrases at the beginning and end of the different sections (e.g. End Quantum numbers and energies).</p><p>Symmetries. Each molecule type in TROVE is represented as a project specifying reference (equilibrium) geometry, definition of the geometrically defined coordinates (GDC), and description of the associated transformation properties of these coordinates as well as of the rigid-rotor wavefunctions used for the rotational basis set. The same molecule type allows different choices of GDC depending on the specifics of the system as well as of the reference geometries, with the reference configuration to be either rigid or non-rigid. The transformation symmetry properties of the rigid-rotor wavefunctions |J, K, τ 107 will vary depending on the choice of the z-axis. For example in case of an XY 2 molecule, the z-axis can be chosen along the bisecting vector or perpendicular to it, which changes the symmetry properties of |J, K, τ . For most of the symmetries, the irreducible (symmetry-adapted) combinations of the rigid-rotor wavefunctions are obtained as Wang functions 108</p><formula xml:id="formula_9">|J, K, Γ = 1 √ 2 [|J, K ± |J, −K] (K = 0),<label>(9)</label></formula><formula xml:id="formula_10">|J, 0, Γ = |J, 0.<label>(10)</label></formula><p>Because of this property and the fact that the Hamiltonnian operator is quadratic in terms of the angular momentum operatorsˆJoperatorsˆ operatorsˆJ x , ˆ J y , andˆJandˆ andˆJ z , the ro-vibrational Hamiltonian matrix has a block-diagonal structure with vanishing matrix elements for |K − K ′ | &gt; 2.</p><p>In the course of the ExoMol project the following new molecular types and corresponding symmetries were implemented: XY 4 (T d , C 3v ) 109,110 , non-linear and non-rigid</p><formula xml:id="formula_11">X 2 Y 2 (C s (M), D 2h (M), C 2h + (M), C 2h (M), C 2v (M)) 16,28 , linear X 2 Y 2 (D nh (M), C 2v (M), C s ), rigid X 2 Y 4 (D 2h (M)).</formula><p>Euler symmetry. The XY 4 is a special case since the simple symmetrization rules given in Eqs. (9) and (10) do not work 111 due to the additional symmetry axis (1,1,1) required to define its equivalent rotations 112 . The adapted basis set is given in this case by a linear combination of |J, k basis functions with k spanning different values (−J ≤ k ≤ J). To address this problem a new routine for construction of symmetry-adapted rigidrotor wavefunctions has been implemented. This symmetrization approach is based on the properties of the Wigner functions upon the equivalent rotations of an arbitrary molecular symmetry group (not only T d ) and only requires the values of the equivalent Euler angles α, β, γ only (see, for example, 111 ). As a consequence abandoning the Wang-type structure from Eq. <ref type="formula" target="#formula_9">(9)</ref> and <ref type="formula" target="#formula_0">(10)</ref>, the ro-vibrational Hamiltonian matrices do not have the |K − K ′ | ≤ 2 block-diagonal structure. Furthermore, matrix elements of the dipole moment components in the laboratory-frame are also less compact. Therefore the corresponding modules in TROVE responsible for the ro-vibrational Hamiltonian and dipole matrix elements had to be modified. More details can be found in our paper presenting our very large hot methane line list known as 10to10. <ref type="bibr" target="#b4">5</ref> </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1">PES refinement</head><p>The TROVE-refinement method 97 is based on the two main features: (i) the eigenfunctions of the ro-vibrational Hamiltonians (usually J ≤ 5) corresponding to the ab initio potential energy function V ai (Q) are used as basis functions to solve the Schrödinger equations for the modified potential function V R (Q) during the refinement procedure; (ii) the refined potential energy function is represented as a correction ∆V (Q) to the ab initio PES as given by</p><formula xml:id="formula_12">V R (Q) = V ai (Q) + ∆V (Q).<label>(11)</label></formula><p>The refined part of the PES V R (Q) is in turn represented as an expansion in terms of the internal coordinates</p><formula xml:id="formula_13">∆V (Q) = ijk... ∆F ijk... Q i 1 Q j 2 Q k 3 · · · .<label>(12)</label></formula><p>with the expansion coefficients ∆F ijk... being varied using the Hellman-Feynmann theorem. The term ∆V (Q) plays the role of the external function at Step 5. The TROVE refinement project requires the following additional calculation steps after Step 10 in the calculation protocol above 11. The vibrational matrix elements of ∆V (Q) (for a given approximation) are converted from the J=0 representation (Step 7) to the representation of the ab initio ro-vibrational eigenvectors;</p><p>12. At each iteration, a set of refined H R = H ai +∆V Hamiltonian matrices are constructed and diagonalized;</p><p>13. The eigenvalues are compared to the experimental energy levels;</p><p>14. The diagonal matrix elements of Q i 1 Q j 2 Q k 3 . . . on these eigenfunctions are computed and used to evaluate the next approximation for ∆V (Q); 15. The fitting iteration steps are repeated until all accuracy or convergence criteria are satisfied.</p><p>In order to prevent non-physical distortions of V R (Q), the refinement is usually constrained to the original ab initio potential function. This is achieved by a simultaneous fit 113 of the potential parameters ∆F i,j,k,... to the experimental energies and ab initio potential function evaluated on a grid of (usually 10,000-20,000) geometries. The current TROVE implementation of the refinement approach given by Eqs. (11) assumes that the same functional form (not necessarily polynomial) in Eq. <ref type="formula" target="#formula_0">(12)</ref> is also used for V (Q):</p><formula xml:id="formula_14">V (Q) = ijk... F ijk... Q i 1 Q j 2 Q k 3 · · · . (13)</formula><p>This simplifies the evaluation of the derivatives of diagonal Hamiltonian matrix elements i|H|i with respect to ∆F ijk... needed for the least-squares fit via the following property:</p><formula xml:id="formula_15">∂i|H|i ∂∆F ijk... = i|H(F ijk... = 1, F i ′ j ′ k ′ ... = 0)|i, where H(F ijk... = 1, F i ′ j ′ k ′ .</formula><p>.. = 0) denotes the Hamiltonian operator with all potential parameters</p><formula xml:id="formula_16">F i ′ j ′ k ′ ... set to zero except F ijk..</formula><p>. which is set to one. That is, the same subroutine can be used to evaluate both V (Q) and ∆V (Q). It should be noted however that an independent form for ∆V (Q) can be also easily implemented if required.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2">Curvilinear coordinates</head><p>Originally TROVE was based on the expansion in terms of linearized coordinates around an equilibrium geometry in the case of a rigid molecule or a one-dimensional non-rigid reference configuration 114 in the case of molecules with one large amplitude motion (e.g. ammonia or hydrogen peroxide). Linearized coordinates are defined as a linear expansion of GDCs in terms of the Cartesian coordinates displacements truncated after the linear term 96 . The linearized coordinates have the advantage of simplifying the Eckart conditions 95 . Very recently, TROVE has been extended for expansions in terms of geometrically defined (or curvilinear) coordinates. In order to be able to use the Eckart conditions in this case, an automatic differentiation (AD) procedure has been implemented 115 . Use of the curvilinear coordinates significantly improves the basis set convergence <ref type="bibr" target="#b114">115</ref> . This method was originally tested on NH 3 , PH 3 , CH 3 Cl and H 2 CO, and has been used in subsequent applications <ref type="bibr" target="#b115">[116]</ref><ref type="bibr" target="#b116">[117]</ref><ref type="bibr" target="#b117">[118]</ref> . AD is a robust numerical method to compute derivatives of arbitrary functions by computer programs.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.3">Dipole moments</head><p>As for the potential energy functions, at least in principle, TROVE accepts any analytical form for the electric dipole moments used for intensity calculations. This is because TROVE re-expands any use-defined function in terms of TROVE internal coordinates (either linearized 95 or curvilinear 115 ) using numerical finite differences. TROVE requires that the corresponding subroutine outputs the dipole moment components for any given instantaneous molecular geometry in Cartesian coordinates. Analytical forms for the following dipole moment functions have been implemented in TROVE: XY 3 -type molecular bond (MB) <ref type="bibr" target="#b118">119</ref> and symmetrized MB representations 120 ; an HSOH-type dipole moment function (DMF) <ref type="bibr" target="#b120">121</ref> ; an H 2 CS-type DMF <ref type="bibr" target="#b8">9,</ref><ref type="bibr" target="#b121">122</ref> ; an XY 4 -type symmetrized MB representation 109 ; an HOOH-type dipole moment function 123 . Since these functions are based on some user-defined choice of the coordinate system, an interface to transform this system to the TROVE coordinates (Cartesian) is always required.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.4">TROVE for a linear molecule</head><p>TROVE was originally written to treat non-linear molecules only. This meant that TROVE was not capable of treating accurately enough for practical spectroscopic applications molecules such as water, which has a relatively low barrier to the linearity. This has been addressed in the most recent version of TROVE by extending it to the so-called 3×N-5 approach, 124 where the rotation of the molecule around the molecular axis (e.g. z) is excluded from the set of the Euler angles and combined with the set of the vibrational modes. Technically this is done by describing the deformation of the linear geometry (displacement angle) and its rotation about z via a double degenerate coordinate (q x ,q y ) representing projections of the bond angle onto the body-fixed xz and yz planes. The linearized coordinates in this cases are best suited for this 2D internal mode. All kinetic energy terms corresponding to the z component are simply set to zero and thus excluded from the calculations. The construction of the 3×N-5 Hamiltonian requires minimal modifications of the 3×N-6 code. However the ro-vibrational basis set in the product form |J, k|v, l has to be constrained as follows 125</p><formula xml:id="formula_17">k = l ≡ i l i ,</formula><p>where k is the rotational quantum number (projection of the rotational angular momentum on z), l i are the vibrational angular momenta and v is a generic vibrational quantum number. Thus the vibrational basis set has to be constructed with l as a 'good' quantum number. Full details of our 3×N-5 approach will be reported elsewhere.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.5">Rotational energy clustering</head><p>TROVE has been used to study the effect of the rotational energy clustering 126 for the XY 3 type molecules SbH 3 , BiH 3 , PH 3 , AsH 3 , and SO <ref type="bibr">3 102,127</ref> . In order analyze the associated localization rotations, 128 the following modules were implemented: (i) construction of classical rotational energy surfaces 129 , (ii) construction of rotational probability density 130 and (iii) determination of axes characterized by stable localized rotations.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.6">Temperature averaging and matrix exponent expansion</head><p>For an ensemble of molecules in thermal equilibrium at absolute temperature T the thermal average of a molecular property P is given by</p><formula xml:id="formula_18">P T = 1 Q i g i exp − E i kT P i ,<label>(14)</label></formula><p>where g i is the degeneracy of the ith state with the energy E i relative to the ground state energy, k is the Boltzmann constant and Q is the internal partition function defined as</p><formula xml:id="formula_19">Q = i g i exp − E i kT ,<label>(15)</label></formula><p>and P i is an expectation value of P in a rovibrational state i</p><formula xml:id="formula_20">P i = Φ i |P |Φ i .<label>(16)</label></formula><p>A TROVE module for computing thermal averaging of a general molecular function based on Eqs. (14-16) was implemented and applied to indirect nuclear spin-spin coupling constants and equilibrium structure of of ammonia 104 and isotropic hyperfine coupling constant of methyl radical 105 . The calculations require the ro-vibrational eigenvalues E i and eigenvectors Ψ i obtained by a time-consuming matrix diagonalization. An alternative to this (also implemented as a part of this module) is an averaging technique based on the construction of the density matrix ρ i,i ′ obtained by expanding the matrix exponent of a Hamiltonian matrix as a Taylor series:</p><formula xml:id="formula_21">ρ i,i ′ = 1 Q φ i | exp (−H/kT ) |φ ′ i = k≥0 1 k! φ i | (−H/kT ) k |φ ′ i<label>(17)</label></formula><p>in the representation of the basis functions. This approach is based on the realization that Eq. <ref type="formula" target="#formula_0">(14)</ref> represents the trace of a matrix product:</p><formula xml:id="formula_22">P T = tr(ρ i,i P i ),<label>(18)</label></formula><p>involving the (diagonal) density matrix</p><formula xml:id="formula_23">ρ i,i ≡ 1 Q exp − E i kT = 1 Q Φ i | exp (−H/kT ) |Φ i .<label>(19)</label></formula><p>Since the trace does not depend on the choice of the representation Eq. (19) is conveniently evaluated in the basis set representation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.7">GAIN</head><p>The longest part of the line list production is usually the intensity calculations. The hot line lists of polyatomic molecules typically require billions of transition dipoles (linestrengths or Einstein A coefficients) to be computed. A calculation of a linestrength (as well as of an Einstein coefficient) requires a matrix element of the molecular space-fixed dipole moment for all TROVE ro-vibrational eigenfunctions subject to the selection rules and thresholds (see TROVE protocol above), i.e. a vector-matrix-vector product, each of which is relatively small in terms of the memory costs and fully independent from other transitions. This makes it perfectly suitable for the GPU architecture. We have modified the intensity part of TROVE to make it compatible for and efficient with GPUs. The new TROVE module and the underlying approach is called GAIN 131 . With small modifications GAIN could be adopted for other variational programs. The gain in the calculation speed is from a factor of 10 to 1000 depending on the type of GPU used.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">Larger molecules</head><p>As part of the ExoMol project we have worked with one further nuclear motion code AngMol which was originally developed by Gribov and Pavlyuchko 132 . With Pavlyuchko we developed a hybrid variational -perturbation theoretical method for treating both vibrational and vibrational-rotational motion <ref type="bibr" target="#b132">133</ref> and computing spectra of large, hot systems efficiently <ref type="bibr" target="#b133">134</ref> . This methodology has been used successfully to obtain a line list for hot nitric acid (HNO 3 ) 12 . However, AngMol has been developed in a highly specific manner. Rather than continuing its development, our plan is to implement the hybrid procedure successfully tested in AngMol within TROVE.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7">Conclusions and future developments</head><p>The codes Duo, DVR3D and TROVE are all publicly accessible via the CCPForge program depository (https://ccpforge.cse.rl.ac.uk/), where each of them are available as a separate project.</p><p>A number of developments of these codes are in progress or being planned. In particular, we are just starting to extend the polyatomic codes to include transitions between different electronic states and hence to consider the vibronic transitions already considered by the diatomic code Duo. The calculation of all states up to dissociation for strongly-bound triatomics has been possible with DVR3D for some time <ref type="bibr" target="#b134">[135]</ref><ref type="bibr" target="#b135">[136]</ref><ref type="bibr" target="#b136">[137]</ref> ; this leads to the possibility that wave functions generated in such calculations can be used for low-energy (or cold) reactive problems which occur just above dissociation. This possibility is currently being explored <ref type="bibr" target="#b62">63</ref> . Another development in progress is the extension of TROVE for molecular dynamics in the presence of external time dependent electric fields. For example, recently the TROVE has been extended to allow time-dependent solutions of Schrödinger equations for polyatomic molecules exposed by electric fields of arbitrary shapes and polarizations 138 , where the flexibility of the ExoMol format 50 is explored for the transition dipole and polarizability moments required to simulate the laser-driven molecular dynamics. Updated versions of the codes containing these extensions and others will be placed in the CCPForge program depository in due course. </p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 0 :</head><label>0</label><figDesc>Figure 0: Work flow illustration the technique used to compute a line list of molecule transitions.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 3 :</head><label>3</label><figDesc>Figure 1: A typical work flow of the line list production.</figDesc></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>ACKNOWLEDGMENTS</head><p>This work was supported by the ERC under Advanced Investigator Project 267219. We thank the other members of the ExoMol team for their participation in the many program developments discussed in this article.</p></div>
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mon. Not. R. Astron. Soc</title>
+		<imprint>
+			<biblScope unit="volume">425</biblScope>
+			<biblScope unit="page">21</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Yadin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Vaness</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Conti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Hill</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mon. Not. R. Astron. Soc</title>
+		<imprint>
+			<biblScope unit="volume">425</biblScope>
+			<biblScope unit="page">34</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Barton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mon. Not. R. Astron. Soc</title>
+		<imprint>
+			<biblScope unit="volume">434</biblScope>
+			<biblScope unit="page">1469</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Barber</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">K</forename><surname>Strange</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Hill</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><forename type="middle">L</forename><surname>Polyansky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">C</forename><surname>Mellau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mon. Not. R. Astron. Soc</title>
+		<imprint>
+			<biblScope unit="volume">437</biblScope>
+			<biblScope unit="page">1828</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mon. Not. R. Astron. Soc</title>
+		<imprint>
+			<biblScope unit="volume">440</biblScope>
+			<biblScope unit="page">1649</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Barton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Chiu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Golpayegani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J</forename><surname>Frohman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">F</forename><surname>Bernath</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mon. Not. R. Astron. Soc</title>
+		<imprint>
+			<biblScope unit="volume">442</biblScope>
+			<biblScope unit="page">1821</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Yorke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Lodi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mon. Not. R. Astron. Soc</title>
+		<imprint>
+			<biblScope unit="volume">445</biblScope>
+			<biblScope unit="page">1383</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Sousa-Silva</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">F</forename><surname>Al-Refaie</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mon. Not. R. Astron. Soc</title>
+		<imprint>
+			<biblScope unit="volume">446</biblScope>
+			<biblScope unit="page">2337</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">F</forename><surname>Al-Refaie</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Yachmenev</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mon. Not. R. Astron. Soc</title>
+		<imprint>
+			<biblScope unit="volume">448</biblScope>
+			<biblScope unit="page">1704</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">T</forename><surname>Patrascu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mon. Not. R. Astron. Soc</title>
+		<imprint>
+			<biblScope unit="volume">449</biblScope>
+			<biblScope unit="page">3613</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Rivlin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Lodi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Le Roy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mon. Not. R. Astron. Soc</title>
+		<imprint>
+			<biblScope unit="volume">451</biblScope>
+			<biblScope unit="page">5153</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">I</forename><surname>Pavlyuchko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mon. Not. R. Astron. Soc</title>
+		<imprint>
+			<biblScope unit="volume">452</biblScope>
+			<biblScope unit="page">1702</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Paulose</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Barton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mon. Not. R. Astron. Soc</title>
+		<imprint>
+			<biblScope unit="volume">454</biblScope>
+			<biblScope unit="page">1931</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Blissett</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><surname>Asari</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Vasilios</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Hill</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mon. Not. R. Astron. Soc</title>
+		<imprint>
+			<biblScope unit="volume">456</biblScope>
+			<biblScope unit="page">4524</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">S</forename><surname>Underwood</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Huang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Schwenke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">J</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Clausen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Fateev</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mon. Not. R. Astron. Soc</title>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">F</forename><surname>Al-Refaie</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">I</forename><surname>Ovsyannikov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><forename type="middle">L</forename><surname>Polyansky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Mol. Spectrosc</title>
+		<imprint>
+			<biblScope unit="volume">318</biblScope>
+			<biblScope unit="page">84</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">A A</forename><surname>Azzam</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><forename type="middle">V</forename><surname>Naumenko</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mon. Not. R. Astron. Soc. p</title>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+	<note>in press</note>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">S</forename><surname>Underwood</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Clausen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Fateev</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mon. Not. R. Astron. Soc. p</title>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+	<note>submitted</note>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">K</forename><surname>Mckemmish</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mon. Not. R. Astron. Soc. p</title>
+		<imprint>
+			<biblScope unit="page">submitted</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">I</forename><surname>Mizus</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Alijah</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">F</forename><surname>Zobov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><forename type="middle">L</forename><surname>Polyansky</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mon. Not. R. Astron. Soc</title>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Gorman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mon. Not. R. Astron. Soc</title>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Hulme</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><forename type="middle">K</forename><surname>Naim</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Phys. B: At. Mol. Opt. Phys</title>
+		<imprint>
+			<biblScope unit="volume">49</biblScope>
+			<biblScope unit="page">44002</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<monogr>
+		<title level="m" type="main">LEVEL 8.0 A Computer Program for Solving the Radial Schrödinger Equation for Bound and Quasibound Levels</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Le Roy</surname></persName>
+		</author>
+		<ptr target="http://leroy.uwaterloo.ca/programs/" />
+		<imprint>
+			<date type="published" when="2007" />
+		</imprint>
+		<respStmt>
+			<orgName>University of Waterloo Chemical Physics Research</orgName>
+		</respStmt>
+	</monogr>
+<note type="report_type">Report CP-663</note>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Lodi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">V</forename><surname>Stolyarov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Comput. Phys. Commun</title>
+		<imprint>
+			<biblScope unit="volume">202</biblScope>
+			<biblScope unit="page">262</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Kostin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Barletta</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">J</forename><surname>Harris</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><forename type="middle">L</forename><surname>Polyansky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Ramanlal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">F</forename><surname>Zobov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Comput. Phys. Commun</title>
+		<imprint>
+			<biblScope unit="volume">163</biblScope>
+			<biblScope unit="page">85</biblScope>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Thiel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Jensen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Mol. Spectrosc</title>
+		<imprint>
+			<biblScope unit="volume">245</biblScope>
+			<biblScope unit="page">126</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">N</forename><surname>Kozin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">M</forename><surname>Law</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Hutson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Comput. Phys. Commun</title>
+		<imprint>
+			<biblScope unit="volume">163</biblScope>
+			<biblScope unit="page">117</biblScope>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><forename type="middle">L</forename><surname>Polyansky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">N</forename><surname>Kozin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Má Lyszek</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Koput</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Phys. Chem. A</title>
+		<imprint>
+			<biblScope unit="volume">117</biblScope>
+			<biblScope unit="page">7367</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Schwenke</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Phys. Chem</title>
+		<imprint>
+			<biblScope unit="volume">100</biblScope>
+			<biblScope unit="page">2867</biblScope>
+			<date type="published" when="1996" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Schwenke</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<imprint>
+			<biblScope unit="volume">142</biblScope>
+			<biblScope unit="page">144107</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Rey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">V</forename><surname>Nikitin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">G</forename><surname>Tyuterev</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astrophys. J</title>
+		<imprint>
+			<biblScope unit="volume">789</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Rey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">V</forename><surname>Nikitin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><forename type="middle">L</forename><surname>Babikov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">G</forename><surname>Tyuterev</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Mol. Spectrosc</title>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Carter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Bowman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<imprint>
+			<biblScope unit="volume">108</biblScope>
+			<biblScope unit="page">4397</biblScope>
+			<date type="published" when="1998" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Warmbier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Schneider</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">R</forename><surname>Sharma</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">J</forename><surname>Braams</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Bowman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">H</forename><surname>Hauschildt</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astron. Astrophys</title>
+		<imprint>
+			<biblScope unit="volume">495</biblScope>
+			<biblScope unit="page">655</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">S A</forename><surname>Brooke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">F</forename><surname>Bernath</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">M</forename><surname>Western</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">C</forename><surname>Van Hemert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">C</forename><surname>Groenenboom</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<imprint>
+			<biblScope unit="volume">141</biblScope>
+			<biblScope unit="page">54310</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Masseron</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Plez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Van Eck</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Colin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Daoutidis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Godefroid</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P.-F</forename><surname>Coheur</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Bernath</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Jorissen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Christlieb</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astron. Astrophys</title>
+		<imprint>
+			<biblScope unit="volume">571</biblScope>
+			<biblScope unit="page">47</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Ram</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">S A</forename><surname>Brooke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">M</forename><surname>Western</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">F</forename><surname>Bernath</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Quant. Spectrosc. Radiat. Transf</title>
+		<imprint>
+			<biblScope unit="volume">138</biblScope>
+			<biblScope unit="page">107</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">S A</forename><surname>Brooke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Ram</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">M</forename><surname>Western</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Schwenke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">F</forename><surname>Bernath</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astrophys. J. Suppl</title>
+		<imprint>
+			<biblScope unit="volume">210</biblScope>
+			<biblScope unit="page">23</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Lodi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Phys. B: At. Mol. Opt. Phys</title>
+		<imprint>
+			<biblScope unit="volume">43</biblScope>
+			<biblScope unit="page">133001</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">WIREs Comput. Mol. Sci</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page">698</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H.-J</forename><surname>Werner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">J</forename><surname>Knowles</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Knizia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">R</forename><surname>Manby</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Schütz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">WIREs Comput. Mol. Sci</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page">242</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">J</forename><surname>Harris</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><forename type="middle">L</forename><surname>Polyansky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astrophys. J</title>
+		<imprint>
+			<biblScope unit="volume">578</biblScope>
+			<biblScope unit="page">657</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">A</forename><surname>Engel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Doss</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">J</forename><surname>Harris</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mon. Not. R. Astron. Soc</title>
+		<imprint>
+			<biblScope unit="volume">357</biblScope>
+			<biblScope unit="page">471</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">M</forename><surname>Coppola</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Lodi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mon. Not. R. Astron. Soc</title>
+		<imprint>
+			<biblScope unit="volume">415</biblScope>
+			<biblScope unit="page">487</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Jensen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Mol. Spectrosc</title>
+		<imprint>
+			<biblScope unit="volume">128</biblScope>
+			<biblScope unit="page">478</biblScope>
+			<date type="published" when="1988" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Partridge</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Schwenke</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<imprint>
+			<biblScope unit="volume">106</biblScope>
+			<biblScope unit="page">4618</biblScope>
+			<date type="published" when="1997" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">G</forename><surname>Tyuterev</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">A</forename><surname>Tashkun</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Schwenke</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Chem. Phys. Lett</title>
+		<imprint>
+			<biblScope unit="volume">348</biblScope>
+			<biblScope unit="page">223</biblScope>
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Barber</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Yachmenev</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Thiel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Jensen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Phys. Chem. A</title>
+		<imprint>
+			<biblScope unit="volume">113</biblScope>
+			<biblScope unit="page">11845</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Hill</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<title level="m">6 th international conference on atomic and molecular data and their applications ICAMDATA-2012</title>
+		<meeting><address><addrLine>New York</addrLine></address></meeting>
+		<imprint>
+			<publisher>AIP</publisher>
+			<date type="published" when="2013" />
+			<biblScope unit="volume">1545</biblScope>
+			<biblScope unit="page" from="186" to="195" />
+		</imprint>
+	</monogr>
+	<note>AIP Conference Proceedings</note>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">F</forename><surname>Al-Refaie</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Barton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">L</forename><surname>Chubb</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">A</forename><surname>Coles</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Diamantopoulou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">N</forename><surname>Gorman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Hill</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">Z</forename><surname>Lam</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Mol. Spectrosc</title>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Furtenbacher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Császár</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Mol. Spectrosc</title>
+		<imprint>
+			<biblScope unit="volume">245</biblScope>
+			<biblScope unit="page">115</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Furtenbacher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Császár</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Quant. Spectrosc. Radiat. Transf</title>
+		<imprint>
+			<biblScope unit="volume">113</biblScope>
+			<biblScope unit="page">929</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b52">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">F</forename><surname>Bernath</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">R</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Campargue</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Császár</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Daumont</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">R</forename><surname>Gamache</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Hodges</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><forename type="middle">V</forename><surname>Naumenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><forename type="middle">L</forename><surname>Polyansky</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Pure Appl. Chem</title>
+		<imprint>
+			<biblScope unit="volume">86</biblScope>
+			<biblScope unit="page">71</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b53">
+	<analytic>
+		<title level="a" type="main">Tennyson</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Furtenbacher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Szabo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Császár</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">F</forename><surname>Bernath</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astrophys. J. Suppl</title>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b54">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">E</forename><surname>Lynas-Gray</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Miller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Mol. Spectrosc</title>
+		<imprint>
+			<biblScope unit="volume">169</biblScope>
+			<biblScope unit="page">458</biblScope>
+			<date type="published" when="1995" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b55">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Lodi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Quant. Spectrosc. Radiat. Transf</title>
+		<imprint>
+			<biblScope unit="volume">113</biblScope>
+			<biblScope unit="page">850</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b56">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Zak</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><forename type="middle">L</forename><surname>Polyansky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Lodi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">A</forename><surname>Tashkun</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">I</forename><surname>Perevalov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Quant. Spectrosc. Radiat. Transf</title>
+		<imprint>
+			<biblScope unit="volume">177</biblScope>
+			<biblScope unit="page">31</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b57">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<title level="m">Chemical Modelling</title>
+		<imprint>
+			<publisher>The Royal Society of Chemistry</publisher>
+			<date type="published" when="2014" />
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="page" from="183" to="228" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b58">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Mol. Spectrosc</title>
+		<imprint>
+			<biblScope unit="volume">298</biblScope>
+			<biblScope unit="page">1</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b59">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Bowman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Carrington</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H.-D</forename><surname>Meyer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mol. Phys</title>
+		<imprint>
+			<biblScope unit="volume">106</biblScope>
+			<biblScope unit="page">2145</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b60">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">C</forename><surname>Light</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Carrington</surname><genName>Jr</genName></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Adv. Phys. Chem</title>
+		<imprint>
+			<biblScope unit="volume">114</biblScope>
+			<biblScope unit="page">263</biblScope>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b61">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Lodi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">K</forename><surname>Mckemmish</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Phys. B: At. Mol. Opt. Phys</title>
+		<imprint>
+			<biblScope unit="volume">49</biblScope>
+			<biblScope unit="page">102001</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b62">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">K</forename><surname>Mckemmish</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Rivlin</surname></persName>
+		</author>
+		<title level="m">Faraday Discuss. p</title>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+	<note>in press</note>
+</biblStruct>
+
+<biblStruct xml:id="b63">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">F</forename><surname>Barry</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J</forename><surname>Mccarron</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Norrgard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">H</forename><surname>Steinecker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Demille</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">512</biblScope>
+			<biblScope unit="page">286</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b64">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">V</forename><surname>Berdyugina</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">K</forename><surname>Solanki</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astron. Astrophys</title>
+		<imprint>
+			<biblScope unit="volume">365</biblScope>
+			<biblScope unit="page">701</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b65">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Semenov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Mol. Spectrosc</title>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b66">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Comput. Phys. Commun</title>
+		<imprint>
+			<biblScope unit="volume">29</biblScope>
+			<biblScope unit="page">307</biblScope>
+			<date type="published" when="1983" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b67">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Comput. Phys. Commun</title>
+		<imprint>
+			<biblScope unit="volume">42</biblScope>
+			<biblScope unit="page">257</biblScope>
+			<date type="published" when="1986" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b68">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Miller</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Comput. Phys. Commun</title>
+		<imprint>
+			<biblScope unit="volume">55</biblScope>
+			<biblScope unit="page">149</biblScope>
+			<date type="published" when="1989" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b69">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Miller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">R</forename><surname>Le Sueur</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Comput. Phys. Commun</title>
+		<imprint>
+			<biblScope unit="volume">75</biblScope>
+			<biblScope unit="page">339</biblScope>
+			<date type="published" when="1993" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b70">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Henderson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Comput. Phys. Commun</title>
+		<imprint>
+			<biblScope unit="volume">75</biblScope>
+			<biblScope unit="page">365</biblScope>
+			<date type="published" when="1993" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b71">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Henderson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">R</forename><surname>Le Sueur</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Comput. Phys. Commun</title>
+		<imprint>
+			<biblScope unit="volume">75</biblScope>
+			<biblScope unit="page">379</biblScope>
+			<date type="published" when="1993" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b72">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Henderson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">G</forename><surname>Fulton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Comput. Phys. Commun</title>
+		<imprint>
+			<biblScope unit="volume">86</biblScope>
+			<biblScope unit="page">175</biblScope>
+			<date type="published" when="1995" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b73">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><forename type="middle">L</forename><surname>Polyansky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Császár</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">V</forename><surname>Shirin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">F</forename><surname>Zobov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Barletta</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Schwenke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">J</forename><surname>Knowles</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">299</biblScope>
+			<biblScope unit="page">539</biblScope>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b74">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Carter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Rosmus</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">C</forename><surname>Handy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Miller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">T</forename><surname>Sutcliffe</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Comput. Phys. Commun</title>
+		<imprint>
+			<biblScope unit="volume">55</biblScope>
+			<biblScope unit="page">71</biblScope>
+			<date type="published" when="1989" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b75">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">C</forename><surname>Silva</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Barletta</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Munro</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<imprint>
+			<biblScope unit="volume">128</biblScope>
+			<biblScope unit="page">244312</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b76">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Barber</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mon. Not. R. Astron. Soc</title>
+		<imprint>
+			<biblScope unit="volume">413</biblScope>
+			<biblScope unit="page">1828</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b77">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Kostin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><forename type="middle">L</forename><surname>Polyansky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<imprint>
+			<biblScope unit="volume">116</biblScope>
+			<biblScope unit="page">7564</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b78">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Kostin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><forename type="middle">L</forename><surname>Polyansky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">Y</forename><surname>Mussa</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<imprint>
+			<biblScope unit="volume">118</biblScope>
+			<biblScope unit="page">3538</biblScope>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b79">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">T</forename><surname>Sutcliffe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Miller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Comput. Phys. Commun</title>
+		<imprint>
+			<biblScope unit="volume">51</biblScope>
+			<biblScope unit="page">73</biblScope>
+			<date type="published" when="1988" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b80">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">T</forename><surname>Sutcliffe</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mol. Phys</title>
+		<imprint>
+			<biblScope unit="volume">58</biblScope>
+			<biblScope unit="page">1067</biblScope>
+			<date type="published" when="1986" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b81">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">T</forename><surname>Sutcliffe</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Intern. J. Quantum Chem</title>
+		<imprint>
+			<biblScope unit="volume">42</biblScope>
+			<biblScope unit="page">941</biblScope>
+			<date type="published" when="1992" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b82">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Down</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Orphal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Chelin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">A</forename><surname>Ruth</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Mol. Spectrosc</title>
+		<imprint>
+			<biblScope unit="volume">282</biblScope>
+			<biblScope unit="page">1</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b83">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Anderson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Bai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Bischof</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Blackford</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Demmel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Dongarra</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Du Croz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Greenbaum</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Hammarling</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Mckenney</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1999" />
+			<publisher>LAPACK Users&apos; Guide (Society for Industrial and Applied Mathematics</publisher>
+			<pubPlace>Philadelphia, PA</pubPlace>
+		</imprint>
+	</monogr>
+	<note>3rd ed</note>
+</biblStruct>
+
+<biblStruct xml:id="b84">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><forename type="middle">V</forename><surname>Riss</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">D</forename><surname>Meyer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Phys. B: At. Mol. Opt. Phys</title>
+		<imprint>
+			<biblScope unit="volume">26</biblScope>
+			<biblScope unit="page">4503</biblScope>
+			<date type="published" when="1993" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b85">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><forename type="middle">V</forename><surname>Riss</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">D</forename><surname>Meyer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Phys. B: At. Mol. Opt. Phys</title>
+		<imprint>
+			<biblScope unit="volume">28</biblScope>
+			<biblScope unit="page">1475</biblScope>
+			<date type="published" when="1995" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b86">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">E</forename><surname>Manolopoulos</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<imprint>
+			<biblScope unit="volume">117</biblScope>
+			<biblScope unit="page">9552</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b87">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">F</forename><surname>Zobov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">V</forename><surname>Shirin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Lodi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">C</forename><surname>Silva</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Császár</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><forename type="middle">L</forename><surname>Polyansky</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Chem. Phys. Lett</title>
+		<imprint>
+			<biblScope unit="volume">507</biblScope>
+			<biblScope unit="page">48</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b88">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">Y</forename><surname>Mussa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Chem. Phys. Lett</title>
+		<imprint>
+			<biblScope unit="volume">366</biblScope>
+			<biblScope unit="page">449</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b89">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Moiseyev</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Friedland</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">R</forename><surname>Certain</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<imprint>
+			<biblScope unit="volume">74</biblScope>
+			<biblScope unit="page">4739</biblScope>
+			<date type="published" when="1981" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b90">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">N</forename><surname>Kozin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">M</forename><surname>Law</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Hutson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<imprint>
+			<biblScope unit="volume">122</biblScope>
+			<biblScope unit="page">64309</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b91">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Henderson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Miller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Soc., Faraday Trans</title>
+		<imprint>
+			<biblScope unit="volume">86</biblScope>
+			<biblScope unit="page">1963</biblScope>
+			<date type="published" when="1990" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b92">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Gatti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Iung</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Phys. Rep</title>
+		<imprint>
+			<biblScope unit="volume">484</biblScope>
+			<biblScope unit="page">1</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b93">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">N</forename><surname>Kozin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">M</forename><surname>Law</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Hutson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<imprint>
+			<biblScope unit="volume">118</biblScope>
+			<biblScope unit="page">4896</biblScope>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b94">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Thiel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Jensen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Mol. Spectrosc</title>
+		<imprint>
+			<biblScope unit="volume">245</biblScope>
+			<biblScope unit="page">126</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b95">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Thiel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Carvajal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Jensen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Adv. Quant. Chem</title>
+		<imprint>
+			<biblScope unit="volume">48</biblScope>
+			<biblScope unit="page">209</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b96">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Barber</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mon. Not. R. Astron. Soc</title>
+		<imprint>
+			<biblScope unit="volume">413</biblScope>
+			<biblScope unit="page">1828</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b97">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Yachmenev</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+	<note>to be submitted</note>
+</biblStruct>
+
+<biblStruct xml:id="b98">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">R</forename><surname>Bunker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Jensen</surname></persName>
+		</author>
+		<title level="m">Fundamentals of Molecular Symmetry</title>
+		<meeting><address><addrLine>Bristol</addrLine></address></meeting>
+		<imprint>
+			<publisher>IOP Publishing</publisher>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b99">
+	<monogr>
+		<title level="m" type="main">Méthode nouvelle de la détermination des orbites et le calcul deséphémérides deséphémérides en tenant compte des perturbations (Moscow, Gosudarsvennoe Izdatel&apos;stvo</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Noumeroff</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1923" />
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page" from="188" to="259" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b100">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Cooley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Math. Comp</title>
+		<imprint>
+			<biblScope unit="volume">15</biblScope>
+			<biblScope unit="page">363</biblScope>
+			<date type="published" when="1961" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b101">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">I</forename><surname>Ovsyannikov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Thiel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Jensen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Mol. Spectrosc</title>
+		<imprint>
+			<biblScope unit="volume">256</biblScope>
+			<biblScope unit="page">119</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b102">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">S</forename><surname>Underwood</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Jensen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<imprint>
+			<biblScope unit="volume">140</biblScope>
+			<biblScope unit="page">244316</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b103">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Yachmenev</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Paidarova</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Jensen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Thiel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">P A</forename><surname>Sauer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<imprint>
+			<biblScope unit="volume">132</biblScope>
+			<biblScope unit="page">114305</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b104">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">Y</forename><surname>Adam</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Yachmenev</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Jensen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<imprint>
+			<biblScope unit="volume">143</biblScope>
+			<biblScope unit="page">244306</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b105">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agullo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Demmel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Dongarra</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Hadri</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Kurzak</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Langou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Ltaief</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Luszczek</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Tomov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Phys. Conf. Ser</title>
+		<imprint>
+			<biblScope unit="volume">180</biblScope>
+			<biblScope unit="page">12037</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b106">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Carvajal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Jensen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Zheng</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Thiel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mol. Phys</title>
+		<imprint>
+			<biblScope unit="volume">103</biblScope>
+			<biblScope unit="page">359</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b107">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Papoušek</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Aliev</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Molecular Vibrational-Rotational Spectra</title>
+		<imprint>
+			<publisher>Elsevier</publisher>
+			<date type="published" when="1982" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b108">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Barber</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Thiel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Mol. Spectrosc</title>
+		<imprint>
+			<biblScope unit="volume">291</biblScope>
+			<biblScope unit="page">69</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b109">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Bailey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D J</forename><surname>Hollis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+		</author>
+		<title level="m">Proc. Nat. Acad. Sci</title>
+		<meeting>Nat. Acad. Sci</meeting>
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="volume">111</biblScope>
+			<biblScope unit="page">9379</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b110">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Alvarez-Bajo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Lemus</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Carvajal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Perez-Bernal</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mol. Phys</title>
+		<imprint>
+			<biblScope unit="volume">109</biblScope>
+			<biblScope unit="page">797</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b111">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">R</forename><surname>Bunker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Jensen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mol. Phys</title>
+		<imprint>
+			<biblScope unit="volume">97</biblScope>
+			<biblScope unit="page">255</biblScope>
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b112">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Carvajal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Jensen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Herregodts</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">R</forename><surname>Huet</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Chem. Phys</title>
+		<imprint>
+			<biblScope unit="volume">290</biblScope>
+			<biblScope unit="page">59</biblScope>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b113">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Jensen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Comp. Phys. Rep</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page">1</biblScope>
+			<date type="published" when="1983" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b114">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Yachmenev</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<imprint>
+			<biblScope unit="volume">143</biblScope>
+			<biblScope unit="page">14105</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b115">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Owens</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Yachmenev</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Thiel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<imprint>
+			<biblScope unit="volume">143</biblScope>
+			<biblScope unit="page">244317</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b116">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Owens</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Yachmenev</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Thiel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<imprint>
+			<biblScope unit="volume">142</biblScope>
+			<biblScope unit="page">244306</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b117">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><forename type="middle">L</forename><surname>Polyansky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">I</forename><surname>Ovsyannikov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">A</forename><surname>Kyuberis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Lodi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Yachmenev</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">F</forename><surname>Zobov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Mol. Spectrosc</title>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b118">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Carvajal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Zheng</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Thiel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Jensen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<imprint>
+			<biblScope unit="volume">122</biblScope>
+			<biblScope unit="page">104317</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b119">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Barber</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Yachmenev</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Thiel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Jensen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Phys. Chem. A</title>
+		<imprint>
+			<biblScope unit="volume">113</biblScope>
+			<biblScope unit="page">11845</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b120">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Yachmenev</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Thiel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Baum</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">F</forename><surname>Giesen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">V</forename><surname>Melnikov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Jensen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Mol. Spectrosc</title>
+		<imprint>
+			<biblScope unit="volume">257</biblScope>
+			<biblScope unit="page">57</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b121">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Yachmenev</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Polyak</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Thiel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<imprint>
+			<biblScope unit="page">139</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b122">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">F</forename><surname>Al-Refaie</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><forename type="middle">L</forename><surname>Polyansky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">I</forename><surname>Ovsyannikov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mon. Not. R. Astron. Soc</title>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b123">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Brocks</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Van Der Avoird</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">T</forename><surname>Sutcliffe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mol. Phys</title>
+		<imprint>
+			<biblScope unit="volume">50</biblScope>
+			<biblScope unit="page">1025</biblScope>
+			<date type="published" when="1983" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b124">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">K</forename><surname>Watson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mol. Phys</title>
+		<imprint>
+			<biblScope unit="volume">19</biblScope>
+			<biblScope unit="page">465</biblScope>
+			<date type="published" when="1970" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b125">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">J</forename><surname>Dorney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">K G</forename><surname>Watson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Mol. Spectrosc</title>
+		<imprint>
+			<biblScope unit="volume">42</biblScope>
+			<biblScope unit="page">135</biblScope>
+			<date type="published" when="1972" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b126">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">S</forename><surname>Underwood</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Jensen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<imprint>
+			<biblScope unit="volume">140</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b127">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">N</forename><surname>Kozin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">M</forename><surname>Pavlichenkov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<imprint>
+			<biblScope unit="volume">104</biblScope>
+			<biblScope unit="page">4105</biblScope>
+			<date type="published" when="1996" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b128">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">G</forename><surname>Harter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">W</forename><surname>Patterson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<imprint>
+			<biblScope unit="volume">80</biblScope>
+			<biblScope unit="page">4241</biblScope>
+			<date type="published" when="1984" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b129">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Thiel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Patchkovskii</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Jensen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Phys. Chem. Chem. Phys</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="page">573</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b130">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">F</forename><surname>Al-Refaie</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Comput. Phys. Commun</title>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+	<note>to be submitted</note>
+</biblStruct>
+
+<biblStruct xml:id="b131">
+	<monogr>
+		<title level="m" type="main">Variational Methods for Solving Anharmonic Problems in the Theory of Vibrational Spectra of Molecules</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">A</forename><surname>Gribov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">I</forename><surname>Pavlyuchko</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1998" />
+			<publisher>Nauka</publisher>
+			<pubPlace>Moscow</pubPlace>
+		</imprint>
+	</monogr>
+	<note>in Russian</note>
+</biblStruct>
+
+<biblStruct xml:id="b132">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">I</forename><surname>Pavlyuchko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mol. Phys</title>
+		<imprint>
+			<biblScope unit="volume">113</biblScope>
+			<biblScope unit="page">1559</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b133">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">I</forename><surname>Pavlyuchko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<imprint>
+			<biblScope unit="volume">142</biblScope>
+			<biblScope unit="page">94309</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b134">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Henderson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Chem. Phys. Lett</title>
+		<imprint>
+			<biblScope unit="volume">173</biblScope>
+			<biblScope unit="page">133</biblScope>
+			<date type="published" when="1990" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b135">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Henderson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">T</forename><surname>Sutcliffe</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<imprint>
+			<biblScope unit="volume">98</biblScope>
+			<biblScope unit="page">7191</biblScope>
+			<date type="published" when="1993" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b136">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">Y</forename><surname>Mussa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<imprint>
+			<biblScope unit="volume">109</biblScope>
+			<biblScope unit="page">10885</biblScope>
+			<date type="published" when="1998" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b137">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Yachmenev</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Phys. Rev. Lett. p. In press</title>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

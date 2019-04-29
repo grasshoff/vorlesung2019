@@ -1,0 +1,919 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2019-01-22T13:35+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Identification and adaptive control of a high-contrast focal plane wavefront correction system</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">He</forename><surname>Sun</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Mechanical and Aerospace Engineering</orgName>
+								<orgName type="institution" key="instit1">Princeton University</orgName>
+								<orgName type="institution" key="instit2">the United States</orgName>
+								<address>
+									<region>NJ</region>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">Jeremy</forename><surname>Kasdin</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Mechanical and Aerospace Engineering</orgName>
+								<orgName type="institution" key="instit1">Princeton University</orgName>
+								<orgName type="institution" key="instit2">the United States</orgName>
+								<address>
+									<region>NJ</region>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Robert</forename><surname>Vanderbei</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Mechanical and Aerospace Engineering</orgName>
+								<orgName type="institution" key="instit1">Princeton University</orgName>
+								<orgName type="institution" key="instit2">the United States</orgName>
+								<address>
+									<region>NJ</region>
+								</address>
+							</affiliation>
+							<affiliation key="aff1">
+								<orgName type="department">Department of Operation Research and Financial Engineering</orgName>
+								<orgName type="institution">Princeton University</orgName>
+								<address>
+									<region>NJ</region>
+									<country>the United States</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Identification and adaptive control of a high-contrast focal plane wavefront correction system</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>Exoplanet direct imaging</term>
+					<term>coronagraph</term>
+					<term>wavefront correction</term>
+					<term>E-M algorithm</term>
+					<term>system identification</term>
+					<term>adap- tive control</term>
+					<term>reinforcement learning *He Sun</term>
+					<term>hesun@princetonedu</term>
+				</keywords>
+			</textClass>
+			<abstract>
+				<p>All coronagraphic instruments for exoplanet high-contrast imaging need wavefront correction systems to reject optical aberrations and create sufficiently dark holes. Since the most efficient wavefront correction algorithms (controllers and estimators) are usually model-based, the modeling accuracy of the system influences the ultimate wavefront correction performance. Currently, wavefront correction systems are typically approximated as linear systems using Fourier optics. However, the Fourier optics model is usually biased due to inaccuracies in the layout measurements, the imperfect diagnoses of inherent optical aberrations, and a lack of knowledge of the deformable mirrors (actuator gains and influence functions). Moreover, the telescope optical system varies over time because of instrument instabilities and environmental effects. In this paper, we present an expectation-maximization (E-M) approach for identifying and real-time adapting the linear telescope model from data. By iterating between the E-step (a Kalman filter and a Rauch smoother) and the M-step (analytical or gradient-based optimization), the algorithm is able to recover the system even if the model depends on the electric fields, which are unmeasurable hidden variables. Simulations and experiments in Princeton&apos;s High Contrast Imaging Lab demonstrate that this algorithm improves the model accuracy and increases the efficiency and speed of the wavefront correction.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>In the upcoming era of 30-meter ground-based telescopes and new advanced space telescopes, direct imaging is believed to be the next frontier in exoplanet detection and characterization. Unlike indirect detection methods, such as radial velocity and transit, direct imaging collects light from the planet itself rather than its host star, thus enabling the spectral characterization of the planet's atmosphere and the full determination of its orbital parameters. But exoplanets are much fainter than their parent stars, requiring the starlight's point spread function (PSF) to be managed to make high contrast imaging of the exoplanet possible.</p><p>A leading technology for achieving the high contrast needed for exoplanet imaging is a coronagraph. <ref type="bibr" target="#b0">[1]</ref><ref type="bibr" target="#b1">[2]</ref><ref type="bibr" target="#b2">[3]</ref><ref type="bibr" target="#b3">[4]</ref> Consisting of a series of optimally designed masks and stops, coronagraphs are able to suppress the spread of starlight and thus create high-contrast detection regions, so-called dark holes, in the image plane. However, since the coronagraphs are designed assuming perfect optics, they are fundamentally sensitive to any wavefront perturbations. Even small aberrations introduce bright stellar speckles in the dark holes, which influence the instrument ability for exoplanet obervations. To maintain a high contrast for exoplanet observations, wavefront correction is required for all coronagraph instruments. In a ground-based telescope, the wavefront correction system typically includes a wavefront sensor, such as a spatially filtered Shack-Hartmann sensor or a pyramid sensor, <ref type="bibr" target="#b4">5,</ref><ref type="bibr" target="#b5">6</ref> in the pupil plane to measure the wavefront aberrations and then directly compensates for them using deformable mirrors (DMs). Such a system is able to cancel pupil phase aberrations due to atmospheric turbulence and achieve contrasts of 10 −5 to 10 −6 on current telescopes, allowing for the imaging of young hot gas giant planets. <ref type="bibr" target="#b6">7</ref> Directly imaging dimmer planets (down to Earth size) at higher contrast requires a space telescope that reaches contrasts below 10 −8 before post-processing. <ref type="bibr" target="#b7">8,</ref><ref type="bibr" target="#b8">9</ref> For these coronagraph instruments targeting earth-sized planets, the pupil plane approach with a separate wavefront sensor is not capable of reaching the required high contrast values because of non-common-path errors. Instead, we need to estimate the focal-plane electric field using only camera images and compute the DM control signals for based on the estimated field. This estimation and control problem is commonly referred to as focal-plane wavefront correction (FPWC). Effective FPWC algorithms require efficient estimation algorithms and accurate models of the optical system, particularly of the influence of DM voltage commands on the focal-plane electric field.</p><p>In all current FPWC systems, the optical models needed for control and estimation have been derived by applying Fourier optics to the optical layout. However, using only the Fourier optics approach results in significant bias errors due to inaccuracies in measurements of the optical system, imperfect knowledge of the systematic optical aberrations, and poor or biased models of the DM influence. This has a detrimental effect on the wavefront correction speed and the final achievable contrast. Classical approaches for eliminating these model errors and improving the system performance include pupil plane phase retrieval <ref type="bibr" target="#b9">10,</ref><ref type="bibr" target="#b10">11</ref> and laser interferometric DM surface characterization 12 in advance, which are usually time consuming and also introduce non-common-path errors. In this paper, we propose a new data-driven framework using the expectation-maximization (E-M) algorithm to accurately identify and adaptively control the FPWC system. In contrast to classical approaches, our method does not require a change to the optical system design, tracks real-time systematic changes, and speeds up convergence of the controller.</p><p>In the following sections, we first provide a brief overview of the FPWC system, including mathematical modeling and current state of the art on wavefront estimation, control, and model calibration. In addition, we also propose a new idea to formulate the problem as a stochastic optimization problem. Then we review the E-M algorithm and derive the E-M equations of the FPWC system. We finally report the simulation and experimental results on the FPWC system identification and adaptive control in the Princeton High Contrast Imaging Lab (HCIL) to demonstrate the method's ability.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Overview of high-contrast focal plane wavefront correction</head><p>In this section, we review the current state of the art in FPWC and we also introduce a new idea to formulate FPWC as a stochastic optimization problem. In Sec. 2.1, 2.2 and 2.3, we review the approaches of optical system modeling, wavefront estimation and control, and model calibration, which are related to our new algorithm. Readers already familiar with these subjects may skip these sections.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Mathematical modeling</head><p>The FPWC system with a coronagraph is typically formulated as a state-space model for the convenience of control applications. In this state-space formulation, the control inputs, observations and state variables are respectively the DM voltage commands, camera images, and the focal plane electric fields. We begin this section by deriving this underlying state-space model. The block diagram in <ref type="figure">Fig. 1</ref> shows the architecture of the telescope optics and the control loop. We define E ab as the aberrated pupil electric field before the DMs and ∆φ m as the phase change introduced by the DMs at correction iteration m. The coronagraph operator C{·} represents the propagation from the DM to the focal plane camera. After k correction iterations, the focal plane electric field is given by,</p><formula xml:id="formula_0">E k = C{E ab exp(i k m=1 ∆φ m )}.<label>(1)</label></formula><p>When the phase change due to the DM is small (typically the DM surface perturbation is smaller than 30nm), the focal plane electric field in Eq. 1 can be expanded in a Taylor series about ∆φ m to yield</p><formula xml:id="formula_1">E k ≈ C{E ab } + k m=1 C{E ab i∆φ m } = E k−1 + C{E ab i∆φ k }.<label>(2)</label></formula><p>where we used the fact that the coronagraph is a linear operator in the applied electric field (as it is composed of Fresnel propagations, Fourier transforms, and coronagraph mask multiplications). The DM phase change, ∆φ k , at each step is approximated by summing weighted influence functions produced by each actuator on the DM. That is, given an influence function, f q , which represents the q-th actuator's response to a unit voltage input, the DM induced phase change across the pupil is approximated by the linear superposition</p><formula xml:id="formula_2">∆φ k ≈ Nact q=1 u k,q f q ,<label>(3)</label></formula><p>where N act is the number of DM actuators and u k,q is the voltage command change of the q-th actuator. We use u k,q instead of ∆u k,q in this paper for notational simplicity.</p><p>Substituting Eq. 3 into Eq. 2 results in a linear relationship between the focal plane electric field and the DM voltage commands,</p><formula xml:id="formula_3">E k = E k−1 + Nact q=1 u k,q C{E ab if q }.<label>(4)</label></formula><p>By discretizing and vectorizing the 2-D electric fields, Eq. 4 can be put in the common matrix form of the state transition model,</p><formula xml:id="formula_4">E k = E k−1 + F (E ab , f 1:Nact )u k ,<label>(5)</label></formula><p>where</p><formula xml:id="formula_5">E k , E k−1 ∈ C N pix ×1</formula><p>are the complex state vectors, u k ∈ R Nact×1 is the DM control input vector, F ∈ C N pix ×Nact is the system Jacobian matrix, and N pix is the number of camera pixels in the dark holes. The corresponding intensity on the science camera is,</p><formula xml:id="formula_6">I k = E k • E k ,<label>(6)</label></formula><p>where • represents the element-wise multiplication and denotes complex conjugation. Eq. 5 and Eq. 6 are, respectively, the state transition and observation equation of the state-space model. Since the measurement Eq. 6 is the sum of the squares of the real and imaginary components, it is impossible to extract the full complex electric field from a single measurement. Instead, the current approach is to apply n (n ≥ 2) pairs of opposite "probe" commands to the DM, 13, 14 denoted by</p><formula xml:id="formula_7">u p k = [u p,1 k , · · · , u p,n k ]</formula><p>, which result in the set of 2n intensity measurements,</p><formula xml:id="formula_8">I m+ k = (E k + F u p,m k ) • (E k + F u p,m k ), ∀m = 1, · · · , n I m− k = (E k − F u p,m k ) • (E k − F u p,m k ), ∀m = 1, · · · , n.<label>(7)</label></formula><p>These are then subtracted to form an overdetermined set of n linear measurements of the electric field,</p><formula xml:id="formula_9">   ∆I 1 k . . . ∆I n k    =    I 1+ k − I 1− k . . . I n+ k − I n− k    =         4(F u p,1 k ) • E k . . . 4(F u p,n k ) • E k         =         4diag{(F u p,1 k ) } . . . 4diag{(F u p,n k ) }    E k      ,<label>(8)</label></formula><p>where diag{·} represents the diagonal matrix constructed from a vector. Equations 5 and 8 make up the linear state-space model of the FPWC system. The element-wise product structure in Eq. 8 decouples the linear state transition equations in each pixel, so the electric field of a single pixel can be estimated based only on its own intensity measurements. For mathematical convenience, we can further split the real and imaginary part of the electric field and derive real-valued state-space equations,</p><formula xml:id="formula_10">x k,j = x k−1,j + G j u k , z k,j = H k,j x k,j ,<label>(9)</label></formula><p>where j ∈ {1, · · · , N pix } is the index of camera pixels, and</p><formula xml:id="formula_11">x k,j = {E k,j } {E k,j } , G j = {F j,1:Nact } {F j,1:Nact } , z k,j =    ∆I 1 k,j . . . ∆I n k,j    , H k,j = 4(G j u p k ) T .<label>(10)</label></formula><p>The elements of the state vectors and matrices are now real numbers, which is more convenient for developing estimators and controllers. Good DM "probe" commands should help construct well-conditioned measurement matrices, H k,j , for all the pixels in the dark holes. Commands that create "Sinc" waves on the DM surface are usually good choices, because camera pixels in two symmetric rectangular areas are influenced by this type of probe according to Fourier analysis.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Focal plane wavefront estimation and control</head><p>With the state-space model developed in Sec. 2.1, we now introduce the wavefront estimation and control algorithms. The baseline wavefront estimation approach used in most implementations to date is the least-square, batch process estimator (BPE), <ref type="bibr" target="#b12">13,</ref><ref type="bibr" target="#b13">14</ref> which can be derived as follows. We begin with the linear observation model in Eq. 9 but with an additive noise term, n k,j , to represent camera measurement noise and observation matrix errors (originally from Jacobian matrix errors),</p><formula xml:id="formula_12">z k,j = H k,j x k,j + n k,j .<label>(11)</label></formula><p>Theoretically, the camera measurements should follow Possion distributions. However, in our case there are a sufficient number of starlight photons for detection, making it safe to assume the measurements follow centered Gaussian distributions on the top of the speckles, i.e. n k,j ∼ N (0, R k,j ). We can thus perform a least-square regression to estimate the expectation, ˆ x k,j , and the covariance matrix, P k,j , of the state vector at each time step, k,</p><formula xml:id="formula_13">ˆ x k,j = (H T k,j H k,j ) −1 H T k,j z k,j , P k,j = (H T k,j H k,j ) −1 H T k,j R k,j H k,j (H T k,j H k,j ) −1 .<label>(12)</label></formula><p>Repeating this regression procedure for all pixels provides an estimate of the entire electric field in the focal plane. Although this algorithm is easy to implement, one weakness is that its estimation accuracy, indicated by the estimation covariance, is fully determined by the measurement noises. When the signal-noise-ratio (SNR) is low (which happens as the dark hole improves), this batch process estimator may not provide accurate enough estimates to be used for control. <ref type="bibr" target="#b14">15</ref> A better solution is to incorporate prior knowledge from the model and the previous measurements using a Kalman filter. <ref type="bibr" target="#b15">16</ref> This formulation allows us to introduce an additive process noise term, w k , to the state-space equations,</p><formula xml:id="formula_14">x k,j = x k−1,j + G j u k + w k,j ,<label>(13)</label></formula><p>where w k,j ∼ = ∆G j u k + r k,j , of which the first term comes from the Jacobian matrix errors and the second term comes from system instabilities, such as DM drift. Assuming elements of the Jacobian matrix bias ∆G j and the instability term r k,j all follow zero-mean Gaussian distributions 1 , the process noise also becomes an additive Gaussian noise, w k,j ∼ N (0, Q k,j ), which satisfies the requirement of Kalman filtering. At control iteration k, the state transition model provides a prediction of the current state, since we havê x k−1,j and P k−1,j from the previous estimation. With this prior knowledge, we can derive the log-likelihood function of the current state and the observations,</p><formula xml:id="formula_15">log p(z k,j , x k,j ) = − 1 2 (x k,j − ˆ x k,j|k−1 ) T P −1 k,j|k−1 (x k,j − ˆ x k,j|k−1 ) − 1 2 (z k,j − H k,j x k,j ) T R −1 k,j (z k,j − H k,j x k,j ),<label>(14)</label></formula><p>wherêwherê</p><formula xml:id="formula_16">x k,j|k−1 = ˆ x k−1,j + G j u k , P k,j|k−1 = H k,j P k,j H T k,j + R k,j<label>(15)</label></formula><p>are respectively the a-priori state and covariance estimates and p(z, x) is the joint probability density function for z and x. The Kalman filter maximizes this log-likelihood function, so it optimally combines the information from the model and the observations and thus reduces the estimation covariance.</p><p>Recently, <ref type="bibr">Riggs et al. 15</ref> introduced an incoherent light term into the nonlinear observation model, Eq. 6,</p><formula xml:id="formula_17">I k = E k • E k + I inco,k .<label>(16)</label></formula><p>They then employed an extended Kalman filter (EKF) to simultaneously estimate both the coherent electric field and incoherent intensity (which contains the planet). This method removes the requirement for pair-wise probing and makes simultaneous wavefront correction and planet detection possible. This EKF approach is not used in this paper, however, it will be applied to improve the system identification work described here in a future paper to characterize system nonlinearities.</p><p>With the state estimates available, it is now possible to compute the DM voltage commands to manipulate the focal plane electric field. For mathematical simplicity, we construct a real, linear state transition model by combining the state equations for each pixel (Eq. 13) into a single vectorized form,</p><formula xml:id="formula_18">x k = x k−1 + Gu k + w k ,<label>(17)</label></formula><p>where</p><formula xml:id="formula_19">x k =    x k,1 . . . x k,N pix    , G =    G 1 . . . G N pix    , w k =    w k,1 . . . w k,N pix    .<label>(18)</label></formula><p>The controller must drive the state x k as close to zero as possible to maintain a high contrast in the dark hole. Currently, the two most popular model-based optimal controllers are electric field conjugation (EFC) <ref type="bibr" target="#b16">17</ref> and stroke minimization (SM). <ref type="bibr" target="#b17">18</ref> EFC works by minimizing a cost function consisting of the total energy in the dark holes and a Tikhonov regularization, which can be written,</p><formula xml:id="formula_20">min u k x T k x k + α k u T k u k , s.t. x k = x k−1 + Gu k ,<label>(19)</label></formula><p>where α k is the Tikhonov regularization parameter. In contrast, stroke minimization aims to find the smallest DM commands that achieve a target contrast, which can be formulated as the constrained minimization,</p><formula xml:id="formula_21">min u k u T k u k , s.t. x T k x k = C k , x k = x k−1 + Gu k ,<label>(20)</label></formula><p>where C k is the target contrast, or total energy, in the dark holes. The equality constraints can be incorporated into the cost function via a Lagrange multiplier, making stroke minimization into a similar formula to EFC,</p><formula xml:id="formula_22">min u k u T k u k + µ k (x T k x k − C k ), s.t. x k = x k−1 + Gu k .<label>(21)</label></formula><p>The optimal solutions of Eq. 19 and Eq. 21 give two corresponding feedback control laws,</p><formula xml:id="formula_23">u k = −(G T G + α k I) −1 G T x k−1 and u k = −(G T G + 1 µ k I) −1 G T x k−1 .<label>(22)</label></formula><p>where I ∈ R Nact×Nact is the identity matrix. It is evident that EFC and stroke minimization, as more rigorously discussed by <ref type="bibr">Groff et al., 19</ref> in fact define the same control law except for the tuning parameters, α k , and the Lagrange multiplier, µ k . The Lagrange multiplier, µ k , is a function of the target contrast C k , which is the tuning parameter in stroke minimization. Both α k and µ k introduce a damping term, although based on different considerations, in the matrix inversion, which helps avoid an ill-posed matrix inversion problem and, more importantly, reduce the influence of Jacobian matrix biases. Tuning the damping parameter, α k and µ k , which turns out to be non-trivial, is the key to properly implementing the controllers. <ref type="bibr" target="#b19">20</ref> </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Model calibration</head><p>Because the wavefront estimators and controllers are all model-based, their performance highly depends on the accuracy of the underlying model. It is common to pre-calibrate the model based on some testbed measurments before running high-contrast focal plane wavefront correction. To date, all the model calibration approaches work to improve the Jacobian matrix in the linear statespace formulation.</p><p>As indicated by Eq. 5, the Jacobian matrix is fundamentally a function of the aberrated pupil electric field, E ab , and the actuator influence functions, f 1:Nact , so an indirect approach to improving the model is to characterize E ab and f 1:Nact separately and then compute the Jacobian matrix based on the coronagraphic propagation equation in Eq. 4. The influence functions are usually characterized using laser interferometry. <ref type="bibr" target="#b11">12</ref> Since it is too time consuming to measure the surface responses of all the actuators (several thousands on each DM), typically only a few representative actuators are characterized with the assumption that all actuators have similar responses. The pupil electric field, though, cannot be directly measured. It is typically reconstructed from multiple focused and defocused images using phase retrieval algorithms <ref type="bibr" target="#b20">[21]</ref><ref type="bibr" target="#b21">[22]</ref><ref type="bibr" target="#b22">[23]</ref><ref type="bibr" target="#b23">[24]</ref> . However, all the phase retrieval algorithms assume a certain light propagation model, so they do not have the ability to diagnose any errors from an incorrect optical layout prescription. In addition, since the coronagraph typically blocks most of the light from the entrance pupil, there are very few photons to provide the needed information. To fix this, current phase retrieval approaches require removal of the coronagraph to collect data; this makes the phase retrieval time consuming and prone to non-common path error.</p><p>Recent work by Zhou et al. started exploring system identification methods for determining the Jacobian matrix in favor of directly identifying the Jacobian matrix by perturbing the DM shapes and observing the resulting camera images. <ref type="bibr" target="#b24">25</ref> The physical interpretation of a Jacobian matrix column is the influence of a DM actuator with unit voltage command on the focal plane electric field. Therefore, by definition, the Jacobian matrix can be derived by commanding each actuator and estimating the focal plane electric field changes. The least-squared, batch process estimator (BPE) was employed in that work for the electric field estimation. However, since BPE requires a large amount of data and is relatively noisy, the identification procedure was time consuming and the resulting identified model was too noisy to be used in the wavefront correction. In addition, the identified model using BPE was also limited by the initial knowledge of the Jacobian matrix. Therefore, up to now, this work has only been used for qualitatively understanding the sources of the model errors, instead of quantitatively correcting the Jacobian matrix errors.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4">New theoretical results: FPWC as a stochastic optimization problem</head><p>As can been seen in Sec. 2.2 and 2.3, the typical approach to focal-plane wavefront control is to examine the wavefront estimation, wavefront control, and model calibration as separate problems. In this section, we try to bridge these aspects by formulating the FPWC problem as a single stochastic optimization problem. As first shown by Sun et al., <ref type="bibr" target="#b25">26</ref> this approach provides better physical insights into the tuning parameters in the algorithms and also provides theoretical ayalyses on how the wavefront control, estimation, and model accuracy influence the final contrast in the dark hole.</p><p>The ultimate goal of the FPWC is to minimize the total intensity, x T k x k , in the dark holes. Since the state, x k , is a random variable, we can formulate FPWC as a stochastic optimization/control problem that minimizes the expectation of the dark hole intensity,</p><formula xml:id="formula_24">x T k x k .</formula><p>The state variable follows the stochastic process in Eq. 17. With the assumption that the process noise, w k , has a zero mean, the expectation at step k can be distributed as</p><formula xml:id="formula_25">x T k x k = x T k−1 x k−1 + 2 x k−1 T Gu k + u k G T Gu k + w T k w k = x T k−1 x k−1 + 2 x k−1 T Gu k + u k G T Gu k + w T k w k + N pix j=1 Tr(var(x k−1,j )),<label>(23)</label></formula><p>where the statistics of the previous state are provided by the past wavefront estimation,</p><formula xml:id="formula_26">x k−1 = ˆ x k−1 and var(x k−1,j ) = P k−1,j . 2</formula><p>The process noise, as explained in Sec. 2.2, includes the Jacobian matrix errors and the system instabilities, w k ∼ = ∆Gu k + r k . Given r k ∼ N (0, S k ), the process noise covariance in Eq. 23 becomes</p><formula xml:id="formula_27">w T k w k = u T k ∆G T ∆G u k + S k ,</formula><p>where ∆G T ∆G W models Jacobian uncertainties. The stochastic optimization problem can now be written</p><formula xml:id="formula_28">minˆx minˆ minˆx k−1 ,u k Φ(ˆ x k−1 , u k ) = ˆ x T k−1 ˆ x k−1 + 2ˆx2ˆx T k−1 Gu k + u k G T Gu k + u T k W u k + N pix j=1</formula><p>Tr</p><formula xml:id="formula_29">(P k−1,j ). (24)</formula><p>S k is eliminated in the optimization because it is a constant covariance matrix. As this cost function indicates, the final contrast depends on not only the DM commands, u k , but also the estimation accuracy, Tr(P k−1,j ), and the Jacobian uncertainties, W . Minimizing the first four terms of the cost function over u k defines the wavefront controller, while minimizing the trace of the estimation covariance matrix, Tr(P k−1,j ), overˆxoverˆ overˆx k−1 defines the wavefront estimator. In addition, system identification or classical model calibration can be used to reduce the model uncertainties, Tr(W ) = ∆G 2 F , which also improves the final achievable contrast from the wavefront correction.</p><p>By definition, the entries of the regularization matrix are</p><formula xml:id="formula_30">W m,l = N pix j=1 ∆G T j,m ∆G j,l , ∆G j ∈ R 2×Nact , ∀j = 1, · · · , N pix ,<label>(25)</label></formula><p>where the subscripts, m and l, represent the column indices of the Jacobian bias matrices. Each column of ∆G gives the modeling errors of an actuator's influence, so W m,l indicates the covariance of Jacobian errors from the m-th and l-th actuators. In general, W is a symmetric positive definite matrix with nearly all the entries non-zeros. The off-diagonal entries in W disappear if the modeling errors of different actuators are assumed to be unrelated from each other. EFC or SM with scalar regularization further assume that the covariance of errors from different actuators are identical. Thus, given that</p><formula xml:id="formula_31">∆G T j,m ∆G j,m = Tr(var(∆G j,m )) = 2σ 2 , ∀j, m, ∆G T j,m ∆G j,l = Tr(cov(∆G j,m , ∆G j,l )) = 0, ∀j, m = l,<label>(26)</label></formula><p>W degrades to a scaled identify matrix,</p><formula xml:id="formula_32">W = 2N pix σ 2 I.<label>(27)</label></formula><p>This shows that tuning the Tikhonov regularization parameter or Lagrange multiplier is equivalent to finding the magnitude of Jacobian uncertainties in our model. A smaller regularization parameter indicates smaller Jacobian errors, which finally leads to higher contrast according to <ref type="bibr">Eq. 24.</ref> In the following sections, we will present the system identification and the adaptive control using the scalar regularization assumption in Eq. 26. This assumption is not fundamentally necessary for our E-M algorithm, but it will significantly simplify the algorithm implementation. Characterizing the filled regularization matrix (by assuming each actuator's error not independent) turns out to be very hard, because the high-dimensional system it suggests is usually underdetermined and requires tremendous amount of data for identification. To proceed with this idea, we have to assume some known structure of the regularization matrix 3 or incorporate dimension reduction techniques, such as principal component analysis (PCA) or sigular-value decomposition (SVD), to reduce the number of adaptable parameters. We will leave these explorations for future work.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Expectation-Maximization (E-M) algorithm</head><p>The new stochastic optimization formulation in Sec. 2.4 indicates the potential from system identification for improving the wavefront corrections. Moreover, it indicates not only that identifying the Jacobian matrix is necessary, but also that characterizing the process and observation noises are important for tuning the optimal estimators and controllers. In this section, we develop a new E-M algorithm based approach <ref type="bibr" target="#b26">27</ref> to accomplish all of these goals.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Review of the E-M algorithm</head><p>The E-M algorithm is an iterative system identification algorithm to find the maximum a posteriori (MAP) estimates of the model parameters in the presence of hidden variables <ref type="bibr" target="#b27">28,</ref><ref type="bibr" target="#b28">29</ref> . Hidden variables are the states of a dynamical system which are not directly observable. Since the true values of the hidden variables are absent, we cannot explicitly derive the log-likelihood function and apply the maximum likelihood estimation (MLE) to identify the model parameters as usual.</p><p>Instead, we maximize a lower bound of the log-likelihood of only the model inputs and outputs.</p><p>In general, with the hidden variables, the model inputs and outputs (the commands and observations of a system, usually referred to as the training data), and the model parameters (coefficients parametrizing the model function), denoted as X, Y and θ respectively, the log-likelihood can be written as an integral of the marginal probability over the hidden variables,</p><formula xml:id="formula_33">L{θ} = log p(Y |θ) = log p(X, Y |θ)dX.<label>(28)</label></formula><p>Assuming the hidden variables follow a probability distribution, Q(X), a lower bound on the log-likelihood, F(Q, θ), can be found using Jensen's inequality,</p><formula xml:id="formula_34">L{θ} = log p(Y |θ) = log p(X, Y |θ)dX (29a) = log Q(X) p(X, Y |θ) Q(X) dX (29b) ≥ Q(X) log p(X, Y |θ) Q(X) dX (29c) = Q(X) log p(X, Y |θ)dX − Q(X) log Q(X)dX (29d) = F(Q, θ).<label>(29e)</label></formula><p>The E-M algorithm alternates between maximizing this lower bound with respect to the hidden variable distribution, Q(X), and the model parameters, θ. Optimizing over the distribution Q(X) while fixing θ is called the expectation-step (E-step), and Optiming over the model parameters θ while fixing Q(X) is called the maximization-step (M-step).</p><p>In the E-step, F(Q, θ) is maximized when the inequality in Eq. 29(c) becomes an equality, i.e. L{θ} = F(Q, θ). Equality in Eq. 29(c) holds if and only if p(X, Y |θ)/Q(X) is constant for any possible X. The joint probability p(X, Y |θ) can be rewritten as a conditional probability using Bayes' rule,</p><formula xml:id="formula_35">p(X, Y |θ) = p(X|Y, θ)p(Y |θ),<label>(30)</label></formula><formula xml:id="formula_36">so F(Q, θ) is maximized when Q(X) = p(X|Y, θ), since p(Y |θ) = p(X, Y |θ)/p(X|Y, θ) does not depend on X. In the M-step, F(Q, θ) is maximized when X Q(X) log p(X, Y |θ)dX = E X [log p(X, Y |θ)]</formula><p>, the expectation of the log likelihood, is maximized. This is a stochastic maximum likelihood estimation (MLE) problem of the model parameters, θ.</p><p>Theoretically, the model parameter estimation always converges to a local minimum after enough iterations of the E-step and the M-step. The number of iterations it takes depends on the initial knowledge of the model parameters given to the algorithm. In FPWC, the model computed based on the Fourier optics can be used as the initial guess into the algorithm. Since it is pretty close to the true value, the parameter estimation converges within only one or two E-M iterations.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">E-M algorithm for FPWC system</head><p>The state-space model of the FPWC system defines a typical input-output hidden Markov process, where the focal plane electric fields are the hidden variables and the Jacobian matrix as well as the process and measurement noise covariance matrices are the model parameters, so the E-M algorithm is suitable for the this system. Moreover, since the dynamics of different pixels are decoupled in the FPWC system under the linear assumption, we can separately and in parallel identify the model parameters of each pixel separately, which saves a lot of computation time.</p><p>Here we copy the state transition and observation equations defined by Eq. 11 and Eq. 13,</p><formula xml:id="formula_37">x k,j = x k−1,j + G j u k + w k,j , w k,j ∼ N (0, Q k,j ), z k,j = H k,j x k,j + n k,j , H k,j = 4u pT k G T j , n k,j ∼ N (0, R k,j ).<label>(31)</label></formula><p>where k ∈ {1, · · · , N d } is the index of the control iterations, j ∈ {1, · · · , N pix } is the index of camera pixels, and N d is the total number of the control iterations. Based on Eq. 31, the model parameters, hidden variables and model inputs and observations for the single-pixel E-M algorithms can be respectively denoted as θ j = {G j , Q ,1:</p><formula xml:id="formula_38">N d j , R 1:N d ,j }, X j = {x 0:N d ,j } and Y j = {u 1:N d , u p 1:N d , z 1:N d ,j }.</formula><p>By assuming the process noise w k,j ∼ = ∆G j u k + r k and the Jacobian errors from different actuators are independent as shown in Eq. 26, the process noise covariance matrix is</p><formula xml:id="formula_39">Q k,j = u T k u k Q j + S k,j = u T k u k σ 2 I 2×2 + δ 2 I 2×2 ,<label>(32)</label></formula><p>where S k,j , the covariance from the system instability term r k , is assumed to be a constant scalar matrix, δ 2 I 2×2 , over iterations. In our following simulation and experiment, since the instability term is much smaller compared with the Jacobian bias, we neglect δ 2 (assume δ 2 = 0) and only identify σ 2 to determine the process noise covariance. Without changing exposure time, the observation noise covariance matrix is also a constant scalar matrix over iterations,</p><formula xml:id="formula_40">R k,j = R j = ν 2 I n×n ,<label>(33)</label></formula><p>where ν is the standard deviation of the observation noise and n is the number of pairs of probes. As a result, the model parameters are simplified as θ j = {G j , σ 2 , ν 2 } in the current E-M algorithm for the FPWC system. The E-M equations for X j , Y j , and θ j can be derived following the approach of Ghahramani et al. <ref type="bibr" target="#b29">30</ref> As shown in that paper, for a linear Gaussian dynamical system like FPWC, the E-step can be achieved by Kalman filtering and Rauch smoothing and the M-step can be achieved by finding the analytical solution of a quadratic optimization problem. However, since the Jacobian matrix and observation matrix in FPWC have shared parameters and our control variables are high-dimensional, the model parameter update equations and the optimization method are a little different from the standard approach. The implementation details of the E-M algorithm for FPWC system are explained in next section. For notational simplicity, we will omit the subscript j in the following derivations and discussions, understanding that the E-step and the M-step are repeated N pix times.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Actual implementation 3.3.1 The E-Step</head><p>In what follows, we introduce notationsˆxnotationsˆ notationsˆx k 1 |k 2 and P k 1 |k 2 , which represent the estimated expectation and covariance of the hidden states at control iteration k 1 given observations up to and including at control iteration k 2 . With these simplified notations, the conditional probability in the E-step becomes</p><formula xml:id="formula_41">Q(X) = p(X|Y, θ) = N d k=1 N (ˆ x k|N d , P k|N d )<label>(34)</label></formula><p>in our linear Gaussian FPWC system. This conditional probability can be derived from a combined approach using Kalman filter and Rauch smoother. The Kalman filter first forward propagates the states and estimates the hidden states based only on the data up to the current step. The Kalman filter optimization problem is defined in Sec. 2.2. The solution to the optimization problem gives five Kalman filter equations,</p><formula xml:id="formula_42">ˆ x k|k−1 = ˆ x k−1|k−1 + Gu k ,<label>(35a)</label></formula><formula xml:id="formula_43">P k|k−1 = P k−1|k−1 + Q k ,<label>(35b)</label></formula><formula xml:id="formula_44">K k = P k|k−1 H T k (H k P k|k−1 H T k + R k ) −1 , (35c) ˆ x k|k = ˆ x k|k−1 + K k (z k − H k ˆ x k|k−1 ),<label>(35d)</label></formula><formula xml:id="formula_45">P k|k = (I − K k H k )P −1 k|k−1 ,<label>(35e)</label></formula><p>wherê x k|k−1 and P k|k−1 are the a priori knowledge of the states and covariance matrix from observations up to control iteration k − 1, andˆxandˆ andˆx k|k and P k|k are the a posteriori estimates updated by the observations at step k.</p><p>Rauch smoother then propagates the states backwards from the last step to the starting step and further updates the estimates based on the data of the future steps. Mathematically, Rauch smoother is a Kalman filter using the next hidden state as the observation. The Rauch smoothing equations are, </p><formula xml:id="formula_46">L k = P k|k P −1 k+1|k ,<label>(36a)</label></formula><formula xml:id="formula_47">ˆ x k|N d = ˆ x k|k + L k (ˆ x k+1|N d − ˆ x k+1|k ),<label>(36b)</label></formula><formula xml:id="formula_48">P k|N d = P k|k + L k (P k+1|N d − P k+1|k )L T k ,<label>(36c)</label></formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.2">The M-Step</head><p>The M-step defines a stochastic maximum likelihood estimation (MLE) problem. Based on the Markovian structure of Eq. 31, the log likelihood of the hidden states, model inputs and observations is,</p><formula xml:id="formula_49">L(G, Q, R) = log N d k=1 p(z k |x k , H k , R k ) N d k=1 p(x k |x k−1 , u k , G, Q k ) = − 1 2 N d k=1 (z k − H k x k ) T R −1 k (z k − H k x k ) − 1 2 N d k=1 log |2πR k | − 1 2 N d k=1 (x k − x k−1 − Gu k ) T Q −1 k (x k − x k−1 − Gu k ) − 1 2 N d k=1 log |2πQ k |.<label>(37)</label></formula><p>where</p><formula xml:id="formula_50">R k = R, Q k = u T k u k Q, H k = 4(Gu p k ) T<label>(38)</label></formula><p>The expectation of this log-likelihood can be calculated using the state estimates in the E-step. Therefore, we can estimate the model parameters by taking the derivatives of the log-likelihood with respect to each parameter and forcing the resulting expectations to be zero,</p><formula xml:id="formula_51">∂ L(G, Q, R) ∂G = 0, ∂ L(G, Q, R) ∂Q = 0, ∂ L(G, Q, R) ∂R = 0.<label>(39)</label></formula><p>This gives the analytical update equations for the model parameters,</p><formula xml:id="formula_52">G ={ N d k=1 1 u T k u k (ˆ x k|N d − ˆ x k−1|N d )u T k + 4Q N d k=1 [ˆ x k|N d z T k − 4(ˆ x k|N d ˆ x T k|N d + P k|N d )Gu p k ]R −1 u pT k }( N d k=1 u k u T k u T k u k ) −1 ,<label>(40a)</label></formula><formula xml:id="formula_53">Q = 1 N d N d k=1 1 u T k u k [(ˆ x k|N d − ˆ x k−1|N d − Gu k )(ˆ x k|N d − ˆ x k−1|N d − Gu k ) T + P k|N d + P k−1|N d ],<label>(40b)</label></formula><formula xml:id="formula_54">R = 1 N d N d k=1 [(z k − 4(Gu p k ) T ˆ x k|N d )(z k − 4(Gu p k ) T ˆ x k|N d ) T + 16(Gu p k ) T P k|N d Gu p k ].<label>(40c)</label></formula><p>Eq. 40 (a) is an implicit equation, so G needs to be found recursively. From our earlier assumption, Q and R are forced to be scaled identity matrices,</p><formula xml:id="formula_55">Q ← T r(Q) 2 I 2×2 , R ← T r(R) 2 I 2×2 ,<label>(41)</label></formula><p>where we accordingly obtain</p><formula xml:id="formula_56">σ 2 = T r(Q) 2 , ν 2 = T r(R) 2 .<label>(42)</label></formula><p>The process covariance, σ 2 , can be used in the EFC algorithm for computing the Tikhonov regularization parameter as shown in Eq. 27. One shortcoming of this analytical solution is the large matrix inversion in Eq. 40(a). To ensure the matrix is invertible, we have to collect several thousand steps (greater than the number of actuators on DMs) of data before making an update, which is unnecessarily time-consuming and also precludes online system adapting. In order to update the model with a smaller amount of data, we can use a stochastic gradient ascent algorithm instead for updating the Jacobian matrix,</p><formula xml:id="formula_57">G ← G + η ∂ L(G, Q, R) ∂G ,<label>(43)</label></formula><p>where the tuning parameter η defines the learning rate of the algorithm. However, this method may not be able to reach exact optimal solutions. These two subsections presented all of the E-M equations for FPWC system. By repeating the iterative E-M approach on all the pixels we can reconstruct the linear state-space model for the entire system. While that is sufficient, it is helpful to apply a final step, forcing the process and observation noise matrices of all the pixels to be equal to their average. Since all pixels in the dark hole share almost the same noise distributions, neglecting the small difference in photon noises, this step enhances the robustness of the E-M algorithm.</p><p>The remainder of the paper will present two ways to apply the E-M algorithm to the FPWC system, offline system identification and online adaptive control. In Sec. 4, we identify the system using precollected data and try to understand the sources of aberrations in our system. In Sec. 5, we integrate the E-M algorithm into the control loop, and adapt the model parameters and control policy in real time. Simulation and experimental results are reported in both cases.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">E-M algorithm based system identification</head><p>In this section, we numerically and experimentally investigate the E-M algorithm based system identification for FPWC. Our goal for the system identification is to precisely characterize the Jacobian errors. In addtion, we will also take this chance to understand important algorithmic details, for example the influence of the hyper-parameters (batch size and amount of data) on the algorithm's performance or how hard it is to characterize different types of model errors.</p><p>The experiment is conducted in the Princeton's High Contrast Imaging Lab (HCIL) and the simulation uses the same setup. As shown in <ref type="figure" target="#fig_1">Fig. 2</ref>, the HCIL testbed is a two-DM FPWC system with shaped pupil (SP) coronagraph. It utilizes a ripple pupil plane mask to suppress the contrast by changing the starlight point spread function (PSF). In addition, a bowtie shaped focal plane mask (FPM) blocks the center part of the PSF to avoid camera saturation, which also defines the dark hole regions for the FPWC. Each DM in the HCIL has 952 actuators. Without loss of generality, we only activate the first DM in simulation and experiment. The second DM is treated as a fold mirror. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Numerical verification 4.1.1 Data generation</head><p>In the numerical study, we simulated the DM commands and resulting camera images under an imperfect lab condition. Wavefront aberrations with 10nm RMS were added to the shaped pupil plane and two DM planes. The DM actuators' gains were biased by 20% to account for the influence function errors. <ref type="bibr" target="#b3">4</ref> Shot noises and readout noises were added to the simulated camera images, where the noises' standard deviations were chosen based on measurements in the HCIL. In the numerical model, the masks are modeled as 0-1 binary matrices, the propagations through the OAPs or lenses to their focuses are modeled as Fourier transform, and all the free space propagations between devices are modeled as Fresnel propagations. To sufficiently explore the controllable space of the DM, we generated the data by applying random DM commands in the system identification approach. In our simulation, in total 4000 random voltage commands (between −0.6 − 0.6 volts) were applied to the DM and the resulting camera images were simulated. A fixed exposure time of 0.1 sec was used for the camera images. For each random DM commands, we collected two pairs of probing images, so we have in total 16000 images (2 images/pair × 2 pairs/command × 4000 commands) in our data set. The random commands between −0.6 and 0.6 volts typically result in contrast changes at a level of 1 × 10 −6 . In order to make the DM influence significant enough for learning so that the effect is larger than the background speckles, in our simulation, we first ran wavefront control for four steps to reach a contrast of roughly 3 × 10 −6 and then applied the random DM commands and generated the images. Same "probe" comands were used for all 4000 data points. Although identical pair-wise probes are not necessary for the E-M system identification, as as will be discussed, it helps us build a metric to evaluate the effectiveness of the identification.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.2">Evaluation metrics of the identification accuracy</head><p>Three metrics were used to evaluate the model errors in our analysis. The first is the percentage error of the E-M identified Jacobian, G EM , compared with the true Jacobian including optical aberrations and influence function biases, G,</p><formula xml:id="formula_58">Jacobian Error = G EM − G 2 2 G 2 2 = ∆G EM 2 2 G 2 2 .<label>(44)</label></formula><p>The second metric assumes we are blind to the true Jacobian matrix (which is true in the experiment); we thus reserve part of the data as a validation set. Theoretically, the difference between two neighboring observations with the same probing commands is a function of only the DM commands,</p><formula xml:id="formula_59">∆z k = z k − z k−1 = 4(Gu p ) T (x k − x k−1 ) = 4(Gu p ) T Gu k ,<label>(45)</label></formula><p>so we can define a percentage validation error of the identified Jacobian matrix, via</p><formula xml:id="formula_60">Validation Error = Nv k=1 ∆z k − 4(G EM u p ) T G EM u k 2 2 Nv k=1 ∆z k 2 2 = Nv k=1 4u pT (G T G − G T EM G EM )u k 2 2 Nv k=1 4u pT G T Gu k 2 2 ,<label>(46)</label></formula><p>where N v is the number of data steps in the validation set. The scale of validation error could be a little different from Jacobian error since it actually measures the difference between G T EM G EM and G T G instead of G EM and G, however, they should have similar trends and are both good indicators of model accuracy.</p><p>The third metric that indirectly reflects the accuracy of a Jacobian matrix is the correction speed and the final achievable contrast of the wavefront control using it. With a more accurate Jacobian matrix, the wavefront control should achieve a higher contrast with fewer control iterations.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.3">System identification results</head><p>In this section, we applied the E-M algorithm based system identification in various ways to the simulation data to test the algorithm. The analytical method in Eq. 40 and the gradient ascent method in Eq. 43 were repectively tried to solve the stochastic MLE problem. For the gradient method, we also examined the effect of using different batch sizes. The batch size is a machine learning term referring to the number of data points utilized in one E-M update. Theoretically, small batch sizes enable timely model parameter updates and time-efficient parallel computing, but sacrifice the accuracy of each update because the hidden states estimation with small batch sizes has relatively larger covariance. The algorithm was also investigated with different numbers of data points. Our goal for this section is mainly to validate the reasonability of the evaluation metrics defined in the previous section, and to compare the performance of the algorithm given different optimization methods, batch sizes and amount of data using these metrics. <ref type="figure">Figure 3</ref> shows the change in the Jacobian errors and the validation errors with respect to the number of data points. We saved the last 500 steps of data for validation, so at most 3500 data points were used for system identification. Results using the analytical method and the gradient ascent method with the batch sizes of 2, 10, 100, 500 are reported. As shown in the figure, the validation error curves resemble the Jacobian error curves, validating it a good metric of model accuracy in the experiment. The stochastic descent algorithm works with a wide range of batch sizes all with similar validation errors, though too small a batch size underperforms compared with others. The analytical method does not work with fewer than 1500 data points because of the ill-posed matrix inversion in Eq. 40 (a). However, it outperforms the gradient ascent once given enough data. The identification accuracy primarily depends on the number of data points used, no matter what optimization methods or batch sizes we apply. <ref type="figure" target="#fig_3">Figure 4</ref> shows the simulated wavefront correction using the original biased model (computed using Fourier optics with no knowledge of the true aberrations), the true model (computed using Fourier optics with full knowledge of the true aberrations) and the best identified model (analytical solution using 3500 data points). EFC with a fixed regularization parameter and batch process estimation with two pairs of probing commands were used in this simulation. As can be seen, the identified model beats the biased model in both the wavefront control speed and the final contrast. The contrast gap between the true model and the biased model is significantly reduced after the E-M system identification.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Experimental results</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.1">Data collection</head><p>The same sampling policy was used in experiment as in simulation: we ran the wavefront correction to reach a relatively high contrast (settling at around 3 × 10 −6 ), applied 4000 random DM commands (between −0.6 and 0.6 volts) and collected the resulting difference images, saving the last 500 steps as the validation set. Again, two pairs of DM probes were used for observation at each step.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.2">Identification results</head><p>With the validation error proved to be a good metric, now we use this metric to evaluate the identifcation results with the experimental data. As shown in <ref type="figure" target="#fig_4">Fig. 5</ref>, the validation error curves of various cases decrease with the same trends as in <ref type="figure">Fig. 3 (b)</ref>, showing that the E-M algorithm also successfully detects and corrects the Jacobian errors in the experiment.</p><p>Further analysis of the sources of Jacobian errors in experiment can be found in Appendix A. As shown by this regression analysis of the identified Jacobian, DM actuator's gain errors and pupil plane wavefront phase aberrations explain around half of the model errors in our experiment. 5 Among thees factors, the DM gain errors are easily corrected with only a few of data, while the wavefront aberrations are corrected slower and also varies over time. We also compared the wavefront control results using the identified model and the original/biased physics model. In the physics model, we had no knowledge of the wavefront aberrations and assumed the same gain and influence function shape for all the actuators. Similarly, EFC and batch process estimatiton were used in all the wavefront correction trials. <ref type="figure" target="#fig_5">Figure 6</ref> (a) and (b), respectively, show the wavefront control curves (contrast vs. control iteration) using the analytical Jacobian solutions and the gradient ascent Jacobian solutions with different amount of data. In both cases, the wavefront corrections with the identified models are much faster than the biased physics model in the early stage; they all reached a contrast better than 3 × 10 −7 within only four to five control iterations. However, the analytical Jacobians did not perform better than the gradient ascent solutions as expected. After reaching a high contrast, the analytical Jacobians experienced some and the system nonliearities beyond the algorithm's identfication ablity. difficulties in correcting the small residual aberrations, resulting in a final contrast slightly worse than the physics model. We speculate that the analytical E-M solutions are overfitted to the data noise. In contrast, the gradient ascent solutions reached the same ultimate contrast as the physics model. This is mainly because the achievable final contrast in the lab is currently limited by the scattered, incoherent light. On conclusion from these results is that the gradient method is better for experimental applications. In addition, the wavefront correction speed did not improve much as the number of data points increased. This may be because the key factors that influence the wavefront correction speed, probably the DM actuator's gain errors as discussed in the appendix, were detected and corrected with only tens of data points and/or offline system identification didn't handle the time-varying data well. wavefront corrections using physics model and gradient ascent identified Jacobians (bath size of 500) with 500, 1500, 2500 and 3500 data points.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">E-M algorithm based adaptive control</head><p>The experimental results in Sec. 4 demonstrated the ability of the E-M algorithm to improve the Jacobian accuracy, even with only small amount of data. However, this system identification workflow (data collection -identification -wavefront correction) cannot keep up with some of the most important time-varying errors, such as thermally induced phase aberrations. In this section, we present an E-M algorithm based real-time adaptive control framework, or more specifically a reinforcement learning control framework, to solve this problem. This reinforcement learning control strategy is not fundamentally different from the E-M algorithm based system identification; we use the same algorithm developed in Sec. 3 but only directly feed the wavefront correction data instead of the precollected data with random DM commands into the E-M equation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1">Reinforcement learning for FPWC</head><p>Reinforcement learning control has attracted much attention recently as an important branch of machine learning. In reinforcement learning, the system, or agent, alternately runs a control policy to explore the environment and an adaptation step that varies the policy based on the information from the control step. Since the agents directly learn from the control attempts, it is more efficient for them to find the best control policies and track the model variations in real time. This technique has been widely applied to training complex control systems, such as those playing the game of Go 31 or video games, 32 robot manipulation, motion planning, and locomotion. <ref type="bibr" target="#b32">33</ref> </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Science Camera</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Controller</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Optical System</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Light</head><p>Deformable Mirrors  <ref type="figure" target="#fig_6">Figure 7</ref> shows the block diagram of the proposed adaptive FPWC system. It combines the wavefront estimation and control with the E-M system identification presented in Sec. 3. In this scheme, we no longer use random DM commands for identification. Instead, the DM commands and resulting images from the control loops are sent to the E-M algorithm to update the model instantanesouly. The new adaptive FPWC system now loops between running steps of wavefront estimation and control and updating the model parameters (which also means updating the control and estimation policy). In addition, not only is the Jacobian matrix, G, identified in the adaptive/reinforcement learning control step, so too are the process noise, σ 2 , and observation noise, ν 2 as demonstrated in Eq. 41 and Eq. 42. These are then used to tune the wavefront estimator (the covariance matrices of process noises and observation noises in Kalman filter) and controller (Tikhonov regularization matrix in EFC) based on Eq. 32, Eq. 33 and Eq. 27. <ref type="bibr" target="#b5">6</ref> As a result, the Kalman filter estimator better balances the weights of the model predictions and observations, and the controller better chooses the damping parameter in the wavefront correction.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Coronagraph Telescope</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Images</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Kalman Filter</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Commands</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2">Reinforcement learning simulation</head><p>Again using the imperfect lab conditions that result in phase aberrations and actuator gain biases as stated in Sec. 4.1.1, we simulated the reinforcement learning control for 50 control iterations.</p><p>Two pairs of probing images were collected at each iteration for wavefront estimation. In Sec. 4, we used same pair-wise probes for the convenience of validation error calculation, however, here we allowed the DM probes to vary among different control iterations in the reinforcement learning control simulation. After every 10 control iterations, we supplied the control commands (10 steps), the pair-wise probes (2 pairs/step ×10 steps) and the camera images (2 images/pair ×2 pairs/step ×10 steps) to the E-M algorithm to update the Jacobian matrix and the tuning parameters in the estimator and controller. For comparison, the wavefront control with the true Jacobian model and the fixed biased Jacobian model were also simulated. In both of these benchmark cases, the Kalman filter and the EFC controller were tuned to the best manually. <ref type="figure" target="#fig_7">Figure 8</ref> shows the results of the three simulations. As can be seen, the reinforcement learning control gradually closed the contrast gap between the biased model and the true model. The E-M adaptation at every ten iterations can be clearly seen on the correction curves. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.3">Reinforcement learning experiment in HCIL</head><p>In this section we present the results of using the reinforcement learning adaptive control approach in the HCIL. Unfortunately, because the ultimate contrast achievable in the HCIL is limited to roughly 1.5 × 10 −7 due to incoherent background light (as seen in Figs. 6), it is not possible to reproduce the simulation results from the previous section. There, the adaptation step was run after each 10 iterations of the control. But as can be seen in <ref type="figure" target="#fig_7">Fig. 8</ref>, the modeled system reaches a contrast better than the lab limit of 10 −7 in fewer than 10 steps, before the first reinforcement learning step. Through trial and error it was found that the E-M algorithm cannot robustly identify the system with fewer than 10 learning steps. Therefore, to experimentally verify the algorithm, we limited each FPWC run to 10 control iterations and updated the model parameters using the E-M algorithm after each trial. The Jacobian and tuning parameters were then used for the next trial of wavefront correction. As shown in <ref type="figure" target="#fig_8">Fig. 9 (a)</ref>, the rate of convergence of the wavefront correction became faster after each learning trial. Note that we ran the E-M identification after every learning iteration, however, to keep the figure clean, we only report a few of the typical results (wavefront control with the initial biased model and after 1, 5, 10, 15, 19 learning trials). After only 19 learning trials, the FPWC system was able to reach 1 × 10 −6 in one control step and below 2 × 10 −7 contrast in three control steps, which is faster than the results from the off-line system identification. This indicates the wavefront control provided more informative data compared with random DM commands. One possible explanantion is that the controller in wavefront correction more frequently moves the DM actuators not blocked by the coronagraph masks, and the parameters of these actuators (corresponding columns of the Jacobian matrix) are actually the key parts to improve the wavefront correction. As a contrast, the random command policy indistinguishably moves all the actuators, which may not be efficient. The reinforcement learning framework may also have captured some time-varying errors. However, since our testbed is pretty stable over short time intervals, this should not be the main reason that the reinforcement learning control outperformed the system identification.</p><p>Figs. 9 (b) (c) (d) show the changes in the estimates of process noise and observation noise covariances and their ratio at each learning trial. As shown in these figures, we underestimated the noise levels at the beginning. The adaptive controller quickly corrected these incorrect assumptions. Then, the adaptive controller gradually corrected the errors in the Jacobian matrix, so that the process and observation noise covariance estimates decreased with additional learning trials. More details about the adaptive control experiment can be seen in the video in <ref type="figure">Fig. 10</ref>.</p><p>By using this reinforcement learning approach, much effort is saved, and accuracy gained, by not having to take testbed layout measurements, perform phase retrieval and surface characterization, or having to manually tune the controller and estimator parameters. The reinforcement learning adaptive control results also shows promise for enabling self-maintenance of the FPWC during the mission. 6 Conclusion and future work Efficient and successful focal plane wavefront control and estimation in coronagraph instruments requires accurate modeling of the optical system. In this work, we first proposed an expectationmaximization (E-M) algorithm to identify the optical system as a linear state-space model. According to the simulation and experimental results in the Princeton HCIL, the algorithm successfully corrects model errors such as those produced from errors in the DM gains and initial phase aberrations. Use of the identified models significantly increases the rate at which the wavefront correction converges. We also developed a model based adaptive/reinforcement learning control scheme based on this E-M algorithm. The adaptive controller alternates between the wavefront correction and the model parameter self-adaptation, which significantly improves the performance of both the estimator and controller and requires only tens of learning iterations. This approach is very promising for the automatic maintenance of the FPWC system in future space missions.</p><p>Future work will focus on generalizing this frame work with more realistic assumptions. First, we plan to identify the full matrix regularization suggested in Sec. 2.4 instead of the scalar regularization. This will help us understand the inter-actuator couplings that are neglected by electric field conjugation and stroke minimization, as well as improve the performance of the wavefront correction. Second, we also plan to drop the linearity assumption, and use EKF and neural networks to approximate the optical system as a nonlinear system. The linear assumption does not hold when we need large DM surface chages to correct the influences from telesocpe struts and/or segmented apertures. By introducing system nonlinearities back into the model, we should be able to further increase the speed and efficiency of the wavefront corrections, gain a deeper contrast, and better extract the exoplanet signal.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Appendix A: Regression analysis of the sources of Jacobian Errors</head><p>The Fourier optics analysis in Eq. 5 shows that the Jacobian errors primarily come from errors in the pupil field, E ab , and the influence functions, f 1:Nact . Thus, we can analyze the sources of the Jacobian errors by fitting E ab and f 1:Nact to our identified Jacobian matrix, G EM . After rearranging the real-valued Jacobian matrix, G EM , back into the complex form, F EM , based on Eq. 10, the fitting problem can be formulated as,</p><formula xml:id="formula_61">min E ab ,f 1:N act F (E ab , f 1:Nact ) − F EM 2 F .<label>(47)</label></formula><p>The pupil electric field and influence functions are respectively parameterized as,</p><formula xml:id="formula_62">E ab = exp(i β m Z m ) ≈ 1 + i β m Z m , f q = ρ q f, ∀q = 1, · · · , N act ,<label>(48)</label></formula><p>where Z m and β m are the Zernike polynomials and their coefficients, f is the shape of the influence function, and ρ q are the actuator gains. For simplicity, this parameterization neglects amplitude wavefront aberrations and the difference of influence function shapes among actuators. With this parameterization and Taylor expansion in Eq. 48, the fitting problem in Eq.47 becomes a simple linear, least-square regression in the parameters β m and p q . <ref type="figure">Figure 11</ref>(a) compares the validation errors of an identified model (gradient ascent solution with batch size of 500 in Sec. 4.2) and its fitted model. The validation errors from only fitting with the DM gains or Zernike phase aberrations are also reported. As shown, the fitted model explains more than half the model errors identified by the E-M algorithm, which in part proves our guess about the major sources of model errors. More interestingly, the DM gains are accurately characterized with only the first 500 data points, so the corresponding validation error curve (red) decreases rapidly at the beginning, but changes little as the amount of data increases. In contrast, the validation error from the phase aberrations regression (blue) keeps decreasing as the amount of data increases without reaching plateu. This indicates that the phase aberrations are hard to to correct and may be slowly changing while collecting the data, so the identification algorithm keeps adjusting the Zernike coefficients as the data amount increases. Actually, the curve slope becomes even sharper in the end, because the data in the end may have more similar pupil aberrations as the validation data. The first five fitted Zernike coefficients with respect to the number of data points are further reported in <ref type="figure">Fig. 11(b)</ref>. The defocus and vertical astigmatism do not change much, while the tip, tilt and oblique astigmatism vary over time, which satisfies our observation that the center of the PSF shifted for one pixel horizontally and vertically respectively in our experiment after collecting 4000 data points. This explains why the marginal benefit of data decreases. Moreover, this also justifies the advantage of adapting the system in real time. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>List of Figures</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>1</head><p>Telescope optical system architecture and focal plane wavefront control loop. System variables are also marked on the diagram, where E ab is the aberrated pupil plane electric field, ∆φ m is the DM surface phase change at a single step, C{·} represents the light propagation through coronagraph, E k is the focal plane electric field, I k represents the camera images, u k represents the DM commands, andˆE andˆ andˆE k /ˆ x k are the estimated complex/real-valued states of electric field. 2</p><p>Layout of the HCIL testbed. Rippled shaped pupil and bowtie shaped focal plane mask are applied to suppress the contrast in the focal plane. Two Boston MicroMachines MEMS DMs are installed for focal plane wavefront correction. 3 (a) Jacobian errors, (b) validation errors and (c) their relations from a simulation over the number of data points in the training set. Different methods, including analytical solutions and stochastic gradient ascent solutions with the batch sizes of 2, 10, 100, and 500 data points are compared using the simulated training data. 4</p><p>Contrast curves of simulated wavefront correction in HCIL. Biased physics model, true model and identified model using analytical method (3500 data points) are tested respectively. 5</p><p>Validation errors in the experiment over the number of data steps in the training set. Different methods, including analytical solutions and stochastic gradient ascent solutions with the batch sizes of 2, 10, 100, 500, are compared using the experimental data. 6</p><p>Measured contrast in the HCIL over the control iterations. (a) wavefront corrections using physics model and analytical identified Jacobians with 1500, 2500 and 3500 data points. (b) wavefront corrections using physics model and gradient ascent identified Jacobians (bath size of 500) with 500, 1500, 2500 and 3500 data points. 7</p><p>Block diagram of the E-M algorithm based adaptive focal plane wavefront correction (FPWC) system. 8 (a) Simulated FPWC reinforcement learning control and the benchmark wavefront control with the true Jacobian matrix and the fixed biased Jacobian matrix. The model parameters are updated using the E-M algorithm every ten iterations. (b) Zoomed-in figure of the box region in (a). The E-M identifications occurred at the iterations marked by pointed arrows. 9</p><p>Change of (a) the wavefront correction speed, (b) the process noise, (c) the observation noise and (d) the process and observation noise ratio with respect to the learning iterations. To compare the wavefront correction speed, we present the measured contrast over 10 control iterations for the initial model and identified model after 1, 5, 10, 15, 19 learning iterations. 10 A still image from the video about the adaptive wavefront correction in HCIL. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>List of Tables</head></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head></head><label></label><figDesc>wherê x k|N d and P k|N d are the estimated hidden state's expectation and covariance based on all the N d steps of data, Y = {u 1:N d , u p 1:N d , z 1:N d ,j }.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Fig 2</head><label>2</label><figDesc>Fig 2 Layout of the HCIL testbed. Rippled shaped pupil and bowtie shaped focal plane mask are applied to suppress the contrast in the focal plane. Two Boston MicroMachines MEMS DMs are installed for focal plane wavefront correction.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head></head><label></label><figDesc>Fig 3 (a) Jacobian errors, (b) validation errors and (c) their relations from a simulation over the number of data points in the training set. Different methods, including analytical solutions and stochastic gradient ascent solutions with the batch sizes of 2, 10, 100, and 500 data points are compared using the simulated training data.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Fig 4</head><label>4</label><figDesc>Fig 4 Contrast curves of simulated wavefront correction in HCIL. Biased physics model, true model and identified model using analytical method (3500 data points) are tested respectively.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Fig 5</head><label>5</label><figDesc>Fig 5 Validation errors in the experiment over the number of data steps in the training set. Different methods, including analytical solutions and stochastic gradient ascent solutions with the batch sizes of 2, 10, 100, 500, are compared using the experimental data.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Fig 6</head><label>6</label><figDesc>Fig 6 Measured contrast in the HCIL over the control iterations. (a) wavefront corrections using physics model and analytical identified Jacobians with 1500, 2500 and 3500 data points. (b) wavefront corrections using physics model and gradient ascent identified Jacobians (bath size of 500) with 500, 1500, 2500 and 3500 data points.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Fig 7</head><label>7</label><figDesc>Fig 7 Block diagram of the E-M algorithm based adaptive focal plane wavefront correction (FPWC) system.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Fig 8</head><label>8</label><figDesc>Fig 8 (a) Simulated FPWC reinforcement learning control and the benchmark wavefront control with the true Jacobian matrix and the fixed biased Jacobian matrix. The model parameters are updated using the E-M algorithm every ten iterations. (b) Zoomed-in figure of the box region in (a). The E-M identifications occurred at the iterations marked by pointed arrows.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head>Fig 9</head><label>9</label><figDesc>Fig 9 Change of (a) the wavefront correction speed, (b) the process noise, (c) the observation noise and (d) the process and observation noise ratio with respect to the learning iterations. To compare the wavefront correction speed, we present the measured contrast over 10 control iterations for the initial model and identified model after 1, 5, 10, 15, 19 learning iterations.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head>Fig</head><label></label><figDesc>Fig 10 A still image from the video about the adaptive wavefront correction in HCIL. (MP4, 1.34 MB)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_10"><head></head><label></label><figDesc>Fig 11 Regression analysis of the experimental data in Sec. 4.2. (a) Validation errors of the E-M identified models and the corresponding fitted models. Validation errors of the fitted models that correct only DM gain errors (red), only phase aberrations (blue) are also reported. (b) First five fitted Zernike coefficients from the regression.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_11"><head>(</head><label></label><figDesc>MP4, 1.34 MB) 11 Regression analysis of the experimental data in Sec. 4.2. (a) Validation errors of the E-M identified models and the corresponding fitted models. Validation errors of the fitted models that correct only DM gain errors (red), only phase aberrations (blue) are also reported. (b) First five fitted Zernike coefficients from the regression.</figDesc></figure>
+
+			<note place="foot" n="1"> The model bias ∆G j is the difference between the true Jacobian matrix and the current Jacobian matrix in use. Each element of Jacobian errors, ∆G j , has zero mean, since we have no knowledge whether the current Jacobian influence is larger or smaller than the true value. This is also intuitively true in real experiment because the biases of different actuators may have influence of different directions, so they will cancel with each other.</note>
+
+			<note place="foot" n="2"> The covariance matrix P k−1,j is an indicator for the estimation accuracy, which is also a function ofˆxofˆ ofˆx k−1 .</note>
+
+			<note place="foot" n="3"> For example, we can assume only neighboring actuators are coupled, which makes the matrix very sparse.</note>
+
+			<note place="foot" n="4"> The influence function shape errors were neglected in our simulation, however, the E-M algorithm is able to handle this type of errors as proved in the experimental results.</note>
+
+			<note place="foot" n="5"> Other errors may be the influence function shape errors, the wavefront aberrations on the plane of other devices</note>
+
+			<note place="foot" n="6"> In our software implementation, we introduce a hyperparameter, γ, to Eq. 27, which defines a modified regularization matrix, W = γW = 2γN pix σ 2 I, because we found the controller is usually able to be more aggressive than the theoretical suggestion.</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Acknowledgments</head><p>This work was performed under contract to the Jet Propulsion Laboratory of the California Institute of Technology, award number AWD1004079, and under contract to NASA Goddard Space Flight Center, award number AWD1004730.</p></div>
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">Extrasolar planet finding via optimal apodized-pupil and shaped-pupil coronagraphs</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J</forename><surname>Kasdin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Vanderbei</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">N</forename><surname>Spergel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">582</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page">1147</biblScope>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">A hybrid lyot coronagraph for the direct imaging and spectroscopy of exoplanet systems: recent results and prospects</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Trauger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Moody</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Gordon</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Society of Photo-Optical Instrumentation Engineers</title>
+		<imprint>
+			<biblScope unit="issue">SPIE</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">Phase-induced amplitude apodization of telescope pupils for extrasolar terrestrial planet imaging</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Guyon</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astronomy &amp; Astrophysics</title>
+		<imprint>
+			<biblScope unit="volume">404</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="379" to="387" />
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Shaped pupil lyot coronagraphs: highcontrast solutions for restricted focal planes</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">T</forename><surname>Zimmerman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">E</forename><surname>Riggs</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J</forename><surname>Kasdin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Astronomical Telescopes, Instruments, and Systems</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="11012" to="011012" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Adaptive optics for high-contrast imaging: pyramid sensor versus spatially filtered shackhartmann sensor</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Vérinaud</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Le Louarn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Korkiakoski</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Monthly Notices of the Royal Astronomical Society: Letters</title>
+		<imprint>
+			<biblScope unit="volume">357</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="26" to="30" />
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<monogr>
+		<title level="m" type="main">Fast, nonlinear phase estimation with the non-modulated pyramid wavefront sensor at low strehl ratio</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Frazin</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1708.09044</idno>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">First light of the gemini planet imager</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Macintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Graham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Ingraham</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings of the National Academy of Sciences</title>
+		<imprint>
+			<biblScope unit="volume">111</biblScope>
+			<biblScope unit="issue">35</biblScope>
+			<biblScope unit="page" from="12661" to="12666" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<monogr>
+		<title level="m" type="main">Wide-field infrarred survey telescope-astrophysics focused telescope assets wfirst-afta 2015 report</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Spergel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Gehrels</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Baltay</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1503.03757</idno>
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">Coronagraph instrument for wfirst-afta</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">C</forename><surname>Noecker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Zhao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Demers</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Astronomical Telescopes, Instruments, and Systems</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="11001" to="011001" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Phase retrieval algorithms: a comparison</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Fienup</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Applied optics</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="issue">15</biblScope>
+			<biblScope unit="page" from="2758" to="2769" />
+			<date type="published" when="1982" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">Phase retrieval with application to optical imaging: a contemporary overview</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Shechtman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><forename type="middle">C</forename><surname>Eldar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Cohen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">IEEE signal processing magazine</title>
+		<imprint>
+			<biblScope unit="volume">32</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="87" to="109" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">Characterization of low-mass deformable mirrors and asic drivers for high-contrast imaging</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">M</forename><surname>Prada</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Yao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Wu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Techniques and Instrumentation for Detection of Exoplanets VIII, 10400, 1040011, International Society for Optics and Photonics</title>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">High-contrast imaging from space: speckle nulling in a lowaberration regime</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">J</forename><surname>Bordé</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">A</forename><surname>Traub</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">638</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">488</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">Pair-wise, deformable mirror, image plane-based diversity electric field estimation for high contrast coronagraphy</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Giveon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Kern</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Shaklan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proc. SPIE</title>
+		<meeting>SPIE</meeting>
+		<imprint>
+			<date type="published" when="2011" />
+			<biblScope unit="volume">8151</biblScope>
+			<biblScope unit="page">815110</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Recursive starlight and bias estimation for highcontrast imaging with an extended kalman filter</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">E</forename><surname>Riggs</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J</forename><surname>Kasdin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Groff</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Astronomical Telescopes, Instruments, and Systems</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="11017" to="011017" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">Kalman filtering techniques for focal plane electric field estimation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Groff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J</forename><surname>Kasdin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">JOSA A</title>
+		<imprint>
+			<biblScope unit="volume">30</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="128" to="139" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Broadband wavefront correction algorithm for highcontrast imaging systems</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Give&amp;apos;on</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Kern</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Shaklan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Astronomical Adaptive Optics Systems and Applications III, 6691, 66910A, International Society for Optics and Photonics</title>
+		<imprint>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Optimal dark hole generation via two deformable mirrors with stroke minimization</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Pueyo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Kay</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J</forename><surname>Kasdin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Applied optics</title>
+		<imprint>
+			<biblScope unit="volume">48</biblScope>
+			<biblScope unit="issue">32</biblScope>
+			<biblScope unit="page" from="6296" to="6312" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">Methods and limitations of focal plane sensing, estimation, and control in high-contrast imaging</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Groff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">E</forename><surname>Riggs</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Kern</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Astronomical Telescopes, Instruments, and Systems</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="11009" to="011009" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">Electric field conjugation in the presence of model uncertainty</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Marx</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B.-J</forename><surname>Seo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Kern</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Techniques and Instrumentation for Detection of Exoplanets VIII, 10400, 104000P, International Society for Optics and Photonics</title>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Phase retrieval implementation for the wfirst coronagraph development testbed</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Marx</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Kern</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Computational Optical Sensing and Imaging</title>
+		<imprint>
+			<publisher>Optical Society of America</publisher>
+			<date type="published" when="2016" />
+			<biblScope unit="page" from="4" to="4" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Coronagraphic phase diversity: a simple focal plane sensor for high-contrast imaging</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-F</forename><surname>Sauvage</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Mugnier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Paul</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Optics Letters</title>
+		<imprint>
+			<biblScope unit="volume">37</biblScope>
+			<biblScope unit="issue">23</biblScope>
+			<biblScope unit="page" from="4808" to="4810" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">Applications of algorithmic differentiation to phase retrieval algorithms</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">S</forename><surname>Jurling</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Fienup</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">JOSA A</title>
+		<imprint>
+			<biblScope unit="volume">31</biblScope>
+			<biblScope unit="issue">7</biblScope>
+			<biblScope unit="page" from="1348" to="1359" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">Machine learning for improved image-based wavefront sensing</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">W</forename><surname>Paine</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Fienup</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Optics letters</title>
+		<imprint>
+			<biblScope unit="volume">43</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="1235" to="1238" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Closing the contrast gap between testbed and model prediction with wfirst-cgi shaped pupil coronagraph</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Nemati</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Krist</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Space Telescopes and Instrumentation 2016: Optical, Infrared, and Millimeter Wave, 9904, 990419, International Society for Optics and Photonics</title>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">Improved high-contrast wavefront controllers for exoplanet coronagraphic imaging systems</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Sun</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J</forename><surname>Kasdin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Vanderbei</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Techniques and Instrumentation for Detection of Exoplanets VIII, 10400, 104000R, International Society for Optics and Photonics</title>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">Identification of the focal plane wavefront control system using em algorithm</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Sun</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J</forename><surname>Kasdin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Vanderbei</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Techniques and Instrumentation for Detection of Exoplanets VIII, 10400, 1040028, International Society for Optics and Photonics</title>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">Maximum likelihood from incomplete data via the em algorithm</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">P</forename><surname>Dempster</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">M</forename><surname>Laird</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">B</forename><surname>Rubin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the royal statistical society. Series B (methodological)</title>
+		<imprint>
+			<biblScope unit="page" from="1" to="38" />
+			<date type="published" when="1977" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<monogr>
+		<title level="m" type="main">Machine learning, a probabilistic perspective</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Murphy</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title level="a" type="main">Parameter estimation for linear dynamical systems</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Ghahramani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">E</forename><surname>Hinton</surname></persName>
+		</author>
+		<idno>CRG-TR-96-2</idno>
+	</analytic>
+	<monogr>
+		<title level="j">tech. rep</title>
+		<imprint>
+			<date type="published" when="1996" />
+		</imprint>
+		<respStmt>
+			<orgName>University of Totronto, Dept. of Computer Science</orgName>
+		</respStmt>
+	</monogr>
+<note type="report_type">Technical Report</note>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title level="a" type="main">Mastering the game of go with deep neural networks and tree search</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Silver</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Huang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">J</forename><surname>Maddison</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">529</biblScope>
+			<biblScope unit="issue">7587</biblScope>
+			<biblScope unit="page" from="484" to="489" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<monogr>
+		<title level="m" type="main">Playing atari with deep reinforcement learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Mnih</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Kavukcuoglu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Silver</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1312.5602</idno>
+		<imprint>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">Reinforcement learning in robotics: A survey</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Kober</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Bagnell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Peters</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The International Journal of Robotics Research</title>
+		<imprint>
+			<biblScope unit="volume">32</biblScope>
+			<biblScope unit="issue">11</biblScope>
+			<biblScope unit="page" from="1238" to="1274" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<monogr>
+		<title level="m" type="main">He received his B.S. degree in Engineering Mechanics and Economics from Peking University in 2014. His research interests include coronagraph design and adaptive optics for exoplanet imaging, optimal control and estimation, statistical learning, and robotics</title>
+		<imprint/>
+		<respStmt>
+			<orgName>He Sun is a PhD candidate of Mechanical and Aerospace Engineering at Princeton University</orgName>
+		</respStmt>
+	</monogr>
+	<note>He is a member of the American Astronomical Society and the SPIE</note>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title level="a" type="main">He is the Principal Investigator of Princeton&apos;s High Contrast Imaging Laboratory and Coronagraph Adjutant Scientist for WFIRST, the Wide Field InfraRed Survey Telescope. He received his Ph.D. from Stanford University in 1991. Professor Kasdin&apos;s research interests include space systems design, space optics and exoplanet imaging, orbital mechanics, guidance and control of space vehicles, optimal estimation, and stochastic process modeling</title>
+	</analytic>
+	<monogr>
+		<title level="m">He is an Associate Fellow of the American Institute of Aeronautics and Astronautics and member of the American Astronomical Society and the SPIE</title>
+		<imprint/>
+		<respStmt>
+			<orgName>N. Jeremy Kasdin is a Professor of Mechanical and Aerospace Engineering at Princeton University</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title level="a" type="main">He received his Ph.D. from Cornell University in 1981</title>
+	</analytic>
+	<monogr>
+		<title level="m">the Society for Applied and Industrial Mathematics (SIAM) and the Institute for Operations Research and the Management Sciences</title>
+		<imprint>
+			<publisher>INFORMS</publisher>
+		</imprint>
+		<respStmt>
+			<orgName>Robert Vanderbei is a Professor of Operations Research and Financial Engineering at Princeton University.</orgName>
+		</respStmt>
+	</monogr>
+	<note>He also holds courtesy appointments in the Department of Mathematics</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

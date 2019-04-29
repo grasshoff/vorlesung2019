@@ -1,0 +1,1238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2019-01-22T13:33+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Variational Inference as an alternative to MCMC for parameter estimation and model selection</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Anirudh</forename><surname>Jain</surname></persName>
+							<email>anirudhjain@am.ism.ac.in</email>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">K</forename><surname>Srijith</surname></persName>
+							<email>srijith@iith.ac.in</email>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Shantanu</forename><surname>Desai</surname></persName>
+						</author>
+						<author>
+							<affiliation key="aff0">
+								<orgName type="department" key="dep1">Dept. of Applied Mathematics</orgName>
+								<orgName type="department" key="dep2">Dept. of Computer Science and Engineering</orgName>
+								<orgName type="institution">IIT(ISM) Dhanbad</orgName>
+								<address>
+									<postCode>826004</postCode>
+									<settlement>Dhanbad</settlement>
+									<region>Jharkand</region>
+									<country key="IN">India</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<affiliation key="aff1">
+								<orgName type="department">Dept. of Physics, IIT Hyderabad</orgName>
+								<orgName type="institution">IIT Hyderabad</orgName>
+								<address>
+									<postCode>502285, 502285</postCode>
+									<settlement>Kandi, Kandi</settlement>
+									<region>Telangana, Telangana</region>
+									<country>India;, India</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Variational Inference as an alternative to MCMC for parameter estimation and model selection</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>methods: approximate bayesian inference -techniques: MCMC, Variational Inference</keywords>
+			</textClass>
+			<abstract>
+				<p>Most applications of Bayesian Inference for parameter estimation and model selection in astrophysics involve the use of Markov Chain Monte Carlo (MCMC) techniques. In this work, we introduce Variational Inference as an alternative to solve these problems, and compare how the results hold up to MCMC methods. Variational Inference converts the inference problem into an optimization problem by approximating the posterior from a known family of distributions and using Kullback-Leibler divergence to measure closeness. Variational Inference takes advantage of fast optimization techniques, which make it ideal to deal with large datasets and also makes it trivial to parallelize. As a proof of principle, we apply Variational Inference to four different problems in astrophysics, where MCMC techniques were previously used. These include measuring exoplanet orbital parameters from radial velocity data, tests of periodicities in measurements of Newton&apos;s constant G, assessing the significance of a turnover in the spectral lag data of GRB 160625B , and estimating the mass of a galaxy cluster using weak gravitational lensing. We find that Variational Inference is much faster than MCMC for these problems.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>Monte Carlo Markov Chains (MCMC) is the most common method for inference and for sampling multimodal probability distributions <ref type="bibr" target="#b14">(Hastings, 1970;</ref><ref type="bibr" target="#b13">Gelfand and Smith, 1990;</ref><ref type="bibr" target="#b18">Hogg and Foreman-Mackey, 2017;</ref><ref type="bibr" target="#b41">Sharma, 2017)</ref>. Following the increasing usage of Bayesian analysis in astronomy, MCMC techniques are now widely used (starting with <ref type="bibr" target="#b8">Christensen et al. 2001</ref>) for a variety of problems ranging from parameter estimation, model comparison, evaluating model goodness of fit, and forecasting for future experiments. This is because it is usually not possible to analytically calculate the multi-dimensional integrals needed for computing the Bayesian posteriors and numerical evaluation of these integrals can easily get intractable. Also, almost all numerical optimization techniques run into problems while maximizing the Bayesian posterior, when the number of free parameters is large. For this reason, there has been an unprecedented rise in the usage of MCMC techniques in astrophysics. However, MCMC techniques are not tied only to Bayesian methods. They have also been used in frequentist analysis, for sampling complex multi-dimensional likelihood needed for parameter estimation (for eg. ( <ref type="bibr" target="#b46">Wei et al., 2017)</ref>). That said, the ubiquity of MCMC methods in Astronomy has been driven by the increasing usage of Bayesian methods. Applications of MCMC to a whole slew of astrophysical problems has been recently reviewed in <ref type="bibr" target="#b41">Sharma (2017)</ref>. Although a large number of MCMC sampling methods have been used, the most widely used MCMC sampler in Astrophysics is Emcee (Foreman- <ref type="bibr" target="#b11">Mackey et al., 2013</ref>).</p><p>Although, MCMC has evolved into one of the most important tools for Bayesian inference <ref type="bibr" target="#b37">(Robert and Casella, 2011)</ref>, there are problems for which we cannot easily use this approach, especially in the case of large datasets or models with high dimensionality. Variational Inference ( <ref type="bibr" target="#b21">Jordan et al., 1999</ref>) provides a good alternative approach for approximate Bayesian inference and has been the subject of considerable research recently ( <ref type="bibr" target="#b4">Blei et al., 2017)</ref>. It provides an approximate posterior for Bayesian inference faster than simple MCMC by solving an optimization problem. <ref type="bibr" target="#b34">Ranganath et al. (2014)</ref> and <ref type="bibr" target="#b25">Kucukelbir et al. (2016)</ref> compare the convergence rates for Variational Inference against other sampling algorithms. They both show that Variational Inference convergences much faster in less number of iterations even when the MetropolisHastings algorithm doesn't converge. Furthermore, it is sometimes difficult to assess the convergence of MCMC <ref type="bibr" target="#b18">(Hogg and Foreman-Mackey, 2017)</ref>.</p><p>In this work, we introduce Variational inference and as proof of principle, demonstrate its usage as an alternative to MCMC in astronomy for some of the most widely used applications, such as parameter estimation and model comparison. We then apply Variational Inference to some problems from literature, where MCMC techniques have been applied before. Previously, this technique has been used in Astrophysics for estimating the uncertainties in parameters through Bayesian neural networks for the problem of Singular Isothermal Ellipsoid plus external shear and total flux magnification . Apart from MCMC, particle swarm optimization <ref type="bibr" target="#b33">(Prasad and Souradeep, 2012;</ref><ref type="bibr" target="#b45">Weerathunga and Mohanty, 2017)</ref> and Convolutional Neural networks ( <ref type="bibr" target="#b15">Hezaveh et al., 2017</ref>) have been recently used for parameter estimation in astrophysics.</p><p>The outline of this paper is as follows. In Section 2, we present a brief overview of Variational Inference and our implementation of it. In Sect. 3, we discuss a specific implementation of Variational Inference called Automatic Differentiation Variational Inference. In Section 4, we explain how Variational Inference can be used for parameter estimation and model comparison. Application to ancillary problems in astronomy are outlined in Sect. 5. We conclude in Sect. 6. For some of the applications, we also provide code snippets to help the reader run Variational Inference on their favorite problem. The code for all the analysis in this manuscript can also be found on a github link provided at the end of this manuscript.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Overview of Variational Inference</head><p>We first start with a brief primer on Bayesian modeling and parameter inference and then explain how Variational Inference can be applied to this. Bayes Theorem in general terms is given as,</p><formula xml:id="formula_0">p(θ|D) = p(D, θ) p(D) = p(D|θ)p(θ) p(D) ,<label>(1)</label></formula><p>where p(θ) is the prior belief on the parameter θ, p(D|θ) is known as the likelihood, which models the probability of observing the data D given θ. p(θ|D) called posterior probability, is the conditional probability of θ given D, which can be interpreted as the posterior belief over the parameters after evidence or data D is observed. p(D) is termed as the marginal likelihood or model evidence, which is obtained by integrating out θ from the numerator term in Eq. 1. All the conditional probabilities in Eq. 1 are implicitly conditioned on the model m. Hence the marginal likelihood p(D) provides the probability that the model m will generate the data irrespective of its parameter values and is a useful quantity for model selection.</p><p>Bayesian models treat the parameters as a random variable and impose prior knowledge about the parameter through the prior. Inference in the Bayesian model amounts to conditioning on the data and computing the posterior P (θ|D). This computation is intractable for models where the prior and likelihood take different functional forms (non-conjugates). In these cases, computation of the marginal likelihood is also intractable. The central idea behind Variational Inference is to solve an optimization problem by approximating the target probability density. The target probability density could be the Bayesian posterior or the likelihood from frequentist analysis. The first step is to propose a family of densities and then to find the member of that family, which is closest to the target probability density. Kullback-Leibler divergence is used as a measure of such proximity and has been introduced in <ref type="bibr" target="#b26">Kullback and Leibler (1951)</ref>. For this purpose, we then posit a family of approximate densities (variational distribution) Q. This is a set of densities over the parameters. Then, we try to find the member of that family q(θ) ∈ Q called the variational posterior that minimizes the Kullback-Leibler (KL) divergence to the exact posterior,</p><formula xml:id="formula_1">q * (θ) = arg min q(θ)∈Q KL(q(θ)||p(θ|D))<label>(2)</label></formula><p>The KL divergence is defined as,</p><formula xml:id="formula_2">KL(q(θ)||p(θ|D)) = E[log q(θ)] − E[log p(θ|D)],<label>(3)</label></formula><p>where all the expectations are with respect to q(θ). We can see in (4) that KL divergence depends on the posterior log p(θ|D) which is intractable to compute. We can expand the conditional using (1) and re-write KL divergence as,</p><formula xml:id="formula_3">KL(q(θ)||p(θ|D)) = E[log q(θ)] + E[log p(D)] − E[log p(D, θ)] = log p(D) + E[log q(θ)] − E[log p(D, θ)].<label>(4)</label></formula><p>The expected value of the log evidence with respect to the variational posterior is the log evidence term itself, and is independent of the variational distribution. Hence, minimizing the KL divergence term is equivalent to minimizing the second and third terms in (4). Equivalently, one could estimate the variational posterior by maximizing the variational lower bound (also known as evidence lower bound or ELBO ( <ref type="bibr" target="#b4">Blei et al., 2017)</ref>) with respect to q(θ).</p><formula xml:id="formula_4">ELBO(q(θ)) = E[log p(D, θ)] − E[log q(θ)]<label>(5)</label></formula><p>ELBO can be viewed as a lower bound to the evidence term by re-arranging terms in (4).</p><p>log p(D) = KL(q(θ)||p(θ|D)) + ELBO(q(θ)).</p><p>The KL divergence between any two distributions is a non-negative quantity and hence, log p(D) ≥ ELBO(q(θ)). Again, we can see that as the evidence term is independent of the variational distribution, maximizing ELBO will results in minimizing the KL divergence between the variational posterior and the actual posterior. Expanding the joint likelihood in (5), the variational lower bound can be rewritten as:</p><formula xml:id="formula_6">ELBO(q(θ)) = E[log p(D|θ)] − E[log q(θ)] + E[log p(θ)] = E[log p(D|θ)] − KL(q(θ)||p(θ)).<label>(7)</label></formula><p>The first term in <ref type="formula" target="#formula_6">(7)</ref>, which can be seen as the data fit term, will result in selecting a variational posterior, which maximizes the likelihood of observing the data. While the second term can be seen as the regularization term, which minimizes the KL divergence between the variational posterior and the prior. Thus, ELBO implicitly regularizes the selection of the variational posterior and trades-off likelihood and prior in arriving at a proper choice of the variational posterior. The log evidence term in (6) and hence the variational lower bound (ELBO) are implicitly conditioned on the hyper-parameters of the model. The hyper-parameters can be learned by maximizing the variational lower bound. Typically, the variational parameters and the hyper-parameters are learned alternatively by maximizing the variational lower bound. Variational Inference converts Bayesian inference into an optimization problem through the maximization of the variational lower bound. Hence, convergence is guaranteed in Variational Inference, as is the case of any optimization problem, to a local optimum and if the likelihood is log-concave then to a global optimum. On the other hand, there is no simple and reliable way to judge the convergence of MCMC <ref type="bibr" target="#b18">(Hogg and Foreman- Mackey, 2017)</ref>. Another important feature of Variational Inference is that it is trivial to parallelize. It can handle large datasets with ease without compromising on the model complexity with the use of stochastic variational inference <ref type="bibr" target="#b17">(Hoffman et al., 2013</ref>). In the case of some specific likelihoods and variational families, ELBO cannot be computed in closed form as the computations of required expectations are intractable. In these settings, either one resorts to model specific algorithms <ref type="bibr" target="#b19">(Jaakkola and Jordan, 1996;</ref><ref type="bibr" target="#b5">Blei and Lafferty, 2007;</ref><ref type="bibr" target="#b6">Braun and McAuliffe, 2010)</ref> or generic algorithms that require model specific calculations( <ref type="bibr" target="#b23">Knowles and Minka, 2011;</ref><ref type="bibr" target="#b44">Wang and Blei, 2013;</ref><ref type="bibr" target="#b30">Paisley et al., 2012)</ref>.</p><p>Recent advances in variational inference use "black box" techniques to avoid model specific lower bound calculations ( <ref type="bibr" target="#b34">Ranganath et al., 2014;</ref><ref type="bibr" target="#b22">Kingma and Welling, 2013;</ref><ref type="bibr" target="#b36">Rezende et al., 2014;</ref><ref type="bibr" target="#b38">Salimans and Knowles, 2014;</ref><ref type="bibr" target="#b42">Titsias and Lázaro-Gredilla, 2014</ref>). These ideas were leveraged to develop automatic differentiation variational inference techniques (ADVI) ( <ref type="bibr" target="#b25">Kucukelbir et al., 2016</ref>) that works on any model written in the probabilistic programming systems such as <ref type="bibr">Stan (Carpenter et al., 2016</ref>) or PyMC3 (Salvatier et al., 2016) 1 .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Automatic Differentiation Variational Inference</head><p>Variational inference algorithm requires model specific computations to obtain the variational lower bound. Typically, Variational Inference requires the manual calculation of a custom optimization objective by choosing a variational family relevant to the model, computing the objective function and its derivative, and running a gradient-based optimization. Automatic Differentiation variational Inference (ADVI) automates this by building a "black-box" variational inference technique, which takes a probabilistic model and a dataset as inputs and returns posterior inferences about the model's latent variables through the following approach.</p><p>• ADVI applies a transformation on the latent variables θ to obtain real-valued latent variables ζ, where ζ = T (θ). This ensures that all the latent variables lie on a real co-ordinate space, and allows ADVI to use the same variational family q(ζ; φ) (for e.g. Gaussian where q(ζ; φ) = N (ζ; µ, Σ)) on all the models. This transformation changes the variational lower bound and the joint likelihood </p><formula xml:id="formula_7">p(D, θ) is written in terms of ζ as p(D, ζ) = p(D, T −1 (ζ))|J T −1 (ζ)|,</formula><formula xml:id="formula_8">ELBO(q(ζ; φ)) = E q(ζ;φ) [log p(D, T −1 (ζ)) + log|J T −1 (ζ)|] − E q(ζ;φ) (log q(ζ; φ))<label>(8)</label></formula><p>• The variational objective (ELBO) as a function of the variational parameters φ (for instance mean µ and covariance Σ of a Gaussian) can be optimized using gradient ascent. However, one cannot apply automatic differentiation directly on the ELBO due to unknown expectation. To push the gradients inside the expectation, ADVI applies elliptical standardization. Consider a transformation S φ , which absorbs the variational parameters φ and converts the non-standard Gaussian ζ into a standard Gaussian η, η = S φ (ζ). For instance, η = L −1 (ζ − µ), where L is the Cholesky factor for the covariance Σ. The expectation in the variational lower bound can be written in terms of the standard Gaussian q(η) = N (η; 0, I) and the variational lower bound becomes:</p><formula xml:id="formula_9">ELBO(q(ζ; φ)) = E N (η;0,I) [log p(D, T −1 (S −1 φ (η))) + log |J T −1 (S −1 φ (η))|] − E N (η;0,I) (log q(ζ; φ)) (9)</formula><p>• The variational lower bound 9 has expectations independent of φ, and hence the gradient of ELBO with respect to φ can be calculated by pushing the gradient inside the expectations. For instance , the gradient with respect to the mean parameter µ is,</p><formula xml:id="formula_10">µ ELBO(q(ζ; φ)) = E N (η;0,I) [ θ log p(D, θ) ζ T −1 (ζ) + ζ log|J T −1 (ζ)].<label>(10)</label></formula><p>The gradients inside the expectations are computed using automatic differentiation while the expectation with respect to the standard Gaussian is computed using Monte Carlo sampling.</p><p>These transformations allow ADVI to automatically calculate gradients and use gradient ascent methods, which are guaranteed to converge to a local minimum. ADVI requires the model to be differentiable with respect to all the latent variables which is generally true for most the Astrophysical problems.</p><p>1 We have used the ADVI implementation in PyMC3 for our case studies</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Parameter Estimation and Model Selection</head><p>Once we have approximated the posterior (or the likelihood in case of frequentist parameter estimation), we can draw samples from the variational posterior over the parameters. We estimate the parameters using the mean of these samples for each of the priors. In certain cases, we consider the variational distribution family parameterized by mean, and we learn the variational posterior by maximizing the variational lower bound with respect to the mean. In these cases, we can directly make use of the mean rather than sampling from the variational posterior. We can obtain confidence/credible intervals at a given confidence level for parameters by defining the intervals as standard deviations from the mean of variational posterior <ref type="bibr" target="#b20">(Jaakkola and Jordan, 2000</ref>). The PyMC3 library provides methods to sample from the variational posterior and also provides the mean values of parameters.</p><p>A major challenge in statistical modeling is choosing a proper model, which generates the observations. In a Bayesian setting, one could use a posterior probability over the models in choosing the right model. Consider two models M 1 and M 2 with a prior probability over them denoted by p(M 1 ) and p(M 2 ). The probability of these models generating the observations irrespective of the parameter values is given by the evidence (marginal likelihood) p(D | M 1 ) and p(D | M 2 ). Combining the prior and the likelihood, one could obtain the posterior over the models p(M 1 | D) and p(M 2 | D).</p><p>As seen before the evidence term is computed by evaluating the integral over the parameter likelihood and prior:</p><formula xml:id="formula_11">p(D | M ) = p(D | θ, M )p(θ | M )dθ</formula><p>This is independent of θ and represents a normalization constant associated with the posterior. The evidence term provides the probability of generating the data by some model M . It implicitly penalizes models with high complexity through the Bayesian Occam's Razor (Murphy, 2013). Complex models (models with large number of parameters) will be able to generate a wider set of observations but with a lower probability for each set of observation, since p(D | M ) over observation sets should sum to 1. While simpler models will be able to generate only a fewer set of observations with a higher probability to each set of observations. For given set of observations D, one could choose an appropriate model based on the complexity involved in generating D. If D is simple, we will choose a simple model. Simple models will be able to provide high likelihood values p(D | θ, M ) for a large number of parameter values θ and the prior value p(θ | M ) also takes higher values as the parameter space is small. When the model complexity increases the prior over the parameters p(θ | M ) take a lower value. Also, a complex model will give a high likelihood value only for few parameter values. For a large number of parameter values, it will not be able to model simple data sets. The evidence term p(D | M ) is intractable for non-conjugate cases, and variational inference provides a lower bound to the evidence term, ELBO, which can act as a proxy to the evidence. Even when we can calculate the evidence term, for even slightly complex models the integration becomes difficult to solve as we increase the dimensionality of the parameter space. We often have to resort to approximations to the evidence in order to perform model selection. Variational Inference provides us with the ELBO term in its optimization step and as seen in Equation 6, it is directly related to the evidence term. In our model selection problems, we consider this lower bound approximation to the evidence term obtained using the variational inference approach. The validity for ELBO to be used as selection criterion is explored for mixture models in <ref type="bibr" target="#b43">Ueda and Ghahramani (2002)</ref>; <ref type="bibr" target="#b28">McGrory and Titterington (2007)</ref> and in general by <ref type="bibr" target="#b3">Bernardo et al. (2003)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Examples</head><p>As a proof of principle, we now apply ADVI to four different problems from astronomy, particle astrophysics, or gravitation, where MCMC techniques were previously used. We also compare the computational costs using Variational Inference over MCMC. In future works, we shall also apply this technique to cosmological parameter estimation by replacing the MCMC engine of parameter estimation pipelines such as CosmoMC ( <ref type="bibr" target="#b27">Lewis and Bridle, 2002</ref>) and CosmoSIS ( <ref type="bibr" target="#b47">Zuntz et al., 2015</ref>) with ADVI. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1.">Exoplanet Discovery Using Radial Velocity Data</head><p>Our first example is related to exoplanets. The presence of a planet or a companion star results in temporal variations in the radial velocity of the host star. By analyzing the radial velocity data, one can draw inferences about the ratio of masses between the host and the companion, and orbital parameters like the period and eccentricity. For this purpose, a MCMC package has been designed called Exofit (Balan and Lahav, 2009), which enables the retrieval of the orbital parameters of exoplanets from radial velocity measurements. We now apply the ADVI techniques mentioned earlier to this problem.</p><p>The first step involves defining a model and imposing priors on the latent variables. We follow the model defined in Section 2.2 of <ref type="bibr" target="#b1">Balan and Lahav (2009)</ref>. The equations used for the analysis are now discussed. The radial velocity of a star of mass M in a binary system with companion of mass m in an orbit with time period T , inclination I and eccentricity e is given by:</p><formula xml:id="formula_12">v(t) = k[cos(f + ω) + e cos ω] + v 0 ,<label>(11)</label></formula><p>where</p><formula xml:id="formula_13">k = (2πG) 1/3 m sin I T 1/3 (M + m) 2/3 √ 1 − e 2 .<label>(12)</label></formula><p>In Eqs 11 and 12, v 0 is the mean velocity of the center of mass of the binary system, T is the orbital period of the planet, and ω is the angle of the pericenter measured from the ascending point. If d i is the observed radial velocity data, the likelihood function is given by (Balan and Lahav, 2009):</p><formula xml:id="formula_14">P (D|θ, M ) = A exp N i=1 (d i − v i ) 2 2(σ 2 i + s 2 ) ,<label>(13)</label></formula><p>where</p><formula xml:id="formula_15">A = (2π) −N/2 N i=1 (σ 2 i + s 2 ) −1/2 .</formula><p>Here, s is an additional systematic term, which is estimated by maximizing the likelihood of Eq. 13. The choice of priors for each of the above parameters can be found in The code snippet for its implementation in PyMC3 is shown below: Now we can use ADVI to fit the model to our observations and generate parameter estimates similar to MCMC traces generated by Exofit.</p><p>with model: params = pm.fit(n=50000,method='advi') trace = pm.sample_approx(params)</p><p>The data for this purpose has been obtained from <ref type="bibr" target="#b41">Sharma (2017)</ref>. We find that Variational Inference converges to a solution within the acceptable ranges of accuracy in about 15 seconds, while MetropolisHastings MCMC algorithms takes around 1.5 minutes and this time difference increases exponentially, as we add more data or increase the model complexity. The results and approximated posterior are shown in <ref type="figure" target="#fig_1">Fig. 1</ref> and agree with the corresponding results from <ref type="bibr" target="#b41">Sharma (2017)</ref>. (cf. <ref type="figure">Figure 8</ref> of Sharma (2017).)</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2.">Testing the Periodic G Claim</head><p>Anderson et al. <ref type="formula" target="#formula_0">(2015)</ref> have argued for a periodicity of 5.9 years in the CODATA measurements of Newton's gravitational constant G, which also show strong correlations with similar variations in the length of the day. These results have been disputed by Pitkin (2015) using Bayesian inference as well as by <ref type="bibr" target="#b9">Desai (2016)</ref> using frequentist analysis, who argued that the data for G can be explained without invoking any sinusoidal modulations. <ref type="bibr" target="#b32">Pitkin (2015)</ref> tested this claim by performing Bayesian model selection using samples generated from MCMC and found from the Bayesian Odds ratio that the data favored a constant value of G with some extra noise over a periodic modulation of G by a factor of e 30 . We performed model selection using ADVI and PyMC3 on the data provided by <ref type="bibr" target="#b32">Pitkin (2015)</ref> to compare the accuracy of Variational Inference approach.</p><p>We compute the Bayesian evidence for all the four hypotheses considered by Pitkin using the same notation as in Pitkin <ref type="formula" target="#formula_0">(2015)</ref> and compare them as follows:</p><p>1. H 1 -the data variation can be described by Gaussian noise given by the experimental errors and an unknown offset;</p><p>2. H 2 -the data variation can be described by Gaussian noise given by the experimental errors, an unknown offset and an unknown systematic noise term;</p><p>3. H 3 -the data variation can be described by Gaussian noise given by the experimental errors, and unknown offset, and a sinusoid with unknown period, phase and amplitude 4. H 4 -the data variation can be described by Gaussian noise given by the experimental errors, an unknown offset, an unknown systematic noise term, and a sinusoid with unknown period, phase and amplitude</p><p>The general model used is</p><formula xml:id="formula_16">m i (A, P, φ 0 , T i , t 0 ) = A sin (φ 0 + 2π(T i − t 0 )/P ) + µ G</formula><p>where A is the sinusoid amplitude, P is the period, φ 0 is the initial phase, t 0 is the initial epoch and µ G is an overall offset. The details of the model and assumptions can be found in <ref type="bibr" target="#b32">Pitkin (2015)</ref>. We have assumed a Gaussian likelihood and uniform prior for all the parameters. Following the model defined by <ref type="bibr" target="#b32">Pitkin (2015)</ref>, we perform model selection using the ELBO calculated during the optimization step in Variational Inference.</p><p>Our results can be found in <ref type="table">Table 2</ref> and also favor H2 over H3.</p><formula xml:id="formula_17">H i ELBO H 1 232.2 H 2 364.6 H 3</formula><p>238.9 H 4 362.5 <ref type="table">Table 2</ref>: ELBO values for the four hypotheses (i represents rows and j represents columns) computed using Variational inference. This result hugely favors H 2 but disagrees over the relative evidence between H 3 and H 4 ).</p><p>Following the model defined by <ref type="bibr" target="#b32">Pitkin (2015)</ref>, we perform model selection using the ELBO calculated during the optimization step in Variational Inference. Our results can be found in <ref type="table">Table 2</ref>. 5.3. Statistical significance of spectral lag transition in GRB 160625B <ref type="bibr" target="#b46">Wei et al. (2017)</ref> have detected a spectral lag transition in the spectral lag data of GRB 1606025B, which they have argued could caused by violation of Lorentz invariance (LIV). <ref type="bibr" target="#b12">Ganguly and Desai (2017)</ref> perform a frequentist model comparison test to ascertain the statistical significance of this claim for a transition from positive to negative time lags and showed the significance of this detection is about 3σ to 4σ, depending on the specific model used for LIV.</p><p>For this analysis, <ref type="bibr" target="#b46">Wei et al. (2017)</ref> have fit these observed lags to a sum of two components: an assumed functional form for the intrinsic time lag due to astrophysical mechanisms and an energy-dependent speed of light due to quadratic and linear LIV models (See Eqns. 2 and 5 of <ref type="bibr" target="#b46">Wei et al. (2017)</ref>). Using the same equations, we first carry out parameter estimation using Variational Inference and our best-fit model can be found in <ref type="figure" target="#fig_4">Fig. 2</ref>. Again, a Gaussian likelihood and uniform prior was used for this analysis. Furthermore, we complement the studies in <ref type="bibr" target="#b46">Wei et al. (2017)</ref>; <ref type="bibr" target="#b12">Ganguly and Desai (2017)</ref> by performing Bayesian model selection using ADVI by fitting a variational family on each of the three models, and use the ELBO calculated in the optimization step of Variational Inference to perform model selection as defined in Section 4. The confidence intervals for our parameters can be found in <ref type="figure" target="#fig_4">Fig. 2</ref>. The ELBO values (cf.   </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.4.">Estimating the mass of a galaxy cluster with weak lensing</head><p>The propagation of light is affected by the gravitational field it passes through along its way from the observer. This effect is called gravitational lensing ( <ref type="bibr" target="#b40">Schneider et al., 1992</ref>). Usually, we can only measure the distortion in the image of an object compared to its true intrinsic shape and is usually known as weak lensing. <ref type="bibr" target="#b16">Hoekstra et al. (2013)</ref> outline how the mass of galaxy clusters can be obtained using weak lensing as well as the use of MCMC to estimate parameters of the virial mass log 10 M 200 and the concentration parameter c. Variational Inference and Metropolis-Hastings MCMC were used to calculate the parameters for a test dataset. The dataset was downloaded from this url:http://www.usm.uni-muenchen. de/people/jweller/Teaching/Numprak/Lensingprofile/halo5.tab. This catalog has been randomly sampled from the shear map of a simulated galaxy cluster from simulations done in <ref type="bibr" target="#b2">Becker and Kravtsov (2011)</ref>, who used mock galaxy clusters from cosmological simulations to study the bias and scatter in mass measurements of clusters. These simulations were created using an Adaptive Refinement Tree ( <ref type="bibr" target="#b24">Kravtsov et al., 1997</ref>) and using cosmological parameters from WMAP7 cosmological results. More details on these simulations and the identification of galaxy cluster halos can be found in <ref type="bibr" target="#b2">Becker and Kravtsov (2011)</ref>. A corresponding cookbook for computing the cluster masses using MCMC has also been made available at https://owncloud.physik.uni-muenchen.de/index.php/s/NqqGb1OslXEIy80#pdfviewer, wherein more details of the equations used can be used, and which we use for reconstructing the mass and concentration parameter. We have used a Gaussian likelihood and uniform priors.</p><p>As seen from the earlier examples, Variational Inference is a faster alternative to MCMC and it also accounts for the intrinsic error by adding a random noise term to the model. For this example, while Metropolis-Hastings MCMC (using a single core) required more than eleven hours to converge, Variational Inference obtained similar results in about fifteen minutes. Since sampling from the chosen variational family requires constant time, we could then sample parameters easily for the given data. The parameter estimates for the galaxy cluster mass can be found in <ref type="figure" target="#fig_5">Fig. 3</ref>. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">Conclusions</head><p>In this work, we have introduced Variational Inference, and outlined how it can be used for Bayesian and frequentist parameter estimation by maximizing the posterior/frequentist likelihood. We have also explained how this method can be used to compute the Bayesian evidence, which is needed for Bayesian model comparison. Variational Inference has a strong theoretical foundation and with the rise of probabilistic programming frameworks such as PyMC3 and the development of generic Variational Inference methods such as Automatic Differentiable Variational Inference (ADVI), it presents a viable alternative to sampling based approaches such as MCMC. Although the usage of MCMC is ubiquitous for a variety of problems in astrophysics, Variational Inference has not received much attention in the astrophysics community.</p><p>As a proof of principle, we apply ADVI to four problems in astrophysics and gravitation from literature involving parameter estimation or model comparison. We also describe its implementation using PYMC3 and provide code snippets for some of the examples. These include determination of orbital parameters from exoplanet radial velocity data, tests of periodicities in the measurements of G, looking for a turnover in spectral lag data from GRB 160625B, and in determination of galaxy cluster mass using weak lensing. Our results are comparable to the same obtained using MCMC.</p><p>The results obtained for both the parameter estimation problem and model selection problem were comparable with the MCMC results. Furthermore, in all cases, we obtained significant speedup when compared with Metropolis-Hasting sampler. This is especially important when dealing with large datasets and highly complex models as the time required for convergence in MCMC approach grows exponentially, while Variational Inference reduces the problem to an optimization problem, which performs very well in these conditions. The Markov Chains guarantee producing (asymptotically) exact samples from the target density, but they do not deal well with large datasets. Furthermore, it is not easy to gauge convergence of MCMC <ref type="bibr" target="#b18">(Hogg and Foreman-Mackey, 2017)</ref>. Variational Inference provides a viable alternative to MCMC sampling by being significantly faster and given the proper choice of priors, only sacrificing slightly in accuracy. The Variational Inference algorithm is sensitive to the choice of priors and they can be treated like another hyperparameter.</p><p>These four examples of parameter estimation/model comparison from different domains of astrophysics provide proof of principles demonstration of application of Variational Inference, for which MCMC techniques were previously used. In future works, we shall apply Variational Inference to cosmological parameter estimation. The code for all the examples given here is available at https://gist.github.com/sponde25.</p><p>Note Added: After this work was completed and when the manuscript was in preparation, another recent work on application of Variational Inference to astronomy has been submitted to arXiv <ref type="bibr" target="#b35">(Regier et al., 2018)</ref>. In this work, both MCMC and Variational Inference has been applied to construct catalogs from imaging data using Bayesian inference and by calculating the posterior. The authors find that Variational Inference is much faster than MCMC, but MCMC better quantifies uncertainty.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head></head><label></label><figDesc>where | · | represents the determinant. Here, J T −1 (ζ) is the Jacobian of the inverse of the transformation T . The variational lower bound takes the following form under this transformation.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Left: Radial velocity as a function of time for a star in a binary system. The orange line is the best fit obtained using ADVI and the green line is obtained from Metropolis MCMC. Right: The posterior probability distribution of parameters obtained using ADVI. The corresponding plots for the same data using MCMC can be found in Fig. 8 of Sharma (2017).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>with pm.</head><label></label><figDesc>Model() as model: K_mu = np.ptp(rv) / 2 -2 * rv_err.mean() log_K = pm.Normal('log_K', mu=np.log(K_mu), sd=0.2) def jefferys(val,tmin = 0.2, tmax = 15000): return -tt.log( val * tt.log(tmax/tmin)) P = pm.DensityDist('P',jefferys,testval=350.) def length_logp(x): return pm.Normal.dist(mu=0, sd=0.1).logp(0.5 * tt.log(tt.sum(x ** 2))) phi_vec = pm.DensityDist('phi_vec', length_logp, shape=2, testval=[1., 1.]) phi = pm.Deterministic('phi', tt.arctan2(phi_vec[0], phi_vec[1])) e = pm.Beta('e', alpha=1, beta=20, testval=0.01) w_vec = pm.DensityDist('w_vec', length_logp, shape=2, testval=[1., 1.]) w_vec = w_vec / tt.sqrt((w_vec ** 2).sum()) w = pm.Deterministic('w', tt.arctan2(w_vec[1], w_vec[0])) rv0 = pm.Normal('rv0', mu=rv.mean(), sd=2) rv_trend = pm.Normal('rv_trend', mu=0, sd=3) n = 2 * np.pi / P K = pm.Deterministic('K',tt.exp(log_K)) t0 = pm.Deterministic('t0', (phi + w) / n) M = n * t -(phi + w) E = Kepler()(M, e) f = 2 * tt.arctan2(tt.sqrt(1 + e) * tt.tan(0.5 * E), tt.sqrt(1 -e)) trend = rv0 + rv_trend * t / 365.25 mod = trend + K * (w_vec[0] * (tt.cos(f) + e) -w_vec[1] * tt.sin(f)) jitter = pm.HalfNormal('jitter', sd=0.01) err_scale = pm.HalfNormal('err_scale', sd=1) sd = tt.sqrt((err_scale * rv_err) ** 2 + jitter ** 2) pm.Normal('y', mu=mod, sd=sd, observed=rv)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>with pm.</head><label></label><figDesc>Model() as hyp_1: muG = pm.Uniform('muG', lower=muGmin, upper=muGmax) y,sigma_y,time = data mu = [muG] * len(y) y_obs = pm.Normal('y_obs',mu=mu,sd=sigma_y,observed=y) approx1 = pm.fit(n=100000,method='advi') trace1 = pm.sample_approx(approx1) elbo_1 = -approx1.hist[-1] with pm.Model() as hyp_2: muG = pm.Uniform('muG', lower=muGmin, upper=muGmax) sigmasys = pm.Uniform('sigmasys',lower=sigmasysmin,upper=sigmasysmax) mu = [muG]*len(y) y,sigma_y,time = data sd = np.sqrt(sigma_y**2 + sigmasys**2) y_obs = pm.Normal('y_obs',mu=mu,sd=sd,observed=y) approx2 = pm.fit(n=100000,method='advi') trace2 = pm.sample_approx(approx2) elbo_2 = -approx2.hist[-1] with pm.Model() as hyp_3: y,sigma_y,time = data muG = pm.Uniform('muG', lower=muGmin, upper=muGmax) A = pm.Uniform('A', lower=Amin,upper=Amax) P = 5.90 phi = 0 mu = muG + A * np.sin(phi + 2 * np.pi * time / P) y_obs = pm.Normal('y_obs',mu=mu,sd=sigma_y,observed=y) approx3 = pm.fit(n=100000,method='advi') trace3 = pm.sample_approx(approx3) elbo_3 = -approx3.hist[-1] with pm.Model() as hyp_4: y,sigma_y,time = data muG = pm.Uniform('muG', lower=muGmin, upper=muGmax) sigmasys = pm.Uniform('sigmasys',lower=sigmasysmin,upper=sigmasysmax) A = pm.Uniform('A', lower=Amin,upper=Amax) P = 5.90 phi = 0 mu = muG + A * np.sin(phi + 2 * np.pi * time / P) sd = np.sqrt(sigma_y**2 + sigmasys**2) y_obs = pm.Normal('y_obs',mu=mu,sd=sd,observed=y) approx4 = pm.fit(n=100000,method='advi') trace4 = pm.sample_approx(approx4) elbo_4 = -approx4.hist[-1]</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: Left: Marginalized parameter constraints of the linear (n = 1) LIV fit for the spectral lag energy data Right: Marginalized parameter constraints of the linear (n = 2) LIV fit for the spectral lag energy data. Both plots were generated using the corner.py module Foreman-Mackey (2016). The corresponding parameter constraints obtained using MCMC can be found in Figs.3 and 4 from Wei et al. (2017).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Figure 3 :</head><label>3</label><figDesc>Figure 3: Parameter estimates using Variational Inference for estimating the mass and concentration parameter of a simulated galaxy cluster with weak lensing along, with confidence intervals, generated using Corner python module.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" validated="false"><head>Table 1 .</head><label>1</label><figDesc>PyMC3 allows us to easily place these priors on model variables and define our model.</figDesc><table>Parameter 
+
+Priors 
+T (days) 
+Jeffery's 
+k(ms −1 ) 
+Mod. Jeffery's 
+V (ms −1 ) 
+Uniform 
+e 
+Uniform 
+ω 
+Uniform 
+s(ms −1 ) 
+Mod. Jeffery's 
+
+Table 1: The assumed prior distribution of various parameters and their boundaries. It is similar to choice of priors given by 
+Balan and Lahav (2009). 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" validated="false"><head>Table 3 )</head><label>3</label><figDesc></figDesc><table>also 
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" validated="false"><head>Table 3 : ELBO values for n=1 LIV model, n=2 LIV model, and the null hypothesis (no LIV).</head><label>3</label><figDesc></figDesc><table></table></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Acknowledgments</head><p>Anirudh Jain was supported by the Microsoft summer internship program at IIT Hyderabad. We would like to thank Daniel Gruen, Soumya Mohanty, Sanjib Sharma, and Jochen Weller for useful correspondence.</p></div>
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">Measurements of Newton&apos;s gravitational constant and the length of day</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Anderson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Schubert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Trimble</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Feldman</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1209/0295-5075/110/10002</idno>
+		<idno type="arXiv">arXiv:1504.06604</idno>
+	</analytic>
+	<monogr>
+		<title level="j">EPL</title>
+		<imprint>
+			<biblScope unit="volume">110</biblScope>
+			<biblScope unit="page">10002</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">Exofit: orbital parameters of extrasolar planets from radial velocities</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">T</forename><surname>Balan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Lahav</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Monthly Notices of the Royal Astronomical Society</title>
+		<imprint>
+			<biblScope unit="volume">394</biblScope>
+			<biblScope unit="page" from="1936" to="1944" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">On the Accuracy of Weak-lensing Cluster Mass Reconstructions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Becker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">V</forename><surname>Kravtsov</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1011.1681</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">740</biblScope>
+			<biblScope unit="page">25</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">The variational bayesian em algorithm for incomplete data: with application to scoring graphical model structures</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Bernardo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Bayarri</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Berger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Dawid</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Heckerman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Smith</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>West</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Bayesian statistics</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="page" from="453" to="464" />
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Variational inference: A review for statisticians</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Blei</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Kucukelbir</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Mcauliffe</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the American Statistical Association</title>
+		<imprint>
+			<biblScope unit="volume">112</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">A correlated topic model of science</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Blei</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Lafferty</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Annals of Applied Statistics</title>
+		<imprint>
+			<biblScope unit="page" from="17" to="35" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Variational inference for large-scale models of discrete choice</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Braun</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Mcauliffe</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the American Statistical Association</title>
+		<imprint>
+			<biblScope unit="volume">105</biblScope>
+			<biblScope unit="page" from="324" to="335" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">Stan: A probabilistic programming language</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Carpenter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gelman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Hoffman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Goodrich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Betancourt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Brubaker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Guo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Riddell</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Statistical Software</title>
+		<imprint>
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="page" from="1" to="37" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">Bayesian methods for cosmological parameter estimation from cosmic microwave background measurements</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Christensen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Meyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Knox</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Luey</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1088/0264-9381/18/14/306</idno>
+		<idno type="arXiv">arXiv:astro-ph/0103134</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Classical and Quantum Gravity</title>
+		<imprint>
+			<biblScope unit="volume">18</biblScope>
+			<biblScope unit="page" from="2677" to="2688" />
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Frequentist model comparison tests of sinusoidal variations in measurements of Newton&apos;s gravitational constant</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Desai</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1209/0295-5075/115/20006</idno>
+		<idno type="arXiv">arXiv:1607.03845</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Europhysics Letters)</title>
+		<imprint>
+			<biblScope unit="volume">115</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+	<note>EPL</note>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">corner.py: Scatterplot matrices in python</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<idno type="doi">10.5281/zenodo.45906</idno>
+		<idno>doi:10.21105/joss.00024</idno>
+		<ptr target="http://dx.doi.org/10.5281/zenodo.45906" />
+	</analytic>
+	<monogr>
+		<title level="j">The Journal of Open Source Software</title>
+		<imprint>
+			<biblScope unit="volume">24</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<monogr>
+		<title level="m" type="main">emcee: The mcmc hammer. Publications of the Astronomical Society of the Pacific 125</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Goodman</surname></persName>
+		</author>
+		<ptr target="http://stacks.iop.org/1538-3873/125/i=925/a=306" />
+		<imprint>
+			<date type="published" when="2013" />
+			<biblScope unit="volume">306</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">Statistical significance of spectral lag transition in GRB 160625B</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Ganguly</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Desai</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1016/j.astropartphys.2017.07.003</idno>
+		<idno type="arXiv">arXiv:1706.01202</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Astroparticle Physics</title>
+		<imprint>
+			<biblScope unit="volume">94</biblScope>
+			<biblScope unit="page" from="17" to="21" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">Sampling-based approaches to calculating marginal densities</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">E</forename><surname>Gelfand</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">F</forename><surname>Smith</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the American statistical association</title>
+		<imprint>
+			<biblScope unit="volume">85</biblScope>
+			<biblScope unit="page" from="398" to="409" />
+			<date type="published" when="1990" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Monte carlo sampling methods using markov chains and their applications</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">K</forename><surname>Hastings</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Biometrika</title>
+		<imprint>
+			<biblScope unit="volume">57</biblScope>
+			<biblScope unit="page" from="97" to="109" />
+			<date type="published" when="1970" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">Fast Automated Analysis of Strong Gravitational Lenses with Convolutional Neural Networks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><forename type="middle">D</forename><surname>Hezaveh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Perreault Levasseur</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">J</forename><surname>Marshall</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1038/nature23463</idno>
+		<idno type="arXiv">arXiv:1708.08842</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">548</biblScope>
+			<biblScope unit="page" from="555" to="557" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Masses of galaxy clusters from gravitational lensing</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Hoekstra</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Bartelmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Dahle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Israel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Limousin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Meneghetti</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1007/s11214-013-9978-5</idno>
+		<idno type="arXiv">arXiv:1303.3274</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Space Sci. Rev</title>
+		<imprint>
+			<biblScope unit="volume">177</biblScope>
+			<biblScope unit="page" from="75" to="118" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Stochastic variational inference</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D</forename><surname>Hoffman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Blei</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Paisley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Journal of Machine Learning Research</title>
+		<imprint>
+			<biblScope unit="volume">14</biblScope>
+			<biblScope unit="page" from="1303" to="1347" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<monogr>
+		<title level="m" type="main">Data analysis recipes: Using Markov Chain Monte Carlo</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1710.06068</idno>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+<note type="report_type">ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">Computing upper and lower bounds on likelihoods in intractable networks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">S</forename><surname>Jaakkola</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">I</forename><surname>Jordan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the Twelfth international conference on Uncertainty in artificial intelligence</title>
+		<meeting>the Twelfth international conference on Uncertainty in artificial intelligence</meeting>
+		<imprint>
+			<publisher>Morgan Kaufmann Publishers Inc</publisher>
+			<date type="published" when="1996" />
+			<biblScope unit="page" from="340" to="348" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Bayesian parameter estimation via variational methods</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">S</forename><surname>Jaakkola</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">I</forename><surname>Jordan</surname></persName>
+		</author>
+		<idno type="doi">10.1023/A:1008932416310</idno>
+		<idno>doi:10.1023/A:1008932416310</idno>
+		<ptr target="https://doi.org/10.1023/A:1008932416310" />
+	</analytic>
+	<monogr>
+		<title level="j">Statistics and Computing</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="page" from="25" to="37" />
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">An introduction to variational methods for graphical models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">I</forename><surname>Jordan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Ghahramani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">S</forename><surname>Jaakkola</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">K</forename><surname>Saul</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Machine learning</title>
+		<imprint>
+			<biblScope unit="volume">37</biblScope>
+			<biblScope unit="page" from="183" to="233" />
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<monogr>
+		<title level="m" type="main">Auto-encoding variational bayes</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">P</forename><surname>Kingma</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Welling</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1312.6114</idno>
+		<imprint>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">Non-conjugate variational message passing for multinomial and binary regression</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Knowles</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Minka</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="2011" />
+			<biblScope unit="page" from="1701" to="1709" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Adaptive Refinement Tree: A New High-Resolution N-Body Code for Cosmological Simulations</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">V</forename><surname>Kravtsov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">A</forename><surname>Klypin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">M</forename><surname>Khokhlov</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1086/313015</idno>
+		<idno type="arXiv">arXiv:astro-ph/9701195</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">111</biblScope>
+			<biblScope unit="page" from="73" to="94" />
+			<date type="published" when="1997" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<monogr>
+		<title level="m" type="main">Automatic differentiation variational inference</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Kucukelbir</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Tran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ranganath</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gelman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Blei</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1603.00788</idno>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">On information and sufficiency</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Kullback</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Leibler</surname></persName>
+		</author>
+		<idno type="doi">10.1214/aoms/1177729694</idno>
+		<idno>doi:10.1214/aoms/1177729694</idno>
+		<ptr target="https://doi.org/10.1214/aoms/1177729694" />
+	</analytic>
+	<monogr>
+		<title level="j">Ann. Math. Statist</title>
+		<imprint>
+			<biblScope unit="volume">22</biblScope>
+			<biblScope unit="page" from="79" to="86" />
+			<date type="published" when="1951" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">Cosmological parameters from CMB and other data: A Monte Carlo approach</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Lewis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Bridle</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1103/PhysRevD.66.103511</idno>
+		<idno type="arXiv">arXiv:astro-ph/0205436</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Phys. Rev</title>
+		<imprint>
+			<biblScope unit="volume">66</biblScope>
+			<biblScope unit="page">103511</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">Variational approximations in bayesian model selection for finite mixture distributions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">A</forename><surname>Mcgrory</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Titterington</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Computational Statistics &amp; Data Analysis</title>
+		<imprint>
+			<biblScope unit="volume">51</biblScope>
+			<biblScope unit="page" from="5352" to="5367" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<monogr>
+		<title level="m" type="main">Machine learning : a probabilistic perspective</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">P</forename><surname>Murphy</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2013" />
+			<publisher>MIT Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<monogr>
+		<title level="m" type="main">Variational bayesian inference with stochastic search</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Paisley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Blei</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Jordan</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1206.6430</idno>
+		<imprint>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title level="a" type="main">Uncertainties in Parameters Estimated with Neural Networks: Application to Strong Gravitational Lensing</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Perreault Levasseur</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><forename type="middle">D</forename><surname>Hezaveh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">H</forename><surname>Wechsler</surname></persName>
+		</author>
+		<idno type="doi">doi:10.3847/2041-8213/aa9704</idno>
+		<idno type="arXiv">arXiv:1708.08843</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">850</biblScope>
+			<biblScope unit="page">7</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">Comment on measurements of newton&apos;s gravitational constant and the length of day by</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Pitkin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Europhysics Letters)</title>
+		<editor>anderson jd et al. EPL</editor>
+		<imprint>
+			<biblScope unit="volume">111</biblScope>
+			<biblScope unit="page">30002</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">Cosmological parameter estimation using particle swarm optimization</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Prasad</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Souradeep</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1103/PhysRevD.85.123008</idno>
+		<idno type="arXiv">arXiv:1108.5600</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Phys. Rev. D</title>
+		<imprint>
+			<biblScope unit="volume">85</biblScope>
+			<biblScope unit="page">123008</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title level="a" type="main">Black Box Variational Inference</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ranganath</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Gerrish</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Blei</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the Seventeenth International Conference on Artificial Intelligence and Statistics, PMLR</title>
+		<editor>Kaski, S., Corander, J.</editor>
+		<meeting>the Seventeenth International Conference on Artificial Intelligence and Statistics, PMLR</meeting>
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="page" from="814" to="822" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<monogr>
+		<title level="m" type="main">Approximate Inference for Constructing Astronomical Catalogs from Images</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Regier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">C</forename><surname>Miller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Schlegel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P</forename><surname>Adams</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Mcauliffe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Prabhat</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1803.00113</idno>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<monogr>
+		<title level="m" type="main">Stochastic backpropagation and approximate inference in deep generative models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J</forename><surname>Rezende</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Mohamed</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Wierstra</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1401.4082</idno>
+		<imprint>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title level="a" type="main">A short history of markov chain monte carlo: Subjective recollections from incomplete data</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Robert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Casella</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Statistical Science</title>
+		<imprint>
+			<biblScope unit="page" from="102" to="115" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<monogr>
+		<title level="m" type="main">On using control variates with stochastic approximation for variational bayes and its connection to stochastic linear regression</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Salimans</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Knowles</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1401.1022</idno>
+		<imprint>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title level="a" type="main">Probabilistic programming in python using pymc3</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Salvatier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">V</forename><surname>Wiecki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Fonnesbeck</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PeerJ Computer Science</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page">55</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<monogr>
+		<title level="m" type="main">Gravitational Lenses</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Schneider</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Ehlers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">E</forename><surname>Falco</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1007/978-3-662-03758-4</idno>
+		<imprint>
+			<date type="published" when="1992" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title level="a" type="main">Markov Chain Monte Carlo Methods for Bayesian Data Analysis in Astronomy</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Sharma</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1146/annurev-astro-082214-122339</idno>
+		<idno type="arXiv">arXiv:1706.01629</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ARA&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">55</biblScope>
+			<biblScope unit="page" from="213" to="259" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title level="a" type="main">Doubly stochastic variational bayes for non-conjugate inference</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Titsias</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Lázaro-Gredilla</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 31st International Conference on Machine Learning (ICML-14)</title>
+		<meeting>the 31st International Conference on Machine Learning (ICML-14)</meeting>
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="page" from="1971" to="1979" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title level="a" type="main">Bayesian model search for mixture models based on optimizing variational bounds</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Ueda</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Ghahramani</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neural Networks</title>
+		<imprint>
+			<biblScope unit="volume">15</biblScope>
+			<biblScope unit="page" from="1223" to="1241" />
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title level="a" type="main">Variational inference in nonconjugate models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Blei</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Machine Learning Research</title>
+		<imprint>
+			<biblScope unit="volume">14</biblScope>
+			<biblScope unit="page" from="1005" to="1031" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title level="a" type="main">Performance of particle swarm optimization on the fully-coherent all-sky search for gravitational waves from compact binary coalescences</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">S</forename><surname>Weerathunga</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Mohanty</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1103/PhysRevD.95.124030</idno>
+		<idno type="arXiv">arXiv:1703.01521</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Phys. Rev. D</title>
+		<imprint>
+			<biblScope unit="volume">95</biblScope>
+			<biblScope unit="page">124030</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title level="a" type="main">A New Test of Lorentz Invariance Violation: The Spectral Lag Transition of GRB 160625B</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Wei</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">B</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Shao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><forename type="middle">F</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Mészáros</surname></persName>
+		</author>
+		<idno type="doi">doi:10.3847/2041-8213/834/2/L13</idno>
+		<idno type="arXiv">arXiv:1612.09425</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">834</biblScope>
+			<biblScope unit="page">13</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<analytic>
+		<title level="a" type="main">CosmoSIS: Modular cosmological parameter estimation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Zuntz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Paterno</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Jennings</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Rudd</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Manzotti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Dodelson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Bridle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Sehrish</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Kowalkowski</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1016/j.ascom.2015.05.005</idno>
+		<idno type="arXiv">arXiv:1409.3409</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Astronomy and Computing</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="page" from="45" to="59" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

@@ -1,0 +1,1426 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-11T13:16+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">ellc -a fast, flexible light curve model for detached eclipsing binary stars and transiting exoplanets</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2016-05-12">12 May 2016 August 27, 2018</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">F L</forename><surname>Maxted</surname></persName>
+							<email>p.maxted@keele.ac.uk</email>
+							<affiliation key="aff0">
+								<orgName type="laboratory">Astrophysics Group</orgName>
+								<orgName type="institution">Keele University</orgName>
+								<address>
+									<postCode>ST5 5BG</postCode>
+									<settlement>Staffordshire</settlement>
+									<country key="GB">UK</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">ellc -a fast, flexible light curve model for detached eclipsing binary stars and transiting exoplanets</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2016-05-12">12 May 2016 August 27, 2018</date>
+						</imprint>
+					</monogr>
+					<note type="submission">Received -; accepted -</note>
+					<note>Astronomy &amp; Astrophysics manuscript no. ellc-s2 c ESO 2018</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>binaries: eclipsing -methods: data analysis -methods: numerical</keywords>
+			</textClass>
+			<abstract>
+				<p>Context. Very high quality light curves are now available for thousands of detached eclipsing binary stars and transiting exoplanet systems as a result of surveys for transiting exoplanets and other large-scale photometric surveys. Aims. I have developed a binary star model (ellc) that can be used to analyse the light curves of detached eclipsing binary stars and transiting exoplanet systems that is fast and accurate, and that can include the effects of star spots, Doppler boosting and light-travel time within binaries with eccentric orbits. Methods. The model represents the stars as triaxial ellipsoids. The apparent flux from the binary is calculated using Gauss-Legendre integration over the ellipses that are the projection of these ellipsoids on the sky. The model can also be used to calculate the flux-weighted radial velocity of the stars during an eclipse (Rossiter-McLaghlin effect). The main features of the model have been tested by comparison to observed data and other light curve models. Results. The model is found to be accurate enough to analyse the very high quality photometry that is now available from space-spaced instruments, flexible enough to model a wide range of eclipsing binary stars and extrasolar planetary systems, and fast enough to enable the use of modern Monte Carlo methods for data analysis and model testing.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>The discovery of transiting extrasolar planets at the start of this century has motivated considerable efforts to produce very high quality light curves that can be used to discover and study these systems. Instrumentation, observing techniques and data analysis methods for ground-based observations have all been improved so that its is now possible to detect eclipses with depths as small as 600ppm on individual targets ( <ref type="bibr" target="#b15">Delrez et al. 2015</ref>), while ground-based surveys such as WASP ( <ref type="bibr" target="#b50">Pollacco et al. 2006</ref>) and HATNet ( <ref type="bibr" target="#b1">Bakos et al. 2004</ref>) now routinely discover transiting extrasolar planets with eclipse depths ≈ 1% from surveys that monitor millions of stars using dedicated robotic instruments. The CoRoT satellite produced light curves for thousands of stars with a photometric precision &lt; ∼ 0.1% during its 6-year mission lifetime ( <ref type="bibr" target="#b0">Auvergne et al. 2009;</ref><ref type="bibr" target="#b42">Moutou et al. 2013</ref>). The Kepler mission has discovered hundreds of transiting extrasolar planets from a survey of approximately 150,000 stars over its 4-year mission lifetime ( <ref type="bibr" target="#b43">Mullally et al. 2015</ref>). The quality of the photometry produced by the Kepler instrument (∼ 20ppm precision on a time scale of 6-hours, <ref type="bibr" target="#b30">Jenkins et al. 2010</ref>) is ordersof-magnitude better than that available prior to this remarkably successful mission. The volume and quality of data are both set to improve as a result of current and future transiting planet surveys such as the K2 mission ( <ref type="bibr" target="#b28">Howell et al. 2014</ref>), <ref type="bibr">PLATO (Rauer et al. 2014</ref>) and TESS ( <ref type="bibr" target="#b54">Ricker et al. 2015</ref>), and other large surveys such Gaia <ref type="bibr" target="#b17">(Dischler &amp; Söderhjelm 2005)</ref>.</p><p>These advances have motivated researchers to develop analysis techniques and models that can exploit the full potential of these very high quality data to study stars and planets in a way not possible before the advent of photometry from space. For example, <ref type="bibr" target="#b38">Mandel &amp; Agol (2002)</ref> presented exact analytic formulae for the eclipse of a spherical star described by quadratic or nonlinear limb darkening by a planet or other dark body. This enabled the development of the Monte Carlo techniques that are now the standard tools for the analysis of exoplanet observations <ref type="bibr" target="#b13">(Collier Cameron et al. 2006;</ref><ref type="bibr" target="#b18">Eastman et al. 2013</ref>).</p><p>The data produced by surveys for transiting extrasolar planets are a bonanza for studies of all types of variable stars, including eclipsing binary stars. The Kepler archive alone contains high-quality photometry for 2878 eclipsing binaries ( <ref type="bibr" target="#b32">Kirk et al. 2015</ref>). Microlensing surveys have also been a fruitful source of new DEBS, e.g., the OGLE-III survey discovered over 11 000 new eclipsing binary stars from a photometric survey of the Galactic disc ( <ref type="bibr" target="#b48">Pietrukowicz et al. 2013</ref>) and thousands more have been identified in the Magallenic Clouds by this survey and other microlensing projects ( <ref type="bibr" target="#b47">Pawlak et al. 2013;</ref><ref type="bibr" target="#b44">Muraveva et al. 2014</ref>). The analysis of the light curves for detached eclipsing binary stars (DEBS) combined with radial velocity measurements for both stars in the binary make it possible to measure precise, model-indendent masses and radii for a wide variety of stars, from white dwarfs in binaries with orbital periods of a few hours ( <ref type="bibr" target="#b4">Bours et al. 2014</ref>) to red giants binaries with orbital periods of months or years <ref type="bibr" target="#b49">(Pietrzy´nskiPietrzy´nski et al. 2013</ref>). These fundamental data for stars can be used to calibrate empirical mass-radiusluminosity relations and to test stellar models for normal stars <ref type="bibr" target="#b59">(Torres et al. 2010)</ref>, to study the influence of factors such as rotation, magnetic activity and composition on the structure of stars <ref type="bibr" target="#b22">(Feiden &amp; Chaboyer 2014)</ref>, and to improve age and distance estimates for stellar clusters in which DEBS reside <ref type="bibr" target="#b5">(Brogaard et al. 2012</ref>).</p><p>A&amp;A proofs: manuscript no. ellc-s2 I have developed a new binary star model that is designed for the analysis of the light curves and radial velocity curves of detached eclipsing binary stars and transiting extrasolar planets. My motivation for developing this software is to have a tool that is accurate enough to analyse the very high quality photometry that is now available from space-spaced instruments, flexible enough to model a wide range of eclipsing binary stars and extrasolar planetary systems, and fast enough to enable the use of modern Monte Carlo methods to explore the potentially large parameter spaces that result when dealing with "real world" data sets that include astrophysical, environmental and instrumental noise sources. The light curve model is called ellc, and is implemented as fortran subroutines called directly from a user interface written in python. Here I provide a complete description of the ellc light curve model and give examples of its application to a variety of binary star and exoplanet systems. The source code and examples are available as an open-source software project.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">The light curve model</head><p>For convenience I refer to the two bodies in the binary system as stars, but the description below applies equally to brown dwarfs or exoplanets.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">Coordinate systems</head><p>The shape of each star is defined on a Cartesian coordinate system (x, y, z) where the origin is at the star's centre-of-mass, the x axis points towards the centre of the companion star, the y axis is perpendicular to the x-axis in the orbital plane and the z axis is parallel to the orbital angular momentum vector, L orb . This is a right-hand coordinate system so the direction of orbital motion is towards the negative y direction.</p><p>The projection of the binary system onto the plane of the sky is described using a Cartesian coordinate system (u, v, w) with its origin at the binary centre-of-mass, the w axis pointing towards the observer, and the u-axis parallel to the projection of L orb onto the plane of the sky. The inclination of the binary orbit, i, is measured in the normal way, i.e. the angle of the vector L orb to the line of sight. These coordinate systems are illustrated in <ref type="figure" target="#fig_0">Fig. 1</ref>.</p><p>The shape of the star is approximated using a triaxial ellipsoid. The projection of this triaxial ellipsoid onto the plane of the sky is an ellipse. The specific intensity distribution over the visible surface of the star is calculated using a Cartesian coordinate system (s, t) defined by the major and minor axes of this ellipse, respectively.</p><p>All lengths are measured relative to the semi-major axis of the binary star orbit, a.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.">Star shapes</head><p>The shape of the star is approximated by a triaxial ellipsoid centred at a position (x, y, z) = (D, 0, 0) with semi-axes (A, B, C) aligned with the x, y and z axes, respectively, i.e.</p><formula xml:id="formula_0">(x − D) 2 A 2 + y 2 B 2 + z 2 C 2 = 1.</formula><p>All lengths are relative to the semi-major axis of the binary orbit. This is the approximation that was also used in the WINK light curve model <ref type="bibr" target="#b63">(Wood 1971)</ref>. Three methods can be used to determine the values of A, B, C and D. The simplest model is a spherical star of radius R centred at the centre-of-mass, for The companion is located on the positive x-axis and the angular momentum vector for the orbital motion is parallel to the z-axis. The inclination of the orbital axis to the line of sight is i. The origin of the (u, v, w) coordinate system is at the centre-of-mass of the binary system. Other symbols are defined in the text.</p><p>which A = B = C = R and D = 0. This model can be very useful for rapidly calculating a large number of light curves and is accurate enough for many cases. The Roche potential is widely used to approximate stellar shapes in light curve models. I have used the definition of this potential described by <ref type="bibr">Wilson (1979)</ref>, which includes a modification of the potential to allow for nonsynchronous rotation of the star. The direction of the star's rotational angular momentum vector, L rot is assumed to be parallel to L orb . The values of A, B, C and D are set by requiring that the value of this potential is equal at the six points where the ellipsoid intersects the x, y and z axes, i.e. the ellipsoid matches the location of an equipotential surface at these points. The Roche potential makes the assumption that the entire mass of the star is located at the centre of mass. More realistically, the mass distribution within a star can be calculated by assuming a polytropic equation of state. The equilibrium shape of a polytrope in the tidal field of a companion star has been calculated by <ref type="bibr" target="#b8">Chandrasekhar (1933b)</ref>. Chandrasekhar also calculated the effect of rotation on a polytropic star (Chandrasekhar 1933a) and discussed how, to a good approximation, rotation and tidal distortion can be treated independently to describe the shape of a star in a binary system (Chandrasekhar 1933c). I take the same approach and use Chandrasekhar's calculations for the tidal distortion of a polytrope. For the rotational distortion the model interpolates the results tabulated by James (1964) for polytropes with polytropic index n = 1.5 or n = 3. A polytrope with n = 1.5 is a good approximation for stars where energy transport in the outer layers is dominated by convection and for gaseous planets, n = 3 is more appropriate for stars whose structure is dominated by radiation pressure. The offset of the star towards the companion is D = ∆ 3 q (R/d) <ref type="bibr">4</ref> (R/a) where the coefficient ∆ 3 is taken from Table VI of Chandrasekhar (1933b), d is the distance between the stars' centres-of-mass, and q is the mass ratio. The coefficients ξ p and ξ e from <ref type="table">Table 1</ref> of James (1964) are used to calculate the polar and equatorial radii of an oblate spheroid centred at (x, y, z) = (D, 0, 0) with its minor axis parallel to L rot . I then apply the model for the tidal distortion of this surface given in equation <ref type="formula">(35)</ref> of <ref type="bibr" target="#b8">Chandrasekhar (1933b)</ref> to this oblate spheroid, again assuming that L rot is parallel to L orb .</p><p>For eccentric orbits I model the star using the equilibrium shape at each point in the orbit, i.e. I do not include any dynamical tidal effects in the model. The shape of the star will vary through the orbit as a result of the variations in the tidal field Article number, page 2 of 16 P. F. L. Maxted: ellc -a fast, flexible light curve model for detached eclipsing binary stars and transiting exoplanets. due to the companion but the volume is assumed to be constant (Chandrasekhar 1933b).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.">Star positions</head><p>Times are measured relative to a reference time t 0 when the separation of the stars' centres-of-mass projected on the sky is at a minimum. The two stars in the binary are labelled 1 and 2 with star 1 furthest from the observer at time t 0 , i.e. star 1 will be eclipsed by star 2 at time t 0 if the inclination of the binary is i = 90 • . If star 1 is hotter than star 2 and the orbit is approximately circular then this eclipse will be the primary eclipse, i.e. deeper than the secondary eclipse that will occur approximately half an orbit later. I assume that the stars follow Keplerian orbits with fixed orbital eccentricity, e. At time t 0 the longitude of periastron for star 1 is ω 0 and the orbital inclination i 0 . Apsidal motion can be included by specifying a non-zero value for ˙ ω = dω dt , so that the longitude of periastron for star 1 at time t i is ω 1 = ω 0 + ˙ ωt i and the longitude of periastron for star 2 is ω 2 = ω 1 + π. Similarly, the inclination of the orbit at time t i is assumed to be i = i 0 + di dt t i . The longitude of periastron is not defined for circular orbits, in which case I fix ω 0 = 0.</p><p>At time t 0 the true anomaly of star 1 is ν 1,0 ≈ π/2 − ω 0 . The exact value of ν 1,0 is calculated by finding the value of ν 1,0 that minimises the projected separation between the stars' centresof-mass <ref type="bibr" target="#b35">(Lacy 1992)</ref>. At other times the position of star 1 is calculated using Kepler's equation, M = E − e sin E, to find the eccentric anomaly E from the mean anomaly M = 2π(t i −t 0 )/P a , where the anomalistic period P a is assumed to be constant. The true anomaly of star 1 is then</p><formula xml:id="formula_1">ν 1 = 2 tan −1        1 + e 1 − e tan(E/2)        ,</formula><p>and ν 2 = ν 1 + π for star 2. The angle from the x-axis towards the projection of the line of sight in the x-y plane for star 1 is then φ = ν 1 −π/2+ω measured clock-wise looking towards the origin along the z-axis ( <ref type="figure" target="#fig_0">Fig. 1)</ref>, and similarly for star 2. The separation of the centres-of-mass at time t i relative to the semi-major axis of the orbit is d = 1 − e cos(E) so the position of star 1 in the observer's (u, v, w) coordinate system defined previously is (u 1 , v 1 , w 1 ), where</p><formula xml:id="formula_2">u 1 = d 1 (cos ν 1 cos ω 1 − sin ν 1 sin ω 1 ) , v 1 = d 1 cos i (sin ν 1 cos ω 1 + cos ν 1 sin ω 1 ) , w 1 = d 1 sin i (sin ν cos ω 2 + cos ν 1 sin ω 2 ) , d 1 = dq/(1 + q)</formula><p>, and q = M 2 /M 1 is the mass ratio. The apparent position on the sky of star 1 at time t i accounting for the light travel time across the orbit is given to a very good approximation by the actual position of star 1 at time t 1 = t i + w 1 a/c, where c is the speed of light and a is the semi-major axis of the binary orbit. The light travel time across the orbit can be ignored by setting a = 0, but in this case the Doppler boosting effects discussed below with not be calculated. The position of star 2 is calculated in a similar way using ν 2 = ν 1 +π and r 2 = d/(1+q). If a &gt; 0 then equation (25) from <ref type="bibr" target="#b3">Borkovits et al. (2015)</ref> is used to calculate a correction to the value of t 0 for the light travel time across the orbit so that the apparent time of mid-eclipse occurs at the time t 0 specified by the user.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4.">Specific intensity distribution</head><p>The specific intensity of the point (s, t) on the stellar disc is given by</p><formula xml:id="formula_3">I λ (s, t) = I 0 U(µ)G(s, t) + H(s, t)U H (µ),</formula><p>where I 0 is a constant for each star, U(µ) is the limb darkening law, G(s, t) accounts for gravity darkening and the term H(s, t)U H (µ) accounts for the irradiation of the star by its companion.</p><p>I have implement several limb-darkening laws to account for the variation of specific intensity with the cosine of the viewing angle, µ. The simplest limb-darkening law is linear limb darkening, which depends only on a single limb darkening parameter, u (Schwarzschild 1906):</p><formula xml:id="formula_4">U(µ) = 1 − u(1 − µ).</formula><p>Two-parameter limb-darkening laws implemented in ellc include a square-root limb-darkening law <ref type="bibr" target="#b16">(Diaz-Cordoves &amp; Gimenez 1992</ref>)</p><formula xml:id="formula_5">U(µ) = 1 − a 1 (1 − µ) − a 2 (1 − √ µ),</formula><p>an exponential limb-darkening law <ref type="bibr" target="#b12">(Claret &amp; Hauschildt 2003</ref>)</p><formula xml:id="formula_6">U(µ) = 1 − a 1 (1 − µ) − a 2 /(1 − e µ ),</formula><p>a logarithmic limb-darkening law <ref type="bibr">(Klinglesmith &amp; Sobieski 1970</ref>)</p><formula xml:id="formula_7">U(µ) = 1 − a 1 (1 − µ) − a 2 µ ln µ,</formula><p>and a quadratic limb-darkening law <ref type="bibr" target="#b33">(Kopal 1950</ref>)</p><formula xml:id="formula_8">U(µ) = 1 − c 1 (1 − µ) − c 2 (1 − µ) 2 .</formula><p>Claret (2000) introduced the following four-parameter limb darkening law that has also been implemented:</p><formula xml:id="formula_9">U(µ) = 1 − 4 j=1 a j (1 − µ j/2 ).</formula><p>The 3-parameter limb-darkening law defined ( <ref type="bibr" target="#b56">Sing et al. 2009)</ref> which is equivalent to Claret four-parameter with c 1 = 0 has also been implemented. For gravity darkening I assume that the specific intensity can be related to the local gravity by a power law with exponent y(λ). Note that y(λ) is a wavelength dependent quantity, not the bolometric gravity darkening exponent often used in other light curve models. Appropriate values of y(λ) and limb-darkening coefficients for various passbands can be found in <ref type="bibr" target="#b11">Claret &amp; Bloemen (2011)</ref>. The local gravity can be calculated using the gradient of the Roche potential at any given point on the surface, but this calculation has a significant impact of the speed of the program if it is done for every integration point used in the calculation. Instead, by default the program calculates the gradient of the Roche potential at the four points (x, y, z) = (D + A, 0, 0), (D − A, 0, 0), (D, B, 0) and (D, 0, C) and then uses a simple function to interpolate the value of the surface gravity at other points on the stellar surface. An option is provided to use the point-bypoint calculation of the local surface gravity so that the impact of this approximation can be quantified. For example, in the case of KPD 1946+4340 shown below we used this option to check that using the default method changes the light curve by less than 250 ppm at all phases.</p><p>A&amp;A proofs: manuscript no. ellc-s2</p><p>Irradiation of the star by its companion can be difficult to deal with because the incident energy of the companion changes the thermal structure of its atmosphere. As a result, the emergent spectrum can be very different to that of the incident radiation, e.g., ultraviolet photons from the companion can be absorbed and re-emitted as emission lines at optical wavelengths. The change in thermal structure also changes the local limbdarkening law <ref type="bibr" target="#b61">(Vaz &amp; Nordlund 1985)</ref>. In extreme cases, the incident radiation may produce an optically thin layer in the upper layer of the star's atmosphere that will then appear limbbrightened. If the incident radiation is absorbed and re-emitted with a different spectrum then a complete physical model would require as input an accurate estimate of the incident flux and its spectrum. This spectrum may be difficult to observe and hard to predict accurately from models, particularly at ultraviolet wavelengths where the majority of the flux from hot stars is emitted, interstellar absorption is severe and the models are strongly affected by line-blanketing effects. In principle, calculating the spectrum of the incident radiation at each point on the star's surface would require integration of the emergent spectrum over the visible surface of the companion accounting for the variation in limb darkening and gravity darkening with wavelength, and then iterating to account for the radiation re-emitted by the star back to its companion. For exoplanets the situation becomes even more complicated because of the possibilty of advection, i.e. the incident energy may not be emitted at the location where it is absorbed. As a result, implementing a prescription for irradiation based on physical models in a general purpose light curve model would lead to a large computational overhead, the results may then depend on model parameters in a way that is difficult for the user to understand and control, and the results may be no more accurate than a more simplistic approach. For these reasons I have implemented a simple prescription for irradiation based on three parameters that relate directly to specific intensity distribution on the surface of the star and its angular dependence. In cases where an accurate physical model for irradiation is available, e.g., simple reflection by scattering from free electrons, it is then possible to set the values of these parameters appropriately. For cases of weak irradiation, the simplicity of the model will not be an issue because the effect on the resulting light curves will be small. If the observed light curves are clearly affected by irradiation then some or all of the parameters can be included as free parameters in the fit in order to explore how much the parameters of interest are affected by the way irradiation is dealt with, or to gain some insight into the physics of irradiation.</p><p>The specific intensity of the point (s, t) includes the term H(s, t)U H (µ) to deal with irradiation. The factor U H (µ) is a linear limb darkening law with coefficient u H . The angle between the local surface normal and the vector from the point (s, t) to the centre of the companion, γ, is calculated by assuming that the surface of the ellipsoid can be approximated by a sphere with the same radius as the distance of the point from the centre of the ellipsoid, r(s, t). The distance from the point (s, t) to the centre of the companion is d and the companion is assumed to be a sphere of radius r c = (ABC) </p><formula xml:id="formula_10">F irr (s, t) =          F 0,c /d 2 cos γ &gt; ∆, F 0,c (cos γ + ∆)/ 2|∆|d 2 | cos γ| &lt; ∆, 0 cos γ &lt; −∆,</formula><p>where F 0,c is the specific intensity integrated over the visible hemisphere of the companion for a distant observer viewing the companion along the x axis. This integration is done using equation (1) discussed below. The specific intensity normal to the surface is taken to be</p><formula xml:id="formula_11">H(s, t) = H 0 F irr (s, t) H 1</formula><p>Several geometrical factors of order 1, albedo effects and the redistribution of incident energy into the observed wavelength region are all subsumed into the parameter H 0 . The parameter H 1 can be used to give some control over how the specific intensity depends on the strength of the irradiation. Using H 1 ≫ 1 will create a "hot spot" near the point closest to the companion, whereas H 1 = 0 will result in approximately uniform brightness for all points with cos γ &gt; ∆.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.5.">Integration</head><p>To obtain the observed flux the specific intensity must be integrated over the visible area of the star. This integration is implemented using a combination of numerical Gaussian-Legendre quadrature and exact analytical expressions for the areas of overlapping ellipses. The integral required can be written</p><formula xml:id="formula_12">F λ = I λ (s, t)d f dg ≈ N j j=1 w j I λ (s j , t j ) d f dg N j j=1 w j .<label>(1)</label></formula><p>The first summation in this expression represents GaussianLegendre quadrature over a two-dimensional non-rectangular grid of N j points at locations (s j , t j ) with weights w j . The size of the grid is specified by the number of grid points along the major axis on the ellipse. In the current implementation this value is either 4, 8, 16, 24 or 32. The distribution of the integration points is approximately uniform over the visible area. The summation in the denominator of the ratio is an estimate of the area of the visible stellar disc calculated in the same way. The actual area of the stellar disc that is visible is given by the integral in the numerator of the ratio, and can be calculated exactly since it is either the area of an ellipse, or the difference between this area and the area common to two overlapping ellipses. The ratio of the integral and sum has a fixed value for a given combination of N j , (s j , t j ) and w j , and serves as a correction that improves the accuracy of the numerical integration. An alternative view of the same expression is that flux is calculated from the visible area of the ellipse, which can be calculated exactly, weighted by the average intensity over the visible area, which is calculated by numerical integration. The calculation of the overlap area of two ellipses requires a very robust algorithm to calculate the number and positions of the intersections between two ellipses. The algorithm I have developed is described in Appendix A.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.6.">Flux scale and surface brightness ratio</head><p>The surface brightness ratio is an ambiguous quantity for limbdarkened stars in a binary that do not emit isotropically. To define a flux scale in ellc I first set the specific intensity normal to the surface at the point on star 1 closest to its companion to 1, i.e. I 0,1 = 1. I then use equation <ref type="formula" target="#formula_12">(1)</ref> to calculate F 0,1 , the integral of the surface-brightness distribution for the star 1 for a distant observer viewing the star along the x-axis. This calculation step ignores eclipses, spots and heating effects by the companion, but does include the tidal distortion terms. The same calculation for star 2 with I 0,2 = 1 gives the quantity F 0,2 (I 0,2 = 1) which is then used to set the value of I 0,2 used in all subsequent steps in Article number, page 4 of 16 P. F. L. Maxted: ellc -a fast, flexible light curve model for detached eclipsing binary stars and transiting exoplanets.</p><p>the calculation such that</p><formula xml:id="formula_13">I 0,2 = S λ F 0,1 /F 0,2 (I 0,2 = 1),</formula><p>where S λ is the value specified by the user for the disc-averaged surface brightness ratio at the wavelength of observation λ. The next step in the calculation is to set a normalising factor for the output light curves. This is done in the same way as the calculation for F 0,1 but in this case the irradiation factor is included. This calculation yields two normalising factor F N,1 and F N,2 . The calculation of the light curve then proceeds using equation <ref type="formula" target="#formula_12">(1)</ref> to calculate the F i,1 and F i,2 , the apparent fluxes at times t i for stars 1 and 2, respectively, including irradiation, eclipses, star spots and Doppler boosting. The values of F i,1 and F i,2 can be obtained directly using the routine fluxes in the pyhton module ellc. The light curve generated by the routine lc in the same module returns the value</p><formula xml:id="formula_14">F i = F i,1 + F i,2 + F 3 F N,1 + F N,2 + F 3 ,</formula><p>where</p><formula xml:id="formula_15">F 3 = ℓ 3 F i,1 + F i,2</formula><p>and ℓ 3 is a value for "third-light" specified by the user.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.7.">Simplified reflection effect</head><p>Integrating the illumination pattern on one star by the other can result in severe numerical noise in the light curve due to the sharp boundary between the illuminated and non-illuminated hemispheres if a sparse integration grid, must be used, e.g., if a large number of approximate light curves need to be calculated to explore the parameter space of a least-squares fitting problem. To avoid this problem a simplified model for the reflection effect is available which is useful in cases where the amplitude of the reflection effect is low. In this simplified model the flux of each star increased by an amount</p><formula xml:id="formula_16">R 1,2 = α 1,2 I 0,(2,1) (R 1,2 /d) 2 1 2 + 1 2 sin 2 i sin 2 φ 1,2 ± sin i sin φ 1,2 ,</formula><p>where the positive and negative cases of the final term apply to stars 1 and 2, respectively. During the eclipse this quantity is reduced by a factor equal to the fractional loss of flux from the eclipse star. This is the same model for the reflection effect used in ebop (Etzel 1981) except that ebop includes a factor (R 1,2 /a) 2 in "geometric reflection coefficient" whereas I use the factor (R 1,2 /d) 2 explicitly in the model.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.8.">Radial velocity</head><p>If the semi-major axis of the binary orbit (a) is set to a non-zero value then the radial velocity (v r ) of each star is calculated. The centre-of-mass radial velocity is calculated from the Keplerian orbit of the star and can be obtained using the routine rv in the ellc python module. A check is made in the program for a nonzero value of a and an orbital period value P a = 1, which is assumed to be an error in input because P a = 1 is used to denote that the input times for calculation are in phase units, not days as required for the correct calculation of the radial velocity. The default behaviour in the current version of rv is to return radial velocity values that are weighted by the flux from every point on the visible surface of the star ("flux-weighted radial velocity"). These are calculated in the same way as the flux values used for the calculation of the light curves. The projected rotational velocity at every point on the star's surface can be calculated using the asynchronous rotation factor, F rot = P a /P rot , that is also used to define the shape of the star with rotation period P rot . Alternatively, the projected equatorial rotation velocity at the stars' equator, V rot sin i, can be used to determine the projected rotational velocity over the stellar surface. The effect of star spots on the flux-weighted radial velocities is acccounted for by multiplynig the flux-deficit due to the spot by the projected rotational velocity at its centre. This approximation will not be accurate for large spots.</p><p>The effect of eclipses on the flux-weighted radial velocity is accounted for and so ellc can be used to model the RossiterMcLaughlin (R-M) effect for stars in which the rotation axis is aligned with the orbital axis. It is also possible with ellc to model the R-M effect for a spherical star eclipsed by star or planet described by the Roche potential, a polytrope or a sphere for which the projection of the rotation axis on the sky during the eclipse is at an angle λ to the orbital axis, as defined by <ref type="bibr" target="#b45">Ohta et al. (2005)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.9.">Doppler boosting</head><p>The flux-weighted radial velocity can be used to correct the apparent flux for the effects of Doppler boosting, which increases the flux by a factor (1 − v r /c) 3 , and the Doppler shift, which reduces the flux by a factor ≈ (1 − v r /c) 2 that depends on the wavelength gradient of the stellar spectrum <ref type="bibr" target="#b40">(Maxted et al. 2000</ref>). For radial velocities v r ≪ c the two effects can be combined into a single factor 1 − B v r c , where <ref type="bibr" target="#b2">Bloemen et al. 2011</ref>), or can be set to zero to ignore these effects. The flux-weighted radial velocity accounts for the eclipse of the star and so ellc can be used to model the photometric R-M effect (see section 3.5, below). Using centre-of-mass radial velocities with Doppler boosting gives inconsistent results for the eclipses in the light curves (because the photometric R-M effect is not included) and so is not recommended.</p><formula xml:id="formula_17">B = 5 + d ln F λ d ln λ is calculated sep- arately (</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.10.">Star spots</head><p>The effect of circular spots on the light curve of a spherical star with quadratic limb-darkening have been calculated by Eker (1994a) and the resulting integrals are provided in convenient form in the appendix to that paper together with an erratum (Eker 1994b). I use these equations in ellc to calculate the variation in flux from each star due to spots in the model. In cases where the limb-darkening law used is not quadratic I set the limbdarkening coefficients used in the spot model so that it matches the actual limb-darkening law used at the points µ = 0, 0.5 and 1. In cases where the spot is eclipsed by the companion I reduce the effect of the spot by a factor equal to the fraction of the spot covered by the companion. The position of the centre of the spot on the sky is calculated based on its longitude and latitude on the triaxial ellipsoid and its shape is calculated by approximating the surface of the triaxial ellipsoid by a sphere with the same radius as the distance from the centre of the spot to the centre of the ellipsoid. The calculation of the eclipsed area is straightforward if it is not on the limb of the star because the projected shapes of the spot and the companion are both ellipses. The calculation is more difficult if the spot intersects the limb of the star because it involves the intersection of two ellipses and a circle. The area required can be found as the sum of various ellipse segments and triangles so is quick to calculate, but this does require some effort to implement as there are approximately 90 different possible configurations for the two ellipses and the circle that must be considered. Lower-middle panel Difference between the light curves calculated using ellc with the default grid size for planet described by either a Roche potential or a polytrope with index n = 1.5 and with batman for the case i = 90 • . Lower panel Difference between the light curves calculated using ellc with the default grid size and a spherical planet and with batman for an eccentric orbit with i = 87 • . The difference in flux of approximately 50ppm during ingress and egress is the result of an inaccurate estimate for the time of periastron in the batman model.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Examples</head><p>In this section I test the reliability of ellc by comparing it to other binary star models and show how ellc can be used to analyse light curves and radial velocity observations for eclipsing binary star systems using Monte Carlo methods.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">batman</head><p>Kreidberg (2015) has developed a python package for modeling exoplanet transit and eclipse light curves with an algorithm that provides very high numerical precision. I have used batman to evaluate the numerical precision of the light curves calculated using ellc. The upper panel of <ref type="figure" target="#fig_2">Fig. 2</ref> shows the light curve calculated using batman version 2.1.0 for the case of the transit of a spherical star by a spherical planet with a radius of 0.1 stellar radii (R p = 0.1 R ⋆ ). The semi-major axis of the orbit is 10 R ⋆ and the inclination of the orbit is i = 90 • . The quadratic limbdarkening coefficients are c 1 = 0.1 and c 2 = 0.3. The eccentricity of the orbit is e = 0.1 and the longitude of periastron is ω = 60 • . The next panel down in this figure shows the difference between this light curve and light curves calculated using ellc with a grid size of 8 ("sparse"), 16 ("default") or 24 ("fine"). The models agree to better than 10ppm at all phases of the transit for the sparse grid and to within a few ppm for the default and fine grids. This level of precision is more than sufficient given the level of systematic error due to astrophysical phenomena not included in these models. To give just one example, the next panel down in <ref type="figure" target="#fig_2">Fig. 2</ref> shows the difference between the same light curve calculated with batman and light curves calculated using ellc using either a Roche potential or a polytrope with n = 1.5 to calculate the shape of the planet assuming that the mass ratio is q = 0.001. The difference of about 15ppm seen in this panel is a due to the systematic error in light curve calculated with batman that arises from using a sphere to approximate the shape of a tidally disorted planet. The current version of batman does not include the option of calculating light curves for non-spherical planets. This systematic error can result in the measured radius being to low by 1 -10% for a typical hot Jupiter systems ( <ref type="bibr">Leconte et al. 2011a,b)</ref>. I also tested ellc against the results from batman for the same planetary system viewed at an inclination i = 87 • . The results shown in the lower panel of <ref type="figure" target="#fig_2">Fig. 2</ref> show differences of about 50ppm between the two light curves during ingress and egress. Inspection of the source code for batman shows that the time of periastron relative to the time of mid-transit is calculated using an expression that assumes i = 90 • . This approximation is not justified at this level of precision for inclinations i 90 • . This problem was fixed in batman version 2.0.0.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">Double-partial eclipses</head><p>If two stars in an orbit with i ≈ 90 are of similar size and one of the stars rotates close to its break-up velocity, then the rapidly rotating star will be significantly oblate. This makes it possible for the eclipse of this oblate star to produce a configuration I call a "double-partial eclipse" in which the poles of the oblate star are eclipsed while the equator is visible on both sides of the slowlyrotating star. The effect on the light curve of this configuration is quite subtle, but the Rossiter-McLaghlin (R-M) effect during the double-partial eclipse has a characteristic large and rapid change from positive to negative velocity at the mid-point of the eclipse. To test whether ellc can reproduce this effect correctly I compared light curves and radial velocity curves for a hypothetical binary system with double-partial eclipses calculated with ellc to those calculated using Nightfall 1 (Wichmann 2011). The results are shown in <ref type="figure" target="#fig_3">Fig. 3</ref>. The details of these simulations can be found in the information provided with the software package, which includes the python scripts used to generate this plot and the configuration file for Nightfall. There are small differences between the light curves and radial velocity curves generated by the two models, but overall the agreement betweed the two models is very good. The rapid change from positive to negative velocity at the mid-point of the eclipse is seen very clearly in the radial velocity curve generated by ellc.</p><p>The calculation of light curves in 11 bands and radial velocites at 8192 phase points using Nightfall version 1.88 takes </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">s on a MacBook Pro with a 2 GHz</head><p>Intel Core i7 CPU. The time taken to calculate a lightcurve in a single band and 2 radial velocity curves with ellc and to generate the plot on the same machine is 2.5 s. I also attempted to use Nightfall to generate a similar plot for an eccentric orbit but found that there is a bug in this version of the program that inverts the shape of the R-M effect for eccentric orbits. The execution time in this case was 113.4 s. This is much slower than the calculation for the circular orbit because Nightfall uses a grid of points in 3-dimensional space to represent the stars. There is a large overhead required to re-calculate the positions of all the points on this grid at each phase point to account for the varying potential in an eccentric orbit. There is no significant increase in the execution time for ellc for an eccentric orbit compared to a circular orbit in this case.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.">KSint</head><p>KSint is a fast numerical algorithm for accurately calculating light curves for transiting extrasolar planets orbiting spotted stars (Pál 2012; <ref type="bibr" target="#b41">Montalto et al. 2014</ref>). The model assumes that the star and planet are spherical. As with ellc, the spot profile is defined from the interception of a cone with its vertex at the center of the sphere with the surface of the sphere. I have used ellc and KSint version 1.0 to calculate the light curve for a spherical star with a rotation period of 23.9 days with two dark spots and a planetary companion on a circular orbit with a period of 1 day and an inclination i = 90 • . The radius of the planet is 0.1 stellar radii (R p = 0.1 R ⋆ ) and the semi-major axis of the orbit is 2.765 R ⋆ . In reality a planet on such a short-period orbit would be appreciably non-spherical, but I have assumed that the planet is spherical for the calculation of the light curve with ellc so that the results are directly comparable to those calculated with KSint. The limb darkening coefficients for the quadratic limb darkening law are c 1 = 0.4 and c 2 = 0.3. The angular radius of one spot (≈ 5.74 • ) is set such that its projected size on the sky is the same as the planet. This gives a good test of the numerical stability of the algorithm used to calculate the intersections between the projected edges of the spot and planet. The radius of the other spot is a factor √ 2 larger. The dimming factor for both spots is 0.5. Both stars are on the stellar equator and are separated by an angle of 60 • . The results are shown in <ref type="figure" target="#fig_4">Fig. 4</ref>. A few of the points in the light curve calculated using KSint are badly affected by numerical noise, e.g., the low points in the ranges 19.88 -19.95 days and 23.86 -23.94 days, and a few high points near the first and last contact points of some transits. By contrast, the light curve calculated using ellc shows very little numerical noise. In other regions of the light curve, the agreement between the two models is excellent.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4.">KPD 1946+4340</head><p>KPD 1946+4340 is a subdwarf-B star in a short-period binary system (P ≈ 0.4 d) with a white dwarf companion ( <ref type="bibr" target="#b2">Bloemen et al. 2011</ref>). This configuration together with the very high quality light curve of this binary obtained by the Kepler mission make KPD 1946+4340 a useful test case for the calculation of the ellipsoidal effect and Doppler boosting with ellc. The eclipse of the white dwarf occurs at phase 0. The ellipsoidal variation due to the tidal distortion of the sdB star by the much-fainter white dwarf companion can be seen as a smooth variation with a period half that of the orbital period. The Doppler boosting of the light from the sdB star is also obvious from the asymmetry in the light curve between phase 0.25 when its is receeding from the observer and phase 0.75 when it is approaching. These effects are only obvious because of the superb quality of this light curve -the rms scatter is approximately 0.01% and the entire flux range plotted in <ref type="figure" target="#fig_5">Fig. 5</ref> is less than 1%.</p><p>I used the parameters for this binary system from <ref type="bibr" target="#b2">Bloemen et al. (2011)</ref> to simulate the light curve of KPD 1946+4340 assuming either a Roche potential for the stars or a polytrope with index n = 1.5. Other details of the simulation can be found by inspection of the python script used to generate this figure that is included with the software distribution. The simulated light curve using the Roche potential gives an excellent match to the light curve at all phases. In particular, the asymmetry in the light curve due to Doppler boosting is very well reproduced when the orbital velocity of the sdB star (which dominates the flux) is set to the value measured from its orbital Doppler shift. Using a polytrope to describe the shape sdB star results in a worse match to the the ellipsoidal variation, but the parameters used for this simulation were based on a least-squares fit to the Kepler light curve of KPD 1946+4340 using a Roche potenttial, so it may be that a better fit to the light curve can be achieved for a polytropic model by adjusting the other parameters in the model. This would certainly be an interesting exercise now that there is more than 20 times as much Kepler data available for this star than was available at the time of the study by Bloemen et al.. A full analysis will require very careful handling of any systematic errors in the data since the signal being analysed here are very small. This analysis is beyond the scope of this description of the software, but I demonstrate below that ellc can be used to analyse high-quality data such as these using Monte Carlo techniques.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.5.">Photometric R-M effect</head><p>The photometric R-M effect is essentially the same phenomenon as the spectroscopic R-M effect measured using the Doppler shift of stellar spectral lines. The variations in apparent flux are the result of Doppler boosting of the light from different parts of a rotating star during an eclipse <ref type="bibr" target="#b27">(Hills &amp; Dale 1974)</ref>. The amplitude of the signal is generally very small so there are no reported detections of this phenomenon to-date. <ref type="bibr" target="#b25">Groot (2012)</ref> has discussed the prospects for detecting this signal using simulations that include limb darkening and obliquity but that neglect the oblateness of the stars. <ref type="figure">Fig. 6</ref> shows a simulation using ellc for a pair of white dwarfs in a binary system with parameters similar to those used by Groot, i.e. an orbital period of 39.1 minutes, i = 90 • and rotational velocities close to their maximum possible values. The details of this simulation can be found by inspection of the python script used to generate this figure that is included with the software distribution. To estimate the maximum possible size of the photometric R-M effect Groot compared the light curves for the stars rotating at their break-up velocity to stars rotating synchronously with the orbit. A similar comparison with ellc shows that the differences in the light curves are completely dominated by the change in shape of the stars and the change in the surface brightness distribution due to gravity darkening. Instead, to generate the flux difference due to the photometric R-M effect shown in <ref type="figure">Fig. 6</ref> I calculated the light curves for stars rotating near their break-up velocity with both prograde and retrograde rotation and have plotted half of the difference between these results. The shape and amplitude of the signal are similar to the results shown by Groot. Also shown in <ref type="figure">Fig. 6</ref> is the photometric R-M effect for the same system assuming that the sky-projected rotation axis is misaligned with the rotation axis by an angle λ = 60 • . This light curve was calculated for spherical stars because the current version of ellc does not include misaligned rotation for non-spherical stars.</p><note type="other">Article number, page 8 of 16 P. F. L. Maxted: ellc -a fast, flexible light curve model for detached eclipsing binary stars and transiting exoplanets.</note></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.6.">GD448</head><p>GD448 is a non-eclipsing, short-period (P=0.103 d) M-dwarfwhite-dwarf binary system ( <ref type="bibr" target="#b39">Maxted et al. 1998</ref>). This binary system shows a reflection effect in the light curve with an amplitude of about 0.1 magnitudes in the I-band. <ref type="figure">Fig. 7</ref> shows the I-band light curve of GD448 simulated using Nightfall using the parameters for the binary from <ref type="bibr" target="#b39">Maxted et al. (1998)</ref>. The effective temperatures of the stars used in this simulation were 19 000 K and 3 000 K, respectively. Further details of the simulation can be found by inspection of the python script used to generate this figure and other files that are included with the software distribution. The amplitude of the reflection effect is underestimated in this simulation, partly because the model atmospheres available in Nightfall are not accurate when applied to a white dwarf. It would be possible to get a better match the observed amplitude of the reflection effect in GD448 by adjusting the assumed albedo value in the model from its default value of 0.5. Also shown in <ref type="figure">Fig. 7</ref> are light curves simulated using ellc with two sets of irradiation parameters H 0 , H 1 = (0.6, 3.5) and (1.0, 1.5). These values were set "by-eye" to produce a similar shape and amplitude to the reflection effect calculated using Nightfall.This demonstrates that ellc can be used to calculate light curves that include the reflection effect using reasonable values for the pa-  <ref type="figure">6</ref>. Simulation of the photometric Rossiter-McLaughlin (R-M) effect for a pair of white dwarf stars rotating close to their break-up velocity in an eclipsing binary with a period of 39.1 minutes. The upper panels show the light curve of the binary and the two lower panels show the contribution to this light curve due to the photometric R-M effect. In all panels, the solid line is calculated using Roche geometry for stars with rotation axes aligned with the orbital axis and dashed lines are for models of spherical stars with λ = 60 • .</p><p>rameters in the irradiation model but, as with other light curve models, these free parameters need to be adjusted to match the shape and amplitude of the reflection effect in the observed light curves of actual binary stars. The result of using the simplified reflection effect model is also shown in <ref type="figure">Fig. 7</ref> with the reflection coefficient adjusting "by-eye" to match the amplitude of the reflection effect calculated using Nightfall. Nightfall <ref type="figure">Fig. 7</ref>. Light curves of the short-period M-dwarf -white-dwarf binary GD448 simulated using Nightfall and using ellc with two sets of heating/iraddiation parameters H 0 , H 1 , as indicated, and also using a simplified model of the reflection effect with α = 2.1.</p><p>3.7. 1SWASP J011351.29+314909.7 1SWASP J011351.29+314909.7 (J0113+31) is a metal-poor ([Fe/H] = −0.40 ± 0.04), solar-type star eclipsed by a low-mass M-type dwarf in a binary with an orbital period P ≈ 14.3 days and an eccentric orbit (e ≈ 0.3). This eclipsing binary was discovered using photometry from the WASP project because it shows a transit in the light curve with a depth of about 2.5%. <ref type="bibr" target="#b24">Gómez Maqueo Chew et al. (2014)</ref>  <ref type="figure" target="#fig_0">(GMC+2014, hereafter)</ref> have presented a thorough analysis of this binary system based on additional photometry at optical wavelengths through the primary eclipse (transit) from three instruments (NITES, OED and BYU) and J-band photometry of the secondary eclipse obtained with the FLAMINGOS instrument and Kitt Peak National Observatory (KPNO). Full details of these observations are given in GMC+2014.</p><p>I have used ellc to analyse these observations of J0113+31. To explore the model parameter space I used emcee (Foreman- <ref type="bibr" target="#b23">Mackey et al. 2013</ref>), a python implementation of an affine invariant Markov chain Monte Carlo (MCMC) ensemble sampler. The free parameters in the fit were r 1 and r 2 -the radii of the stars relative to the semi-major axis of the binary, i -the inclination, f s = √ e sin(ω) and f c = √ e cos(ω), S J -the surface brightess ratio in the J-band, and K 1 -the semi-amplitude of the primary star's spectroscopic orbit. The eccentricity and orientation of the orbit are described by the parameters f s and f c because these have a uniform prior probability distribution. Uniform priors were also adopted for the other parmeters in the analysis. There are 7 free parameters and I used 50 walkers with 1000 chain steps to calculate their posterior probability distribution. To speed-up the calculation I only included WASP data within 0.02 phase units of the transit in the analysis. The NITES light curve was observed at high cadence so I used ellc to calculate this light curve for 1-in-10 of the observed data points and then used an option implemented in ellc to interpolate the light curve to other times of observation. The walkers were initialised using randomly selected parameter values from Gaussian distributions with mean and standard deviation set from the results of some test runs of emcee. The convergence of the chain was judged "by-eye" by inspection of the parameter values and the log likelihood as a function of step number. The best-fit values and standard errors of selected model parameters and derived values given in <ref type="table">Table 1</ref> were calculated from the median and <ref type="table">Table 1</ref>. Parameters for the eclipsing binary system J0113+31 using ellc and emcee. Results in the column headed GMC+2014 are from Gómez Maqueo <ref type="bibr" target="#b24">Chew et al. (2014)</ref>. The secondary eclipse depth is ∆F sec = S J (r 2 /r 1 ) 2 .</p><p>Parameter This work GMC+2014 standard deviation of parameter values in the chain excluding the first 500 steps of each walker. The joint posterior probability distributions for the parameters are shown in <ref type="figure" target="#fig_9">Fig. 9</ref>. Further details of the analysis can be found by inspection of the python script used to generate these figure that is included with the software distribution.</p><p>The total number of chain steps is 350 000 and the acceptance fraction for each walker is ≈ 0.5 so the number of simulated data sets calculated to produce these results is ≈ 700 000. The calculation took 17 minutes using 4 threads on a MacBook Pro with a 2 GHz Intel Core i7 CPU. For comparison, GMC+2014 used a Linux cluster with over 6,000 processor cores and a peak performance of roughly 24.5 TFLOPS to sample 36 972 combinations of four parameters (i, effective temperature ratio T 1 /T 2 , r 1 and r 2 ) using the Wilson-Devinney binary star model within the PHOEBE software package <ref type="bibr">(Prša &amp; Zwit- ter 2005;</ref><ref type="bibr">Wilson 1979</ref>). They did not include the WASP and NITES photometry in their analysis. The computation of 10 000 light curves with this cluster took about 6 hours <ref type="bibr">(Hebb, priv. comm.)</ref> The agreement between my results and those of GMC+2014 is excellent and the precision of radius measurements has been much improved. The small change in the value of K 1 may be the result of an offset between radial velocity measurements obtained with two different instruments that has not be included in my analysis. It is beyond the scope of this paper to interpret these results (which are consistent with those from GMC+2014) and further analysis is required to determine the sensitivity of these results to important details such as the adopted limb-darkening coefficients. Nevertheless, it is clear that ellc makes it feasible to employ Monte Carlo methods to analyse light curves and radial velocity data for eclipsing binary stars and that it runs much faster than other binary star models when applied to binary stars with eccentric orbits.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.8.">HD 23642</head><p>The ellc package includes a python script called ellc_emcee.py that can be used to analyse a single light curve using the ellc binary star model. The best-fit light curve and the posterior probability distribution of the free parameters in the model are calculated using the emcee algorithm. The script prompts the user for the values of the fixed and free parameters and any priors to be imposed on the parameters of the problem. Output file names and other options such as the grid size can be set using command-line options. A log file is produced that includes a copy of the user input that can modified and then used directly as input into subsequent runs Article number, page 10 of 16 P. F. L. Maxted: ellc -a fast, flexible light curve model for detached eclipsing binary stars and transiting exoplanets.  of ellc_emcee.py, e.g., for reanalysis of the same light curve with a different set of free parameters or different starting values for free parameters. Up to 2 spots per star can be included in the model. Limb-darkening and gravity-darkening are specified using the effective temperature and surface gravity of each star and the metallicity of the binary system. These parameters are then used to look-up the limb-darkening coefficients for a 4-parameter limb darkening law and the gravity-darkening coefficients for each star using linear interpolation in the tabulation of <ref type="bibr" target="#b11">Claret &amp; Bloemen (2011)</ref>. Options to exclude data from the fit, interpolate the model across data, or to use numerical interpolation to account for the exposure time are all set using an integer flag value in the input light curve data.</p><p>To demonstrate some of the capabilities of ellc_emcee.py I have used this script to analyse the Kepler K2 light curve of HD 23642. This is an eclipsing binary in the Pleiades star cluster with an orbital period of about 2.5 days showing partial eclipses between two A-type stars ( <ref type="bibr" target="#b58">Southworth et al. 2005;</ref><ref type="bibr" target="#b14">David et al. 2016)</ref>. I used the Kepler K2 data corrected for systematic errors using the algorithm of <ref type="bibr" target="#b60">Vanderburg &amp; Johnson (2014)</ref>  this analysis. <ref type="bibr">3</ref> To speed-up the calculation I used interpolation to calculate the model values for approximately 3/4 of the observations between the eclipses and used the "very_sparse" grid size (N j = 4) for the numerical integration of the fluxes from both stars. For observations through the eclipses numerical integration using 5 integration points was used to account for the integration time of 1766 s. The residuals from a preliminary fit to the data show that the scatter around the best fit is quite variable with time -there is a block of very good data with slightly noisier data either side -so I set the estimated standard error of each observation to one of three values according to the time of observation. The values were choosen to achieve a reduced χ 2 value for the best fit model close to 1. I excluded 10 discrepant observations from the analysis. The MCMC chain was calculated using 40 walkers and 5000 steps. This calculation took 55 minutes using 8 threads on a MacBook Pro with a 2 GHz Intel Core i7 CPU.</p><p>The best-fit parameters and their standard errors are shown in <ref type="table">Table 2</ref>. These were calculated using the median and standard deviation of approximately 145 000 values in the MCMC chain after discarding the first N burn−in points from each walker, where N burn−in is 4× the largest autocorrelation length scale of the chains for all the parameters for each walker. The best-fit light curve model is shown in <ref type="figure" target="#fig_0">Fig. 10</ref> and the distributions of selected parameters are shown in <ref type="figure" target="#fig_0">Fig. 11</ref>. Further details of the analysis can be found by inspection of the files included in the sub-directory examples/ellc_emcee that is included with the software distribution.</p><p>The agreement between my results and the analysis by <ref type="bibr" target="#b14">David et al. (2016)</ref> using jktebop (Southworth 2013) is very good. There is a slight difference between the surface brightness ratio derived here and by <ref type="bibr" target="#b14">David et al. (2016)</ref>, partly because ellc defines this ratio for the stars when viewed at conjunction, whereas the ebop model used by <ref type="bibr">David et al.</ref> defines this quantity at quadrature.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Caveats</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">Radius and volume</head><p>The values of A, B and C that are used to specify the shape and size of the triaxial ellipsoid used in the calculation of the light curves are set by requiring that the volume of the ellipsoid is equal to the volume of a sphere with a radius R specified by the user, i.e. ABC = R 3 . For highly-distorted configurations this means that the volume of the star will not be the same as the volume of the triaxial ellipsoid used to approximate its shape. The correct way to deal with this difference will depend on the context in which ellc is being used. For example, if ellc is being used to perform a least-squares fit to a total eclipse of a star by a highly-distorted companion, it may be useful to calculate a correction based on the ratio of the projected area of a triaxial ellipsoid and an equipotential in the Roche potential viewed at mid-eclipse. Comparing the results obtained using ellc for spherical stars to those obtained for a Roche potential or a polytrope (as was done in <ref type="figure" target="#fig_2">Fig. 2</ref>) will give an upper limit to the size of any correction of this sort and so enable the user to determine if any correction is necessary.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.">Radial velocities</head><p>The flux-weighted radial velocity calculated using ellc may not accurately reproduce high-precision radial velocity measurements because some effects are not included and the definition of the Doppler shift is ambiguous if the line profiles that are measured are not symmetric. Effects missing from ellc include the tranverse Doppler effect and gravitational redshift. Asymmetric line profiles can be caused by convective blue-shift in cool stars, the R-M effect, pulsations, star spots, and instrumental effects. If the line profile is asymmetric then different methods to determine the Doppler shift will give different results, e.g., a best-fit Gaussian profile will give a different result to a value based on the maximum of a cross-correlation function. The size of these systematic errors will be comparable to the line-width and can only be properly accounted for by modelling both the observed line profile and the method used to measure the radial velocity.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3.">Star spots</head><p>The light curves for stars with spots are calculated for a fixed value of the inclination (i 0 ) and are then corrected for the effects of the eclipses. This means that light curves for spotted stars in binary systems with varying inclination will not be reliable. There are several approximations used to enable the efficient calculation of light curves and radial velocities for stars with spots in ellc. Detailed modelling of spotted stars is a problem well beyond the scope of what can be done with ellc or any other binary model that uses "dark circles" to approximate the complex phenomena associated with magnetic activity on cool stars. P. F. L. Maxted: ellc -a fast, flexible light curve model for detached eclipsing binary stars and transiting exoplanets. <ref type="table">Table 2</ref>. Parameters for the eclipsing binary system HD 23642 using ellc_emcee. T ld,1 and T ld,2 are the parameters used to interpolate the limbdarkening coefficients for stars 1 and 2 from the tabulation of <ref type="bibr" target="#b11">Claret &amp; Bloemen (2011)</ref>. The time of primary eclipse, t 0 is given as BJD-2457000.  <ref type="bibr">[K]</ref> 11600 ± 900 -Limb-darkening look-up parameter T ld,2 <ref type="bibr">[K]</ref> 8150 ± 160 -Limb-darkening look-up parameter Nevertheless, the star spot model in ellc can be used to quanitify approximately the likely effects of star spots on the light curves of cool stars if the user is aware of the limitations of the model.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Parameter This work</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.4.">Irradiation</head><p>No account is made for the irradiation of a star due to the its own radiation being re-emitted by its companion. Extreme values of the parameter H 1 that determines the pattern of emission due to irradiation produce numerical noise in the light curves because numerical integration schemes do not produce accurate results if the integrand varies rapidly on a scale smaller than the grid point separation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.5.">Bugs</head><p>The examples above show that ellc can be used to calculate accurate light curves and radial velocity curves for a wide range of binary systems. The tests described here have also highlighted some problems with the current versions of some existing binary star models. Similarly, there will certainly be combinations of input parameters for which ellc will not produce reliable results. Users of ellc are strongly advised to test the results produced by ellc against other binary star models to check that they are reliable. The ellc binary star model will be made available as an open-source software project so that users can contribute to its development, submit bug reports and access the latest version of the software. 4</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Fig. 1 .</head><label>1</label><figDesc>Fig. 1. Coordinate systems used to define the shape and position of each star. The companion is located on the positive x-axis and the angular momentum vector for the orbital motion is parallel to the z-axis. The inclination of the orbital axis to the line of sight is i. The origin of the (u, v, w) coordinate system is at the centre-of-mass of the binary system. Other symbols are defined in the text.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>1 3.</head><label>1</label><figDesc>If cos γ &gt; ∆ = (r(s, t) − r c ) /d then the entire disc of the companion is visible so I take the irradiating flux to be</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Fig. 2 .</head><label>2</label><figDesc>Fig. 2. Upper panel Light curve for a planet on an eccentric orbit with i = 90 • calculated using batman. Upper-middle panel Difference between the light curves calculated using ellc for a spherical planet with the grid sizes indicated and with batman for the case i = 90 • . Lower-middle panel Difference between the light curves calculated using ellc with the default grid size for planet described by either a Roche potential or a polytrope with index n = 1.5 and with batman for the case i = 90 • . Lower panel Difference between the light curves calculated using ellc with the default grid size and a spherical planet and with batman for an eccentric orbit with i = 87 • . The difference in flux of approximately 50ppm during ingress and egress is the result of an inaccurate estimate for the time of periastron in the batman model.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Fig. 3 .</head><label>3</label><figDesc>Fig. 3. Comparison of the light curves and radial velocity curves for a binary system showing double-partial eclipses computed using Nightfall (dashed lines) and ellc (dotted lines).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Fig. 4 .</head><label>4</label><figDesc>Fig. 4. Comparison of the light curves for a spherical star with two circular spots eclipsed by a spherical dark body calculated using ellc (thin line) and KSint (points).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Fig. 5 .</head><label>5</label><figDesc>Fig. 5. Phase-binned Kepler short-cadence data for KPD 1946+4340 (points) compared to light curves generated using ellc using the Roche potential (solid line) and a polytrope with index n = 1.5 (dashed line).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Fig.</head><label></label><figDesc>Fig. 6. Simulation of the photometric Rossiter-McLaughlin (R-M) effect for a pair of white dwarf stars rotating close to their break-up velocity in an eclipsing binary with a period of 39.1 minutes. The upper panels show the light curve of the binary and the two lower panels show the contribution to this light curve due to the photometric R-M effect. In all panels, the solid line is calculated using Roche geometry for stars with rotation axes aligned with the orbital axis and dashed lines are for models of spherical stars with λ = 60 • .</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head>Fig. 9 .</head><label>9</label><figDesc>Fig. 9. Parameter correlation plots for my fit using ellc to the radial velocity data and light curves of the eclipsing binary J0113+31 from Gómez Maqueo Chew et al. (2014) (GMC+2014). The adopted parameter values from GMC+2014 are indicated by lines/points in each panel. The contours in each panel show the 0.5-, 1-, 1.5-and 2-sigma confidence regions for each joint parameter distributions. Points outside the 2-sigma confidence region are individual steps from the emcee MCMC chain.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_10"><head>Fig. 8 .</head><label>8</label><figDesc>Fig. 8. Observed light curves for the eclipsing binary J0113+31 (points, Gómez Maqueo Chew et al. 2014) compared to light curves generated using ellc for the parameters shown in Table 1 (solid lines).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_11"><head>Fig. 10 .</head><label>10</label><figDesc>Fig. 10. Observed light curves for the eclipsing binary HD 23642 (points) compared to light curves generated using ellc_emcee.py for the parameters shown in Table 2 (solid lines).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_12"><head>Fig. 11 .</head><label>11</label><figDesc>Fig. 11. Parameter correlation plots for selected parameters from my fit using ellc_emcee to the Kepler K2 light curve of HD 23642. The parameter values from the analysis of David et al. (2016) are indicated by lines/points in each panel. The contours in each panel show the 0.5-, 1-, 1.5-and 2-sigma confidence regions for each joint parameter distributions. Points outside the 2-sigma confidence region are individual steps from the emcee MCMC chain.</figDesc></figure>
+
+			<note place="foot" n="1"> http://www.hs.uni-hamburg.de/DE/Ins/Per/Wichmann/ Nightfall.html Article number, page 6 of 16 P. F. L. Maxted: ellc -a fast, flexible light curve model for detached eclipsing binary stars and transiting exoplanets.</note>
+
+			<note place="foot" n="2"> http://archive.stsci.edu/kepler/ Article number, page 7 of 16 A&amp;A proofs: manuscript no. ellc-s2</note>
+
+			<note place="foot" n="3"> https://archive.stsci.edu/k2/</note>
+
+			<note place="foot" n="4"> https://pypi.python.org/pypi/ellc/ Article number, page 14 of 16 P. F. L. Maxted: ellc -a fast, flexible light curve model for detached eclipsing binary stars and transiting exoplanets.</note>
+
+			<note place="foot">Article number, page 15 of 16</note>
+
+			<note place="foot">Article number, page 16 of 16</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Acknowledgements</head><p>The coefficients of the quartic equation for the intersections of two ellipses are taken from a document "The Area of Intersecting Ellipses" by David Eberly that was published on the web site www.geometrictools.com, November 20, 2010. I am grateful to the authors of the software packages emcee, Nightfall and batman for their generosity in making their software available. The author gratefully acknowledges everybody who has contributed to make the Kepler Mission possible. Funding for the Kepler Mission is provided by NASA's Science Mission Directorate. I thank the referee for their comments on the manuscript that have helped to clarify a few points in the text and that also led to a useful update to the software. This work was supported by the Science and Technology Facilities Council [ST/M001040/1].</p></div>
+			</div>
+
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Appendix A: The intersections of two ellipses</head><p>A pair of ellipses can be specified using quadratic equations of the form s 0 + s 1 x + s 2 y + s 3 x 2 + s 4 xy + s 5 y 2 = 0 and t 0 + t 1 x + t 2 y + t 3 x 2 + t 4 xy + t 5 y 2 = 0.</p><p>The intersections of the ellipses are then simultaneous solutions of both quadratic equations, i.e. solutions of a quartic equation of the form</p><p>and similarly for x. The coefficients of the quartic equation in y are</p><p>, where d i j = s i t j − s j t i . Equivalent expressions for a quartic equation in x can be found by exchanging the indices 1 ↔ 2 and 3 ↔ 5.</p><p>Various closed-form solutions of quartic polynomial equations have been published since the first by Cardano (1545) but it appears that no algorithm has been developed that is completely robust when implemented using floating point arithmetic <ref type="bibr" target="#b26">(Herbison-Evans 1994)</ref>. Instead, ellc uses the rpoly algorithm <ref type="bibr" target="#b31">(Jenkins 1975)</ref> followed by "root-polishing" using Laguerre's algorithm ( <ref type="bibr" target="#b51">Press et al. 1992</ref>) to ensure that the correct number of real roots is found and to ensure that they are accurate to within the machine floating-point precision. Given the roots of the quartics in x and y, the remaining task is to identify which combinations of these roots correspond to intersections of the ellipses. This proves to be quite problematic because of cases such as those shown in <ref type="figure">Fig. A.1</ref>, which often occur in the calculation of the eclipses for two stars with inclinations close to 90 • . These cases also suffer from inaccurate values of the coefficients u 0 . . . u 4 because of rounding errors. The roots of the A&amp;A proofs: manuscript no. ellc-s2 quartics will give inaccurate estimates of the positions of any intersections in these cases no matter how good the root-finding algorithm. This makes it extremely difficult to find a robust way to determine if some, none or all of the combinations of roots correspond to actual intersections, tangent points (which I do not consider to be intersections in this context), "near-misses" or spurious solutions of the quartics that correspond to incorrect combinations of x and y.</p><p>Most of these problems are the result of the relative orientations of the ellipses, so to find which combinations of x and y correspond to actual intersections the coordinate system is rotated by 45 • , the quartic equations for x ′ and y ′ are solved in the transformed coordinate system, and then apply the inverse transformation to the resulting real roots. Only combinations of x and y that correspond to intersection points or tangent points will appear in the lists of paired real roots calculated for both orientations. Since it is not known a priori which of the two orientations gives reliable results, this analysis is repeated for a third orientation rotated by 60 • to the first and search for combinations of x and y that are common to at least two orientations. The resulting list of candidate intersection points is then searched for duplicates with a tolerance of 10 −9 , which are then removed. If only one candidate intersection point remains then this must be a tangent point. If two unique candidate intersection points are found a simple test of whether the mid-points between these points on the circumference of one ellipse lie inside or outside the other ellipse is sufficient to determine if one ellipse is tangent at two points to the other. A similar test can be used to identify the tangent point in the case of 3 candidate intersection points.</p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Auvergne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Bodin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Boisnard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">506</biblScope>
+			<biblScope unit="page">411</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Bakos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">W</forename><surname>Noyes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Kovács</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">116</biblScope>
+			<biblScope unit="page">266</biblScope>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Bloemen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">410</biblScope>
+			<biblScope unit="page">1787</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Borkovits</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Rappaport</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Hajdu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Sztakovics</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">448</biblScope>
+			<biblScope unit="page">946</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">C P</forename><surname>Bours</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">R</forename><surname>Marsh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">G</forename><surname>Parsons</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">438</biblScope>
+			<biblScope unit="page">3399</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Brogaard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Vandenberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Bruntt</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">543</biblScope>
+			<biblScope unit="page">106</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<monogr>
+		<title level="m" type="main">Ars Magna (Nurmberg)</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Cardano</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1545" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Chandrasekhar</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">93</biblScope>
+			<biblScope unit="page">390</biblScope>
+			<date type="published" when="1933" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Chandrasekhar</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">93</biblScope>
+			<biblScope unit="page">449</biblScope>
+			<date type="published" when="1933" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Chandrasekhar</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">93</biblScope>
+			<biblScope unit="page">462</biblScope>
+			<date type="published" when="1933" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Claret</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">363</biblScope>
+			<biblScope unit="page">1081</biblScope>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Claret</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Bloemen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">529</biblScope>
+			<biblScope unit="page">75</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Claret</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">H</forename><surname>Hauschildt</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">412</biblScope>
+			<biblScope unit="page">241</biblScope>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Collier Cameron</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Pollacco</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Street</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">373</biblScope>
+			<biblScope unit="page">799</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">J</forename><surname>David</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">E</forename><surname>Conroy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">A</forename><surname>Hillenbrand</surname></persName>
+		</author>
+		<idno>arxiv:1602.01901</idno>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Delrez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Santerne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-M</forename><surname>Almenara</surname></persName>
+		</author>
+		<idno>arxiv:1506.02471</idno>
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Diaz-Cordoves</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gimenez</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">259</biblScope>
+			<biblScope unit="page">227</biblScope>
+			<date type="published" when="1992" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Dischler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Söderhjelm</surname></persName>
+		</author>
+		<title level="m">The Three-Dimensional Universe with Gaia</title>
+		<editor>C. Turon, K. S. O&apos;Flaherty, &amp; M. A. C. Perryman</editor>
+		<imprint>
+			<date type="published" when="2005" />
+			<biblScope unit="volume">576</biblScope>
+			<biblScope unit="page">569</biblScope>
+		</imprint>
+	</monogr>
+	<note>ESA Special Publication</note>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Eastman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">S</forename><surname>Gaudi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">125</biblScope>
+			<biblScope unit="page">83</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Eker</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">420</biblScope>
+			<biblScope unit="page">373</biblScope>
+			<date type="published" when="1994" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Eker</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">430</biblScope>
+			<biblScope unit="page">438</biblScope>
+			<date type="published" when="1994" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">B</forename><surname>Etzel</surname></persName>
+		</author>
+		<title level="m">Photometric and Spectroscopic Binary Systems</title>
+		<editor>E. B. Carling &amp; Z. Kopal</editor>
+		<imprint>
+			<date type="published" when="1981" />
+			<biblScope unit="page">111</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">A</forename><surname>Feiden</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Chaboyer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">789</biblScope>
+			<biblScope unit="page">53</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Goodman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">125</biblScope>
+			<biblScope unit="page">306</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Gómez Maqueo Chew</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">C</forename><surname>Morales</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Faedi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">572</biblScope>
+			<biblScope unit="page">50</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">J</forename><surname>Groot</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">745</biblScope>
+			<biblScope unit="page">55</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Herbison-Evans</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1994" />
+			<biblScope unit="page">487</biblScope>
+		</imprint>
+		<respStmt>
+			<orgName>Basser Department of Computer Science Technical Reports</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">G</forename><surname>Hills</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">M</forename><surname>Dale</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">30</biblScope>
+			<biblScope unit="page">135</biblScope>
+			<date type="published" when="1974" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">B</forename><surname>Howell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Sobeck</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Haas</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">126</biblScope>
+			<biblScope unit="page">398</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>James</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">140</biblScope>
+			<biblScope unit="page">552</biblScope>
+			<date type="published" when="1964" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Jenkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Caldwell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Chandrasekaran</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">713</biblScope>
+			<biblScope unit="page">120</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Jenkins</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ACM Trans. Math. Softw</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page">178</biblScope>
+			<date type="published" when="1975" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Kirk</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Conroy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Prša</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<editor>Klinglesmith, D. A. &amp; Sobieski, S.</editor>
+		<imprint>
+			<biblScope unit="volume">75</biblScope>
+			<biblScope unit="page">175</biblScope>
+			<date type="published" when="1970" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<monogr>
+		<title level="m" type="main">Harvard College Observatory Circular</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Kopal</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1950" />
+			<biblScope unit="volume">454</biblScope>
+			<biblScope unit="page">1</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Kreidberg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">127</biblScope>
+			<biblScope unit="page">1161</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">H S</forename><surname>Lacy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">104</biblScope>
+			<biblScope unit="page">2213</biblScope>
+			<date type="published" when="1992" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Leconte</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Chabrier</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">536</biblScope>
+			<biblScope unit="page">1</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Leconte</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Chabrier</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">528</biblScope>
+			<biblScope unit="page">41</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Mandel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">580</biblScope>
+			<biblScope unit="page">171</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">F L</forename><surname>Maxted</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">R</forename><surname>Marsh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Moran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">S</forename><surname>Dhillon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">W</forename><surname>Hilditch</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">300</biblScope>
+			<biblScope unit="page">1225</biblScope>
+			<date type="published" when="1998" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">F L</forename><surname>Maxted</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">R</forename><surname>Marsh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">C</forename><surname>North</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">317</biblScope>
+			<biblScope unit="page">41</biblScope>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Montalto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Boué</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Oshagh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">444</biblScope>
+			<biblScope unit="page">1721</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Moutou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Deleuil</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Guillot</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Icarus</title>
+		<imprint>
+			<biblScope unit="volume">226</biblScope>
+			<biblScope unit="page">1625</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Mullally</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Coughlin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">E</forename><surname>Thompson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">217</biblScope>
+			<biblScope unit="page">31</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Muraveva</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Clementini</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Maceroni</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">443</biblScope>
+			<biblScope unit="page">432</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Ohta</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Taruya</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Suto</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">622</biblScope>
+			<biblScope unit="page">1118</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Pál</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">420</biblScope>
+			<biblScope unit="page">1630</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Pawlak</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Graczyk</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Soszy´nskisoszy´nski</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Acta Astron</title>
+		<imprint>
+			<biblScope unit="volume">63</biblScope>
+			<biblScope unit="page">323</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Pietrukowicz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Mróz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Soszy´nskisoszy´nski</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Acta Astron</title>
+		<imprint>
+			<biblScope unit="volume">63</biblScope>
+			<biblScope unit="page">115</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Pietrzy´nskipietrzy´nski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Graczyk</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Gieren</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">495</biblScope>
+			<biblScope unit="page">76</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">L</forename><surname>Pollacco</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">118</biblScope>
+			<biblScope unit="page">1407</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">H</forename><surname>Press</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">A</forename><surname>Teukolsky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">T</forename><surname>Vetterling</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">P</forename><surname>Flannery</surname></persName>
+		</author>
+		<title level="m">Numerical recipes in FORTRAN. The art of scientific computing</title>
+		<imprint>
+			<publisher>Cambridge University Press</publisher>
+			<date type="published" when="1992" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b52">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Prša</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Zwitter</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">628</biblScope>
+			<biblScope unit="page">426</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b53">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Rauer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Catala</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Aerts</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Experimental Astronomy</title>
+		<imprint>
+			<biblScope unit="volume">38</biblScope>
+			<biblScope unit="page">249</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b54">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">R</forename><surname>Ricker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">N</forename><surname>Winn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Vanderspek</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Astronomical Telescopes, Instruments, and Systems</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page">14003</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b55">
+	<monogr>
+		<title level="m" type="main">Nachrichten von der Gesellschaft der Wissenschaften zu Göttingen</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Schwarzschild</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1906" />
+			<biblScope unit="page">43</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b56">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">K</forename><surname>Sing</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-M</forename><surname>Désert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Lecavelier Des Etangs</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">505</biblScope>
+			<biblScope unit="page">891</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b57">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Southworth</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">557</biblScope>
+			<biblScope unit="page">119</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b58">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Southworth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">F L</forename><surname>Maxted</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Smalley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">429</biblScope>
+			<biblScope unit="page">645</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b59">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Torres</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Andersen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Giménez</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A Rev</title>
+		<imprint>
+			<biblScope unit="volume">18</biblScope>
+			<biblScope unit="page">67</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b60">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vanderburg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Johnson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">126</biblScope>
+			<biblScope unit="page">948</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b61">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">P R</forename><surname>Vaz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Nordlund</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">147</biblScope>
+			<biblScope unit="page">281</biblScope>
+			<date type="published" when="1985" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b62">
+	<analytic>
+		<title level="a" type="main">Nightfall: Animated Views of Eclipsing Binary Stars, Astrophysics Source Code Library Wilson</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">; R E</forename><surname>Wichmann</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">234</biblScope>
+			<biblScope unit="page">1054</biblScope>
+			<date type="published" when="1979" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b63">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">B</forename><surname>Wood</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">76</biblScope>
+			<biblScope unit="page">701</biblScope>
+			<date type="published" when="1971" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

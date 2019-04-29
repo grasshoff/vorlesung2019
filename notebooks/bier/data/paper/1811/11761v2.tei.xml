@@ -1,0 +1,1267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2019-01-22T13:28+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">FORWARD MODELLING AND RETRIEVALS WITH PLATON, A FAST OPEN SOURCE TOOL</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2018-12-10">December 10, 2018 Draft version December 10, 2018</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Michael</forename><surname>Zhang</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Yayaati</forename><surname>Chachan</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Eliza</forename><forename type="middle">M</forename></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Kempton</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Heather</forename><forename type="middle">A</forename><surname>Knutson</surname></persName>
+						</author>
+						<title level="a" type="main">FORWARD MODELLING AND RETRIEVALS WITH PLATON, A FAST OPEN SOURCE TOOL</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2018-12-10">December 10, 2018 Draft version December 10, 2018</date>
+						</imprint>
+					</monogr>
+					<note>Draft version Preprint typeset using L A T E X style emulateapj v. 12/16/11</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<abstract>
+				<p>We introduce PLanetary Atmospheric Transmission for Observer Noobs (PLATON), a Python package that calculates transmission spectra for exoplanets and retrieves atmospheric characteristics based on observed spectra. PLATON is easy to install and use, with common use cases taking no more than a few lines of code. It is also fast, with the forward model taking much less than one second and a typical retrieval finishing in minutes on an ordinary desktop. PLATON supports the most common atmospheric parameters, such as temperature, metallicity, C/O ratio, cloud-top pressure, and scattering slope. It also has less commonly included features, such as a Mie scattering cloud model and unocculted starspot corrections. The code is available online at https://github.com/ideasrule/platon under the open source GPL-3.0 license.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">INTRODUCTION</head><p>Transmission spectroscopy is an essential tool for understanding exoplanet atmospheres. By measuring the transit depth at different wavelengths, astronomers have detected a variety of molecules, including many detections of water and a few of carbon monoxide <ref type="bibr">(Madhusud- han et al. 2014;</ref><ref type="bibr" target="#b8">Deming &amp; Seager 2017)</ref>. With sufficiently wide wavelength coverage, it is possible to constrain not only compositions, but temperatures and cloud properties as well. The inverse problem of retrieving atmospheric parameters given observed transit depths is crucial to the interpretation of observations. The HST and Spitzer archives alone already hold observations of dozens of transiting exoplanets, and the volume of data will only increase as TESS discovers more planets around bright stars and ground-based transit spectroscopy matures. A fast, easy to use, and open source retrieval code is needed in order to help the community quickly extract atmospheric parameters from these observations.</p><p>The exoplanet community has developed many retrieval codes over the years, as reviewed in <ref type="bibr">Madhusud- han (2018)</ref>. The first retrieval code was published in <ref type="bibr" target="#b26">Madhusudhan &amp; Seager (2009)</ref>, but many more have been developed since then, including <ref type="bibr" target="#b1">Benneke &amp; Seager (2012)</ref>, <ref type="bibr" target="#b22">Line et al. (2013)</ref>, and <ref type="bibr" target="#b40">Waldmann et al. (2015)</ref>. These codes use a wide variety of techniques. Most use either MCMC or nested sampling to map the posterior distribution, but some use self-consistent temperaturepressure profiles while others use parametric profiles; some enforce chemical equilibrium while others allow individual molecular abundances to vary freely; some compute eclipse depths while others only compute transit depths; some use opacity sampling while others use the correlated-k method <ref type="bibr" target="#b17">(Heng &amp; Marley 2017)</ref>. Despite the large number of codes, we were only able to find one documented, publicly available retrieval code with a ded-icated paper (Tau-REX; <ref type="bibr" target="#b40">Waldmann et al. 2015</ref>). The Bayesian Atmospheric Radiative Transfer (BART) code is partially described in one subsection of a dissertation <ref type="bibr" target="#b3">(Blecic 2016)</ref> and one subsection of a paper ( <ref type="bibr" target="#b4">Blecic et al. 2017</ref>). CHIMERA ( <ref type="bibr" target="#b22">Line et al. 2013</ref>) appears to be publicly available <ref type="bibr">5</ref> , but has no documentation or examples.</p><p>Although the papers describing these codes rarely have benchmarks, it appears that a typical retrieval takes days to weeks on a typical desktop computer with 4 cores <ref type="bibr">(Zin- gales &amp; Waldmann 2018)</ref>. We aimed to create a publicly available fast retrieval code that can be run on a typical desktop, and takes minutes to hours instead of days to weeks.</p><p>Recently, <ref type="bibr" target="#b18">Kempton et al. (2017)</ref> introduced ExoTransmit. Exo-Transmit calculates transmission spectra for exoplanets of arbitrary size and composition, with pre-packaged data files that make it easy to specify common compositions and pressure-temperature profiles. However, with a run time on the order of tens of seconds, Exo-Transmit is too slow to incorporate into a retrieval code. Exo-Transmit also relies on pre-packaged data files to specify the composition of the atmosphere, and does not allow the user to specify arbitrary metallicities, C/O ratios, or abundances. In addition, Exo-Transmit is written in C and therefore requires additional steps to interface with Python-based codes.</p><p>Inspired by Exo-Transmit, we developed PLATON to address these issues. PLATON was written from scratch in pure Python, and supports both Python 2.7 and 3.5 on both Linux and Mac machines. It uses the same opacity data and a few of the same algorithms as Exo-Transmit. Its forward model contains all the functionality of ExoTransmit, but is 100-1000x faster-fast enough to incorporate into a Markov chain Monte Carlo (MCMC) or nested sampling retrieval. These speed improvements come from three main sources. First, it loads all data files once and holds them in memory afterwards. Second, it performs transit depth calculations only for the wavelength ranges requested by the user, and only for atmospheric layers above the cloud pressure. Third, the radiative transfer is formulated as a matrix-vector mul-tiplication, which numpy can compute very efficiently by calling a highly optimized Basic Linear Algebra Subsystems (BLAS) routine. This decreases the computation time from 1-2 seconds to 30 milliseconds. Aside from these optimizations, PLATON also incorporates several new features, including the ability to model Mie scattering, account for unocculted starspots, compute equilibrium abundances at user-specified metallicities and C/O ratios, and account for varying gravitational acceleration as a function of height for extended atmospheres. This forward modelling code was then incorporated into a retrieval module within PLATON.</p><p>PLATON is in many ways complementary to Tau-REX. Whereas Tau-REX considers a small number of molecules (which could be automatically chosen by a machine learning algorithm), PLATON considers a large number of pre-determined molecules. Whereas Tau-REX performs free retrievals, allowing for the abundances of individual molecules to be retrieved, PLATON assumes equilibrium chemistry throughout the atmosphere. In ease of installation and use, however, PLATON has a clear advantage. Installing Tau-REX is a complex multistep process which involves signing up for an account, installing CMake, OpenMPI, and MultiNest manually, soft linking libraries (on Macs), installing some Python packages, compiling Tau-REX's C++ and Fortran libraries, and downloading a separate set of input data. After installation, the first author ran into numerous problems running the tests, mostly related to problems with the dependencies. In contrast, PLATON's installation process is a single line, which also installs all dependencies:</p><p>pip install platon Or alternatively, after cloning the Git repository:</p><p>python setup.py install We describe PLATON's underlying model structure and validation in Section 2, and its incorporation into a retrieval framework in Section 3.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">FORWARD MODEL</head><p>Transmission spectroscopy has the benefit of being relatively simple to model. By its nature, it probes higher altitudes (P &lt; 1 bar), where the atmosphere can be approximated as isothermal ( <ref type="bibr" target="#b6">Burrows et al. 2008</ref>). In addition, although nightside pollution of transit depths will be significant for JWST <ref type="bibr" target="#b19">(Kipping &amp; Tinetti 2010)</ref>, planetary emission is negligible compared to transmission of starlight. This drastically simplifies the radiative transfer calculation and limits the amount of model uncertainty. Our forward model uses the opacity files from Exo-Transmit, in addition to some of its algorithms. This section will discuss the algorithms and opacities briefly, but more detail can be found in <ref type="bibr" target="#b18">Kempton et al. (2017)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">Overview</head><p>To calculate a transmission spectrum, we assume an isothermal atmosphere with equilibrium chemistry. <ref type="bibr">6</ref> We first divide the atmosphere into 500 layers, equally spaced in log P from 10 −4 to 10 8 Pa. The composition of each layer is calculated assuming equilibrium chemistry, from which follows the mean molecular weight. The physi-cal depth of each layer is then obtained by solving the hydrostatic equation:</p><formula xml:id="formula_0">dP dr = − GM r 2 µm amu P kT (1)</formula><p>The integration constant is set by P(R) = 1 bar: that is, the radius which the user specifies for the planet is taken to be the radius at a reference pressure of 1 bar. The reference pressure is arbitrary, but we picked 1 bar because it is easy to remember and close to standard atmospheric pressure on Earth. After solving the hydrostatic equation, the opacity of each layer is then calculated from its composition. We include gas absorption, collisional absorption, and Rayleigh scattering, the last of which can be modified with a user-specified slope and amplitude.</p><p>Finally, we carry out the radiative transfer calculation. Consider a ray passing through the atmosphere with impact parameter r, where r is the distance from planet center to one of the layers. This ray passes through all layers of the atmosphere above r, but lingers in each layer for different distances. By calculating the distance it takes to traverse each layer and multiplying by that layer's absorption coefficient, we calculate the optical depth experienced by this ray:</p><formula xml:id="formula_1">τ λ (r i ) = N j=i α λ (j)∆l(i, j)<label>(2)</label></formula><p>The transit depth can then be calculated by adding up the cross sectional areas of each layer, weighted by the amount of light let through:</p><formula xml:id="formula_2">D λ = (R bot /R s ) 2 + 2 N i=1 rdr R 2 s (1 − e −τ λ )<label>(3)</label></formula><p>where R bot is the radius at the bottom-most layer.</p><p>As a final step, we correct the transit depth for unocculted star spots. This step is necessary for active stars because the hot unspotted regions have a different spectrum from the colder star spots, and a planet that blocks only the former will appear bigger than it actually is. Worse, this radius inflation depends on wavelength, giving rise to a spurious transit spectrum shape <ref type="bibr">(McCul- lough et al. 2014;</ref><ref type="bibr" target="#b32">Rackham et al. 2018</ref>). To correct for this effect, we use:</p><formula xml:id="formula_3">D λ,c = D λ S(λ, T clear ) f S(λ, T spot ) + (1 − f )S(λ, T clear ) (4)</formula><p>where f is the spot fraction, T spot is the spot temperature, T clear is the temperature of unspotted regions, and S is the spectrum of the stellar surface. We obtain both S(λ, T clear ) and S(λ, T spot ) by interpolating the BT-NextGen (AGSS2009) stellar spectral grid <ref type="bibr">(Al- lard et al. 2012)</ref>, as provided by the Spanish Virtual Observatory <ref type="bibr">7</ref> . We neglect any contributions to the spot spectrum that are not purely due to temperature.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.">Absorption coefficients</head><p>We use the same data files as Exo-Transmit for gas absorption and collisional absorption coefficients, although these will be updated in version 3. Per-species gas absorption coefficients were computed on a wavelengthtemperature-pressure grid using line lists, with a resolution of λ/∆λ = 1000 over the range 0.3-30 µm. The sources of these line lists are shown in <ref type="table" target="#tab_1">Table 2</ref> of <ref type="bibr" target="#b23">Lupu et al. (2014)</ref>. For most molecules, the line list comes from HITRAN, but they use miscellaneous other sources, such as <ref type="bibr" target="#b14">Freedman et al. (2008</ref><ref type="bibr" target="#b13">Freedman et al. ( , 2014</ref>. All collisional absorption coefficients are from HITRAN. We refer the reader to <ref type="bibr" target="#b18">Kempton et al. (2017)</ref> for more information.</p><p>For Rayleigh scattering, we compute the absorption coefficient using the equation:</p><formula xml:id="formula_4">α λ = 128 3π 5 P kT p 2 λ −4 (5)</formula><p>where p is the polarizability of a species. For both ExoTransmit and PLATON, polarizabilities are obtained from the CRC Handbook of Chemistry and Physics. We use an updated list of polarizability values, including several species assumed to have zero polarizability in ExoTransmit: H, O, C, N, C 2 H 4 , H 2 CO, OCS, OH, SO 2 , Na, and K. The polarizability of OH is not in the CRC handbook, and was instead taken from <ref type="bibr" target="#b31">Pluta et al. (1988)</ref>. A few species have no published polarizability values that we can find: MgH, SH, SiH, SiO, TiO, and VO. We adopt 0 for their polarizability. We compute total absorption coefficients at temperature and pressure grid points bordering the atmospheric temperature-pressure profile. 2D bilinear interpolation is then used to get the coefficients at each point along the temperature profile. This is the same algorithm used by <ref type="bibr" target="#b18">Kempton et al. (2017)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.">Atmospheric composition</head><p>In the sphere of atmospheric composition, we depart from Exo-Transmit by providing an equilibrium chemistry model computed with <ref type="bibr">GGchem (Woitke et al. 2018</ref>). The user can provide two parameters: metallicity and C/O ratio. If the user does not specify these parameters, we assume solar metallicity and solar C/O ratio (0.53). From these parameters, we compute the abundances of 34 atomic and molecular species in every layer of the atmosphere. These 34 species are the same as those included in <ref type="bibr" target="#b18">Kempton et al. (2017)</ref>, except that we leave out C 2 H 6 and SH because these species are not included in the default GGchem databases.</p><p>While many public codes exist for equilibrium chemistry ( <ref type="bibr" target="#b5">Blecic et al. 2016;</ref><ref type="bibr" target="#b41">Woitke et al. 2018;</ref><ref type="bibr" target="#b36">Stock et al. 2018)</ref>, they are currently too slow for use in retrievals. This is why we opted to use GGchem to generate a grid of abundances. GGchem computes equilibrium species abundances from atomic abundances by minimizing the total Gibbs free energy of the mixture. We generate separate grids, one with and the other without condensation.</p><p>The abundance grids have 5 dimensions: species name, temperature, pressure, metallicity, and C/O ratio. The temperature and pressure grid points are chosen to match the opacity grid, with temperature ranging from 300 to 3000 K in 100 K intervals and pressure from 10 −4 to 10 8 Pa in decade intervals. The pressure range is determined by our opacity data, which are only available for this range. The temperature range is set mostly by our opacity data, which span 100-3000 K at 100 K intervals. We did not generate abundances down to 100 K because GGchem becomes unstable at very low temperatures. Metallicity ranges from log 10 (Z) = −1 to log 10 (Z) = 3 in steps of 0.05, while C/O ratio ranges from 0.2 to 2.0 in steps of 0.2. We then perform 4D linear interpolation over the grid, obtaining log(Abundance) as a function of T, log(P), log(Z), and log(C/O). The relative error introduced by interpolation in metallicity is on the order of 10 −4 . This is significantly smaller than the error introduced by interpolation in C/O, which is on the order of a few percent. Some molecules (such as water and HCN) have a sharp abundance transition at C/O ∼ 1, giving rise to interpolation errors of tens of percent in this regime. However, the abundances change so rapidly around C/O ∼ 1 that our assumption of uniform equilibrium abundances across the whole planet also becomes invalid, as it is unlikely that the entire planet has exactly the same C/O ratio. This makes the interpolation errors less significant. Nevertheless, our development branch contains an abundance grid with twice the resolution in C/O, increasing to 4x the resolution around C/O ∼ 1. Interpolation errors are less than 1% in almost all cases with this new grid. The new grid will be incorporated in our next release.</p><p>For retrievals, the current data is almost never good enough to constrain any parameter to better than one grid spacing. For forward models, we recommend using parameters that correspond exactly to a grid point in temperature, metallicity, and C/O to avoid interpolation errors.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4.">Clouds and hazes: parametric</head><p>By default, PLATON accounts for clouds and hazes by allowing the cloud-top pressure, scattering amplitude, and scattering slope to vary as free parameters in the fit. The cloud-top pressure defines the height in the atmosphere below which no light can penetrate. The user specifies this parameter, or can set it to infinity for a clear atmosphere. The scattering amplitude and slope are a simple way to parameterize scattering properties without invoking a microphysical model. The default value-an amplitude (A) of 1 and a slope of 4-corresponds to pure Rayleigh scattering. If A is changed while the slope is fixed at 4, the absorption coefficient for scattering is simply multiplied by A at all wavelengths. If the slope s is not 4, we set the scattering absorption coefficient such that it is A times the Rayleigh absorption at the reference wavelength of 1 µm, and is proportional to λ −s at all wavelengths. This parameterization makes no assumptions about the underlying physics while allowing users to see at a glance how strong the scattering is compared to Rayleigh at the reference wavelength (by comparing A to 1), and how the scattering strength behaves with wavelength (by looking at the slope). Since the reference wavelength is only a matter of definition and does not change the underlying model, the user can set it to any value.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.5.">Clouds and hazes: Mie scattering</head><p>In addition to the parametric approach, PLATON supports Mie scattering (Benneke et al., subm.). Clouds and hazes often have particles in the micron range, comparable to the wavelengths of most transit spectra observations. This makes Mie scattering an important component of atmospheric physics <ref type="bibr" target="#b27">(Marley et al. 2013</ref>). For example, Benneke et al., subm. use Mie scattering to explain the anomalously low 3.6 and 4.5 µm Spitzer transit depths for GJ 3470b as compared to its WFC3 (1.1-1.6 µm) transit depths.</p><p>In the Mie scattering mode, the user specifies a cloudtop pressure (P cloud ), a complex refractive index (m = n − ik), a mean particle size (r m ), a geometric standard deviation for particle size (σ g ), a maximum number density (n 0 ), and a fractional scale height (f ). The atmosphere is assumed to contain particles of the same refractive index at all altitudes above the "cloud top pressure". Below this pressure, the atmosphere is assumed to be perfectly opaque, corresponding to perfectly opaque clouds. The number density is given by:</p><formula xml:id="formula_5">n = n 0 e − h f Hgas ,<label>(6)</label></formula><p>where h is the height above the cloud top, f is specified by the user, and H gas is the gas scale height.</p><p>The extinction cross section of a single particle of radius r is given by:</p><formula xml:id="formula_6">σ = πr 2 Q ext (m, 2πr/λ)<label>(7)</label></formula><p>To calculate Q ext , we use the same algorithm as LX-MIE ( <ref type="bibr" target="#b20">Kitzmann &amp; Heng 2018)</ref>, except implemented in Python instead of C++. This algorithm is fast, simple, stable, and does not lead to overflows. Since the calculation of Q ext is time intensive (often taking hundreds of milliseconds), we cache the results of every calculation for the lifetime of the transit depth calculator object. Every time the value of Q ext (m, x) is required, the cache is first consulted. If at least one value in the cache has the same m and an x within 5% of the requested x, we perform linear interpolation on all cache values with the same m and return the interpolated value. If no cache value satisfies these criteria, we consider this a cache miss. Q ext is then calculated for all cache misses and added to the cache. We assume that the particles follow a log-normal radius distribution:</p><formula xml:id="formula_7">P (r) = 1 σr √ 2π exp − (ln r − ln r m ) 2 2σ 2 g ,<label>(8)</label></formula><p>in which case the effective cross section of one particle becomes: </p><formula xml:id="formula_8">¯ σ(λ) = ∞ 0 πr 2 Q ext (m, 2πr λ ) 1 σ √ 2πr e − (ln r−ln rm) 2<label>2σ</label></formula><formula xml:id="formula_9">¯ σ(λ) = ∞ −∞ e −z 2 /2 √ π 2 r 2 m e 2σz Q ext (m, 2πr m e σz λ )dz</formula><p>(10) We integrate this equation by computing the integrand at 100 different values of z ranging from -5 to 5, then using the trapezoid rule. These values were chosen to be densely spaced near 0 and less densely spaced at high or low z. The number of points, the range of z values, and the spacing of z values were chosen so that the integral is as accurate as possible over a wide range of refractive indicies and mean particle sizes without being too computationally expensive.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.6.">Wavelength binning</head><p>The user can request the transit depth in specific wavelength bins. In these situations, PLATON uses the stellar spectrum to compute a properly binned transit depth. This is important for broad-band instruments like Spitzer/IRAC, where the stellar spectrum changes significantly from one side of the bandpass to the other.</p><p>Using the user specified stellar temperature, PLATON interpolates the BT-NextGen (AGSS2009) stellar spectral grid to get a stellar spectrum, assuming log(g) = 4.5 (typical for main sequence stars) and solar metallicity. If the user also specifies a spot coverage fraction and spot temperature, PLATON computes the spot spectrum by interpolation, then computes the weighted average of the unspotted and spotted spectrum. The spectrum, which is in units of erg/cm 2 /s/A, is converted to a photon flux and multiplied by the spacing between adjacent wavelengths in our wavelength grid. The multiplication is necessary because our wavelength grid is uniform in log space, but not in linear space, as each grid spacing is 0.1% larger than the previous. Finally, the unbinned transit depths are converted to a binned transit depth by a weighted average, the weight at each wavelength being the photon flux multiplied by the grid spacing. Analytic PLATON <ref type="figure">Fig. 1</ref>.-Transit depths with all opacity except Rayleigh scattering turned off. The transit depth obeys a power law to within 0.5% blueward of 3 µm, as derived by ( <ref type="bibr" target="#b33">Shabram et al. 2011</ref>). Redward of 3 µm, transit depths flatten out because the atmosphere becomes so transparent that the photospheric pressure becomes greater than 10 8 Pa, the maximum pressure we consider.</p><p>We validate our code with unit tests covering every component of the package. In cases where the expected answer can be computed analytically with simplified inputs, such as the interpolation routines or the radiative transfer, we check against these analytic results. An example is shown in <ref type="figure">Figure 1</ref>, where we reproduce the the-oretical transit depths for a hydrogen atmosphere with only Rayleigh scattering. We make use of <ref type="bibr">Equation 27 of Bétrémieux &amp; Swain (2017)</ref> to derive:</p><formula xml:id="formula_10">κ = 128π 5 3 p 2 λ 4 µm H<label>(11)</label></formula><formula xml:id="formula_11">τ s = P s κ g 2πR s H<label>(12)</label></formula><formula xml:id="formula_12">R = R s + H(γ + ln(τ s ) + E 1 (τ s )),<label>(13)</label></formula><p>where H is the scale height, γ = 0.57721 is a constant, p=0.8059×10 −24 cm 3 is the polarizability of the hydrogen molecule, R s is the radius at the surface, and τ s is the slant optical depth at the surface, and E 1 is the exponential integral. PLATON does not model a real surface, but we do not model radiative transfer at pressures greater than 10 8 Pa, creating an effective surface at that pressure.</p><p>In cases where it is possible to compare against published results, such as the Q ext (m, x) calculations for selected m and x, we verify that we reproduce the published results in <ref type="bibr" target="#b20">Kitzmann &amp; Heng (2018)</ref>. For methods where such a check would be impractical or take too long, such as the retrieval, we simply ensure the method runs without error and returns a result in the expected format. We use Travis CI to ensure that all unit tests are run after every commit. Travis CI creates pristine virtual machines after every commit, installs PLATON on each machine, and runs the unit tests to make sure they pass. We use four virtual machines to test PLATON in four configurations: Ubuntu with Python 2.7, Ubuntu with Python 3, OS X with Python 2.7, and OS X with Python 3. This way, we ensure that PLATON can be installed and successfully run on the most common configurations.</p><p>We also compare our transmission spectrum to the output of Exo-Transmit. In an old version of the code, which was intended to match Exo-Transmit output exactly, the transmission spectrum matched to within machine precision for all wavelengths. In the current version, we have made many design decisions that increase accuracy or usability at the cost of breaking the exact match between the two codes. <ref type="figure" target="#fig_2">Figure 2</ref> shows a comparison between PLATON and Exo-Transmit spectra for a typical hot Jupiter. The main difference between the two is a uniform shift, with PLATON reporting 115 ppm deeper transit depths. <ref type="figure" target="#fig_4">Figure 3</ref> shows that if this shift is removed, the two spectra agree almost perfectly.</p><p>There are two reasons why PLATON reports higher transit depths. First, PLATON correctly takes into account the decline of gravity with height, while ExoTransmit assumes constant gravity. This makes PLA-TON's atmospheres larger-an effect that is most pronounced for super-Earths, but discernible even for Jupiters. Second, Exo-Transmit truncates the atmosphere, taking into account only the region between 0.1 Pa and 10 5 Pa. We consider the entire pressure range for which we have absorption data, spanning 10 −4 Pa to 10 8 Pa. In practice we have found that increasing the upper pressure limit has no effect because the photosphere is well above 10 5 Pa, but decreasing the lower pressure limit does increase the transit depth substantially. This is especially the case at high metallicities, where strong lines saturate and the transit depths of strong lines correspond to the 0.1 Pa height limit in Exo-Transmit.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">RETRIEVAL</head><p>We support retrievals of atmospheric parameters with either MCMC or multimodal nested sampling. MCMC is implemented by emcee (Foreman- <ref type="bibr" target="#b12">Mackey et al. 2013</ref>), which uses an affine invariant ensemble sampler. Multimodal nested sampling was first described by <ref type="bibr" target="#b34">Shaw et al. (2007)</ref>, but we use the pure Python implementation nestle, available on Github at https://github.com/kbarbary/nestle. With the exception of the complex refractive index, any parameter that can be passed to the forward model can be included in the retrieval. These parameters are shown in <ref type="table">Table 1</ref>   The user can choose to fit or freeze any parameter. However, if the user chooses to use the parametric method to account for clouds and hazes, the last 4 parameters in <ref type="table">Table 1</ref> are irrelevant. PLATON requires that the log particle number density be set to −∞ to avoid confusion. If the user chooses to use Mie scattering, the complex refractive index must be specified, along with the last four parameters in the table. PLATON requires that the log scattering amplitude be set to the default value of 0 and the slope be set to the default value of 4, again to avoid confusion. If a parameter is included in the fit, the user can choose a uniform prior or a Gaussian prior. Gaussian priors are most appropriate for parameters like the planet mass, where a published value exists, but with error bars substantial enough to broaden the distribution of the atmospheric parameters.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Benchmarks</head><p>We benchmark PLATON on a typical desktop computer to illustrate its performance. The computer runs Ubuntu 16.04 LTS with a Core i7 7700k CPU and 16 GB of RAM. PLATON never uses more than 500 MB of memory, since that is the total size of its data files, and should perform just as well on computers with less than 16 GB of RAM. When the forward model is first initialized, PLATON loads all relevant data files into memory. This takes 390 ms, but is only done once. <ref type="table" target="#tab_1">Table 2</ref> shows the amount of time taken to compute transit depths within the most commonly used bands once PLATON is initialized. The time taken most directly depends on the number of wavelength grid points within the band. Since grid points are spaced uniformly in logarithmic space with R=1000, the number of grid points is proportional to the ratio between the maximum and minimum wavelengths. In the future, if we increase the resolution we support, run times will increase proportionally. It should be noted that all values in the table are computed for HD 209458b, assuming a clear atmosphere and no Mie scattering. If there are clouds, PLATON neglects the part of the atmosphere below the cloud-top pressure, substantially improving its performance. If Mie scattering is turned on, the calculation of Q ext can consume hundreds of milliseconds on the first run of the forward model. However, every run populates the Q ext cache, and a future run with similar parameters will have a high cache hit rate. Mie calculations will then consume negligible time. <ref type="table" target="#tab_2">Table 3</ref> shows the typical performance of retrievals. Users can run the second and fourth benchmarks themselves by running examples/retrieve multinest.py and examples/retrieve emcee.py, respectively. These benchmarks use published HD 209458b data from <ref type="bibr">Knut- son et al. (2007)</ref>, <ref type="bibr" target="#b7">Deming et al. (2013)</ref>, and <ref type="bibr" target="#b10">Evans et al. (2015)</ref>. The nested sampling runs were performed with 100 live points, and the MCMC runs had 50 walkers and 1000 steps. These correspond to 17,000 and 50,000 likelihood evaluations respectively. The number of likelihood evaluations, and hence the run time, is proportional to the number of live points or steps.</p><p>For MCMC, we verified convergence in two ways. First, we ran another retrieval with 10,000 steps and checked that it gave similar posteriors. Second, we estimated the autocorrelation length using a variant of the "new" method recommended by the author of emcee, Dan Foreman-Mackey, on his webpage 8 . Namely, for each dimension corresponding to a parameter, we compute the autocorrelation length of the chain, flattened along the walker dimension. The estimates are averaged together to obtain an average autocorrelation length. If the chain is less than 50 times longer than this average, we consider the estimate unreliable and run more iterations. If the chain is more than 50 times longer, we consider the estimate reliable, and the chain to have converged. The factor of 50 comes from the recommendation of the same webpage. For our benchmark retrieval, we find an autocorrelation length of 7 steps-corresponding to 350 samples, as we have 50 walkers. For the chain with 10,000 steps, we compute an autocorrelation length of 24 steps. Both numbers are far smaller than the total number of steps, but the fact that the estimates are discrepant shows the disturbing fact that the autocorrelation length estimate increases with the number of samples. This is a property of the algorithm, not of our chains. It is one of the reasons why monitoring convergence is not trivial, and is why we have decided to refer the user to the extensive online and published literature on this topic.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">Comparison with retrieval results in literature</head><p>To evaluate the performance of our retrieval tool, we focus on planets with large datasets and published retrieved results in the literature. WASP-39b and HAT-P-26b are excellent candidates for such an exercise as their transmission spectra extend all the way from the optical (STIS ) to near-infrared (Spitzer ). Their atmospheric properties have been inferred from ATMO Retrieval Code (ARC), which couples the ATMO models to a L-M least-squares minimizer and a Differential Evolution Chain Monte Carlo analysis ( <ref type="bibr" target="#b37">Tremblin et al. 2015;</ref><ref type="bibr" target="#b38">Wakeford et al. 2017)</ref>. ATMO is used to compute 1-D T-P profiles for atmospheres in hydrostatic and radiativeconvective equilibrium and calculate the transmission and emission spectra for a given atmospheric profile. We choose to compare with ARC because ATMO has been benchmarked against the Met Office SOCRATES code (used for the Earth) and because ATMO has a public scalable grid of transmission spectra ( <ref type="bibr" target="#b15">Goyal et al. 2018a</ref>) that can be used for retrievals. More importantly, the data for these planets provide relatively tight constraints on their atmospheric water abundance (WASP-39b) and heavy element abundance (HAT-P-26b) in the ATMO retrieval ( <ref type="bibr" target="#b38">Wakeford et al. 2017</ref><ref type="bibr" target="#b39">Wakeford et al. , 2018</ref>. These features provide useful tests for PLATON's retrieval capabilities and allow direct comparison of well constrained quantities using different retrieval models.</p><p>We run retrievals on these two planets with both PLA-TON and the ATMO grid. We use the ATMO grid which accounts for rainout, which has 5 dimensions: temperature, gravity, metallicity, C/O ratio, scattering factor, and cloud parameter (representing a constant additional opacity across the atmosphere at all wavelengths). Since there is no parameter in PLATON that corresponds exactly to the cloud parameter, we set the cloud parameter to zero in the ATMO models and the cloudtop pressure to infinity in the PLATON models. This restricts our retrievals to cases without an optically thick cloud layer while still allowing for enhanced scattering due to optically thin hazes. We use uniform priors for temperature, log(Z), C/O ratio, and log(scattering factor), with the minimum and maximum set to the minimum and maximum of the ATMO grid. 5D linear interpolation is used to compute the transmission spectrum for a certain set of parameters from the transmission spectra at the grid points, then scaled to the planetary and stellar radii. For consistency, we use the same priors for PLA-TON, even though PLATON supports a wider parameter space. <ref type="figure" target="#fig_10">Figures 6 and 7</ref> show the resulting posterior probability distributions for HAT-P-26b and WASP-39b, respectively. HAT-P-26b shows strikingly good agreement between PLATON and ATMO, with all posteriors being nearly identical. For WASP-39b, on the other hand, there are slight discrepancies. PLATON favors a temperature ∼100 K lower, a discrepancy of roughly 1σ. In addition, ATMO exhibits an odd multimodal distribution in scattering factor and C/O ratio that is not seen in PLATON. This multimodal distribution is not seen in the retrieval from <ref type="bibr" target="#b39">Wakeford et al. (2018)</ref>, which uses the ATMO code directly instead of using a generic grid. The temperature retrieved by PLATON is also more consistent with <ref type="bibr" target="#b39">Wakeford et al. (2018)</ref> than with the temperature we retrieved using the generic ATMO grid. Additionally, we do not see a multimodal distribution if we use the ATMO grid which does not include rainout, nor do we see it if the observations of the two Na and K spectral features are excluded. We therefore conclude that the odd behavior of our ATMO retrievals using the generic grid is likely due to a rare coincidence of factors. <ref type="table" target="#tab_4">Tables 4 and 5</ref> show the median and error of each retrieved parameter for HAT-P-26b and WASP-39b, respectively. The error bars are derived by comparing the 84th and 16th percentiles to the median. We have also included published retrieval results, when available. For HAT-P-26b, all values are consistent. For WASP-39b, PLATON favors lower temperature, but similar C/O ra-     tio, metallicity, and scattering factor compared to the ATMO generic grid. The published metallicity and temperature are both very similar to PLATON's results, while the published C/O ratio is lower than that of PLA-TON. It is unclear why the published C/O ratio, which was retrieved by directly using the ATMO code, is lower than that retrieved by both PLATON and the ATMO grid.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">PRECAUTIONS, LIMITATIONS, AND BEST PRACTICES</head><p>PLATON is a powerful tool, but we were required to make some compromises in order to achieve our goal of a fast, easy to use package written in pure Python. In this section we address some of the limitations of PLATON that users should be aware of. The biggest source of error in PLATON comes from its relatively low R=1000 spectral resolution, which does not allow us to resolve individual lines at typical atmospheric pressures (P &lt; 1 bar). When we sample these unresolved lines using our relatively coarse wavelength grid (this method is known as "opacity sampling") it leads to spikiness in the cross sections and corresponding transmission/emission spectra, resulting in the errors visible in <ref type="figure">Figure 8</ref>. The idea behind opacity sampling is that even though the sampling resolution is much lower than that needed to resolve individual lines, it is still much higher than the instrumen-  tal resolution, and the spikiness in transit/eclipse depths can be smoothed out to an acceptable level by binning to instrumental resolution.</p><p>In practice this means that users will obtain the best results when they utilize wavelength bins that are large relative to the intrinsic model resolution. The number of wavelength grid points in a bin must be large enough to effectively average out the spikiness in transit depths caused by opacity sampling within that bin. For example, a hot Jupiter at T=1200 K with solar metallicity has transit depths that fluctuate roughly 100 ppm from grid point to grid point at 1.4 µm, the middle of the HST WFC3 band. At this wavelength, the wavelength grid points are separated by 1.4 nm, so a 30 nm wide wavelength bin would include 21 points. The error generated by opacity sampling is then ∼100/sqrt(21) = 22 ppm, which is appreciably smaller than the typical published uncertainties on WFC3 data sets (i.e. <ref type="bibr" target="#b38">Wakeford et al. 2017</ref><ref type="bibr" target="#b39">Wakeford et al. , 2018</ref>. This sampling error is effectively "white" in wavelength space-i.e., it does not systematically bias the transit depth in one direction, but instead introduces random scatter around the true value. If the observational data have errors comparable to or smaller than 22 ppm, retrievals with R=1000 will likely give only slightly wider posteriors than if we used line-by-line radiative transfer. However, it is worth remembering that our  model also makes other simplifying assumptions, such as an isothermal atmosphere, cloud opacity parameterization, and equilibrium chemistry, that may cause deviations from the measured transmission spectrum that are much greater than either the observational errors or the sampling errors.</p><p>If the default R=1000 opacities are too low resolution for a given retrieval, we also provide optional opacity files at R=2000 and R=10,000, available at http://www.astro.caltech.edu/ ~ mz/absorption. html. These only span 0.5-12 µm, not 0.3-30 µm, but the full wavelength coverage will be added in version 3. Users can replace the existing opacity files in PLATON's data directory with a higher resolution version and then run PLATON as usual. No code changes are necessary, but run time and memory usage will grow linearly with resolution.</p><p>Our tests indicate that these high-resolution data are not usually necessary for STIS, WFC3, or Spitzer data. <ref type="figure">Figure 9</ref> compares a retrieval performed at R=10,000 to one performed at R=1000. The higher error multiple and wider posteriors caused by opacity sampling can clearly be seen, but the posteriors are otherwise very similar. The high-resolution retrieval <ref type="bibr">was</ref>    </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>R=1000</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>R=50,000</head><p>Fig. 8.-Transit depths across the WFC3 band for a 1200 K Jupiter orbiting a Sun-like star, computed assuming waterdominated opacity at two resolutions: R=1000 (native PLATON), and R=50,000 (assumed to be the truth). The depths are binned with a bin size of 19 nm. PLATON deviates from the true value by up to 50 ppm, although the deviation is much smaller at most wavelengths.</p><p>test-they tested resolutions of 1, 2, 5, and 10 cm -1 for WFC3 retrievals and found that "for all of these values, the posterior distributions of T, X H2O , and k cloud are somewhat similar." The difference between the best and worst resolutions tested amounted to 0.5 sigma in temperature and water mixing ratio. In addition, the 2D posterior distributions in their <ref type="figure" target="#fig_10">Figure 6</ref> are very similar. Our resolution of R=1000 corresponds to a wavenumber resolution of 6-9 cm -1 , so we are between their 5 and 10 cm -1 results in terms of the error introduced by opacity sampling.</p><p>We next provide advice on how to ensure an accurate posterior when using nested sampling or MCMC. For nested sampling, we have found that 100 live points is usually sufficient to obtain accurate 1D posteriors unless the posterior space is highly multimodal. However, it is difficult to produce a publication-quality plot of the 2D posteriors with only 100 live points, as the low density of points in parameter space makes the contours look ragged and broken up. We therefore recommend 100 live points for exploratory data analysis, and 1000 live points to generate publication-quality corner plots. For MCMC, we find that 1000 steps with 50 walkers (resulting in 50,000 samples) is typically enough to sample more than 50 times the autocorrelation length. We recommend 1000 steps for exploratory data analysis, and 10,000 steps to produce publication-quality posteriors. For cases with widely separated multimodal distributions, we note that the MCMC method will perform poorly as walkers will have a hard time moving between peaks. This is a well known limitation of MCMC, and we therefore recommend that users switch to nested sampling in these cases.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">Other Best Practices</head><p>As its name implies, PLATON is designed to be accessible to users with minimal experience in modelling atmospheres. To that end, we offer several suggestions to help newcomers do retrievals with minimal pain. The first step in a retrieval is to decide which parameters to fix and which to retrieve, and following that, whether to use uniform or Gaussian priors. The optimal choice varies on a case by case basis according to the quality of the user's data in comparison to the published data. Nevertheless, there are a few guidelines that nearly always apply. The stellar temperature, for example, has almost no impact on the transmission spectrum, and published values are always much more accurate than what one can derive from a retrieval on an exoplanet atmosphere. The stellar temperature should be fixed. Similarly, the spot fraction should be fixed to 0 for inactive stars, and restricted to an appropriately small range for active stars. On the other hand, the metallicity and cloud-top pressure are typically not known in advance and should therefore be included as free parameters in the fit with log-uniform priors. The stellar radius and planet mass usually have published values with an intermediate accuracy-not low enough that they should be ignored, but not high enough that they can be safely fixed to a single value. This is a good use case for Gaussian priors, which take into account the published value's mean and standard deviation, while still allowing the parameter to vary within the published uncertainties as part of the fit.</p><p>We recommend that users begin with the parametric cloud and haze model and only switch to Mie scattering 1 . 8 0 error multiple <ref type="figure">Fig. 9</ref>.-Comparison of retrievals on WASP-39b transit depths above 500 nm, using two opacity data resolutions: R=1000 (red) and R=10,000 (black). As expected, the R=1000 retrieval has a higher error multiple and wider posteriors, reflecting the errors introduced by opacity sampling. The low-resolution retrieval favors slightly lower temperatures (by 60 K), but the posteriors are otherwise very similar. if the parametric model does not result in a good fit. The parametric model is less physically motivated, but it has fewer free parameters and is less time consuming. If the user does decide to try Mie scattering, we recommend leaving the particle size geometric standard deviation at the default value of 0.5. This parameter has been measured for Earth aerosols (e.g. <ref type="bibr" target="#b35">Shen et al. 2015;</ref><ref type="bibr" target="#b30">Pinnick et al. 1978;</ref><ref type="bibr" target="#b9">Elias et al. 2009</ref>) and ranges from 0.25 to 0.7, with a typical value of 0.5. It is worth noting that the aerosol literature usually quotes e σg instead of σ g . When we refer to standard deviation, we always mean the σ g parameter in Equation 8.</p><p>After choosing which parameters to fit, the user must pick default values and corresponding ranges for all model parameters used in the fit. There is no point including a region of parameter space that is clearly unphysical, such as a temperature of 300 K for the most irradiated planet ever discovered, nor is there a point in restricting a parameter to a narrower range than justified by the current state of knowledge.</p><p>Next, the user might wonder whether to use MCMC or nested sampling. In our experience it is best to start with nested sampling, because it is faster (usually finishing within minutes) and has a natural stopping point automatically determined by nestle. We have, however, found pathological cases where nestle samples the parameter space extremely inefficiently; in these case, MCMC is necessary to have a reasonably fast retrieval. With MCMC, it is necessary to set the number of walkers and the number of steps by hand, and checking for convergence is not trivial. However, one advantage of MCMC is that it gives an unbiased sample from the posterior distribution, making it easy to plot the posterior probability distributions (also known as "corner plots"). We refer to <ref type="bibr" target="#b12">Foreman-Mackey et al. (2013)</ref> for tips on choosing emcee parameters. With nestle, the best one can do is get biased samples along with their weights, which can then be resampled into equal-weight samples. Overall, the results from MCMC and nestled sampling are very similar, and we encourage users to try both to see which one they prefer.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">CONCLUSION</head><p>We have developed a transmission spectrum calculator and retrieval tool in pure Python. We release it on GitHub, and encourage the community to use it, contribute to it, and incorporate it in whole or part into other software. This paper describes version 2.0 of the package, but we intend to keep it under continuous development-adding features, writing more unit tests, increasing user friendliness, and fixing bugs. There is already a beta version of an eclipse depth calculator and retriever, and we intend to allow users to specify wavelength-dependent refractive indicies for Mie scattering in the near future.</p><p>PLATON is not designed to model every physical phenomenon on exoplanets, or even to keep up with the cutting edge in theory. Its niche is to be a fast, simple, and easily modifiable tool: a PLanetary Atmospheric Transmission tool for Observer Noobs.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">ACKNOWLEDGMENTS</head><p>M.Z. acknowledges Plato (Greek:ΠΛATΩN) for his insightful philosophy and his contribution to the package's name.</p><p>We thank Carlos E. Munoz for generating highresolution opacity data in a format suitable for PLATON. We thank Jayesh Goyal for assistance in comparing PLA-TON to ATMO.</p><p>Support for this work was provided by HST GO programs 13431, 13665, and 14260.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Software:</head><p>numpy, scipy, matplotlib, emcee, nestle, corner, nose, Travis-CI</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head></head><label></label><figDesc>After a change of variables to z = ln r−ln rm σ , we have:</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Fig. 2 .</head><label>2</label><figDesc>Fig. 2.-Transmission spectrum of a 1200 K Jupiter mass, Jupiter radius planet orbiting a Sun-like star, as computed by PLA-TON and Exo-Transmit. The difference is mainly due to PLATON truncating the atmosphere at a much lower pressure.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Fig. 3 .</head><label>3</label><figDesc>Fig. 3.-Same as Figure 2, but with PLATON transit depths shifted downwards by 115 ppm.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Fig. 4 .</head><label>4</label><figDesc>Fig. 4.-Transmission spectrum for HAT-P-26b generated from ATMO (obtained from Goyal et al. 2018b) and PLATON for an isothermal atmosphere with temperature 851 K, 10x solar metallicity, C/O ratio of 0.35, and haze factor/scattering factor of 1. In the right panel, we show the transmission spectrum smoothed by a Gaussian filter of σ = 15 to roughly match the resolution of HST.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head>Fig. 5 .</head><label>5</label><figDesc>Fig. 5.-The best fit transmission spectrum for HAT-P-26b and WASP-39b (red) and the ±1σ as well as the ±2σ uncertainties shown in blue.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_10"><head>Fig. 6 .</head><label>6</label><figDesc>Fig. 6.-Posterior probability distribution of planetary and atmospheric properties for HAT-P-26b. Red: retrieved with PLATON; black: retrieved with ATMO generic grid.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_12"><head>Fig. 7 .</head><label>7</label><figDesc>Fig. 7.-Posterior probability distribution of planetary and atmospheric properties for WASP-39b. Red: retrieved with PLATON; black: retrieved with ATMO generic grid.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" validated="false"><head></head><label></label><figDesc>. The last parameter in Table 1, error multiple, multiplies every observational error. It accounts for over-or under- estimation of error bars by the user, assuming all error bars are off by the same factor.TABLE 1 Parameters that can be retrieved. PLATON supports a limited range for some parameters, as shown in the second column. The third column indicates whether PLATON takes the base-10 log of the parameter during retrieval.</figDesc><table>Parameter name 
+Supported range 
+Log space? Default 
+Stellar radius 
+Any 
+No 
+None 
+Stellar temperature 
+Any 
+No 
+None 
+Stellar spot fraction 
+Any 
+No 
+0 
+Stellar spot temperature 
+Any 
+No 
+None 
+Planet mass 
+Any 
+No 
+None 
+Planet radius (at 1 bar) 
+Any 
+No 
+None 
+Temperature 
+300-3000 K 
+No 
+None 
+Metallicity 
+0.1-1000x solar 
+Yes 
+Solar 
+C/O ratio 
+0.2-2.0 
+No 
+0.53 
+Cloud-top pressure 
+∞, or 10 −4 -10 8 Pa 
+Yes 
+∞ 
+Scattering amplitude 
+Any 
+Yes 
+1 
+Scattering slope 
+Any 
+No 
+4 
+Error multiple 
+Any 
+No 
+1 
+Particle number density 
+Any 
+Yes 
+1 m −3 
+Particle radius 
+Any 
+Yes 
+1 µm 
+Particle radius standard deviation 
+Any 
+No 
+0.5 
+Particle fractional scale height 
+Any 
+No 
+1 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" validated="false"><head>TABLE 2 Benchmarks</head><label>2</label><figDesc></figDesc><table>for desktop computation of forward model 
+Band 
+Wavelength range (µm) Time (ms) 
+All wavelengths 
+0.3-30 
+393 
+STIS 
+0.293-1.019 
+57 
+WFC3 
+1.119-1.628 
+29 
+Spitzer 3.6 µm 
+3.2-4.0 
+16 
+Spitzer 4.5 µm 
+4.0-5.0 
+16 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" validated="true"><head>TABLE 3 Benchmarks for retrieval using real HD 209458b data</head><label>3</label><figDesc></figDesc><table>Band(s) 
+Algorithm 
+Time (min) Likelihood evaluations 
+WFC3 
+nested sampling 
+6.3 
+20,999 
+STIS + WFC3 + Spitzer nested sampling 
+29 
+17,205 
+WFC3 
+MCMC 
+13 
+50,051 
+STIS + WFC3 + Spitzer 
+MCMC 
+57 
+50,051 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" validated="false"><head></head><label></label><figDesc>15 times slower, taking 215 minutes with 100 live points compared to 14 minutes at R=1000. Fisher &amp; Heng (2018) performed a similar</figDesc><table></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4" validated="false"><head>TABLE 4 Best</head><label>4</label><figDesc></figDesc><table>Fit Parameters for HAT-P-26b 
+Property 
+PLATON ATMO grid Wakeford et al. (2017) 
+Temperature (K) 
+903 ± 96 
+878 +101 
+
+−87 
+
+C/O ratio 
+0.46 +0.12 
+
+−0.08 
+
+0.45 +0.09 
+
+−0.07 
+
+log 10 (Z / Z ) 
+1.96 +0.23 
+
+−0.39 
+
+1.87 +0.27 
+
+−0.45 
+
+1.566 ± 1.7034 
+log 10 (Scattering Factor) 2.37 +0.38 
+
+−0.71 
+
+2.21 +0.46 
+
+−0.62 
+
+error multiple 
+1.68 +0.29 
+
+−0.22 
+
+1.60 +0.28 
+
+−0.21 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_5" validated="false"><head>TABLE 5 Best</head><label>5</label><figDesc></figDesc><table>Fit Parameters for WASP-39b 
+Property 
+PLATON ATMO grid Wakeford et al. (2018) 
+Temperature (K) 
+1031 +58 
+
+−69 
+
+1129 +73 
+
+−38 
+
+1030 +30 
+
+−20 
+
+C/O ratio 
+0.60 +0.08 
+
+−0.12 
+
+0.59 +0.1 
+
+−0.15 
+
+0.31 +0.08 
+
+−0.05 
+
+log 10 (Z / Z ) 
+2.23 +0.05 
+
+−0.11 
+
+2.23 +0.05 
+
+−0.08 
+
+2.18 +0.12 
+
+−0.16 
+
+log 10 (Scattering Factor) 1.17 +0.33 
+
+−0.34 
+
+1.30 +0.49 
+
+−0.65 
+
+</table></figure>
+
+			<note place="foot" n="6"> Arbitrary P-T profiles and compositions are also supported, but this is not the recommended use case. We refer the user to the documentation for information on these features.</note>
+
+			<note place="foot" n="7"> http://svo2.cab.inta-csic.es/theory/newov2/index.php</note>
+
+			<note place="foot" n="8"> https://emcee.readthedocs.io/en/latest/tutorials/ autocorr</note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Allard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Homeier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Freytag</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Philosophical Transactions of the Royal Society of London Series A</title>
+		<imprint>
+			<biblScope unit="volume">370</biblScope>
+			<biblScope unit="page">2765</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Benneke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Seager</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">753</biblScope>
+			<biblScope unit="page">100</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Bétrémieux</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Swain</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">467</biblScope>
+			<biblScope unit="page">2834</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<monogr>
+		<title level="m" type="main">ArXiv e-prints</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Blecic</surname></persName>
+		</author>
+		<idno>1604.02692</idno>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Blecic</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Dobbs-Dixon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Greene</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">848</biblScope>
+			<biblScope unit="page">127</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Blecic</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Harrington</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">O</forename><surname>Bowman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">225</biblScope>
+			<biblScope unit="page">4</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Burrows</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Budaj</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Hubeny</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">678</biblScope>
+			<biblScope unit="page">1436</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Deming</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Wilkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Mccullough</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">774</biblScope>
+			<biblScope unit="page">95</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">D</forename><surname>Deming</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Seager</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Geophysical Research (Planets)</title>
+		<imprint>
+			<biblScope unit="volume">122</biblScope>
+			<biblScope unit="page">53</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Elias</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Haeffelin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Drobinski</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Atmospheric Research</title>
+		<imprint>
+			<biblScope unit="volume">92</biblScope>
+			<biblScope unit="page">443</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">M</forename><surname>Evans</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Gibson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">451</biblScope>
+			<biblScope unit="page">680</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Fisher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Heng</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">481</biblScope>
+			<biblScope unit="page">4698</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Goodman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">125</biblScope>
+			<biblScope unit="page">306</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Freedman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Lustig-Yaeger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Fortney</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">214</biblScope>
+			<biblScope unit="page">25</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Freedman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Marley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Lodders</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">174</biblScope>
+			<biblScope unit="page">504</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Goyal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">R</forename><surname>Wakeford</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J</forename><surname>Mayne</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Goyal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Mayne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">K</forename><surname>Sing</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">474</biblScope>
+			<biblScope unit="page">5158</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Heng</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Marley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Radiative Transfer for Exoplanet Atmospheres</title>
+		<imprint>
+			<biblScope unit="page">102</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">M.-R</forename><surname>Kempton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Lupu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Owusu-Asare</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Slough</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Cale</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">129</biblScope>
+			<biblScope unit="page">44402</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Kipping</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">407</biblScope>
+			<biblScope unit="page">2589</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Kitzmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Heng</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">475</biblScope>
+			<biblScope unit="page">94</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">A</forename><surname>Knutson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">W</forename><surname>Noyes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">M</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">L</forename><surname>Gilliland</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">655</biblScope>
+			<biblScope unit="page">564</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Line</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Wolf</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Yung</surname></persName>
+		</author>
+		<title level="m">American Astronomical Society Meeting Abstracts #221</title>
+		<imprint>
+			<date type="published" when="2013" />
+			<biblScope unit="volume">221</biblScope>
+			<biblScope unit="page">2</biblScope>
+		</imprint>
+	</monogr>
+	<note>American Astronomical Society Meeting Abstracts</note>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">E</forename><surname>Lupu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Zahnle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Marley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">784</biblScope>
+			<biblScope unit="page">27</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Madhusudhan</surname></persName>
+		</author>
+		<idno>1808.04824</idno>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Madhusudhan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Knutson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Fortney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Barman</surname></persName>
+		</author>
+		<title level="m">Protostars and Planets VI</title>
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="page">739</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Madhusudhan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Seager</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">707</biblScope>
+			<biblScope unit="page">24</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Marley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">S</forename><surname>Ackerman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">N</forename><surname>Cuzzi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Kitzmann</surname></persName>
+		</author>
+		<title level="m">Clouds and Hazes in Exoplanet Atmospheres</title>
+		<editor>S. J.</editor>
+		<imprint>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">A</forename><surname>Mackwell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Simon-Miller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Harder</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Bullock</surname></persName>
+		</author>
+		<imprint>
+			<biblScope unit="page" from="367" to="391" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">R</forename><surname>Mccullough</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Crouzet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Deming</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Madhusudhan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">791</biblScope>
+			<biblScope unit="page">55</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">G</forename><surname>Pinnick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">L</forename><surname>Hoihjelle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Fernandez</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Atmospheric Sciences</title>
+		<imprint>
+			<biblScope unit="volume">35</biblScope>
+			<biblScope unit="page">2020</biblScope>
+			<date type="published" when="1978" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Pluta</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">J</forename><surname>Sadlej</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Bartlett</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Chemical Physics Letters</title>
+		<imprint>
+			<biblScope unit="volume">143</biblScope>
+			<biblScope unit="page">91</biblScope>
+			<date type="published" when="1988" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">V</forename><surname>Rackham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Apai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Giampapa</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">853</biblScope>
+			<biblScope unit="page">122</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Shabram</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Fortney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">P</forename><surname>Greene</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Freedman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">727</biblScope>
+			<biblScope unit="page">65</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Shaw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Bridges</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">P</forename><surname>Hobson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">378</biblScope>
+			<biblScope unit="page">1365</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><forename type="middle">J</forename><surname>Shen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">Y</forename><surname>Sun</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><forename type="middle">Y</forename><surname>Zhang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Atmospheric Environment</title>
+		<imprint>
+			<biblScope unit="volume">120</biblScope>
+			<biblScope unit="page">307</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Stock</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Kitzmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">B C</forename><surname>Patzer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Sedlmayr</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">479</biblScope>
+			<biblScope unit="page">865</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Tremblin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">S</forename><surname>Amundsen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Mourier</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">804</biblScope>
+			<biblScope unit="page">17</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">R</forename><surname>Wakeford</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">K</forename><surname>Sing</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Kataria</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">356</biblScope>
+			<biblScope unit="page">628</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">R</forename><surname>Wakeford</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">K</forename><surname>Sing</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Deming</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">155</biblScope>
+			<biblScope unit="page">29</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">P</forename><surname>Waldmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Rocchetto</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">802</biblScope>
+			<biblScope unit="page">107</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Woitke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Helling</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">H</forename><surname>Hunter</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">614</biblScope>
+			<biblScope unit="page">1</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Zingales</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">P</forename><surname>Waldmann</surname></persName>
+		</author>
+		<idno>1806.02906</idno>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

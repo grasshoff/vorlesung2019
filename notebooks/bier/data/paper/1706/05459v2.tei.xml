@@ -1,0 +1,1587 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2019-01-22T13:32+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Inferring probabilistic stellar rotation periods using Gaussian processes</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2017">2017</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ruth</forename><surname>Angus</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Astronomy</orgName>
+								<orgName type="institution" key="instit1">Simons Fellow</orgName>
+								<orgName type="institution" key="instit2">Columbia University</orgName>
+								<address>
+									<settlement>NY</settlement>
+									<region>NY</region>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Timothy</forename><surname>Morton</surname></persName>
+							<affiliation key="aff1">
+								<orgName type="department">Department of Astrophysical Sciences</orgName>
+								<orgName type="institution">Princeton University</orgName>
+								<address>
+									<settlement>Princeton</settlement>
+									<region>NJ</region>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Suzanne</forename><surname>Aigrain</surname></persName>
+							<affiliation key="aff2">
+								<orgName type="department">Subdepartment of Astrophysics</orgName>
+								<orgName type="institution">University of Oxford</orgName>
+								<address>
+									<country key="GB">UK</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Daniel</forename><surname>Foreman-Mackey</surname></persName>
+							<affiliation key="aff3">
+								<orgName type="department">Department of Astronomy</orgName>
+								<orgName type="institution" key="instit1">Sagan Fellow</orgName>
+								<orgName type="institution" key="instit2">University of Washington</orgName>
+								<address>
+									<settlement>Seattle</settlement>
+									<region>WA</region>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Vinesh</forename><surname>Rajpaul</surname></persName>
+							<affiliation key="aff2">
+								<orgName type="department">Subdepartment of Astrophysics</orgName>
+								<orgName type="institution">University of Oxford</orgName>
+								<address>
+									<country key="GB">UK</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Inferring probabilistic stellar rotation periods using Gaussian processes</title>
+					</analytic>
+					<monogr>
+						<title level="j" type="main">MNRAS</title>
+						<imprint>
+							<biblScope unit="volume">000</biblScope>
+							<date type="published" when="2017">2017</date>
+						</imprint>
+					</monogr>
+					<note type="submission">Last updated 2017 March 13; in original form 2017 March 13</note>
+					<note>Preprint Compiled using MNRAS L A T E X style file v3.0</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>stars -rotation</term>
+					<term>stars -starspots</term>
+					<term>stars -solar-type</term>
+					<term>methods -data-analysis</term>
+					<term>methods -statistical</term>
+					<term>techniques -photometric</term>
+				</keywords>
+			</textClass>
+			<abstract>
+				<p>Variability in the light curves of spotted, rotating stars is often non-sinusoidal and quasi-periodic-spots move on the stellar surface and have finite lifetimes, causing stellar flux variations to slowly shift in phase. A strictly periodic sinusoid therefore cannot accurately model a rotationally modulated stellar light curve. Physical models of stellar surfaces have many drawbacks preventing effective inference, such as highly degenerate or high-dimensional parameter spaces. In this work, we test an appropriate effective model: a Gaussian Process with a quasi-periodic covariance kernel function. This highly flexible model allows sampling of the posterior probability density function of the periodic parameter, marginalising over the other kernel hyperparameters using a Markov Chain Monte Carlo approach. To test the effectiveness of this method, we infer rotation periods from 333 simulated stellar light curves, demonstrating that the Gaussian process method produces periods that are more accurate than both a sine-fitting periodogram and an autocorrelation function method. We also demonstrate that it works well on real data, by inferring rotation periods for 275 Kepler stars with previously measured periods. We provide a table of rotation periods for these 1102 Kepler objects of interest and their posterior probability density function samples. Because this method delivers posterior probability density functions, it will enable hierarchical studies involving stellar rotation, particularly those involving population modelling, such as inferring stellar ages, obliquities in exoplanet systems, or characterising star-planet interactions. The code used to implement this method is available online.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">INTRODUCTION</head><p>The disk-integrated flux of a spotted, rotating star often varies in a non-sinusoidal and Quasi-Periodic (QP) manner, due to active regions on its surface which rotate in and out of view. Complicated surface spot patterns produce non-sinusoidal variations, and the finite lifetimes of these active regions and differential rotation on the stellar surface produce quasi-periodicity ( <ref type="bibr" target="#b11">Dumusque et al. 2011</ref>). A strictly periodic sinusoid is therefore not necessarily a good model choice for these time-series. A physically realistic model of the stellar surface would perfectly capture the complexity of shapes within stellar light curves as well as the quasi-periodic nature, allowing for extremely precise probabilistic period recovery when conditioned on the data. However, such physical models require many free parameters in order to accurately represent a stellar surface, and some Contact e-mail: ruthangus@astro.columbia.edu of these parameters are extremely degenerate (e.g. <ref type="bibr" target="#b44">Russell 1906;</ref><ref type="bibr" target="#b26">Jeffers and Keller 2009;</ref><ref type="bibr" target="#b29">Kipping 2012</ref>). In addition to global stellar parameters such as inclination and rotation period, each spot or active region should have (at minimum) a longitude, latitude, size, temperature and lifetime. Considering that stars may have hundreds of spots, the number of free parameters in such a model quickly becomes unwieldy, especially to explore its posterior Probability Density Function (PDF). Simplified spot models, such as the one described in  where only two spots are modelled, have produced successful results; however, such relatively inflexible models sacrifice precision.</p><p>Standard non-inference based methods to measure rotation periods include detecting peaks in a Lomb-Scargle <ref type="bibr" target="#b33">(Lomb 1976;</ref><ref type="bibr" target="#b45">Scargle 1982</ref>) (LS) periodogram (e.g. <ref type="bibr" target="#b42">Reinhold et al. 2013</ref>), AutoCorrelation Functions (ACFs), (e.g. <ref type="bibr" target="#b36">McQuillan et al. 2013b</ref>) and wavelet transforms (e.g. <ref type="bibr" target="#b18">García et al. 2014</ref>). The precisions of the LS periodogram and wavelet methods are limited by the suitabil-ity of the model choice: a sinusoid for the LS periodogram, and a choice of mother wavelet, assumed to describe the data over a range of transpositions and scales (see, e.g. <ref type="bibr" target="#b8">Carter and Winn 2010)</ref>, for the wavelet method. In contrast, since it does not rely on a generative model, the ACF method is much better suited to signals that are non-sinusoidal. In fact, as long as the signal is approximately periodic the ACF will display a peak at the rotation period, no matter its shape. A drawback of the ACF method however, is that it requires data to be evenly-spaced. Most ground-based measurements, such as the future Large Synoptic Survey Telescope (LSST), do not nearly satisfy this criterion, and even light curves from the Kepler space telescope, which has provided the richest stellar rotation data to date, can only be approximated as uniformly sampled. An ACF is also an operation performed on the data rather than a generative model of the data, and so is not inherently probabilistic. This means that the effects of the observational uncertainties cannot be formally propagated to constraints on the rotation period.</p><p>In this work, we test an effective model for rotationally modulated stellar light curves which captures the salient behaviour but is not physically motivated -although some parameters may indeed be interpreted as physical ones. An ideal effective model should have a small number of non-degenerate parameters and be flexible enough to perfectly capture non-sinusoidal and QP behaviour. A Gaussian process (GP) model fulfills these requirements. We thus use a GP as the generative model at the core of a method to probabilistically infer accurate and precise stellar rotation periods. This enables us to estimate the posterior PDF of the rotation period, thereby producing a justified estimate of its uncertainty. Using a quasi-periodic GP model to infer a rotation period is not a new idea. For example, we used this method in <ref type="bibr" target="#b49">Vanderburg et al. (2015)</ref> to measure the rotation period of an exoplanet host. Previously to that, <ref type="bibr" target="#b23">Haywood et al. (2014)</ref> used the quasi-periodic GP model to disentangle the correlated noise produced by stellar activity and rotation from the radial velocity signature of an exoplanet. In addition, <ref type="bibr" target="#b32">Littlefair et al. (2017)</ref> use a quasi-periodic GP to establish the quasiperiodicity of variability in the light curves of brown dwarfs. What we present here is a test of the GP method and a comparison with alternative rotation period measurement methods. We also provide code allowing others to easily apply this technique themselves.</p><p>GPs are commonly used in the machine learning community and increasingly in other scientific fields such as biology, geophysics and cosmology. More recently, GPs have been used in the stellar and exoplanet fields within astronomy, to capture stellar variability or instrumental systematics (see e.g. <ref type="bibr">Gibson et al. 2012;</ref><ref type="bibr" target="#b23">Haywood et al. 2014;</ref><ref type="bibr" target="#b10">Dawson et al. 2014;</ref><ref type="bibr" target="#b4">Barclay et al. 2015;</ref><ref type="bibr" target="#b22">Haywood 2015;</ref><ref type="bibr" target="#b12">Evans et al. 2015;</ref><ref type="bibr" target="#b39">Rajpaul et al. 2015;</ref><ref type="bibr" target="#b9">Czekala et al. 2015;</ref><ref type="bibr">Vander- burg et al. 2015;</ref><ref type="bibr" target="#b40">Rajpaul et al. 2016;</ref><ref type="bibr" target="#b32">Littlefair et al. 2017</ref>). They are useful in regression problems involving any stochastic process, specifically when the probability distribution for the process is a multi-variate Gaussian. If the probability of obtaining a dataset is a Gaussian in N dimensions, where N is the number of data points, a GP can describe that dataset. An in-depth introduction to Gaussian processes is provided in <ref type="bibr" target="#b41">Rasmussen and Williams (2005)</ref>.</p><p>GP models parameterise the covariance between data points by means of a kernel function. As a qualitative demonstration, we present the time-series in <ref type="figure" target="#fig_0">figure 1</ref>: the Kepler light curve of KIC 5809890. This is a relatively active star that rotates once every ∼ 30.5 days, with stochastic variability typical of Kepler FGK stars. Clearly, data points in this light curve are correlated. Points close together in time are tightly correlated, and points more widely separated are loosely correlated. A GP models this variation in correlation as a function of the separation between data points; that is, it models the covariance structure rather than the data directly. This lends GPs their flexibility-they can model any time series with a similar covariance structure. In addition, a very simple function can usually capture the covariance structure of a light curve, whereas modelling the time series itself might require much more complexity. <ref type="figure" target="#fig_0">Figure 1</ref> demonstrates how a GP model fits the light curve of KIC 5809890.</p><p>A range of covariance models, or kernel functions, can describe stellar variability. For example, the most commonly used kernel function, the 'Squared Exponential' (SE), defined as follows, could adequately fit the KIC 5809890 light curve:</p><formula xml:id="formula_0">k i, j = A exp − (x i − x j ) 2 2l 2 .<label>(1)</label></formula><p>Here A &gt; 0 is the amplitude of covariance, l is the length scale of exponential decay, and x i − x j is the separation between data points. The SE kernel function has the advantage of being very simple, with just two parameters, A and l. If l is large, two data points far apart in x will be tightly correlated, and if small they will be loosely correlated. Another property of the SE kernel function is that it produces functions that are infinitely differentiable, making it possible to model a data set and its derivatives simultaneously. However, The SE kernel function does not well describe the covariance in stellar light curves, nor is it useful for the problem of rotation period inference because it does not capture periodic behaviour. Inferring rotation periods thus requires a periodic kernel function.</p><p>For this reason, we use the 'Quasi-Periodic' kernel. <ref type="bibr" target="#b41">Rasmussen and Williams (2005)</ref> model QP variability in CO 2 concentration on the summit of the Mauna Loa volcano in Hawaii (data from <ref type="bibr" target="#b28">Keeling and Whorf 2004</ref>) using a kernel which is the product of a periodic and a SE kernel: the QP kernel. This kernel is defined as</p><formula xml:id="formula_1">k i, j = A exp − (x i − x j ) 2 2l 2 − Γ 2 sin 2 π(x i − x j ) P + σ 2 δ i j . (2)</formula><p>It is the product of the SE kernel function, which describes the overall covariance decay, and an exponentiated, squared, sinusoidal kernel function that describes the periodic covariance structure. P can be interpreted as the rotation period of the star, and Γ controls the amplitude of the sin 2 term. If Γ is very large, only points almost exactly one period away are tightly correlated and points that are slightly more or less than one period away are very loosely correlated. If Γ is small, points separated by one period are tightly correlated, and points separated by slightly more or less are still highly correlated, although less so. In other words, large values of Γ lead to periodic variations with increasingly complex harmonic content. This kernel function allows two data points that are separated in time by one rotation period to be tightly correlated, while also allowing points separated by half a period to be weakly correlated. The additional parameter σ captures white noise by adding a term to the diagonal of the covariance matrix. This can be interpreted to represent underestimation of observational uncertainties -if the uncertainties reported on the data are too small, it will be nonzero -or it can capture any remaining "jitter," or residuals not captured by the effective GP model. We use this QP kernel function (Equation 2) to produce the GP model that fits the Kepler light curve in <ref type="figure" target="#fig_0">figure 1</ref>. There are many ways to construct a QP kernel function, involving a range of choices for both the periodic and aperiodic components of the model. The kernel function presented above reproduces the behaviour of stellar light curves, but other model choices can do so as well. We do not attempt to test any other models in this paper, noting only that this kernel function provides an adequate fit to the data. We leave formal comparisons with other kernel function choices to a future publication.</p><p>To infer a stellar rotation period P from a light curve, we fit this QP-kernel GP model to the data. As with any model-fitting exercise, the likelihood of the model could be maximised to find the maximum-likelihood value for P. In this study, however, we explore the full posterior PDFs using a Markov Chain Monte Carlo (MCMC) procedure. While this approach comes at a computational cost, such posterior exploration importantly provides a justified uncertainty estimate.</p><p>Performing inference with GPs is computationally expensive. Is it worth spending the extra computation power to get slightly more accurate, probabilistic rotation periods for a large number of stars? A growing number of astronomers are interested in hierarchical probabilistic modelling, particularly in the stellar and exoplanet communities. These individuals are mindful of carefully inferring probabilistic parameters wherever possible. Probabilistic inference allows one to marginalise over nuisance parameters while formally taking any uncertainty into account when measuring the quantity of interest -the star's rotation period, in this case. This becomes especially important as the signal-to-noise ratio decreases and the rotation period is no longer tightly constrained, and as the sampling becomes uneven. Throughout the astronomical literature, hierarchical Bayesian inference has been demonstrated to be a robust method of population inference (e.g. <ref type="bibr" target="#b24">Hogg et al. 2010;</ref><ref type="bibr" target="#b14">Foreman-Mackey et al. 2014a;</ref><ref type="bibr" target="#b50">Wolfgang et al. 2015</ref>; Rogers 2015). Probabilistic measurements with full, rigorous propagation of uncertainties are a crucial ingredient for any hierarchical inference where the target is the population level distribution. Inferring the ages of stars in the galaxy via gyrochronology (age-rotation relations) (e.g. <ref type="bibr">Sku- manich 1972;</ref><ref type="bibr" target="#b27">Kawaler 1989;</ref><ref type="bibr" target="#b5">Barnes 2003</ref><ref type="bibr" target="#b6">Barnes , 2007</ref> is an example of a hierarchical inference problem using stellar rotation. Hierarchical inference allows you to marginalise over individual rotation periods and infer age distribution parameters directly from the light curves. Probabilistic rotation period inference is highly relevant to a large number of galactic archaeology and exoplanet population studies which require rotation period (or age) distributions.</p><p>This paper is laid out as follows. The GP method is described in §2. Its performance is demonstrated and compared with literature methods in in §3. In §4 we apply the GP method to real Kepler data, and the results are discussed in §5.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">GP ROTATION PERIOD INFERENCE</head><p>In order to recover a stellar rotation period from a light curve using a quasi-periodic Gaussian process (QP-GP), we sample the following posterior PDF:</p><formula xml:id="formula_2">p(θ | y) ∝ L(θ)p(θ),<label>(3)</label></formula><p>where y are the light curve flux data, θ are the hyperparameters of the kernel described in Equation 2, L is the QP-GP likelihood function, and p(θ) is the prior on the hyperparameters. Sampling this posterior presents several challenges:</p><p>• The likelihood evaluation is computationally expensive;</p><p>• The GP model is very flexible, sometimes at the expense of reliable recovery of the period parameter; and</p><p>• The posterior may often be multimodal.</p><p>This Section discusses how we address these challenges through the implementation details of the likelihood (Section 2.1), priors (Section 2.2), and sampling method (Section 2.3).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Likelihood</head><p>The GP likelihood is similar to the simple Gaussian likelihood function where the uncertainties are Gaussian and uncorrelated. The latter can be written</p><formula xml:id="formula_3">ln L = − 1 2 N n=1 (y n − µ) 2 σ 2 n + ln(2πσ 2 n ) ,<label>(4)</label></formula><p>where y n are the data, µ is the mean model and σ n are the Gaussian uncertainties on the data. The equivalent equation in matrix notation is</p><formula xml:id="formula_4">ln L = − 1 2 r T C −1 r − 1 2 ln |C| + N 2 log 2π,<label>(5)</label></formula><p>where r is the vector of residuals and C is the covariance matrix,</p><formula xml:id="formula_5">C = σ 2 1 σ 2,1 · · · σ N,1 σ 1,2 σ 2 2 · · · σ N,2 . . . σ 1, N σ 2, N · · · σ 2 N (6)</formula><p>In the case where the uncertainties are uncorrelated, the noise is 'white', (an assumption frequently made by astronomers, sometimes justified) and the off-diagonal elements of the covariance matrix are zero. However, in the case where there is evidence for correlated 'noise' 1 , as in the case of Kepler light curves, those off-diagonal elements are non-zero. With GP regression, a covariance matrix generated by the kernel function K replaces C in the above equation (for our purposes, the QP kernel of Equation 2 generates K).</p><p>Evaluating this likelihood for a large number of points can be computationally expensive. For example, evaluating L for an entire Kepler lightcurve (∼40,000 points) takes about ∼5 s-too slow to perform inference on large numbers of light curves 2 . The matrix operations necessary to evaluate the GP likelihood scale as</p><formula xml:id="formula_6">N ln(N) 2 ,</formula><p>where N is the number of data points in the light curve, using the fast matrix solver HODLR ( <ref type="bibr">Ambikasaran et al. 2014</ref>), implemented in the george (Foreman-Mackey et al. 2014b) python package.</p><p>We accelerate the likelihood calculation using two complementary strategies: subsampling the data and splitting the light curve into independent sections. To subsample Kepler data, for example, we randomly select 1/30th of the points in the full light curve (an average of ∼1.5 points per day). This decreases the likelihood evaluation time by a factor of about 50, down to about 100 ms. We then split the light curve into equal-sized chunks containing approximately 300 points per section (corresponding to about 200 days), and evaluate the log-likelihood as the sum of the log-likelihoods of the individual sections (all using the same parameters θ). This reduces computation time because the section-based likelihood evaluation scales as mn ln(n) 2 , where n is the number of data points per section and m is the number of sections. This method further reduces computation time for a typical light curve (subsampled by a factor of 30) by about a factor of two, to about 50 ms.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Priors</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.1">Non-period Hyperparameters</head><p>The flexibility of this GP model allows for posterior multimodality and "over-fitting"-like behavior. For example, if l is small, the nonperiodic factor in the covariance kernel may dominate, allowing for a good fit to the data without requiring any periodic covariance structure-even if clear periodic structure is present. Additionally, for large values of Γ the GP model becomes extremely flexible and can fit the data without varying the period. Managing this flexibility to reliably retrieve the period parameter requires imposing informative priors on the non-period GP parameters. In particular, we find it necessary to avoid large values of A and Γ, and small values of l; though the exact details of what works well may differ among datasets.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.2">Period</head><p>We use an informed period prior, based on the autocorrelation function (ACF) of the light curve. The ACF has proven to be very useful for measuring stellar rotation periods ( <ref type="bibr" target="#b34">McQuillan et al. 2012</ref><ref type="bibr" target="#b36">McQuillan et al. , 2013b</ref><ref type="bibr" target="#b37">McQuillan et al. , 2014</ref>; however, the method has several shortcomings, most notably the inability to deliver uncertainties, but also the necessity of several heuristic choices, such as a timescale on which to smooth the ACF, how to define a peak, whether the first or second peak gets selected, and what constitutes a secure detection. While this paper presents a rotation period inference method that avoids these shortcomings, it seems prudent to still use information available from the ACF. We thus use the ACF to define a prior on period, which can help the posterior sampling converge on the true period.</p><p>We do not attempt to decide which single peak in the ACF best represents the true rotation period, but rather we identify several candidate periods and define a weighting scheme in order to create a noncommital, though useful, multimodal prior. While this procedure does not avoid heuristic choices, we soften the potential impact of these choices because we are simply creating a prior for probabilistically justified inference rather attempting to identify a single correct period.</p><p>As another innovation beyond what ACF methods in the literature have presented, we also bandpass filter the light curves (using a 5th order Butterworth filter, as implemented in SciPy) before calculating the autocorrelation. This suppresses power on timescales shorter than a chosen minimum period P min and longer than a chosen maximum P max , producing a cleaner autocorrelation signal than an unfiltered light curve.</p><p>We use the following procedure to construct a prior for rotation period given a light curve:</p><p>(i) For each value of P i , where i = {1, 2, 4, 8, 16, 32, 64, 128} d, we apply a bandpass filter to the light curve using P min = 0.1 d and P max = P i . We then calculate the ACF of the filtered light curve out to a maximum lag of 2P i and smooth it with a boxcar filter of width P i /10.</p><p>(ii) We identify the time lag corresponding to the first peak of each of these ACFs, as well as the first peak's trough-to-peak height, creating a set of candidate periods T i and heights h i .</p><p>(iii) We assign a quality metric Q i to each of these candidate periods, as follows. First, we model the ACF as a function of lag time t as a damped oscillator with fixed period T i :</p><formula xml:id="formula_7">y = Ae −t/τ cos 2πt T i ,<label>(7)</label></formula><p>and find the best-fitting parameters A i and τ i by a non-linear least squares minimization procedure-though enforcing a maximum value of τ = 20 * P i /T i to avoid unreasonably large solutions of τ. We then define the following heuristic quality metric:</p><formula xml:id="formula_8">Q i = τ i T i N i h i R i ,<label>(8)</label></formula><p>where h i is the height of the ACF peak at T i , N i is the length of the lag vector in the ACF (directly proportional to the maximum allowed period P i ), and R i is the sum of squared residuals between the damped oscillator model and the actual ACF data. The idea behind this quality metric is to give a candidate period a higher score if (a) it has many regular sinusoidal peaks, such that the decay time τ i is long compared to the oscillation period T i , (b) the ACF peak height is high, and (c) the damped oscillator model is a good fit (in a χ 2 sense) to the ACF, with extra bonus for being a good fit over more points (larger N i , or longer P i ).</p><p>(iv) Given this set of candidate periods T i and quality metrics Q i , we finally construct a multimodal prior on the P parameter of the GP model as a weighted mixture of Gaussians:</p><formula xml:id="formula_9">p(ln P) = i Q i (0.9N (ln T i , 0.2) + 0.05N (ln(T i /2), 0.2) + 0.05N (ln(2T i ), 0.2)) i Q i .<label>(9)</label></formula><p>That is, in addition to taking the candidate periods themselves as mixture components, we also mix in twice and half each candidate period at a lower level, which compensates for the possibility that the first peak in the ACF may actually represent half or twice the actual rotation period. The period width of 0.2 in log space (corresponding to roughly 20% uncertainty) is again a heuristic choice, balancing a healthy specificity with the desire to not have the results of the inference overly determined by the ACF prior.</p><p>Incidentally, while we use the procedure described here to create a prior on P which we use while inferring the parameters of the quasi-periodic GP model, this same procedure may also be used in the service of a rotation-period estimating procedure all on its own, perhaps being even more robust and accurate than the traditional ACF method. We leave exploration of this possibility to future work.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Sampling</head><p>To sample the posterior in a way that is sensitive to potential multimodality, we use the emcee3 3 MCMC sampler. emcee3 is the successor to the emcee project <ref type="bibr" target="#b13">(Foreman-Mackey et al. 2013</ref>) that includes a suite of ensemble MCMC proposals that can be combined to efficiently sample more distributions than the stretch move (Goodman, J. and Weare 2010) in emcee. For this project, we use a weighted mixture of three proposals. First, we include a proposal based on the kombine package 4 <ref type="bibr">(Farr &amp; Farr, in prep.</ref> We initialise 500 walkers with random samples from the prior and use a weighted mixture of the KDE, DE, and snooker proposals with weights of 0.4, 0.4, and 0.2 respectively. We run 50 steps of the sampler at a time, checking for convergence after each iteration, up to a maximum of 50 iterations. We declare convergence if the total effective chain length is at least 8× the maximum autocorrelation time. When convergence is achieved, we discard the first two autocorrelation lengths in the chain as a burn-in, and randomly choose 5000 samples as representative of the posterior. This fitting process takes several hours for a typical simulated light curve, though in some cases it can take 12 hours or longer to converge.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">PERFORMANCE AND COMPARISON TO LITERATURE: SIMULATED DATA</head><p>In order to test this new rotation period recovery method, we apply it to a set of simulated light curves and compare to the performance of established literature methods. Section 3.1 describes the simulated data we use; Section 3.2 demonstrates the performance of the QP-GP method; and Section 3.3 compares it to the performance of the Lomb-Scargle periodogram and autocorrelation function methods.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Simulated light curves</head><p>We take our test data set from the Aigrain et al. (2015) 'hare and hounds' rotation period recovery experiment. These light curves result from placing dark, circular spots with slowly evolving size on the surface of bright, rotating spheres, ignoring limb-darkening effects. periods and rotational shear (the amplitude of surface differential rotation). However, in this work, in order to focus on demonstrating reliable period recovery, we select only the 333 light curves without differential rotation, as differential rotation may produce additional scatter in the measured rotation periods.</p><p>Each of these light curve simulations uses a real Kepler longcadence time array: one data point every thirty minutes over a four year duration. 90% of the rotation periods of the simulations come from a log-uniform distribution between 10 and 50 days, and 10% from a log-uniform distribution between 1 and 10 days. <ref type="figure">Figure 2</ref> shows the distribution of solid-body rotation periods. The simulations also have a range of stellar inclination angles, activity levels, spot lifetimes and more (see <ref type="table" target="#tab_1">Table 3</ref>.1). In order to preserve Kepler noise properties,  add real Kepler light curves with no obvious astrophysical variability to the theoretical rotationally modulated light curves. <ref type="figure">Figure 3</ref> shows an example of a simulated light curve with a period of 20.8days. Rotation period, P r ot 10 -50 days (90%) log uniform 1 -10 days (10%) log uniform Activity cycle length 1 -10 years log uniform Inclination 0 -90 • Uniform in sin 2 i Decay timescale</p><p>(1 -10) ×P r ot log uniform</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Method Performance</head><p>We apply the QP-GP inference method described in Section 2 to each of these 333 simulated light curves. As discussed in Section 2.2.1, reliable inference requires defining a useful set of priors on the nonperiod hyperparameters. For this simulation dataset, we determined these by first running the method using very broad priors on all the non-period parameters (log-flat between -20 and 20) and then inspecting the distribution of their posteriors for those cases that successfully recovered the true period. We also experimented with constraining the allowed ranges of the parameters after discovering that some regions of parameter space (such as large values of A and Γ and small values of l) tended to allow fits that ignored the desired periodicity. We list the final priors and bounds this process led us to adopt in <ref type="table" target="#tab_1">Table 3</ref>.2. For the period prior, we tried two different methods: an uninformed (log-flat) prior between 0.5 d and 100 d, and an ACF-informed prior (Section 2.2.2). Figures 4 and 5 summarise our results compared to the injected 'true' stellar rotation periods, for the uninformed and ACF-informed priors on period, respectively. The periods inferred using the GP method show good agreement with the true periods. To assess the performance of the QP-GP and other period recovery methods, we compute Median Absolute Deviations (MADs) of the results, relative to the input periods. We also compute the Median Relative Deviation (MRD), as a percentage and the root-mean-squared (RMS). These metrics are presented for the three different methods tested in this paper in table 3.3.2. The informative and uninformative prior versions of the GP method have MRDs of 1.97% and 2.62% respectively. The marginal posterior distributions of the QP kernel hyperparameters, for the example simulated light curve in figure 3, are shown in figure 6.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Comparison with literature methods</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.1">ACF</head><p>The ACF method has proven extremely useful for measuring rotation periods. The catalogue of rotation periods of Kepler stars provided in McQuillan et al. (2013a) has been widely used by the community and has provided ground-breaking results for stellar and exoplanetary science. The method also performed well in the  recovery experiment, producing a large number of accurate rotation period measurements (see, e.g., their <ref type="figure" target="#fig_10">figure  8</ref>). Another advantage is its fast implementation speed. However, because the ACF method is non-probabilistic, ACF-estimated rotation period uncertainties are poorly defined -a clear disadvantage. It also requires evenly-spaced data, therefore is not applicable to ground-based light curves. <ref type="figure" target="#fig_9">Figure 7</ref> contains an example ACF of the light curve in <ref type="figure">Figure 3</ref>.</p><p>We compare our results to those of the Tel Aviv team in  who use the ACF method described in <ref type="bibr" target="#b37">McQuillan et al. (2014)</ref> and . This method involves the calculation of an autocorrelation function, a measure of the self-similarity of the light curve over a range of lags, which is then smoothed with a Gaussian kernel. Periodic variability in the light curve produces a peak in the ACF at the period of the signal and a decaying sequence of peaks at integer multiples of the period. <ref type="bibr" target="#b37">McQuillan et al. (2014)</ref> first pre-processed the light curves by removing very long-term variations. They then calculated an ACF for each star and measured the positions of up to the first four peaks in the ACF. They fit a straight line to the periods of these peaks as a function of their integer multiple and adopted the gradient of that line as the rotation period. The uncertainty on the ACF period is the uncertainty on the best-fit slope. <ref type="figure" target="#fig_10">Figure 8</ref> shows ACF-measured versus true rotation periods, with the 2n and 1 2 n harmonic lines as dashed lines. The injected and recovered rotation periods generally agree well: the MRD of their periods, relative to the true rotation periods, is 1.75% -slightly smaller than the results produced by the GP method. However, their results contain a larger number of extreme outliers -they predict periods that are significantly different from the true period in more cases than the GP method. This is revealed by comparing the RMS of the two sets of results since the RMS is more sensitive to outliers. The RMS of the Tel Aviv method results is 4.58 days and the RMS of GP method results is 0.25 days.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.2">LS periodogram</head><p>The Aigrain et al. (2015) Tel Aviv team were the only group to report periods for all 333 simulated stars, and are therefore the only team with which we compare results. The other participating groups chose to report only the period measurements in which they were confident and are likely to have omitted large outliers. In order therefore to test our results against another commonly used technique, we implemented a simple LS periodogram method.</p><p>We first applied a high-pass filter to the light curves, removing long-term trends that could produce large peaks at long periods in the periodogram. We used the 3rd order Butterworth filter in scipy with a cut-off of 35 days, attenuating signals with periods greater than this threshold. This filter was applied in frequency space, rather than period space, and full attenuation was attained at zero frequency. In other words, the level of attenuation increased smoothly with period, for periods above 35 days but no periods were fully suppressed. Experimentally, we found the 35 day cut off removed the largest number of long period outliers while preserving shorter period signals. We also tried 50, 45, 40 and 30 day cut-offs but the 35 day cut-off value minimised the RMS and MAD of the LS periodogram results. For each simulated light curve, we computed <ref type="table">Table 2</ref>. Priors and bounds on the natural logarithms of the GP model parameters.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Parameter</head><p>Prior  <ref type="figure">Figure 4</ref>. The 'true' rotation periods used to generate 333 simulated light curves vs the rotation periods measured using the GP technique with an informed, ACF-based prior. Points are coloured by the peak-to-peak amplitude of the light curve, as defined in . Since the posterior PDFs of rotation periods are often non-Gaussian, the points plotted here are maximum a-posteriori results. The uncertainties are the 16th and 84th percentiles. In many cases, the uncertainties are under-estimated. The ACF-informed prior on rotation period used to generate these results is described in §2.2. a LS periodogram 5 over a grid of 10,000 periods, evenly spaced in frequency, between 1 and 100 days. We adopted the period of the highest peak in the periodogram as the measured rotation period. The uncertainties on the rotation periods were calculated using the following equation for the standard deviation of the frequency <ref type="bibr" target="#b25">(Horne and Baliunas 1986;</ref><ref type="bibr" target="#b30">Kovacs 1981)</ref>:</p><formula xml:id="formula_10">σ ν = 3πσ N 2N 1/2 T A ,<label>(10)</label></formula><p>where A is the amplitude of the signal of highest power, σ N is the variance of the time series, with the signal of highest power removed, N is the number of observations and T is the timespan of <ref type="bibr">5</ref> LS periodograms were calculated using the gatspy Python module: https://github.com/astroML/gatspy/tree/master/gatspy/ periodic.</p><p>the data. These formal uncertainties are only valid in the case that the noise is white, the data are evenly sampled and there is only one signal present. Since there are multiple signals present in these light curves, this formal uncertainty is an underestimate of the true uncertainty. <ref type="figure">Figure 9</ref> shows the resulting recovered rotation periods as a function of true period. The MRD of the periodogram-recovered periods is 2.82%, slightly worse than the ACF and GP methods (see   <ref type="figure">Figure 5</ref>. The 'true' rotation periods used to generate 333 simulated light curves vs the rotation periods measured using the GP technique with an uninformative prior. Points are coloured by the peak-to-peak amplitude of the light curve, as defined in . Since the posterior PDFs of rotation periods are often non-Gaussian, the points plotted here are maximum a-posteriori results. The uncertainties are the 16th and 84th percentiles. In many cases, the uncertainties are under-estimated. An uninformative prior, flat in the natural log of the rotation period between 0.5 and 100 days was used to generate these results.  <ref type="table">light curve table)</ref>, mediannormalized and unit-subtracted, and mask out all known transiting planet candidate signals. As with the simulated light curves, we randomly subsample each light curve by a factor of 30 and split it into segments of about 300 points for the purposes of evaluating the likelihood. We also follow the same MCMC fitting procedure as with the simulated data, using the ACF-based prior as before.</p><p>Initially, we also use the same priors on the hyperparameters for the KOIs as for the simulated light curves <ref type="table" target="#tab_1">(Table 3.</ref>2). However, we found that ln l and ln Γ tended toward slightly different values than the simulations. We also found that the allowed hyperparameter range that we used for the simulations was too large for the KOI population, as maybe ∼15% of the fits tended toward corners in the hyperparameter space, resulting in poor period measurements. As a result, after this initial test, we subsequently adjusted the priors and re-fit all the KOIs. The final priors and parameter ranges that we used are in <ref type="table" target="#tab_3">Table 4</ref>     </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">DISCUSSION</head><p>The majority of long period outliers seen in the periodogram comparison <ref type="figure">figure (figure 9</ref>) are produced when the rotation period signal is highly non-sinusoidal. This can be understood intuitively as the LS periodogram fits a series of sine waves to the data; if the data are not sinusoidal, a sine wave will not produce a good fit. It is difficult to assess the reason for the ACF incorrect recoveries be- cause we do not have the individual ACFs computed by the Aigrain et al. (2015) Tel Aviv team, however it seems that the ACF method is more sensitive than the LS periodogram method to noise. This particular implementation of the LS periodogram method is capable of detecting periodic signals at lower amplitudes that the ACF. We do not suggest that the LS periodogram method is better than the ACF method in general. It was made clear in  that the performance of each of these rotation period detection algorithms depends sensitively on the implementation technique. The exact steps performed in the pre-processing of the light curves and the post-processing of the periodogram or ACF seem to affect the results strongly. This is also true for the GP method. Using a different MCMC sampler, different priors, different subsampling, or a different kernel would all alter the results. Clearly, none of these rotation period measurement methods is perfect and they all require a lot of background engineering and tuning. This is simply due to inherent difficulty of inferring periods, or any parameter that produces a highly multimodal probability distribution, from noisy data.</p><p>The QP-GP inference method we test in this paper produces slightly more accurate rotation periods than the ACF or periodogram methods. Additionally, because it explores the posterior PDF with MCMC, the GP method produces probabilistically justified uncertainties. Unfortunately, these uncertainties still appear to be underestimated. Of the rotation periods recovered from the simulated light curves using the ACF-informed prior, only 25% of the measured periods lie within 1σ of the true period, 50% lie within 2σ, and 66% within 3σ. The largest outlier is 114σ away from the true value. The median uncertainty is underestimated by around a factor of two. These numbers are similar for the uninformative prior results. We attribute these underestimated uncertainties to the model choice. Although more appropriate than a sinusoid, the QP-GP is still only an effective model. A perfect physical model of the star would produce more accurate uncertainties.</p><p>The QP kernel function represents a simple effective model of a stellar light curve. It can describe a wide range of quasi-periodic behavior and is relatively simple, with only a few hyperparameters. Nevertheless, it is still a somewhat arbitrary choice. Another valid choice would be a squared cosine function multiplied by a squared exponential, used by <ref type="bibr" target="#b7">Brewer and Stello (2009)</ref> to model asteroseismic pulsations,</p><formula xml:id="formula_11">k i, j = A exp − (x i − x j ) 2 2l 2 cos π(x i − x j ) P . (11)</formula><p>This function produces a positive semi-definite matrix and has the P parameter of interest, but differs qualitatively from the QP function by allowing negative covariances. Is it realistic to allow negative covariances? In practice, the ACFs of Kepler light curves often go negative. However, many stars have two active regions on opposite hemispheres that produce two brightness dips per rotation, and it may be difficult to model such stars with a kernel that forces anticorrelation of points 1 2 a period apart. It would be worthwhile to test this assumption and this alternative kernel function (and others) in the future.</p><p>Not all Kepler light curves show evidence of stellar rotation. In some cases a star may have few or no active regions, be rotating pole-on, or be rotating so slowly that the Kepler data detrending pipeline removes any signal. In other cases there may be another source of variability present in the light curve, generating a false period detection. These sources may be physical: e.g. binary star interactions, intra-pixel contamination from other astrophysical objects, pulsating variable stars, asteroseismic oscillations in giants and even stellar activity cycles. Identifying many of these astrophysical false positives falls outside the scope of this GP method (e.g. applying colour cuts to avoid giant contamination); however, for some, such as variable stars, they may have distinctive hyperparameters (e.g. long coherence timescales) that identify them. Testing this may be an interesting follow-up study. As well as astrophysical contamination, instrumental sources may contribute to contaminating variability, e.g. temperature variations or pointing shifts of the Kepler spacecraft. These are unlikely to be periodic and, again, may produce unusual combinations of hyperparameters. We also hope to test this in the future.</p><p>In addition, we are continuing to develop several other aspects of this GP method:</p><p>• To use an updated method for calculating the GP likelihood and drastically improve computational efficiency. celerite, a new method for rapid computation of the 'solve' and determinant calculations of covariance matrices necessary for GP inference has recently been developed <ref type="bibr" target="#b16">(Foreman-Mackey et al. 2017)</ref>. celerite scales with the number of data points, O(N) rather than the N log(N) 2 scaling of the HODLR algorithm used in this analysis. It requires a slightly different functional form for the kernel as the increased speed is obtained by using mathematical properties of exponential functions. Kernels must be written as the sums of exponentials in order to be implemented in celerite, however a close approximation to the kernel function used here is demonstrated to recover rotation periods in Foreman- <ref type="bibr" target="#b16">Mackey et al. (2017)</ref>.</p><p>• To investigate more physically motivated priors. In this paper we have only explored the physical interpretation of one parameter in the kernel function (P), which we related to stellar rotation periods, but others also warrant physically motivated priors. For example, the harmonic complexity parameter, Γ, defines the typical number of inflection points per function period; suitable priors may be informed by the typical properties of observed light curves. For the evolution time-scale, l, it is sensible to enforce l &gt; P, such that functions that have clear periodicity. Intuitively, if l &lt; P, functions may evolve significantly over time scales shorter than one period, so a function f (t + P) would look significantly different to f (t), in which case any claims of periodicity become dubious. More stringent criteria may be suggested by stellar astrophysical considerations, e.g. knowledge of typical active region evolution time-scales or persistence lifetimes (e.g. l ∼ 2P). Finally, the amplitude hyper-parameter A may be related to active region coverage. Unfortunately, because these hyper-parameters control the covariance structure of functions, their interpretation is not always straightforward; interpretation is further complicated by significant degeneracies between the hyperparameters. Therefore we defer such considerations, along with strategies for efficient optimization or marginalization of hyperparameters, to a separate paper (currently in prep.).</p><p>• To build in a noise model for Kepler data. Because it is a generative model of the data, the GP method models the rotation period at the same time as systematic noise features. One can then marginalise over the parameters of the noise model. This approach would be extremely advantageous for Kepler data since long-term trends are often removed by the Kepler detrending pipeline. Marginalising over the noise model at the same time as inferring the parameters of interest will insure that the periodic signal is preserved.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">CONCLUSION</head><p>We have attempted to recover the rotation periods of 333 simulated Kepler-like light curves for solid-body rotators ( ) using three different methods: a Gaussian process method, an autocorrelation function method, and a Lomb-Scargle periodogram method. We demonstrate that the GP method produces the most accurate rotation periods of the three techniques. Comparing our results with the results of the  Tel Aviv team who implement the ACF method of <ref type="bibr" target="#b35">McQuillan et al. (2013a)</ref>, we find their results to be slightly more precise in a median sense than the GP method results, but with a larger number of significant outliers. Additionally, we measure the rotation periods of 275 Kepler objects of interest using the GP method, and find that these results compare well to those measured previously by <ref type="bibr" target="#b35">McQuillan et al. (2013a)</ref>. The good agreement between these two sets of results demonstrates that the GP method works well on real Kepler data. Samples of the full set of 1102 KOI rotation period posterior PDFs can be found at https://doi.org/10.5281/zenodo.804440.</p><p>Unlike the ACF and LS periodogram methods, the GP method provides posterior PDF samples which can be used to estimate rotation periods uncertainties. In general it provides more accurate rotation periods than either method and produces significantly fewer outliers. The GP method can also be applied to non-uniformly sampled light curves, unlike the ACF method.</p><p>Although an improvement on competing methods, the uncertainties are still underestimated by the GP method in many cases because it is an approximate model. A quasi-periodic Gaussian process is clearly a good model, as demonstrated here, however it is still only an effective model, not an accurate physical one. It captures the posterior PDF of the periodic component of the covariance matrix of a time series, not the actual rotation period of a physical star. The  <ref type="figure">Figure 9</ref>. The 'true' rotation periods used to generate 333 simulated light curves vs the rotation periods measured using a LS periodogram technique. Points are coloured by the peak-to-peak amplitude of the light curve, as defined in . In many cases a large peak at a long period was present in the periodogram, producing a significant over-estimate of the period. marginalised posterior PDF does not therefore exactly reflect the probability of a rotation period, given the data. Similarly, the 16th and 84th percentile ranges calculated from the posterior PDF of the QP-GP model, are not exactly the uncertainty of a physical rotation period. Although underestimated uncertainties are a drawback of this method, they are at least well motivated and well defined which is not the case for uncertainties calculated from the ACF and LS periodogram methods.</p><p>Although GP inference is slow as it requires a 'solve' and a matrix determinant calculation at every step of an MCMC, a new GP solver, celerite (Foreman-Mackey et al. 2017) shows promise for increasing the computional speed of GP rotation period inference by several orders of magnitude. We intend to integrate celerite into our code in the near future. How much computational time is too much is a question that depends on the available resources of each individual and their scientific priorities. GP period inference is trivially parallelisable, so if one has access to thousands of computer cores, one can infer rotation periods of thousands of stars in a few hours (perhaps just a few minutes with celerite). For single stars GP rotation inference takes a reasonable amount of time and has already been used on exoplanet hosts (e.g. <ref type="bibr" target="#b23">Haywood et al. 2014;</ref><ref type="bibr" target="#b49">Vanderburg et al. 2015</ref>).</p><p>The code used in this project is available at https://github. com/RuthAngus/GProtation/. </p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 .</head><label>1</label><figDesc>Figure 1. Light curve of KIC 5809890, an active star with a rotation period of ∼ 30.5 days. The blue line shows a fit to the data using a Gaussian process model with a QP covariance kernel function.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head></head><label></label><figDesc>) where a kernel density estimate (KDE) of the density represented by the complementary ensemble is used as the proposal for the other walk- ers. The other two proposals are a "Differential Evolution (DE) MCMC" proposal (Ter Braak 2006; Nelson et al. 2014) and the "snooker" extension of DE (ter Braak and Vrugt 2008).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Aigrain et al.Figure 2 .Figure 3 .</head><label>23</label><figDesc>Figure 2. A histogram of the rotation periods used to generate the 333 simulated light curves in Aigrain et al. (2015).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>.</head><label></label><figDesc>The posterior samples of the model parameters for the Kepler objects of interest are available online: https:// zenodo.org/record/292340#.WKWpiBIrJE4.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Figure 10</head><label>10</label><figDesc>Figure 10 compares the periods inferred with the GP method to the ACF-based periods from McQuillan et al. (2013a) for the 275 overlapping KOIs. This comparison shows generally very good agreement, demonstrating that this method works not only on simulated data, but also on real data-with the caveat that for any partic-</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Figure 6 .</head><label>6</label><figDesc>Figure 6. Marginal posterior PDFs of the QP GP model parameters, fit to the simulated light curve in figure 3. The blue line in the period panel shows the injected period. This figure was made using corner.py (Foreman-Mackey 2016).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head></head><label></label><figDesc>ACF-based (ln 0.5, ln 100) ular data set, some care is needed regarding the setting the priors and ranges for the GP hyperparameters. The new GP rotation periods calculated for 1102 KOIs are provided in an online table accompa- nying this paper. Samples of the rotation period posterior PDFs are available online: https://doi.org/10.5281/zenodo.804440</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head>Figure 7 .</head><label>7</label><figDesc>Figure 7. An autocorrelation function of the simulated light curve shown in figure 3. The vertical blue line shows the period measured using the ACF method (20.4 days) and the pink dashed line shows the period that was used to simulate the light curve (20.8 days).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_10"><head>Figure 8 .</head><label>8</label><figDesc>Figure 8. The 'true' rotation periods used to generate 333 simulated light curves vs the rotation periods measured using the ACF technique. Points are coloured by the peak-to-peak amplitude of the light curve, as defined in Aigrain et al. (2015). Several light curves have drastically over-and under-estimated rotation periods.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_12"><head>Figure 10 .</head><label>10</label><figDesc>Figure 10. A comparison of our GP rotation period measurements to those of McQuillan et al. (2013a). The data points are coloured by the range of variability measured by McQuillan et al. (2013a), defined as the interval between the 5th and 95th percentiles of normalised flux per period bin in millimagnitudes.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" validated="false"><head>Table 1 . Ranges and distributions of parameters used to simulate light curves in Aigrain et al. (2015)</head><label>1</label><figDesc></figDesc><table>Parameter 
+Range 
+Distribution 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" validated="false"><head>table 3 .</head><label>3</label><figDesc>3.2 for a side-by-side comparison with the other methods). The filter suppresses signals with periods greater than 35 days but doesn't eliminate them altogether, thus allowing high amplitude frequencies to be detectable. For this reason, some erroneous long periods are recovered by the periodogram method. These results still show a marked improvement in comparison to periodograms calculated from unfiltered data. Simply adopting the highest peak of a periodogram calculated from the unfiltered simulated data resulted in an RMS of 18.98 and relative MAD of 4.70.</figDesc><table></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" validated="false"><head>Table 3 .</head><label>3</label><figDesc></figDesc><table>Median absolute (MAD), median relative (MRD) deviations and root-mean-squared (RMS) for the LS periodogram, McQuillan et al. (2013a) ACF 
+and GP period recovery methods. 
+
+Method 
+MAD 
+MRD 
+RMS 
+
+GP (acf prior) 
+0.40 days 1.97% 0.25 days 
+GP (uninformative prior) 0.48 days 2.62% 0.44 days 
+ACF 
+0.37 days 1.75% 4.58 days 
+LS periodogram 
+0.52 days 2.82% 1.04 days 
+
+4 REAL Kepler DATA 
+
+In order to test our rotation period inference method on real data, 
+we apply it to a set of 275 Kepler Object of Interest (KOI) host stars, 
+that had rotation periods previously measured by the ACF method 
+by McQuillan et al. (2013a). We use the pipeline-corrected flux 
+(pdcsap_flux column in the Kepler </table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" validated="false"><head>Table 4 . Priors and bounds on the natural logarithms of the GP model parameters, for Kepler light curves</head><label>4</label><figDesc></figDesc><table></table></figure>
+
+			<note place="foot">MNRAS 000, 1-?? (2017)</note>
+
+			<note place="foot" n="1"> In our case the &apos;noise&apos; is actually the model! Incidentally, this approach is the reverse of the regression techniques usually employed by astronomers. In most problems in astronomy one tries to infer the parameters that describe the mean model and, if correlated noise is present, to marginalise over that noise. Here, the parameters describing the correlated noise are what we are interested in and the mean model is simply a straight line at y = 0. MNRAS 000, 1-?? (2017)</note>
+
+			<note place="foot" n="2"> All computational times cited in this section are based on evaluations on a single core of a 2015 Macbook Pro, 3.1 GHz Intel Core i7.</note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">Testing the recovery of stellar rotation signals from Kepler light curves using a blind hare-and-hounds exercise</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Llama</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Ceillier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">L</forename><surname>Chagas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R A</forename><surname>Davenport</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>García</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">L</forename><surname>Hay</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">F</forename><surname>Lanza</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Mcquillan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Mazeh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>De Medeiros</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">B</forename><surname>Nielsen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Reinhold</surname></persName>
+		</author>
+		<idno type="doi">10.1093/mnras/stv853</idno>
+		<ptr target="doi:10.1093/mnras/stv853" />
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">450</biblScope>
+			<biblScope unit="page" from="3211" to="3226" />
+			<date type="published" when="2015-07" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">K2SC: Flexible systematics correction and detrending of K2 light curves using Gaussian Process regression</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Parviainen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">J S</forename><surname>Pope</surname></persName>
+		</author>
+		<idno type="doi">10.1093/mnras/stw706</idno>
+		<ptr target="doi:10.1093/mnras/stw706" />
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<date type="published" when="2016-04" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Ambikasaran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Greengard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename></persName>
+		</author>
+		<title level="m">Fast Direct Methods for Gaussian Processes. ArXiv e-prints</title>
+		<imprint>
+			<date type="published" when="2014-03" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Radial Velocity Observations and Light Curve Noise Modeling Confirm that Kepler-91b is a Giant Planet Orbiting a Giant Star</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Barclay</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Endl</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Huber</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">D</forename><surname>Cochran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">J</forename><surname>Macqueen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">F</forename><surname>Rowe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">V</forename><surname>Quintana</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1088/0004-637X/800/1/46</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">800</biblScope>
+			<biblScope unit="page">46</biblScope>
+			<date type="published" when="2015-02" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">On the Rotational Evolution of Solar-and Late-Type Stars, Its Magnetic Origins, and the Possibility of Stellar Gyrochronology</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">A</forename><surname>Barnes</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1086/367639</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">586</biblScope>
+			<biblScope unit="page" from="464" to="479" />
+			<date type="published" when="2003-03" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">A</forename><surname>Barnes</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1086/519295</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Ages for Illustrative Field Stars Using Gyrochronology: Viability, Limitations, and Errors</title>
+		<imprint>
+			<date type="published" when="2007-11" />
+			<biblScope unit="volume">669</biblScope>
+			<biblScope unit="page" from="1167" to="1189" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">Gaussian process modelling of asteroseismic data</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">J</forename><surname>Brewer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Stello</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1111/j.1365-2966.2009.14679.x</idno>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">395</biblScope>
+			<biblScope unit="page" from="2226" to="2233" />
+			<date type="published" when="2009-06" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">Parameter Estimation from Time-Series Data with Correlated Errors: A Wavelet-Based Method and its Application to Transit Light Curves</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Carter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">N</forename><surname>Winn</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astrophysics Source Code Library</title>
+		<imprint>
+			<date type="published" when="2010-10" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Constructing a Flexible Likelihood Function for Spectroscopic Inference</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Czekala</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">M</forename><surname>Andrews</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">S</forename><surname>Mandel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">M</forename><surname>Green</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1088/0004-637X/812/2/128</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">812</biblScope>
+			<biblScope unit="page">128</biblScope>
+			<date type="published" when="2015-10" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">Large Eccentricity, Low Mutual Inclination: The Three-dimensional Architecture of a Hierarchical System of Giant Planets</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">I</forename><surname>Dawson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">C</forename><surname>Fabrycky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Murray-Clay</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">A</forename><surname>Buchhave</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">A</forename><surname>Cargile</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">I</forename><surname>Clubb</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">J</forename><surname>Fulton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Hebb</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Howard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Huber</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Shporer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Valenti</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1088/0004-637X/791/2/89</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">791</biblScope>
+			<biblScope unit="page">89</biblScope>
+			<date type="published" when="2014-08" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">Planetary detection limits taking into account stellar noise. II. Effect of stellar spot groups on radial-velocities</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Dumusque</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">C</forename><surname>Santos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Udry</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1051/0004-6361/201015877</idno>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">527</biblScope>
+			<biblScope unit="page">82</biblScope>
+			<date type="published" when="2011-03" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">A uniform analysis of HD 209458b Spitzer/IRAC light curves with Gaussian process models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Evans</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Gibson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">K</forename><surname>Barstow</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">S</forename><surname>Amundsen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Tremblin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Mourier</surname></persName>
+		</author>
+		<idno type="doi">10.1093/mnras/stv910</idno>
+		<ptr target="doi:10.1093/mnras/stv910" />
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">451</biblScope>
+			<biblScope unit="page" from="680" to="694" />
+			<date type="published" when="2015-07" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lang</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1086/670067</idno>
+		<title level="m">The MCMC Hammer. PASP</title>
+		<imprint>
+			<date type="published" when="2013-03" />
+			<biblScope unit="volume">125</biblScope>
+			<biblScope unit="page" from="306" to="312" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Exoplanet Population Inference and the Abundance of Earth Analogs from Noisy, Incomplete Catalogs</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Morton</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1088/0004-637X/795/1/64</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">795</biblScope>
+			<biblScope unit="page">64</biblScope>
+			<date type="published" when="2014-11" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<monogr>
+		<title level="m" type="main">Fast Gaussian Processes for regression</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Hoyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Bernhard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Angus</surname></persName>
+		</author>
+		<idno type="doi">doi:10.5281/zenodo.11989</idno>
+		<ptr target="http://dx.doi.org/10.5281/zenodo.11989" />
+		<imprint>
+			<date type="published" when="2014-10" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<monogr>
+		<title level="m" type="main">Fast and scalable Gaussian process modeling with applications to astronomical time series</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Angus</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Ambikasaran</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2017-03" />
+		</imprint>
+	</monogr>
+	<note>ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">py: Scatterplot matrices in python</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Daniel Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Corner</surname></persName>
+		</author>
+		<idno type="doi">doi:10.21105/joss.00024</idno>
+		<ptr target="http://dx.doi.org/10.5281/zenodo.45906" />
+	</analytic>
+	<monogr>
+		<title level="j">The Journal of Open Source Software</title>
+		<imprint>
+			<biblScope unit="volume">24</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">Rotation and magnetism of Kepler pulsating solar-like stars. Towards asteroseismically calibrated age-rotation relations</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>García</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Ceillier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Salabert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Mathur</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Van Saders</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Pinsonneault</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Ballot</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">G</forename><surname>Beck</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Bloemen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Campante</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">R</forename><surname>Davies</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-D</forename><surname>Do Nascimento</surname><genName>Jr</genName></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Mathis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">S</forename><surname>Metcalfe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">B</forename><surname>Nielsen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">C</forename><surname>Suárez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Chaplin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Jiménez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Karoff</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1051/0004-6361/201423888</idno>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">572</biblScope>
+			<biblScope unit="page">34</biblScope>
+			<date type="published" when="2014-12" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">P</forename><surname>Gibson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">M</forename><surname>Evans</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Osborne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pont</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">A Gaussian process framework for modelling instrumental systematics: application to transmission spectroscopy</title>
+		<idno type="doi">doi:10.1111/j.1365-2966.2011.19915.x</idno>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">419</biblScope>
+			<biblScope unit="page" from="2683" to="2694" />
+			<date type="published" when="2012-01" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Ensemble samplers with affine invariance</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Goodman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Weare</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Communications in Applied Mathematics and Computational Science</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<monogr>
+		<title level="m" type="main">Hide and Seek: Radial-Velocity Searches for Planets around Active Stars</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">D</forename><surname>Haywood</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2015-11" />
+		</imprint>
+		<respStmt>
+			<orgName>University of St Andrews</orgName>
+		</respStmt>
+	</monogr>
+<note type="report_type">PhD thesis</note>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">Planets and stellar activity: hide and seek in the CoRoT-7 system</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">D</forename><surname>Haywood</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Collier Cameron</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Queloz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">C C</forename><surname>Barros</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Deleuil</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Fares</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Gillon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">F</forename><surname>Lanza</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Lovis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Moutou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pepe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Pollacco</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Santerne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Ségransan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><forename type="middle">C</forename><surname>Unruh</surname></persName>
+		</author>
+		<idno type="doi">10.1093/mnras/stu1320</idno>
+		<ptr target="doi:10.1093/mnras/stu1320" />
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">443</biblScope>
+			<biblScope unit="page" from="2517" to="2531" />
+			<date type="published" when="2014-09" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Inferring the Eccentricity Distribution</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">D</forename><surname>Myers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Bovy</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1088/0004-637X/725/2/2166</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">725</biblScope>
+			<biblScope unit="page" from="2166" to="2175" />
+			<date type="published" when="2010-12" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">A prescription for period analysis of unevenly sampled time series</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">H</forename><surname>Horne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">L</forename><surname>Baliunas</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1086/164037</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">302</biblScope>
+			<biblScope unit="page" from="757" to="763" />
+			<date type="published" when="1986-03" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">An analytical model to demonstrate the reliability of reconstructed &apos;active longitudes</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">V</forename><surname>Jeffers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">U</forename><surname>Keller</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1063/1.3099201</idno>
+	</analytic>
+	<monogr>
+		<title level="m">15th Cambridge Workshop on Cool Stars, Stellar Systems, and the Sun</title>
+		<editor>E. Stempels</editor>
+		<imprint>
+			<date type="published" when="2009-02" />
+			<biblScope unit="volume">1094</biblScope>
+			<biblScope unit="page" from="664" to="667" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">Rotational dating of middle-aged stars</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Kawaler</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1086/185512</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">343</biblScope>
+			<biblScope unit="page" from="65" to="68" />
+			<date type="published" when="1989-08" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<monogr>
+		<title level="m" type="main">Atmospheric CO2 from Continuous Air Samples at Mauna Loa Observatory</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Keeling</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Whorf</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2004-10" />
+			<pubPlace>Hawaii, U.S.A. Carbon Dioxide Information Analysis Center, Oak Ridge National Laboratory</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title level="a" type="main">An analytic model for rotational modulations in the photometry of spotted stars</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Kipping</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1111/j.1365-2966.2012.22124.x</idno>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">427</biblScope>
+			<biblScope unit="page" from="2487" to="2511" />
+			<date type="published" when="2012-12" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title level="a" type="main">Frequency shift in Fourier analysis</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Kovacs</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1007/BF00654032</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Ap&amp;SS</title>
+		<imprint>
+			<biblScope unit="volume">78</biblScope>
+			<biblScope unit="page" from="175" to="188" />
+			<date type="published" when="1981-08" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title level="a" type="main">Measuring stellar differential rotation with high-precision space-borne photometry</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">F</forename><surname>Lanza</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">L</forename><surname>Das Chagas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>De Medeiros</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1051/0004-6361/201323172</idno>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">564</biblScope>
+			<biblScope unit="page">50</biblScope>
+			<date type="published" when="2014-04" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">Robust detection of quasiperiodic variability: a HAWK-I mini survey of late-T dwarfs</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">P</forename><surname>Littlefair</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Burningham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Helling</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1093/mnras/stw3376</idno>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">466</biblScope>
+			<biblScope unit="page" from="4250" to="4258" />
+			<date type="published" when="2017-04" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">Least-squares frequency analysis of unequally spaced data</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">R</forename><surname>Lomb</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1007/BF00648343</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Ap&amp;SS</title>
+		<imprint>
+			<biblScope unit="volume">39</biblScope>
+			<biblScope unit="page" from="447" to="462" />
+			<date type="published" when="1976-02" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title level="a" type="main">Statistics of Stellar Variability in Kepler Data with ARC Systematics Removal</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Mcquillan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Roberts</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1017/S1743921312001081</idno>
+	</analytic>
+	<monogr>
+		<title level="m">IAU Symposium</title>
+		<editor>E. Griffin, R. Hanisch, and R. Seaman</editor>
+		<imprint>
+			<date type="published" when="2012-04" />
+			<biblScope unit="volume">285</biblScope>
+			<biblScope unit="page" from="364" to="365" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title level="a" type="main">Measuring the rotation period distribution of field M dwarfs with Kepler</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Mcquillan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Mazeh</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1093/mnras/stt536</idno>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">432</biblScope>
+			<biblScope unit="page" from="1203" to="1216" />
+			<date type="published" when="2013-06" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title level="a" type="main">Stellar Rotation Periods of the Kepler Objects of Interest: A Dearth of Close-in Planets around Fast Rotators</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Mcquillan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Mazeh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1088/2041-8205/775/1/L11</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">775</biblScope>
+			<biblScope unit="page">11</biblScope>
+			<date type="published" when="2013-09" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title level="a" type="main">Rotation Periods of 34,030 Kepler Main-sequence Stars: The Full Autocorrelation Sample</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Mcquillan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Mazeh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1088/0067-0049/211/2/24</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">211</biblScope>
+			<biblScope unit="page">24</biblScope>
+			<date type="published" when="2014-04" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title level="a" type="main">RUN DMC: An Efficient, Parallel Code for Analyzing Radial Velocity Observations Using N-body Integrations and Differential Evolution Markov Chain Monte Carlo</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Nelson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Ford</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Payne</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1088/0067-0049/210/1/11</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">210</biblScope>
+			<biblScope unit="page">11</biblScope>
+			<date type="published" when="2014-01" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title level="a" type="main">A Gaussian process framework for modelling stellar activity signals in radial velocity data</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Rajpaul</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Osborne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Reece</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Roberts</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1093/mnras/stv1428</idno>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">452</biblScope>
+			<biblScope unit="page" from="2269" to="2291" />
+			<date type="published" when="2015-09" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title level="a" type="main">Ghost in the time series: no planet for Alpha Cen B</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Rajpaul</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Roberts</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1093/mnrasl/slv164</idno>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">456</biblScope>
+			<biblScope unit="page" from="6" to="10" />
+			<date type="published" when="2016-02" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<monogr>
+		<title level="m" type="main">Gaussian Processes for Machine Learning (Adaptive Computation and Machine Learning)</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Carl</forename><forename type="middle">Edward</forename><surname>Rasmussen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Christopher</forename><forename type="middle">K I</forename><surname>Williams</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2005" />
+			<publisher>The MIT Press</publisher>
+			<biblScope unit="volume">026218253</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title level="a" type="main">Rotation and differential rotation of active Kepler stars</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Reinhold</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Reiners</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Basri</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1051/0004-6361/201321970</idno>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">560</biblScope>
+			<biblScope unit="page">4</biblScope>
+			<date type="published" when="2013-12" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title level="a" type="main">Most 1.6 Earth-radius Planets are Not Rocky</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">A</forename><surname>Rogers</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1088/0004-637X/801/1/41</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">801</biblScope>
+			<biblScope unit="page">41</biblScope>
+			<date type="published" when="2015-03" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title level="a" type="main">On the light variations of asteroids and satellites</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">N</forename><surname>Russell</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1086/141361</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">24</biblScope>
+			<biblScope unit="page" from="1" to="18" />
+			<date type="published" when="1906-07" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title level="a" type="main">Studies in astronomical time series analysis. II -Statistical aspects of spectral analysis of unevenly spaced data</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Scargle</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1086/160554</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">263</biblScope>
+			<biblScope unit="page" from="835" to="853" />
+			<date type="published" when="1982-12" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title level="a" type="main">Time Scales for CA II Emission Decay, Rotational Braking, and Lithium Depletion</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Skumanich</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1086/151310</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">171</biblScope>
+			<biblScope unit="page">565</biblScope>
+			<date type="published" when="1972-02" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<analytic>
+		<title level="a" type="main">A markov chain monte carlo version of the genetic algorithm differential evolution: easy bayesian computing for real parameter spaces</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ter</forename><surname>Cajo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Braak</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Statistics and Computing</title>
+		<imprint>
+			<biblScope unit="volume">16</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="239" to="249" />
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title level="a" type="main">Differential evolution markov chain with snooker updater and fewer chains</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">F</forename><surname>Cajo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jasper A</forename><surname>Braak</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Vrugt</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Statistics and Computing</title>
+		<imprint>
+			<biblScope unit="volume">18</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="435" to="446" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vanderburg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">T</forename><surname>Montet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">A</forename><surname>Buchhave</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Zeng</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pepe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Collier Cameron</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Latham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Molinari</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Udry</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Lovis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Matthews</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Cameron</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Law</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">P</forename><surname>Bowler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Angus</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Baranec</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Bieryla</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Boschin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Cosentino</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Dumusque</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Figueira</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">B</forename><surname>Guenther</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Harutyunyan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Hellier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Kuschnig</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Lopez-Morales</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Mayor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Micela</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">F J</forename><surname>Moffat</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Pedani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">F</forename><surname>Phillips</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Piotto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Pollacco</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Queloz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Rice</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Riddle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">F</forename><surname>Rowe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">M</forename><surname>Rucinski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Sasselov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Ségransan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Sozzetti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Szentgyorgyi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Watson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">W</forename><surname>Weiss</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1088/0004-637X/800/1/59</idno>
+	</analytic>
+	<monogr>
+		<title level="m">Characterizing K2 Planet Discoveries: A Super-Earth Transiting the Bright K Dwarf HIP 116454</title>
+		<imprint>
+			<date type="published" when="2015-02" />
+			<biblScope unit="volume">800</biblScope>
+			<biblScope unit="page">59</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<monogr>
+		<title level="m" type="main">Probabilistic Mass-Radius Relationship for Sub-Neptune-Sized Planets</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Wolfgang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">A</forename><surname>Rogers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Ford</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2015-04" />
+		</imprint>
+	</monogr>
+	<note>ArXiv e-prints</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

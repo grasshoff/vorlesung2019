@@ -1,0 +1,478 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2019-01-22T13:43+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Finding the Dark Hole with the Lights On: A New Approach to Focal Plane Wavefront Sensing</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2016-08-17">17 Aug 2016</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Richard</forename><forename type="middle">A</forename><surname>Frazin</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Dept. of Climate and Space Sciences</orgName>
+								<orgName type="institution">University of Michigan</orgName>
+								<address>
+									<postCode>48109</postCode>
+									<settlement>Ann Arbor</settlement>
+									<region>MI</region>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Finding the Dark Hole with the Lights On: A New Approach to Focal Plane Wavefront Sensing</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2016-08-17">17 Aug 2016</date>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<abstract>
+				<p>In direct imaging of exoplanets from space, achieving the required dynamic range (i.e., planet-to-star contrast in brightness) currently relies on coronagraphic technology combined with active control of one or more deformable mirrors (DMs) to create a dark region in the image plane, sometimes called a &quot;dark hole.&quot; While many algorithms have been proposed for this purpose, all of them employ focal plane wavefront sensing (FPWS) in order to calculate the optimal DM configuration to create the desired dark hole. All current algorithms are limited by their own success in that, as the dark hole is achieved, the FPWS procedure becomes shot-noise limited due to he low intensity in the dark hole. This article proposes a FPWS procedure that allows determination of the optimal DM configuration without relying on information obtained when the DM is near the optimal configuration. This article gives regression procedures for FPWS that do not assume the DM step size is small, which should allow two important improvements to the control loop: 1) performing informative FPWS observations with DM configurations that are sufficiently distant from the optimal dark hole configuration to mitigate shot-noise limitations, and 2) more accurately predicting the DM configuration that will achieve the desired objective in the dark hole control loop. In order to treat this more challenging FPWS problem, two different representations are presented. The first of these, is called the empirical Green&apos;s function (EGF), is easy to implement, and has a block-diagonal matrix structure that is well-suited to parallel processing. The other representation, based on an explicit aberration expansion (EAE) requires the regression to estimate a smaller number of parameters than the EGF, but leads to a dense matrix structure. The EGF and EAE methods both simultaneously estimate the planetary image.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">INTRODUCTION</head><p>Direct imaging of exoplanetary systems is difficult due to the high contrast in brightness between the planet and the star, which results in the planetary light being buried beneath details of telescope's point spread function (PSF) that can change on a large range of time-scales, ranging from minutes to days. At this time, the scientific community is planning to perform direct imaging of exoplanets with telescopes in space, with the first such effort being NASA's WFIRST mission, which will use coronagraphic optics to suppress the starlight [http://wfirst.gsfc.nasa.gov/science/presentations/vugraphs/SDT <ref type="bibr">Jul 2012.pdf]</ref>. Even with a coronagraph, timevariable aberrations in the optical system (mostly due to thermal stresses) are substantial enough to necessitate the use of active optical elements, namely deformable mirrors (DMs), to create a region in the image plane that is dark enough to meet the mission requirements. Many methods for using the DM to create the dark region, sometimes called a "dark hole," have been proposed in the years following the initial idea, which is attributed to <ref type="bibr">Malbet et al. in 1995. 1</ref> In order to calculate the required DM deformation, all of these methods (reviewed in <ref type="bibr" target="#b1">[2]</ref>) employ a focal plane wavefront sensing (FPWS) technique in which the DM implements a series "probe shapes" in order to determine the electric value in image plane. One fundamental limitation in this approach is that as the DM approaches the required to make a dark hole, the hole does indeed become quite dark, so much so that the measurements needed to make the hole still darker are shot-noise limited due to the small intensity. One way to overcome this limitation is to determine the electric field without relying on measurements in which the DM is in a dark hole configuration. This is not possible with current FPWS methods because they assume that they do not model the optical system sufficiently accurately to allow large DM steps and assume that the product of the phase induced by the DM step and the phase caused by unknown aberration is small. <ref type="bibr" target="#b1">2</ref> The regression framework presented in this article models the unknown aberration in the optical system in such a way that this limitation on the step-size is removed, at least in theory (the remaining step-size limitation is DM calibration and reproducibility).</p><p>In the initial paper on the subject in 1995, Malbet et al. assumed that the unknown aberration in the optical system can be represented as equivalent aberration in a pupil plane upstream of the DM. 1 Unfortunately, is an oversimplification for optical systems that have aberration downstream of the DM. One optical system that is very likely to have aberrations downstream of the DM is the coronagraph for NASA's WFIRST mission, the beam interacts with well over a dozen optical surfaces after bouncing off of "DM1," so there is a high probability that the equivalent aberration will vary as a consequence of a probe command sent to <ref type="bibr">DM1. 3</ref> This paper uses rigorous physical optics arguments to find the term required to represent the aberrations downstream of the DM and show that this term is of the same order as Malbet et al.'s aberration. After demonstrating the need for this additional term, regression equations are derived for two different representations of the post-DM aberrations, and their relative merits are presented. Finally, this article compares this FPWS approach to those that have been published and implemented previously.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">PROPAGATION EQUATIONS</head><p>First, this section introduces some notation and formalism. The equations in this section will be within paradigm of scalar fields. Vector generalizations to handle polarizing optical systems of some equations are given by <ref type="bibr" target="#b3">[4]</ref>, but this important issue will be deferred to a sequel to this article.</p><p>Let λ be the central wavelength of the quasi-monochromatic light, and u(r) be the analytical signal representing the electric field <ref type="bibr" target="#b3">[4]</ref><ref type="bibr" target="#b4">[5]</ref><ref type="bibr" target="#b5">[6]</ref> in some plane with two-dimensional (2D) coordinate vector r. Note that, consistently with the formalism established in <ref type="bibr" target="#b3">[4]</ref>, the high-frequency factor exp(−j2πνt) (where the speed of light c = λν) has been suppressed. The time-dependence due to statistical coherence properties of the field and will not be carried in the notation, either.</p><p>Consider an optical system on a space-based platform, such as in <ref type="figure">Fig. 1</ref>, in which the entrance pupil is designated as plane 0. Assuming the angular size of the star is small enough to allow treatment as a point source, the field arising from the star hosting the putative planetary impinging on the entrance pupil is <ref type="bibr" target="#b3">[4]</ref>:</p><formula xml:id="formula_0">u ⋆0 (r 0 ) = I ⋆ exp(jkα ⋆ · r)<label>(1)</label></formula><p>where k = 2π/λ and α ⋆ is the 2D sky angle, in units of radians, of the (presumably small) pointing error, and I ⋆ is the star's irradiance. On the other hand, the entrance pupil is presumably large enough to at least partially resolve the planetary system, so it is therefore not possible to write a general expression for the planetary field impinging on the telescope entrance pupil (unless it is assumed to be composed of unresolved point sources). Instead, all that is available is the mutual coherence function, as provided by the well-known Van Cittert-Zernike theorem <ref type="bibr" target="#b3">[4,</ref><ref type="bibr" target="#b5">6]</ref>:</p><formula xml:id="formula_1">γ p0 (r 0 , r ′ 0 ) = 1 π p dα S(α) exp jk r 0 − r ′ 0 · α ,<label>(2)</label></formula><p>where α is the 2D sky angle (radian units), S(α) is the radiance of planetary system, and the integration is carried out over the angular extent of the planetary system, but not including the star itself (practically, this will be enforced by not trying to determine the image within some radius of the pointing center). Eq. (2) states that the mutual coherence of the light arriving at the Earth is proportional to the Fourier transform of the radiance emerging from the planetary system, S(α). The objective of the science observations is to estimate S(α), which is difficult because the stellar irradiance is much brighter than the planetary irradiance, i.e., I ⋆ ≫ p dα S(α).</p><p>The optical system shown schematically in <ref type="figure">Fig. 1</ref> is intended to represent a space-based telescope as it does not include atmospheric modulation of light. It is assumed to contain only a single DM, as generalization to the multiple DM case is straightforward, at least at the theoretical level presented in this article. The light from the entrance pupil (whose plane is assigned the index number 0) passes through the part of the optical bench called the "pre-DM optics," reflects off the DM, denoted with index d, then passes through "post-DM optics" (presumably including a coronagraph), finally forming an image on the science camera (SC), whose detector surface will be given assigned index c. Let the operator Υ d,0 r d , r 0 (where r d and r 0 are the 2D coordinates in the d and 0 planes, respectively) propagate the field from the telescope entrance pupil to just before the DM, thus including all effects of the pre-DM optics. The stellar field impinging on the DM is given by</p><formula xml:id="formula_2">u d (r d ) = Υ d,0 r d , r 0 u ⋆0 (r 0 ) ,<label>(3)</label></formula><p>in which integration over the r 0 coordinate is implied by the notation. Now, the DM imposes a phase shift of ζ(r d , m) on the beam, where the second argument m indicates that the DM shape (ζ) is function of the DM command vector m. Here it will be assumed that m changes on a time-scale that is much shorter than τ d , the dynamical time-scale on which the spacecraft structure undergoes thermal relaxations and so on. In this treatment, changes on the time-scale τ d are not included and quantities that vary on that time-scale are formally considered to be constant. As a practical matter, in order to deal with changes on the time-scale τ d , the regressions presented below will need to updated regularly, most likely in a Kalman-filtering framework. 7</p><p>Here, we will assume that ζ(r d , m) is a purely real-valued, which does not allow the DM to have amplitude effects (lifting this restriction is relatively straightfoward). The field just after reflecting off the DM is then given by</p><formula xml:id="formula_3">u + d (r d , m) = u d (r d ) exp[jζ(r d , m)] = exp[jζ(r d , t)]Υ d,0 r d , r 0 u ⋆0 (r 0 ) ,<label>(4)</label></formula><p>where the + superscript emphasizes that the light has just reflected off of DM. Similarly, Υ c,d r c , r d , where r c is the 2D coordinate in the SC plane, propagates u + d from the DM to the SC. The propagator Υ c,d includes the post-DM optical train. Note, in a break with the conventions established in <ref type="bibr" target="#b3">[4]</ref>, Υ c,d does not include interaction with the surface specified by index d, which, in this case, is taken into account by the factor exp[jζ(r d , m)]. The, the field in the SC arising from the starlight is given by</p><formula xml:id="formula_4">u c (r c , m) = Υ c,d r c , r d u + d (r d ) = Υ c,d r c , r d exp[jζ(r d , m)]Υ d,0 r d , r 0 u ⋆0 (r 0 ) .<label>(5)</label></formula><p>Under this formalism, Eq. (5) implies integration not only over the pupil plane coordinate r 0 , but also over the intermediate coordinate in the DM plane, r d .</p><p>Due to unknown and time-variable (on the τ d time-scale) aberrations throughout the entire optical system, the propagators Υ c,d and Υ d,0 are only partially known. It is helpful to decompose Υ c,d and Υ d,0 into known (denoted with superscript k ) and unknown (superscript u ) as follows:</p><formula xml:id="formula_5">Υ c,d r c , r d = Υ k c,d r c , r d + Υ u c,d r c , r d (6) Υ d,0 r d , r 0 = Υ k d,0 r d , r 0 + Υ u d,0 r d , r 0 ,<label>(7)</label></formula><p>in which the known propagators Υ k d,0 and Υ k c,d must be implemented with numerical integrations. The unknown propagators Υ u c,d and Υ u d,0 account for the unknown aberrations in the post-DM and pre-DM optical trains, respectively. Using Eqs. (6) and <ref type="formula" target="#formula_5">(7)</ref> in Eq. (5) results in an expression for the field consisting of known and unknown parts (using the same superscripting convention), i.e.,</p><formula xml:id="formula_6">u c (r c , m) = u k c (r c , m) + u u c (r c , m) ,<label>(8)</label></formula><p>where</p><formula xml:id="formula_7">u k c (r c , m) = Υ k c,d r c , r d exp[jζ(r d , m)]Υ k d,0 r d , r 0 u ⋆0 (r 0 ) ,<label>(9)</label></formula><p>and</p><formula xml:id="formula_8">u u c (r c , m) = Υ k c,d r c , r d exp[jζ(r d , m)]Υ u d,0 r d , r 0 + Υ u c,d r c , r d exp[jζ(r d , m)]Υ k d,0 r d , r 0 + Υ u c,d r c , r d exp[jζ(r d , m)]Υ u d,0 r d , r 0 u ⋆0 (r 0 ) (10)</formula><p>It is helpful to define the unknown quantity g u (r d ), called the effective pre-DM aberration:</p><formula xml:id="formula_9">g u (r d ) ≡ Υ u d,0 r d , r 0 u ⋆0 (r 0 ) .<label>(11)</label></formula><p>Eq. <ref type="formula" target="#formula_0">(11)</ref> states that all of the aberrations in the pre-DM optics result in an unknown function of the coordinate in the DM plane, g u (r d ), and is essentially the same as the aberration originally assumed by Malbet et al., 1 as will be explained below in Sec. 5. Note that g u (r d ) also includes any unknown aberration in the DM itself that varies on the time-scale τ d , which, unfortunately excludes uncalibrated deformations of the DM shape that vary as its configuration changes. Using Eq. (11) to simplify Eq. (10), one obtains:</p><formula xml:id="formula_10">u u c (r c , m) = Υ k c,d r c , r d exp[jζ(r d , m)]g u (r d ) + Υ u c,d r c , r d exp[jζ(r d , m)]Υ k d,0 r d , r 0 u ⋆0 (r 0 ) + Υ u c,d r c , r d exp[jζ(r d , m)]g u (r d ) . (12)</formula><p>One can see that g u and Υ u c,d should be of roughly equal importance, as the aberrated field u c in Eq. (12) has terms that linear in each one, as well as a final term that bi-linear in the two quantities. Below, in Sec. 4.2, it will be seen that the importance of the Υ u c,d term should be proportional to the number optical surfaces in the post-DM optical train (or at least the number of fully illuminated surfaces that are upstream of the coronagraph).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">SCIENCE CAMERA INTENSITY</head><p>The intensity of the light impinging on the SC is given by the sum of the planetary intensity and the stellar intensity:</p><formula xml:id="formula_11">I c (ρ, m) = I pc (ρ, m) + I c (ρ, m)<label>(13)</label></formula><p>where ρ ≡ r c is the coordinate in the SC plane. Now, the planetary intensity I pc is vastly fainter than the stellar intensity and a relatively simple model of the optical system, with no unknown aberration, should be perfectly adequate for calculating the planetary contribution. Let the needed simplified propagation operator be denoted by</p><formula xml:id="formula_12">Υ p (ρ, r 0 , m). Choosing Υ p (ρ, r 0 , m) = Υ k c,d ρ, r d exp[jζ(r d , m)]Υ k d,0 r d , r 0 should certainly be a valid option, but Υ k c,d and Υ k d,0</formula><p>operators may be unnecessarily computationally expensive, so that cheaper approximations may serve for calculating the planetary contribution. Any approximation should include the effect of the DM (exp[jζ(r d , m)]), as it will modulate the planetary light. In any event, the planetary intensity on the SC is given by integrating over the mutual coherence function in Eq. <ref type="formula" target="#formula_1">(2)</ref>  <ref type="bibr" target="#b3">[4,</ref><ref type="bibr" target="#b5">6]</ref>:</p><formula xml:id="formula_13">I pc (ρ, m) = Υ p (ρ, r 0 , m)Υ * p (ρ, r ′ 0 , m)γ p0 (r 0 , r ′ 0 ) = Υ p (ρ, r 0 , m)Υ * p (ρ, r ′ 0 , m) 1 π p dα S(α) exp jk r 0 − r ′ 0 · α = 1 π p dα S(α) Υ p (ρ, r 0 , m)Υ * p (ρ, r ′ 0 , m) exp jk r 0 − r ′ 0 · α ,<label>(14)</label></formula><p>where the reader is reminded that that Eq. <ref type="formula" target="#formula_0">(14)</ref> is, in fact, a triple integral as the propagation operators imply integration over r 0 and r ′ 0 . The quantity inside the braces is called the planetary intensity kernel <ref type="bibr" target="#b3">[4,</ref><ref type="bibr" target="#b7">8]</ref>. In the absence of the confounding starlight, estimating S(α) amounts to solving a multi-frame deconvolution problem. In this deconvolution problem, the coronagraphic optics make the point-spread function (PSF) spatially variant, at least close to the inner working angle, and the PSF depends on the DM command vector m, as well.</p><p>The stellar contribution to the intensity is given by</p><formula xml:id="formula_14">I c (ρ, m) = u c (ρ, m)u * c (ρ, m)</formula><p>, using Eq. (8) it can be written as:</p><formula xml:id="formula_15">I c (ρ, m) − I 0 (ρ, m) = u k c (ρ, m)u u * c (ρ, m) + u u c (ρ, m)u k * c (ρ, m) + u u c (ρ, m)u u * c (ρ, m) ,<label>(15)</label></formula><p>where the known portion of the intensity,</p><formula xml:id="formula_16">I 0 (ρ, m) ≡ u k c (ρ, m)u k * c (ρ, m)</formula><p>, has been moved to left-hand-side of the equation. The small, unknown aberrations in the optical system are taken into account by the unknown function g u and the unknown operator Υ u c,d . Without defining precise metrics to be more quantitative, g u , defined in Eq. (11), is presumably smaller than Υ k <ref type="formula" target="#formula_0">(12)</ref> contains terms that are of 1st and 2nd order in these unknown quantities. It then follows that the right-hand-side of Eq. <ref type="formula" target="#formula_0">(15)</ref> contains terms that of 1st, 2nd, 3rd and 4th order in these small, unknown quantities.</p><formula xml:id="formula_17">d,0 r d , r 0 u ⋆0 (r 0 ) and Υ u c,d should be smaller than Υ k c,d , so that u u c in Eq.</formula><p>Below, only the 1st order terms are given, as deriving the others is straightforward, and they can be treated by standard procedures involving linearization and iteration, if necessary. Then,</p><formula xml:id="formula_18">I c (ρ, m) − I 0 (ρ, m) ≈ u k c (ρ, m) Υ k * c,d r c , r d exp[−jζ(r d , m)]g u * (r d ) + Υ u * c,d r c , r d exp[−jζ(r d , m)]Υ k * d,0 r d , r 0 u * ⋆0 (r 0 ) +u k * c (ρ, m) Υ k c,d r c , r d exp[jζ(r d , m)]g u (r d ) + Υ u c,d r c , r d exp[jζ(r d , m)]Υ k d,0 r d , r 0 u ⋆0 (r 0 ) ,<label>(16)</label></formula><p>where the reader will recall that the phase imparted by the DM, ζ(r d , m), was taken to be real.</p><p>The science camera measurement is subject to the effects of noise, both due to photon counting statistics <ref type="bibr" target="#b5">[6]</ref> (shot noise) and readout noise, and perhaps other effects. Fortunately, there is a new generation of ultra-low noise IR cameras capable of kHz readouts, such as the SWIR single photon detector, SAPHIRA eAPD and the MKIDS, 9-12 making the issue of readout noise far less critical. Taking the noise into account, the measured value of the science camera intensity is obtained by summing the stellar and planetary contributions:</p><formula xml:id="formula_19">I m (ρ l , m i ) = (∆t i )I c (ρ l , m i ) + (∆t i )I pc (ρ l , m i ) + ν(ρ l , t i ) ,<label>(17)</label></formula><p>where ρ l is the postion of the lth SC detector pixel, m i is the ith DM command vector, t i is the time-stamp associated with m i , ∆t i is the corresponding exposure time, and ν(ρ l , t i ) is a sample of the random process that describes the detector noise. Eq. (17) makes several assumptions:</p><p>• The detector pixels are small enough so that integration of I c (ρ, m) and I pc (ρ, m) over the pixel area is not necessary. Implementing such an integration is straightforward.</p><p>• The noise, ν(ρ l , t i ) has no important dependence on the unknown quantities S(α), g u (r d ) and the unknown operator Υ u c,d (ρ l , r d ). This cannot be strictly true as the shot noise will depend on these values, especially as the success is achieved in creating a dark hole. In an iterative procedure, the statistics of ν can be calculated with current estimates of unknowns, if necessary. However, the entire point of the FPWS strategy presented here is to gain the required information from DM configurations in which shot noise is not a big problem in the first place.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">REGRESSION STRATEGIES</head><p>The regression procedure estimates the effective pre-DM aberration g u , the post-DM aberrations Υ u c,d and the planetary image S. Most of the information pertaining to g u and Υ u c,d comes from instances when the DM is not making a dark hole, while the estimate of S depends most heavily on the instances when the hole is darkest. The objective of this section is to give the regression formulae for estimating these quantities.</p><p>Since S(α) and g u (r d ) are continuous functions on some portion of R 2 and C 2 , respectively, they must be parameterized somehow for computation. The most natural way to achieve this is via series expansions, which reduces the unknown continuous quantities to a finite set of expansion coefficients. The image processing community has a vast literature on how best to do this, including multi-resolution representations (e.g., wavelets), but these issues will not be treated here, and instead, only generic forms will be given. Estimating the kernel of the propagation operator Υ u c,d (ρ l , r d ) is more challenging because it defines a continuous mapping Υ u c,d : C 2 → R 2 . Below, two strategies for estimating Υ u c,d will be presented. The first approach is called the Empirical Green's Function, and despite its high dimensionality, it is (relatively) straightforward to implement and very wellsuited to parallel computation. The EGF was first introduced by the author in <ref type="bibr" target="#b13">[13]</ref> in the context of exoplanet imaging from ground-based observatories. The second approach, called Explicit Aberration Expansion, requires challenging and expensive Fresnel propagation computations and is much less easy to parallelize. However, in most situations, it will likely require the estimation of many fewer unknown quantities than the EGF and therefore should make more efficient use of observational resources, at least in theory.</p><p>The regression can expressed in linear algebra terms via the canonical equation y = Hx, where y is derived from the observations (SC pixel values), x is a vector of unknown regression coefficients to be estimated, and H is the model-based matrix that relates the two. Generalization to a Kalman filtering framework, as in <ref type="bibr" target="#b6">[7]</ref>, is left to future work. The vector x is composed of three sub-vectors as follows:</p><formula xml:id="formula_20">x =   x Υ x g x p   ,<label>(18)</label></formula><p>where x Υ contains the regression coefficients associated with estimating Υ u c,d , and x g and x p contain the coefficients specifying the effective pre-DM aberration g u and the planetary image S, respectively. Correspondingly, the matrix H is partitioned into three submatrices as:</p><formula xml:id="formula_21">H = H Υ H g H p ,<label>(19)</label></formula><p>where the subscripts have meanings that correspond those in Eq. <ref type="figure">(19)</ref>.</p><p>The vector y is modeled by Eq. <ref type="formula" target="#formula_0">(17)</ref>, and is arranged so that each subvector y l corresponds to the time-series associated with the lth SC pixel. Recalling that the time-stamp t i corresponds to the DM command m i by is given by:</p><formula xml:id="formula_22">y =         y 0 . . . y l . . . y N −1         ,<label>(20)</label></formula><p>where N is the number of SC pixels and</p><formula xml:id="formula_23">y l =         I m (ρ l , m 0 ) − I 0 (ρ l , m 0 ) − ν(ρ l , t 0 ) . . . I m (ρ l , m i ) − I 0 (ρ l , m i ) − ν(ρ l , t i ) . . . I m (ρ l , m T −1 ) − I 0 (ρ l , m T −1 ) − ν(ρ l , t T −1 )         ,<label>(21)</label></formula><p>in which T is the number of DM steps used in the estimation. Thus, y l has T elements and y has N T elements. The unknown effective pre-DM aberration g u (r) can be approximated with the following expansion:</p><formula xml:id="formula_24">g u (r) ≈ Ng −1 l=0 a l + jb l ψ g l (r) ,<label>(22)</label></formula><p>where N g is the number of terms, and the {ψ g l (r)} are real-valued expansion functions (e.g., annular Zernike polynomials). Since g u (r) is complex-valued, the expansion has a real part given by the expansion coefficients {a l }, and the imaginary part is given by the expansion coefficients {b l }. The vector x g is given by:</p><formula xml:id="formula_25">x T g = [a 0 , . . . , a l , . . . , a Ng−1 , b 0 , . . . , b l , . . . , b Ng−1 ] T ,<label>(23)</label></formula><p>where the superscript T indicates tranposition (in this case, to make it into a column vector). The corresponding elements of the N T × 2N g matrix H g are calculated by inserting Eq. <ref type="formula" target="#formula_1">(22)</ref> into Eq. (16) and performing the requisite integrations for each DM position m i and SC pixel position ρ l . Similarly, the planetary image S(α) can be approximated with a series expansion as follows:</p><formula xml:id="formula_26">S(α) ≈ Np−1 l=0 p l ψ p l (α) ,<label>(24)</label></formula><p>where N p is the number of terms included in the expansion, the {p l } are the real-valued expansion coefficients, and the {ψ p l (α)} are the real-valued expansion functions used for describing the planetary image. The vector x p in Eq. <ref type="formula" target="#formula_0">(19)</ref> holds the planetary coefficients and is given by:</p><formula xml:id="formula_27">x T p = [p 0 , . . . , p l , . . . , p Np−1 ] T .<label>(25)</label></formula><p>The corresponding elements of the N T × N p matrix H p are calculated by inserting Eq. <ref type="formula" target="#formula_1">(24)</ref> into Eq. <ref type="formula" target="#formula_0">(14)</ref> and performing the needed integrations.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Empirical Green's Function</head><p>The operator Υ c,d (ρ, r) is Green's function that solves diffraction problem with the field propagating from sources in plane d to plane c. 5 Υ k c,d (ρ, r) is the known part of this operator, and the part that must be determined from the measurements, Υ u c,d (ρ, r), will be called the Empirical Green's Function (EGF). When treating polarization effects, it has a straightforward generalization to vector fields, called the Empirical Green's Tensor (EGT), which will be explained in the followup to this article [it was introduced in 13].</p><p>At any fixed position in the detector plane, ρ l the kernel of the operator Υ u c,d (ρ l , r) is function on some region of R 2 (as is g u (r)). Then, at any given ρ l , it also admits a series expansion:</p><formula xml:id="formula_28">Υ u c,d (ρ l , r) ≈ M l −1 k=0 c l,k + jd l,k ψ l k (r) ,<label>(26)</label></formula><p>where M l is the number of terms in the series corresponding to the lth detector pixel, the {ψ l k } are the expansion functions corresponding to the lth detector pixel. Eq. <ref type="formula" target="#formula_1">(26)</ref> is called the EGF expansion. Since Υ u c,d (ρ l , r) is complex-valued, the expansion has a real part given by the expansion coefficients {c l,k } and the imaginary part is given by the expansion coefficients {d l,k }. It is important to emphasize that, from this point of view, Υ u c,d (ρ l , r) and Υ u c,d (ρ m , r) are completely independent functions of r unless l = m, so that the choices made for the {ψ l k } (as well as M l ) can be made independently for each SC pixel positon. It is, in fact, this independence that makes implementation of the EGF so easy to parallelize, as one obtains an independent regression for each pixel position l. This independence corresponds to a block-diagonal structure in linear algebra terms, as will be demonstrated directly. The vector x Υ associated with the EGF is composed of N (one for each SC pixel) sub-vectors as follows:</p><formula xml:id="formula_29">x T Υ = [x 0 , . . . , x l , . . . , x N −1 ] T ,<label>(27)</label></formula><p>in which </p><formula xml:id="formula_30">x l = [c l,0 , . . . , c l,k , . . . , c l,M l −1 , d l,0 , . . . , d l,k , . . . , d l,M l −1 ] T ,<label>(28)</label></formula><formula xml:id="formula_31">        y 0 . . . y l . . . y N −1         =         H Υ,0 H g,0 H p,0 . . . . . . . . . H Υ,l H g,l H p,l . . . . . . . . . H Υ,N −1 H g,N −1 H p,N −1           x Υ x g x p   ,<label>(29)</label></formula><p>in which H g,l is the portion of the H g matrix associated with the lth SC pixel, and similarly for H p,l .</p><p>The partial block-diagonal structure in Eq. <ref type="bibr">(29)</ref> immediately suggests an iterative, alternating minimization procedure in which x g and x p are held constant while estimate of x Υ is updated, and vice-versa (perhaps using algorithms that enjoy improved convergence rates by employing "costs-to-move"). Indeed, the planetary coefficients x p can probably be assumed to 0, except in pixels that happen to be inside a dark hole.</p><p>The price to be payed for the "parallelizability" and relative simplicity of the EGF approach is the fact specifying the EGF requires estimating 2M l free parameters for each SC pixel. It may well be practical to solve for a sufficient number of coefficients to allow a rather high-order expansion in Eq. <ref type="formula" target="#formula_1">(26)</ref>, especially if high-cadence detectors are available. As an example, assume the expansion functions {ψ l k (r)} are given by the annular Zernike polynomials up to 20th order, which would correspond to a total of 230 polynomials, or M l = 230. Since we must solve for the real and imaginary parts of the expansion coefficients, the vector x l would have 460 components that must be estimated from the regression. As a rather arbitrary example, assume that the cadence of the SC is 0.01 seconds, and that each exposure corresponds to a different DM command m. After 100 seconds, each SC pixel would have 10 4 observations from which to estimate these 460 coefficients, overdetermining the problem by a factor of about 20. The number of coefficients that one may determine is likely to be limited by the inversion of a matrix of size 2M l × 2M l (computation time proportional to M 3 l ), or 460 × 460 in this example. Note that the author's desktop machine was able to invert a 1000 × 1000 matrix of random numbers (which tends to result in a poorly conditioned system) in about 0.1 s.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Explicit Aberration Expansion</head><p>The explicit aberration expansion (EAE), in which the propagator Υ u c,d (ρ, r) is assumed to be the result of unknown aberration functions in P planes. The EAE was introduced in <ref type="bibr" target="#b3">[4]</ref> in the context of ground-based imaging. The fact that the EAE should require estimating fewer parameters than the EGF can be seen as follows: In the EAE, each aberration function requires M l = M expansion coefficients to be estimated, then there would be a total of P M in the x Υ vector, whereas, in the EGF, the x Υ would contain N M elements. One would expect P M ≪ N M since the number of planes P is much smaller than the number of SC pixels N . Furthermore, in some optical systems the needed value of P can be reduced by treating aberrations in conjugate planes an equivalent aberration in one plane, as will be shown below. The disadvantages of the EAE relative to the EGF are:</p><p>• the first order approximation, which prohibits aberrated fields interacting with other aberrations (much like the Born approximation in scattering theory), whereas the EGF assumes only that the optical system is linear in the field, not the aberrations</p><p>• the difficult Fresnel integrations needed to propagate the field from one plane to the next</p><p>• the fact that the matrix H Υ is dense, instead of block-diagonal, as it is in the EGF.</p><p>To derive the EAE, assume that the post-DM optics contain unknown aberrations in P planes, with the first plane in the post-DM optics containing aberration given the index 1 (the index 0 was already used to signify the telescope entrance pupil), and the final aberrated plane having the index P . Let the propagator between plane l and plane l + 1 be denoted by Υ l+1,l (r l+1 , r l ), which includes interaction with the l surface but not the l + 1 surface. The only exception to this rule are propagators that start at the DM plane d (note that the is already included in g u ), so</p><formula xml:id="formula_32">Υ 1,d (r 1 , r d ) = Υ k 1,d (r 1 , r d )</formula><p>is a known operator. Following the earlier procedure, the propagator Υ l+1,l can be decomposed into known and unknown parts:</p><formula xml:id="formula_33">Υ l+1,l (r l+1 , r l ) = Υ k l+1,l (r l+1 , r l ) + Υ u l+1,l (r l+1 , r l ) = Υ k l+1,l (r l+1 , r l ) 1 + A u l (r l ) ,<label>(30)</label></formula><p>which assumes that he unknown character of the propagator is confined to an unknown aberration function in plane l, given by the complex-valued function A u l (r l ). While it may be tempting to set A u l (r l ) = exp[jφ l (r l )] for some (possibly complex-valued) phase aberration function φ l (r l ) as was done in <ref type="bibr" target="#b3">[4]</ref>, it is of little practical value as one must immediately perform the Taylor expansion of the exponential A u l (r l ) ≈ 1 + jφ l (r l ) − φ 2 l (r l )/2 + · · · and deal the with consequences of the approximation. On the other hand, this problem is avoided by treating A u l as the sum of two functions with real and imaginary parts, i.e., A u l (r l ) = A ur l (r l ) + jA ui l (r l ). The case of a small, real-valued phase perturbation φ l (r l ) is recovered by fixing the value A ur l (r l ) = 1 and setting A ui l (r l ) = φ l (r l ). The known field leaving the DM, i.e., excluding the pre-DM aberrations is:</p><formula xml:id="formula_34">u k d (r d , m) = exp[jζ(r d , m)]Υ k d,0 r d , r 0 u ⋆0 (r 0 ) ,<label>(31)</label></formula><p>and using Eq. <ref type="formula" target="#formula_2">(30)</ref>, the contribution to the aberrated field, u u C , arising from the aberration in plane l arriving at SC is:</p><formula xml:id="formula_35">Υ k c,l+1 (r c , r l+1 )Υ k l+1,l (r l+1 , r l )A u l (r l )Υ k l,d (r l , r d )u k d (r d , m) ,<label>(32)</label></formula><p>where Υ k l,d is a known operator that propagates the field from the d plane to the l plane that is given by contraction:</p><formula xml:id="formula_36">Υ k l,d (r l , r d ) = l−1 k=1 Υ k k+1,d (r k+1 , r l ) Υ k 1,d (r 1 , r d ) .<label>(33)</label></formula><p>Similarly, Υ k c,l (r c , r l ) = Υ k c,l+1 (r c , r l+1 )Υ k l+1,l (r l+1 , r l ), so that total contribution of the post-DM aberrations to the SC field is, to 1st order in the aberrations,</p><formula xml:id="formula_37">P l=1 Υ k c,l (r c , r l )A u l (r l )Υ k l,d (r l , r d )u k d (r d , m) .<label>(34)</label></formula><p>Thus, the unknown propagator Υ u c,d is given by:</p><formula xml:id="formula_38">Υ u c,d r c , r d ≈ P l=1 Υ k c,l (r c , r l )A u l (r l )Υ k l,d (r l , r d ) ,<label>(35)</label></formula><p>where the strict equality is lost due to the fact that terms in which aberrated fields do not interact with downstream aberrations are excluded. This should be permissible if |A u l (r l )| ≪ 1, as per Eq. <ref type="formula" target="#formula_2">(30)</ref>. Eq. <ref type="formula" target="#formula_2">(35)</ref> is the EAE. One obvious consequence is that the value Υ u c,d is roughly proportional to P , the number of planes containing aberration, which is likely every optical surface in the post-DM optical train, or at least the number of fully illuminated planes upstream of the coronagraph. Unlike the EGF, which has completely independent expansion for each SC position r c , in the EAE, each aberration A l potentially influences the value of the field at each SC position. Note that implementation of the propagators Υ k c,l (r c , r l ) and Υ k l,d (r l , r d ) in Eq. (35) will likely require Fresnel integrations, which can be expensive and challenging.</p><p>The function A u l (r l ) can be reduced to a finite parameter set by again employing a series expansion:</p><formula xml:id="formula_39">A u l (r l ) ≈ M l −1 k=0 c l,k + jd l,k ψ l k (r l ) ,<label>(36)</label></formula><p>where M l is the number of terms in the sum, the coefficients {c l,k } and {d l,k } are real and the {ψ l k (r l )} are expansion functions. Eq. (36) looks rather similar to Eq. (26), but, in this case, the expansion approximates the aberration function in the lth plane. As mentioned above, if one is only concerned with small, real-valued phase perturbations then one can set {c l,k = 1}. Formally, the vector x Υ , looks like that for the EGF, but EAE will have many fewer components, as explained above. In the EAE formulation, each subvector x l corresponds to the coefficients associated with aberration A u l . So,</p><formula xml:id="formula_40">x T Υ = [x 0 , . . . , x l , . . . , x N −1 ] T , and<label>(37)</label></formula><formula xml:id="formula_41">x l = [c l,0 , . . . , c l,k , . . . , c l,M l −1 , d l,0 , . . . , d l,k , . . . , d l,M l −1 ] T ,<label>(38)</label></formula><p>To calculate the elements of the H Υ matrix associated with EAE, Eq. (36) is used in Eq. <ref type="formula" target="#formula_2">(35)</ref>, which, in turn, is substituted in to Eq. (16).</p><p>The resulting linear system has the form:</p><formula xml:id="formula_42">        y 0 . . . y l . . . y N −1         =         H Υ,0 H g,0 H p,0 . . . . . . . . . H Υ,l H g,l H p,l . . . . . . . . . H Υ,N −1 H g,N −1 H p,N −1           x Υ x g x p   ,<label>(39)</label></formula><p>which, unlike Eq. <ref type="formula" target="#formula_1">(29)</ref>, is a dense linear system that has no obvious structure to exploit.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.1">The Role of Equivalent Aberrations in the EAE</head><p>As mentioned above, it may be permissible to reduce the number of planes included in the EAE in Eq. <ref type="formula" target="#formula_2">(35)</ref>, which reduces the size of x Υ . In short, under the approximations of geometrical optics, if aberrations are present in one or more planes that are conjugate to plane l, then these conjugate planes may be omitted from the EAE in Eq. <ref type="formula" target="#formula_2">(35)</ref>, effectively replacing the aberrations in these planes with an equivalent aberration in plane l. Demonstrating this requires the concept of equivalent aberrations, which was explained in Sec. 4.1 of <ref type="bibr" target="#b3">[4]</ref>, but it is included here due to its direct relevance.</p><p>Consider the conceptual diagram in <ref type="figure">Fig. 2</ref>, which represents three transmitting surfaces, downstream of some DM given the command vector m, that interact with optical radiation that is propagating from top to the bottom in the picture. The light first interacts with surface S 0 , then propagates to the suface S 1 , interacts with it, and finally propagates to S 2 . Let coordinate vectors in the surfaces S 0 , S 1 and S 2 be given by r 0 , r 1 and r 2 , respectively. The field just before interacting with S 0 is denoted by u 0 (r 0 , m), and similarly for u 1 (r 1 , m) and u 2 (r 2 , m). The relationship between u 0 (r 0 , m) and u 1 (r 1 , m) is defined by the propagation operator Υ 1,0 r 1 , r 0 , with a similar meaning for the operator Υ 2,1 r 2 , r 1 , so that</p><formula xml:id="formula_43">u 1 (r 1 , m) = Υ 1,0 r 1 , r 0 u 0 (r 0 , m)</formula><p>, and (40)</p><formula xml:id="formula_44">u 2 (r 2 , m) = Υ 2,1 r 2 , r 1 u 1 (r 1 , m) . (41)</formula><p>Consider a thought experiment in which the propagators Υ 1,0 and Υ 2,1 include the phase aberrations imparted by the surfaces S 0 and S 1 , denoted by φ 0 (r 0 ) and φ 1 (r 1 ), respectively. Then two propagators can be written as</p><formula xml:id="formula_45">Υ 1,0 r 1 , r 0 =Υ k 1,0 r 1 , r 0 exp[jφ 0 (r 0 )] and (42) Υ 2,1 r 2 , r 1 =Υ k 2,1 r 2 , r 1 exp[jφ 1 (r 1 )] ,<label>(43)</label></formula><p>where Υ k 1,0 and Υ k 2,1 are known propagators. Then, using Eqs. <ref type="formula" target="#formula_1">(42)</ref> and <ref type="formula" target="#formula_2">(43)</ref> inside Eqs. <ref type="formula" target="#formula_3">(40)</ref> and <ref type="formula" target="#formula_0">(41)</ref>,</p><formula xml:id="formula_46">u 2 (r 2 , m) = Υ k 2,1 r 2 , r 1 exp[jφ 1 (r 1 )]Υ k 1,0 r 1 , r 0 exp[jφ 0 (r 0 )]u 0 (r 0 , m) .<label>(44)</label></formula><p>Now, suppose one wishes to treat the cumulative effect of the aberrations on S 0 and S 1 with some equivalent aberration only on S 1 , and let this equivalent aberration be represented by φ ′ 1 . In other words, does there exist some φ ′ 1 that satisfies the condition</p><formula xml:id="formula_47">u 2 (r 2 , m) = Υ k 2,1 r 2 , r 1 exp[jφ 1 (r 1 )]Υ k 1,0 r 1 , r 0 exp[jφ 0 (r 0 )]u 0 (r 0 , m) = Υ k 2,1 r 2 , r 1 exp[jφ ′ 1 (r 1 , m)]Υ k 1,0 r 1 , r 0 u 0 (r 0 , m) ? (45)</formula><p>Clearly, the validity of Eq. <ref type="formula" target="#formula_3">(45)</ref> is independent of the leftmost operator Υ k 2,1 , and after dropping it, φ ′ 1 (r 1 , m) must be given by:</p><formula xml:id="formula_48">exp[jφ ′ 1 (r 1 , m)] = exp[jφ 1 (r 1 )]Υ k 1,0 r 1 , r 0 exp[jφ 0 (r 0 )]u 0 (r 0 , m) Υ k 1,0 r 1 , r 0 u 0 (r 0 , m) .<label>(46)</label></formula><p>Ignoring the possibility of zeros in the denominator, from Eq. (46) one can see that there does indeed exist an equivalent aberration φ ′ 1 on S 1 that replaces both of the original aberrations on S 0 and S 1 , however, the price of this substitution is that the equivalent aberration is depends on the DM configuration (m), even though the original aberrations do not. Thus, the value of φ ′ 1 (r 1 , m) will fluctuate as the DM modulates u 0 (r 0 , m). However, there is (at least) one non-trivial choice for the operator Υ k 1,0 that removes the problem of dependence on the DM configuration. Suppose that surfaces S 1 and S 0 are in conjugate planes under geometrical optics approximations. In that case, the propagator Υ 1,0 is given by Υ k 1,0 r 1 , r 0 = δ(r 0 − βr 1 ), where δ(·) is the Dirac delta, and β is some scalar magnification factor, and Eq. (46) becomes (integrating over r 0 ):</p><formula xml:id="formula_49">exp[jφ ′ 1 (r 1 )] = exp j[φ 1 (r 1 ) + φ 0 (βr 1 )] ,<label>(47)</label></formula><p>where the second argument of φ ′ 1 (m) has been dropped since the m-dependent factors cancel, as it depends only the original aberrations φ 0 and φ 1 . Thus, when two planes are conjugate under geometrical optics, their aberrations can be replaced by an equivalent aberration that is independent of the incident field. On the other hand, Eq. (47) says that, under geometrical optics approximations, aberrations in certain optical systems with many surfaces possibly can be represented by equivalent aberrations in only several planes, if the aberrations in many planes are all conjugate to only a few planes. Solving for the equivalent aberrations under this approximation is a form of tomography and in the future it may be called "aberration tomography." One should also be careful before assuming two planes are conjugate in a given optical system, especially as certain optics components such as DMs and coronagraphs can easily break conjugacy relationships.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">RELATIONSHIP TO PREVIOUS FPWS FORMULATIONS</head><p>The developments presented here allow one to understand the initial assumption in the original paper in 1995 by Malbet et al. <ref type="bibr" target="#b0">[1]</ref> that has since been repeated in all subsequent work <ref type="bibr">[e.g., 2, 14, 15]</ref>. Under the assumption that Υ u c,d = 0, i.e., that there is no unknown aberration downstream of the DM, the 2nd and 3rd terms of Eq. (12) are zero. Then, using Eqs. <ref type="formula" target="#formula_6">(8)</ref>, <ref type="formula" target="#formula_7">(9)</ref> and <ref type="formula" target="#formula_0">(12)</ref> one obtains:</p><formula xml:id="formula_50">u c (r c , m) " = " Υ k c,d r c , r d exp[jζ(r d , m)] Υ k d,0 r d , r 0 u ⋆0 (r 0 ) + g u (r d ) ,<label>(48)</label></formula><p>which is the equivalent of, e.g., Eq. 1 of <ref type="bibr" target="#b0">[1]</ref>, Eq. 2 of <ref type="bibr" target="#b14">[14]</ref> or Eq. 1 of <ref type="bibr" target="#b1">[2]</ref>. In Eq. (48), the equals sign is shown in quotation marks to emphasize the invalidity of the Υ u c,d = 0 assumption. Interestingly, even if an aberration in the post-DM optics is in a plane that is conjugate to the DM-plane or some plane in the pre-DM optics, it cannot be taken into account with the effective pre-DM aberration, g u (r d ) in Eq. (11). Thus, even in this favorable situation, Eq. <ref type="formula" target="#formula_3">(48)</ref> is not valid. To demonstrate this fact, as a thought experiment, consider the following form for Υ u c,d :</p><formula xml:id="formula_51">Υ u c,d r c , r d = Υ k c,q r c , r q exp[jϑ q (r q )]δ r d − r q ,<label>(49)</label></formula><p>where ϑ q (r q ) is the sole unknown aberration downstream of the DM in some plane denoted by index q, and Υ k c,q is a known propagator. The optical conjugacy between the d and q planes is expressed by using the Dirac delta function as the propagation operator between these two planes. Then, using Eq. (49), the 2nd term in Eq. <ref type="formula" target="#formula_0">(12)</ref> becomes (the 3rd term is product of two presumably small unknowns):</p><formula xml:id="formula_52">Υ k c,q r c , r q exp j[ϑ q (r q ) + ζ(r q , m)]Υ k d,0 r q , r 0 u ⋆0 (r 0 ) ,<label>(50)</label></formula><p>which cannot be included in the g u (r d ) function defined in Eq. (11) since the leftmost operator, Υ k c,q , integrates over the q-plane, not the d-plane as does Eq. (48).</p><p>The reader may wonder how various groups have successfully created dark regions when starting with the incorrect Eq. (48). As explained, e.g., in <ref type="bibr" target="#b1">[2]</ref>, these EFC methods do not attempt to estimate the unknown aberration (essentially g u in those formulations), rather they directly estimate the field in the image plane using DM "probes," under the assumption that the probe deformations are small enough that the effect of the unknown aberration on the changes in the field induced by the DM steps are negligible (which is certainly true when steps are small enough). Thus, as the DM shape converges to the optimal configuration, the field in the image plane is constantly reassessed. One of major difficulties with this paradigm is that as the DM converges to the optimal configuration, the dark hole becomes very dark indeed, making photon counting noise (shot noise) a limiting factor in the accuracy of the technique. In contrast, the methods presented here make no stipulation that the DM step size is small, which allows the regression to be informed by DM shapes that are relatively far from a dark hole configuration. Then, after the regression procedure has estimated the aberrations, the DM can be commanded to take its optimal configuration. Another difficulty with current methodology is that after determining the field in the image plane, the DM is commanded to take the configuration that algorithm, be it stroke-minimization, electric field conjugation, or something else, calculates to be optimal for creating the dark hole. However, there is no guarantee that this DM step will be small enough so that the effect of unknown aberration will be negligible. In contrast, the method presented would allow these algorithms to include the effect of the aberrations whatever the step-size, making solution more accurate. This could improve convergence to the dark hole and possibly make it even darker.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">CONCLUSIONS</head><p>The FPWS methods presented here are potentially exciting because they mitigate two important difficulties with current methodologies, namely the shot-noise limitations in the dark hole (because the regression can be informed by DM configurations that are relatively far from dark solution), and the accuracy of the optimum that is found by the minimization algorithm (because the cost functions will be accurate with larger step-sizes). These methods also have the capability of being used iteratively to help mitigate the effects of the linearization in the regression. For example, once the aberrations have been estimated, they can be included in the known propagators, so that the new unknown propagators, determined by another regression, treat only smaller aberrations.</p><p>This article has completely neglected polarization effects, which are likely to be important, since partial linear and circular polarization is caused by reflection off of mirrors. This is critical because orthogonal polarizations do not interfere, so that the diffraction pattern from beam with spatially variable polarization will be different from that derived in the scalar approximation, in which of the light interferes. The effects of polarization in telescopes have been described by <ref type="bibr" target="#b16">[16]</ref>, who shows that a telescope is better described by a point-spread-matrix (which operates on on the Stokes vector) than a scalar PSF. The regression methods described here can be made fully polarimetric using methods similar to those in <ref type="bibr" target="#b3">[4]</ref> and in <ref type="bibr" target="#b13">[13]</ref>, which presented the vector generalization of the empirical Green's function called the empirical Green's tensor. The author plans to present the polarimetric versions of these equations in a followup article. Another limitation of the proposed methods is the accuracy and reproducibility of the DM shape ζ(m), which leads into DM calibration issues that are beyond the scope of this discussion. Whatever the achievable accuracy of the DM, in the end, the true value of ζ(m) is a stochastic quantity, and it would be necessary to characterize some of its statistical properties in order to assess the likely consequences of DM figure error. Demonstrating the suitability of the methods presented here for a space mission, first in simulation and then in the laboratory, is left to future efforts.</p></div>		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Acknowledgments</head><p>The author thanks Jim Breckinridge for providing comments and engaging in helpful discussions. This work has been supported by NSF Award #1600138 to the University of Michigan.</p></div>
+			</div>
+
+			<div type="annex">
+			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">High-Dynamic-Range Imaging Using a Deformable Mirror for Space Coronography</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Malbet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Shao</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">107</biblScope>
+			<date type="published" when="1995-04" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">Methods and limitations of focal plane sensing, estimation, and control in high-contrast imaging</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Groff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">J</forename><surname>Eldorado Riggs</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Kern</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jeremy</forename><surname>Kasdin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Astronomical Telescopes, Instruments, and Systems</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page">11009</biblScope>
+			<date type="published" when="2016-01" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">The WFIRST/AFTA coronagraph instrument optical design</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Tang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Rud</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Demers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Goullioud</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Krist</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Shi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Zhao</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proc. SPIE 9605</title>
+		<meeting>SPIE 9605</meeting>
+		<imprint>
+			<date type="published" when="2015-09" />
+			<biblScope unit="page">960504</biblScope>
+		</imprint>
+	</monogr>
+	<note>Techniques and Instrumentation for Detection of Exoplanets VII</note>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Statistical framework for the utilization of simultaneous pupil plane and focal plane telemetry for exoplanet imaging. I. Accounting for aberrations in multiple planes</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Frazin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the Optical Society of America A</title>
+		<imprint>
+			<biblScope unit="volume">33</biblScope>
+			<biblScope unit="page">712</biblScope>
+			<date type="published" when="2016-04" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Born</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Wolf</surname></persName>
+		</author>
+		<title level="m">Principles of Optics: Electromagnetic Theory of Propagation, Interference and Diffraction of Light</title>
+		<imprint>
+			<date type="published" when="1999" />
+		</imprint>
+		<respStmt>
+			<orgName>The Press Syndicate of the University of Cambridge</orgName>
+		</respStmt>
+	</monogr>
+	<note>seventh expanded edition</note>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Goodman</surname></persName>
+		</author>
+		<title level="m">Statistical Optics</title>
+		<imprint>
+			<publisher>John Wiley and Sons, Inc</publisher>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+	<note>2nd Edition</note>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Kalman filtering techniques for focal plane electric field estimation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Groff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J</forename><surname>Kasdin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Opt. Soc. Am. A</title>
+		<imprint>
+			<biblScope unit="volume">30</biblScope>
+			<biblScope unit="page" from="128" to="139" />
+			<date type="published" when="2013-01" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">Utilization of the Wavefront Sensor and Short-exposure Images for Simultaneous Estimation of Quasi-static Aberration and Exoplanet Intensity</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Frazin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">767</biblScope>
+			<date type="published" when="2013-04" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">Isolated nanoinjection photo detectors for high-speed and high-sensitivity single-photon detection</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Fathipour</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><forename type="middle">G</forename><surname>Memis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Jang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Khalid</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">L</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Hassaninia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Gelfand</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Mohseni</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">[Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series], Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</title>
+		<imprint>
+			<date type="published" when="2013-09" />
+			<biblScope unit="volume">8868</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<monogr>
+		<title level="m" type="main">Figure 1. Schematic diagram showing the initial field u0 impinging on the telescope entrance pupil, passing through the pre-DM optical train, reflecting off the deformable mirror (DM), passing through the post-DM optical train and, finally, forming an image in the science camera (SC). The arrows indication the direction of light propagation</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">Evaluation and optimization of NIR HgCdTe avalanche photodiode arrays for adaptive optics and interferometry</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Finger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Baker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Alvarez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Ives</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Mehrgan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Meyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Stegmeier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Thorne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">J</forename><surname>Weller</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">[Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series], Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</title>
+		<imprint>
+			<date type="published" when="2012-07" />
+			<biblScope unit="volume">8453</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">SAPHIRA detector for infrared wavefront sensing</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Finger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Baker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Alvarez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Ives</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Mehrgan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Meyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Stegmeier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">J</forename><surname>Weller</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</title>
+		<imprint>
+			<date type="published" when="2014-08" />
+			<biblScope unit="volume">9148</biblScope>
+		</imprint>
+	</monogr>
+	<note>Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</note>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">MKIDs for TMT</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Mazin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Thirty Meter Telescope Science Forum</title>
+		<imprint>
+			<biblScope unit="page" from="16" to="19" />
+			<date type="published" when="2014-07" />
+		</imprint>
+	</monogr>
+	<note>in [TMT in the Astronomical Landscape of the 2020s. in Tucson Arizona. Online at: http://conference.ipac.caltech.edu/tmtsf2014/</note>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">Empirical Green&apos;s Function Approach for Utilizing Millisecond Focal and Pupil Plane Telemetry in Exoplanet Imaging</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Frazin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">[Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series], Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</title>
+		<imprint>
+			<date type="published" when="2016" />
+			<biblScope unit="page">9909</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">High-Contrast Imaging from Space: Speckle Nulling in a Low-Aberration Regime</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">J</forename><surname>Bordé</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">A</forename><surname>Traub</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">638</biblScope>
+			<biblScope unit="page" from="488" to="498" />
+			<date type="published" when="2006-02" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">Speckle Control with a Remapped-Pupil PIAA Coronagraph</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Martinache</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Guyon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Clergeon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Blain</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">124</biblScope>
+			<biblScope unit="page" from="1288" to="1294" />
+			<date type="published" when="2012-12" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Polarization Aberrations in Astronomical Telescopes: The Point Spread Function</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Breckinridge</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">S T</forename><surname>Lam</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Chipman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">127</biblScope>
+			<biblScope unit="page" from="445" to="468" />
+			<date type="published" when="2015-05" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

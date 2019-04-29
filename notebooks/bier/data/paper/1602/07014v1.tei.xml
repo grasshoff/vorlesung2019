@@ -1,0 +1,1320 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-04T16:25+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">EFFICIENT GEOMETRIC PROBABILITIES OF MULTI-TRANSITING EXOPLANETARY SYSTEMS FROM CORBITS</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2018-10-08">Draft version October 8, 2018 Draft version October 8, 2018</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Joshua</forename><surname>Brakensiek</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Darin</forename><surname>Ragozzine</surname></persName>
+						</author>
+						<title level="a" type="main">EFFICIENT GEOMETRIC PROBABILITIES OF MULTI-TRANSITING EXOPLANETARY SYSTEMS FROM CORBITS</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2018-10-08">Draft version October 8, 2018 Draft version October 8, 2018</date>
+						</imprint>
+					</monogr>
+					<note>Preprint typeset using L A T E X style emulateapj v. 01/23/15</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>celestial mechanics</term>
+					<term>methods: analytical</term>
+					<term>methods: numerical</term>
+					<term>methods: statistical</term>
+					<term>occul- tations</term>
+					<term>planets and satellites: detection</term>
+					<term>planetary systems</term>
+				</keywords>
+			</textClass>
+			<abstract>
+				<p>NASA&apos;s Kepler Space Telescope has successfully discovered thousands of exoplanet candidates using the transit method, including hundreds of stars with multiple transiting planets. In order to estimate the frequency of these valuable systems, it is essential to account for the unique geometric probabilities of detecting multiple transiting extrasolar planets around the same parent star. In order to improve on previous studies that used numerical methods, we have constructed an efficient, semi-analytical algorithm called CORBITS which, given a collection of conjectured exoplanets orbiting a star, computes the probability that any particular group of exoplanets can be observed to transit. The algorithm applies theorems of elementary differential geometry to compute the areas bounded by circular curves on the surface of a sphere (see Ragozzine &amp; Holman 2010). The implemented algorithm is more accurate and orders of magnitude faster than previous algorithms, based on comparisons with Monte Carlo simulations. We use CORBITS to show that the present solar system would only show a maximum of 3 transiting planets, but that this varies over time due to dynamical evolution. We also used CORBITS to geometrically debias the period ratio and mutual Hill sphere distributions of Kepler &apos;s multi-transiting planet candidates, which results in shifting these distributions towards slightly larger values. In an Appendix, we present additional semi-analytical methods for determining the frequency of exoplanet mutual events, i.e., the geometric probability that two planets will transit each other (Planet-Planet Occultation, relevant to transiting circumbinary planets) and the probability that this transit occurs simultaneously as they transit their star. The CORBITS algorithms and several worked examples are publicly available at https://github.com/jbrakensiek/CORBITS.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">INTRODUCTION</head><p>In the last couple of decades, astronomers have discovered thousands of exoplanets outside of our Solar System through a variety of techniques. The transit method discovers exoplanets by detecting periodic dimming in the amount of light coming from a star caused by the planet blocking a portion of the star. NASA's Kepler Space Telescope (hereafter "Kepler") has used this method to detect thousands of planet candidates -a huge step forward -due to its revolutionary dataset that is far more extensive in duration (∼4 years), duty cycle (∼90%), and precision than any previous search (e.g., <ref type="bibr" target="#b6">Burke et al. 2015</ref>). Due to its ability to detect small planets, Kepler has uncovered a rich vein of Systems with Tightly-packed Inner Planets (STIPs) which often exhibit multiple transiting planets. Observations of systems with multiple transiting planets are extremely valuable for understanding the formation and evolution of this new population of STIPs as well as other planetary systems like our own <ref type="bibr">(Ragozzine &amp; Holman 2010, hereafter RH10)</ref>. One example of the value of these "multi-transiting systems" is that they are far more robust to false positives, which has allowed for a joint validation of 851 planets in 340 sys-tems, nearly doubling the number of known exoplanets ( <ref type="bibr" target="#b45">Rowe et al. 2014;</ref><ref type="bibr" target="#b27">Lissauer et al. 2014)</ref>.</p><p>Despite its success, one clear drawback of the transit method is that the planetary orbit must line up with the star from our perspective, otherwise the existence of the planet is near-impossible to infer. Detecting all of the planets in multi-planet systems then becomes very unlikely due to natural deviations from coplanarity, even when mutual inclinations are 1 • . For example, we show below that if an exact replica of the present Solar System were being observed from any direction, at most 3 of the 8 planets would be simultaneously aligned sufficiently well to transit ( § 4.1). Thus, multi-planet systems extend and complicate the known geometric bias inherent to the transit method.</p><p>We have developed a highly-efficient semi-analytical algorithm for the calculation of multi-transiting geometry which we call CORBITS (Computed Occurrence of Revolving Bodies for the Investigation of Transiting Systems). CORBITS is a practical and critical tool for calculating the geometric bias of multi-transiting systems which we make freely available to the community. After motivating the need for understanding multi-transiting geometry to determine the frequency of planetary systems ( §2, we describe the details of the CORBITS algorithm ( §3). We demonstrate the value of CORBITS by applying it to example questions related to the multitransiting probability of the solar system and known Kepler multi-transiting systems ( §4). After some concluding remarks ( §5), we present in an appendix some in-formation on the geometry of exoplanet mutual events, some of which is relevant to transiting circumbinary planets (Appendix A).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">MOTIVATION</head><p>When planets are considered independently, the geometric detection bias can be computed on a planet-byplanet basis. However, for any exoplanetary properties that depend on correlations between planets, the full multi-transiting geometry must be understood. Extracting information-rich insights from multi-transiting systems therefore requires an efficient method for determining the geometric bias of multi-planet systems (RH10).</p><p>To motivate the importance of understanding multitransiting geometry, we emphasize that a careful and critical distinction must be made in distinguishing the average Number of Planets Per Star (NPPS) and the Fraction of Stars with Planets (FSWP), following the notation of Youdin (2011).</p><p>Most frequency/occurrence studies are actually calculating the average Number of Planets Per Star (NPPS). When occurrence is calculated planet-by-planet without accounting for the complex correlations in detecting planets in multiple systems, the result is the average NPPS. Understanding NPPS gives us huge insight into planet formation (e.g. period/radius distribution) and other important questions (e.g. the frequency of potentially habitable planets).</p><p>Determining the Fraction of Stars With Planetary systems (FSWP) requires a detailed analysis that selfconsistently includes deriving the multiplicity and inclination distributions, as discussed below. In this case, the frequency/occurrence is calculated system-bysystem. FSWP is critical for scientific (What is the efficiency of planet formation?) and observational (How should I design my exoplanet survey mission?) questions.</p><p>The true multiplicity (the number of planets per star in the actual underlying population) is, by definition, the ratio of NPPS/FSWP. NPPS can be accurately calculated in the present of multi-transiting systems only insofar as all planets in a system are included (in both the search and the subsequent analysis).</p><p>Analyses that debias on a planet-by-planet basis cannot directly estimate FSWP or the average multiplicity even though they can determine NPPS. Using only the most probable planet or the most detectable planet does not accurately handle correlations between transiting probabilities in real exoplanetary multiple systems. The approximation of calculating FSWP by using only the most probable or detectable planet is only correct if all exoplanetary systems are exactly coplanar, which is not supported by the Kepler data. Because the transit method is sensitive to inclinations at the 1 degree level, even these small inclinations cause significant errors in the estimation of FSWP that uses only the most probable/detectable planet.</p><p>The approximation of using the more probable planet to estimate FSWP infers the number of "missed planets" due to geometric debiasing and assigns these to stars that have no planets, but in the non-coplanar case, some of these "missed planets" could be in systems with other known planets. Both numerical and analytical models confirm the result that planet-by-planet debiasing techniques will underestimate FSWP by an unknown amount, though generally less than a factor of 2.</p><p>Keplers multis encode information on the true multiplicity and inclination distributions (e.g., <ref type="bibr" target="#b26">Lissauer et al. 2011;</ref><ref type="bibr" target="#b50">Tremaine &amp; Dong 2012;</ref><ref type="bibr" target="#b15">Figueira et al. 2012;</ref><ref type="bibr" target="#b14">Fang &amp; Margot 2012;</ref><ref type="bibr" target="#b24">Johansen et al. 2012;</ref><ref type="bibr" target="#b51">Weissbein et al. 2012;</ref><ref type="bibr" target="#b2">Ballard &amp; Johnson 2014)</ref>. CORBITS allows for accurate calculations of the multi-transiting geometry, thereby enabling methods that can solve for the average multiplicity, the inclination distribution, NPPS, FSWP, and other interesting and important information pertinent to the architectures of planetary systems.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">CORBITS ALGORITHM FOR MULTI-TRANSITING</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>GEOMETRY</head><p>Our goal is to understand how the geometric probability of transiting in a system with multiple transiting planets affects our interpretation of multi-transiting systems. Although there are many aspects to this interpretation, our focus here is on the purely geometric component of calculating the bias towards detecting or not detecting planets in multiple systems. With this in mind, we convert an astronomical question into a geometry problem.</p><p>Formally, the problem at hand is this: given a (conjectured) exoplanetary system with all the orbital properties of N planets known, what is the probability that a random observer would be able to observe the transit of a particular m-planet subset? This problem can be divided into two parts.</p><p>1. For a system of planets on fixed orbits that is observed perfectly for an infinite time, what is the probability that a specific subset of m out of N planets transit and the other N − m planets do not transit?</p><p>2. How is this idealized case affected under actual observational limitations and for realistic planetary systems?</p><p>Our algorithm addresses the first question, an idealized geometric problem that is very relevant to Kepler multi-transiting systems. This calculation is critical, but the ideal case may not constitute a complete description of the probability of observing real planet transits, primarily for three reasons: duty cycle, signal-to-noise ratio (SNR), and non-Keplerian orbits. These caveats are described in greater detail in §3.7 below.</p><p>We begin with a focus on the ideal geometric question: given N planets with known (fixed) orbital elements, what is the probability that a specific subset of these planets have orbits that cross the parent star from the viewpoint of an isotropically-random observer? For decades, the solution of R * a has been known for the probability of detecting transits of one circular planet (e.g., <ref type="bibr" target="#b4">Borucki &amp; Summers 1984)</ref>. The eccentric one-planet case modifies this solution to R * r where r = a(1−e 2 ) 1+e cos f (e.g., <ref type="bibr" target="#b34">Murray &amp; Correia 2010</ref>) is the actual star-planet distance along the line-of-sight. We use the standard variables for orbital elements throughout: a is the planetary semimajor axis, e is the eccentricity, f is the true anomaly, ω is the argument of periapse, i is the inclination, and Ω is the longitude of the ascending node. We follow the geometric convention of <ref type="bibr">RH10 and Fabrycky (2010)</ref>, but since we are considering an isotropic observer-averaged probability, the exact coordinate system does not matter.</p><p>Before the prevalence of multi-transiting systems, a few quick-but-inaccurate methods were used to determine the probability of the N ≥ 2 case. To our knowledge, motivated by the discovery of the first multi-transiting systems <ref type="bibr" target="#b49">(Steffen et al. 2010</ref>), the first accurate assessment was given by RH10. RH10 relied primarily on a numerical Monte Carlo method, but included an analytic estimate for the two-planet circular case. <ref type="bibr" target="#b50">Tremaine &amp; Dong (2012)</ref> presented the first semi-analytical solution using, effectively, a spherical harmonic expansion. Their method focused on multiple circular planets with inclinations drawn from a single distribution, which is reasonable for some population studies.</p><p>We present in this work an efficient, accurate, and precise analytical solution to this geometric problem.</p><p>For simplicity, we will refer to the algorithm as CORBITS, short for the Computed Occurrence of Revolving Bodies for the Investigation of Transiting Systems.</p><p>The C++ code for the implementation of CORBITS is publicly available at https://github.com/jbrakensiek/CORBITS to encourage the accurate study of multi-transiting systems by the community. Currently, CORBITS consists of a command-line utility able to be integrated with existing Unix pipelines and a C++ API so that more advanced features of CORBITS can be utilized. We have striven to make this code easy for the community to use. The implementations for most of the examples in Section 4 are provided on GitHub.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Terminology and Methods</head><p>Our strategy follows <ref type="bibr" target="#b4">Borucki &amp; Summers (1984)</ref> and RH10 by considering the entire "celestial sphere" of observers around a planetary system. As an exoplanet moves around its star, it casts a shadow on different locations on the celestial sphere as shown in <ref type="figure">Figure 1</ref>. The union of all these locations is a band centered about a great circle of the sphere. We shall call this band a transit region. The probability of observing an exoplanet transit is now the surface area of the transit region divided by surface area of the sphere.</p><p>When the system has multiple planets, these regions become much more complex (RH10). <ref type="figure">Figure 1</ref> shows an example in the three-planet case. (Note that this hypothetical planetary system is shown for illustrative purposes only: the small, nearly-equal, highly-inclined orbits would be completely unstable for real planets.) The calculation of multi-transiting geometry comes down to the determination of the surface area of any arbitrary intersection of these transit regions.</p><p>For simplicity, we begin by describing the CORBITS algorithm in the case of circular orbits( § 3.4). In this case, the transit regions on the celestial sphere have a simpler structure which provides intuition for handling the general elliptical orbits ( § 3.5).</p><p>The transit regions for circular orbits are bounded by two circles, embedded on parallel planes, called small circles. If the circular orbits' intersection with the celestial sphere were the "equator", these small circles would be latitude lines at North and South R * a declination/latitude. Exploiting the properties of small circles makes computations simpler in this case, but it turns out that the general elliptical orbit case can make use of a <ref type="figure">Figure 1</ref>. Image of a hypothetical three planet system and its corresponding celestial sphere reprojected onto an ellipse. The blue region is the region of the celestial sphere where distant observers could see only the blue planet transit and similarly for the red and green planets. All the regions are colored based on which planets would appear transiting to distant observers, e.g., the yellow region can see the red and green planets transit as yellow = red + green. The black region can observe no planets while the white region can observe all of the planets. All of the regions are bounded by "small circles" equivalent to latitude lines. The orange and purple arcs show the arc lengths and the turning angles which must be computed in order to calculate the area of the yellow region using the Gauss-Bonnet Theorem as described in the text. The orange arcs are positive while the purple ones are negative; the signs define which side of the boundary contains the transit.</p><p>very similar algorithm.</p><p>The union of regions whose area needs to be computed is bounded by these small circles and their intersections. Practically all techniques of spherical geometry and trigonometry work with great circles only and are not applicable to this problem. For example, these intersection regions are not spherical polygons since the bounding arcs are from small circles. In the scarce references dealing with finding areas of polygons on the sphere bounded by small circles, these regions are sometimes called "semi-spherical polygons" and we will follow this terminology.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">The Gauss-Bonnet Theorem and Geodesic</head><p>Curvature In order to facilitate the computation of the area of the transit region, we simplify the problem by making use of a theorem of differential geometry, the Gauss-Bonnet Theorem, which converts the two-dimensional area to a one-dimensional integral over the boundary of the region. In the context of the unit sphere, let M be a region on the surface of a unit sphere bounded by circular arcs and let ∂M be the boundary of M . Then, the surface area of</p><formula xml:id="formula_0">M is 4π − ∂M k g ,</formula><p>where k g is the geodesic curvature of the boundary of ∂M (Shifrin 2015). <ref type="bibr">5</ref> The geodesic curvature is a measure of the curvature of the boundary relative to the curvature of the sphere. Because the arcs on the boundary of the regions we are considering are small circles, there is a simple formula for the geodesic curvature in this case <ref type="bibr" target="#b48">(Shifrin 2015</ref>). In the case of a circular orbit, for example,</p><formula xml:id="formula_1">k g = R * a 2 − R 2 * .</formula><p>To compute the geodesic curvature of the boundary of a semi-spherical polygon (like our transit regions), it is sufficient to compute the arc lengths of each of the "edges" and then weight them by each one's geodesic curvature. To correct for the discontinuities at the intersection points of the arcs, one must add the angles between tangent vectors at each intersection point, called turning angles <ref type="bibr" target="#b48">(Shifrin 2015)</ref>.</p><p>Another detail to note is that each component of the geodesic curvature, including the turning angles, can either be positive or negative. The sign of each arc specifies which side of the arc contains the desired transit region and the sign of the turning angles is the product of the signs of the two adjacent arcs, as illustrated in <ref type="figure">Figure 1</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.">Illustration: Two-planet case</head><p>For the sake of exposition of the application of the Gauss-Bonnet theorem to this problem, we start by looking more closely at the two-planet circular-orbit case. Up to symmetry, every such system can be defined by four parameters: the semi-major axes a 1 and a 2 of the two planets, the radius R * of the star, and the angle φ of true mutual inclination between them (RH10).</p><p>In fact, we can reduce these four parameters to only three. If we assume that the radius of our celestial sphere is 1, then distance between the two parallel planes defining each planet's transiting region is 2R * /a 1 and 2R * /a 2 . Thus, we define the half-widths h 1 = R * /a 1 and h 2 = R * /a 2 ; these are equivalent to the transit probabilities of each individual planet. Thus, h 1 , h 2 , and the mutual inclination φ are sufficient to calculate the probability of observing both planets in transit, the probability of observing only planet 1 or 2, or the probability of detecting no transits.</p><p>Throughout our discussion, we use h j ≡ R * /a j as the half-thickness of the transit region of planet j. This corresponds specifically to the probability of transit with impact parameter less than or equal to exactly 1, i.e., the probability that the center of the planet crosses over any portion of the star. A (low SNR) grazing transit is possible when the impact parameter is less than 1 + Rp R * , corresponding to a slightly larger region on the sky with half-thickness h j = (R * + R p )/a. Similarly, requiring a non-grazing transit where the entire planet passes over the star corresponds to using a half-thickness of h j = (R * − R p )/a. In practice, these nuances on the transit probability can be controlled by the CORBITS code which allows each planet to have its own limiting impact parameter, allowing for any of these three cases or a user-defined case. With this in mind, we will not distinguish between these cases in our further discussion.</p><p>In the two planet case, there are distinct topologies of the transit regions based on the value of φ (RH10). These three cases are, in order of increasing φ: Case 1) one transit region is completely contained within the other transit region; Case 2) neither transit region is completely contained within the other, but the intersection of the two regions is still a complete band; and Case 3) the intersection of the two regions is two disjoint semi-spherical quadrilaterals (which corresponds to looking along the lines of nodes of the planets). There is always a non-zero probability of observing both planets in transit. These three cases can be differentiated analytically using succinct formulas. Consider the following two values:</p><formula xml:id="formula_2">µ 1 = h 2 1 + h 2 2 − 2h 1 h 2 cos φ sin 2 φ (1) µ 2 = h 2 1 + h 2 2 + 2h 1 h 2 cos φ sin 2 φ<label>(2)</label></formula><p>These values define the boundaries between the three cases: Case 1 occurs if and only if µ 1 ≥ 1 and µ 2 &gt; 1; Case 2 occurs if and only if µ 1 &lt; 1 and µ 2 &gt; 1; and Case 3 occurs if and only if µ 1 &lt; 1 and µ 2 ≤ 1. RH10 gave an analytical approximation for the transit probabilities in these cases. In Case 1, the probability is exactly</p><formula xml:id="formula_3">min R * a 1 , R * a 2 = min(h 1 , h 2 ).<label>(3)</label></formula><p>In Cases 2 and 3, although they did not distinguish between these cases, they proposed the estimate</p><formula xml:id="formula_4">R 2 * a 1 a 2 sin(φ) = h 1 h 2 sin(φ) .<label>(4)</label></formula><p>With CORBITS, described fully below, we compared these analytical approximations to the exact probabilities of known Kepler Objects of Interest. As discussed in §4.6, the RH10 results are valid to first order, though for Case 2 are often off by a factor of 2 or more. We also describe in §4.6 the fraction of KOIs that fall into the three different cases: for the real Kepler data and a reasonable inclination distribution, about half of the planets fall within Case 2 or 3 and therefore need a detailed geometric interpretation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4.">Implementation of N circular planets</head><p>An exact analytic solution to even the 2-planet case is difficult to present in closed form and the extension to N circular orbits is much trickier. We now revert to a numerical algorithm to describe the exact (to near machine precision) solution for the case of N circular orbits. This requires calculating the area on the celestial sphere from which observers would see the desired configuration (certain planets transiting and all the rest of the planets not transiting), which we call the "desired region". Each desired region is one of 2 N probabilities (corresponding to including or excluding each individual planet transit region) which sum to 1. Unlike in the 2-planet case, it is possible that the desired region in the N ≥ 3 planet case does not exist, in which case the desired multi-transiting probability is 0.</p><p>First, the orbits are input into CORBITS. The user supplies the effective radius R * of the star and the orbital elements a, e, ω, Ω, and i. To supply an limiting impact parameter b, the user may input bR * as the effective radius of the star on a planet-by-planet basis.</p><p>Second, the orbits are converted into regions on the celestial sphere. While considering circular orbits, each transit region t j is described by two parameters: the halfthickness h j of the transit region (half the distance between the two circles) and the pole p j perpendicular to both bounding planes of the transit region. These parameters are computed directly from the orbital elements.</p><p>Third, the intersection points of the boundaries of these transit regions are computed. Because the boundary of each transit region is defined by the intersection of the celestial sphere with two unique planes, the intersection of the two boundaries is the union of four potential plane-plane-celestial sphere intersections. With this knowledge, these points can be found with a computational geometry procedure which determines the intersection line of each pair of planes, and the intersection of each of those lines with the celestial sphere.</p><p>Fourth, CORBITS identifies the intersection points which are on the boundary of the desired region(s). In the N-planet case, it is often possible for a specific subset of planets to have no common transit regions. In this case, we output a probability of zero and the algorithm terminates. In the non-trivial case, we are left with only the points on the boundary of the intersection of all of the possible desired regions -there can be one or multiple distinct semi-spherical polygons depending on the geometry.</p><p>Fifth, CORBITS determines which arcs are on the boundary of the transit region. We can then compute the geodesic curvature of all the arc lengths using the formula:</p><formula xml:id="formula_5">j 1 − r 2 j r j θ j ,</formula><p>where r j is the radius of the small circle, and θ j is the sum of the angles subtended by the arcs on the small circle. Since the radius of each small circle is</p><formula xml:id="formula_6">r j = 1 − h 2 j</formula><p>and the number degrees of each arc can be calculated by a trigonometric routine, the geodesic curvature is easily calculated. Sixth, the turning angles are computed. Since each intersection point is defined by the intersection of two planes, we can construct at each intersection point two vectors tangent to the celestial sphere, each one parallel to one of the intersecting planes. The angle between these two vectors is the turning angle. Due to the convention of the Gauss-Bonnet theorem, we choose the angle modulo 2π which lies in the range [−π, π] (Shifrin 2015).</p><p>Seventh, the total geodesic curvature is calculated. This is a simple sum after accounting for the sign of each arc and angle.</p><p>Eighth, the area of the desired joint transit region is outputted. With the geodesic curvature computed, by the Gauss-Bonnet theorem the area of the region M is</p><formula xml:id="formula_7">4π − ∂M k g .</formula><p>We then divide our area for M by 4π, the area of the unit sphere, to get the final probability.</p><p>With the help of analytic geometry, CORBITS calculates the area of arbitrarily complex semi-spherical polygons on the celestial sphere which correspond to the probability that a particular subset of m planets transit, while the other N − m do not.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.5.">Extension to Elliptical Orbits</head><p>The extension of this pipeline to elliptical orbits requires modifications to the above algorithm. In the case of an elliptical orbit, the boundary of its transit region is non-circular, but at all reasonable eccentricities the boundary is well-approximated by non-parallel small circles (see <ref type="figure" target="#fig_1">Figure 3</ref> of Winn 2010). Such small circles can be chosen so that they are tangent to the true boundary of the transit region while the surface area of the celestial sphere between the two small circles is equal the surface area of the true transit region. Thus, this approximation is perfect in the one-planet case, and has high accuracy in multi-planet cases.</p><p>The probability of transit of a single elliptical planet is</p><formula xml:id="formula_8">R a 1 1 − e 2 i .</formula><p>Thus, in order to preserve the exact probability in the one-planet case, we let</p><formula xml:id="formula_9">h i = R a 1 1 − e 2 i .</formula><p>Let v i be the unit vector normal to the orbital plane and w i be the unit vector in the direction of periapse. Let</p><formula xml:id="formula_10">ψ = π − sin −1 (h i * (1 − e)) − cos −1 (h i ).</formula><p>The vectors orthogonal to the two planes bounding the approximated transit region are then</p><formula xml:id="formula_11">p i1 = v i sin(ψ) + w i cos(ψ),<label>(5)</label></formula><formula xml:id="formula_12">p i2 = −v i sin(ψ) + w i cos(ψ).<label>(6)</label></formula><p>The planes orthogonal to p i1 and p i2 at distances of h i from the center of the celestial sphere bound a region of the same area as the true transit region and are tangent to the boundary of the transit region. Note in particular that when e = 0, ψ = π/2; therefore</p><formula xml:id="formula_13">p i1 = −p i2 = v i .</formula><p>The modifications to the pipeline to account for elliptical planets are as follows. In the first step, the user supplies the parameters a, e, i, Ω, ω, and bR * for each planet. In the second step, we construct the approximated transit region using the process described to determine v and w. As the third through eighth steps of the pipeline deal the with abstraction of regions on the celestial sphere which are bounded by small circles, a similar implementation is employed. Since this method supersedes the method for circular orbits, only the elliptical version is available in the public version of COR-BITS. For exoplanetary systems, the errors due to our approximations for eccentric orbits are small enough to be practically meaningless, as discussed below.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.6.">Comparison to Monte Carlo</head><p>We have tested CORBITS by comparing the solutions to a Monte Carlo estimate of multi-transiting probability as in RH10. In so doing, we reproduced the results of RH10 and actually discovered a minor error in the legend of their <ref type="figure" target="#fig_0">Figure 2</ref>.</p><p>As further discussed in §4.5, we also reproduced <ref type="figure" target="#fig_3">Figure  4</ref> from <ref type="bibr" target="#b26">Lissauer et al. (2011)</ref>, which was created using a separate Monte Carlo code.</p><p>Due to its analytical nature, CORBITS is very fast, requiring much less than a CPU-millisecond even for complicated planetary systems. It is also accurate to near double floating-point machine-precision; in practical use, errors in stellar sizes or planetary orbital parameters are much more important than errors induced by our calculations. Accurate probabilities can be important for correctly understanding unusual systems discovered by Kepler or the upcoming TESS ( <ref type="bibr" target="#b44">Ricker et al. 2014</ref>) and PLATO ( <ref type="bibr" target="#b41">Rauer et al. 2014</ref>) missions, where probabilities of ∼10 −7 are sometimes useful to evaluate. Random Monte Carlo methods would require a near-intractable number of calculations to reach the precision and accuracy of our model. In fact, CORBITS can determine whether the probabilities are equal to zero, which is technically impossible for simple Monte Carlo methods to determine.</p><p>Note that the eccentric case is not an exact solution and the approximation worsens as eccentricity increases and periapse decreases. For small eccentricities (e 0.2) expected from most multi-transiting systems (e.g., <ref type="bibr">Moor- head et al. 2011;</ref><ref type="bibr" target="#b13">Fabrycky et al. 2014</ref>), the accuracy of the multi-transiting probability is dominated completely by unknown orbital and stellar parameters and not by the approximation in CORBITS. To investigate a worstcase scenario, we examined an extreme 2-planet system composed of the one of the most eccentric transiting planets, HD 80606b (e=.93366 Gillon 2009) and a hypothetical interior planet with a periapse at the stellar Roche limit and apoapse at the periapse of planet b. This is a worst-case scenario that maximizes the inaccuracies in our technique. We ran CORBITS and a Monte Carlo comparison for a large range of random orientations. The typical fractional error in the multi-transiting probability from CORBITS was ∼0.3% and the worst-case fractional error was ∼3%. Even in this most extreme imaginable case, the errors are likely dominated by errors in stellar parameters (often known to only ∼5-10%). We are satisfied that the eccentric approximation of CORBITS is sufficient for practical usage.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.7.">Caveats of CORBITS</head><p>Although the Monte Carlo simulations establish that CORBITS has a high degree of accuracy, there are some limitations on the scope of CORBITS. Since the planet has a random orbital phase and since no dataset contains 100% monitoring (even Kepler only had a ∼90% duty cycle), there is always a chance that the transit of a planet occurred, but was missed in the observations. There is an additional "geometric effect" when the planet's orbital period is longer than the observing baseline; this factor is simply (baseline/period) for a single planet. For multiple long-period planets, the effect depends on the specific positions of the planets and the times of their observations in a way that would need to be modeled separately. If multiple transits are required for identifying a planet, this must be accounted for as it may significantly reduce the probability of detecting planets with periods near the observational baseline; practically speaking, this requires calculation of the window function for the observations of interest (e.g., <ref type="bibr" target="#b5">Burke &amp; McCullough 2014)</ref>.</p><p>Even when a transit is present, it may not be detectable due to insufficient signal-to-noise ratio. Calculating the true effective "Signal" and "Noise" for a transiting planet can be complicated, as can be estimating whether a specific SNR would actually be detected with any specific transit-search pipeline. Completeness studies (e.g., <ref type="bibr" target="#b9">Christiansen et al. 2013;</ref><ref type="bibr" target="#b16">Fressin et al. 2013;</ref><ref type="bibr" target="#b37">Petigura et al. 2013;</ref><ref type="bibr" target="#b6">Burke et al. 2015</ref>) address these issues. We ignore this aspect of detection probability as non-geometric. Finally, our model assumes fixed Keplerian orbits. It is well known that planet-planet interactions violate this assumption. Such interactions are observed as transit timing variations (TTV) as predicted by <ref type="bibr" target="#b0">Agol et al. (2005)</ref> and <ref type="bibr" target="#b22">Holman &amp; Murray (2005)</ref> and seen abundantly in the Kepler data (e.g., <ref type="bibr" target="#b30">Mazeh et al. 2013</ref>). These TTV signals are due almost entirely to changes in planetary phase along the orbit, which is not important for computing the geometric transiting probability. Actual modifications to the orbits themselves on observational timescales are almost entirely negligible in the case of multiple planets; this can be seen empirically by the fact that no known Kepler planet candidates have come into or out of transit. In fact, even slight changes in planetary orbits that would manifest themselves as slow changes in the transit shape are very rare <ref type="bibr" target="#b32">(Miralda-Escudé 2002;</ref><ref type="bibr" target="#b40">Ragozzine &amp; Wolf 2009</ref><ref type="bibr">, Fabrycky et al. 2015</ref>. Therefore, the Keplerian approximation is a very good one for short timescales.</p><p>One might consider that the true random probability of observing specific planets in transit would need to be averaged over long dynamical times since eccentricities, apsidal angles, inclinations, and nodal angles all vary as a function of time <ref type="bibr">(Murray &amp; Dermott 2000, Becker &amp; Adams, in prep.</ref>). Our observations come at a random time in the dynamical evolution for these systems. The easiest way to calculate these probabilities would be to use CORBITS on snapshots of the system taken from an analytical (i.e., Laplace-Lagrange) or numerical (i.e., from an N-body integration) analysis and to combine these into a final probability. We perform an example of this analysis for the solar system as one of our applications ( §4.2). While this is an interesting and potentially important problem, a full solution is beyond the scope of the present paper and we leave it for future work.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">APPLICATIONS</head><p>We anticipate that CORBITS will be used by the exoplanet community for a wide variety of problems relating to multi-transiting systems. To illustrate the importance of correctly accounting for multi-transiting probabilities and the value of the CORBITS algorithm, we perform some investigations here. These include application of CORBITS to the present-day solar system ( §4.1) and its long-term evolution ( §4.2). We use CORBITS to debias the period ratio distribution of Kepler multi-transiting systems ( §4.3) followed by a similar analysis for the mutual Hill sphere distribution ( §4.4). As mentioned above, we benchmark our code by reproducing the expected inclination distribution for Kepler-11 and Kepler-90 ( §4.5).</p><p>We then look at how multi-transiting geometry affects the entire Kepler candidate list ( §4.6) Most of these examples are available on the CORBITS GitHub repository so that the exoplanetary community can directly investigate and/or adapt these examples.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">Applications of CORBITS to the Solar System</head><p>To demonstrate the utility of the implemented pipeline, we performed simulations of the Solar System from the perspective of a random distant observer. We used the 8 planetary orbits at epoch J2000 from JPL HORIZONS. Interestingly, we find that a distant observer could see at most three distinct transiting planets (assuming sufficiently long observations and fixed Keplerian orbits, as discussed in Section 3.7). Specific results for the solar system can be seen in <ref type="table" target="#tab_0">Table 1</ref>. In particular, the table shows all triples of planets whose probability is non-zero.</p><p>This result clearly demonstrates the highly-biased nature of transit observations in exoplanetary systems. In particular, as larger planetary orbits are included, the mutual inclination between planets required to see them all transit shrinks significantly below the ∼ 1 • dispersion seen in the Solar System and exoplanetary systems (e.g., <ref type="bibr" target="#b26">Lissauer et al. 2011;</ref><ref type="bibr" target="#b14">Fang &amp; Margot 2012;</ref><ref type="bibr" target="#b2">Ballard &amp; Johnson 2014;</ref><ref type="bibr" target="#b13">Fabrycky et al. 2014</ref>). It also highlights the value of using radial velocities and transit timing (or duration) variations to infer the presence of nontransiting planets (e.g., Nesvorn´y <ref type="bibr" target="#b36">Nesvorn´y et al. 2012;</ref><ref type="bibr" target="#b28">Marcy et al. 2014)</ref> 4.2. Time Evolution of Solar System Multi-Transiting Geometry As discussed in the CORBITS caveats ( §3.7), the probabilities computed in the previous section on the presentday solar system will change as the orbits of the planets evolve due to gravitational interactions. Nevertheless, the subsequent evolution of the multi-transiting probability can be readily explored using CORBITS.</p><p>We begin with the secular approximation of the evolution of the solar system from <ref type="bibr" target="#b13">Fabrycky et al. (2014)</ref> which starts at the present epoch and evolves the system for 5 MYr. This is not exactly the same as the evolution represented by a full n-body integration, but is sufficiently accurate for our purposes of illustrating the multi-transiting geometry. Snapshots are taken of the solar system's instantaneous osculating orbital elements every 0.01 MYr and sent to CORBITS, which computes the multi-transiting probability for all 64 possible cases of including and excluding each of the 8 planets in transit. We find the behavior to be generally as expected: as planetary inclinations and nodes vary, the probability for any pair of planets to both transit can change substantially, with strong enhancements when nodes are nearly </p><note type="other">3100 Earth-Mars 2.84 × 10 −4 3520 Mercury-Earth-Mars 2.10 × 10 −4 4750 Mercury-Venus-Saturn 3.53 × 10 −5 28300 Mercury-Earth-Uranus 6.15 × 10 −8 1270000 Venus-Earth-Uranus 2.17 × 10 −5 46100 Mercury-Mars-Uranus 4.95 × 10 −6 202000 Jupiter-Saturn-Uranus 2.22 × 10 −6 450000 Mercury-Venus-Neptune 1.77 × 10 −6 565000 Mars-Jupiter-Neptune 2.56 × 10 −6 391000 Exactly 2 Planets 2.10 × 10 −3 476 Exactly 3 Planets 2.79 × 10 −4 3580 At least 4 Planets 0 − Inner Planets 0 − Outer Planets 0 − Kepler 11 b-c-d-e-f-g 1.80 × 10 −4 5550</note><p>Note. -The probability of multiple solar system planets transiting as determined by the COR-BITS algorithm. The first column shows example sets of planets. The second column lists the probability of observing all the planets in the set transit, assuming the present-day orbits and long-term observations. A few pairs of interest and all non-zero three-planet probabilities are listed. In the case of Solar System planets, the probabilities assume that the observer is at a random location outside our Solar System. The third column lists the inverse of the probability, i.e., the expected number of randomlyoriented analogs of this planetary system needed to expect to find ∼1 system where this subset transits. For comparison, the probability of observing all 6 planets in the Kepler-11 system (assuming a typical inclination distribution) is also shown ( §4.5).</p><p>aligned. It is important to remember that, due to the combination of forced and free inclinations and nodes, it is not simply the case that each planet circulates through all possible node values <ref type="bibr" target="#b35">(Murray &amp; Dermott 2000)</ref>; this secular solution captures that aspect of real systems.</p><p>Of great interest is the Earth-Venus pair, which shows the expected clear anti-correlation between mutual inclination and double-transiting probability in <ref type="figure" target="#fig_0">Figure 2</ref>. Note that this anti-correlation is quite non-linear due to the different double-transiting regimes (Cases 1-3 from §3.3). The Venus-Earth double-transiting probability can spike to be over 15 times the present-day amount, but these high probability spikes are short lived. Therefore, two summary statistics are of interest: the timeaveraged probability (given by the median) and the probability-weighted time-averaged probability (given by the average). If Venus and Earth were discovered as a double-transiting system, the probability-weighted timeaveraged probability would be the appropriate one to use for debiasing (e.g., estimating the number of VenusEarth analogs that would be present in the underlying population). As seen in <ref type="figure" target="#fig_0">Figure 2</ref>, the probability-weighted doubletransiting probability is ∼3 times the present day doubletransiting probability. However, such a difference would roughly "average out" if many systems were observed; this is a key motivation of studying the ensemble of Kepler multi-transiting systems, though detailed study would be needed to estimate these probabilities averaged over dynamical timescales.</p><p>Another consequence of the enhanced probability of detecting double-transiting systems when they have lower mutual inclinations is that the present-day inferred inclination distribution must be an underestimate of the inclination distribution that would be inferred if dynamical evolution was considered. However, we note here that Venus-Earth experience secular variations in inclination that are larger than the critical inclination that separate Cases 1-3. Planets in STIPs are much closer to their stars, so similar inclination variations would not have such a large effect. Scaling from the Venus-Earth example, a rough estimate is that dynamical enhancement of multi-transiting probabilities among Kepler systems are underestimated by the typical inclination distribution by ∼10% or ∼0.2 • , currently a small effect. COR-BITS could be profitably used to investigate this effect specifically (see also <ref type="bibr">Becker &amp; Adams, in prep.)</ref>.</p><p>Also of interest is the time-evolution of the number of transiting planets. The probability of finding any solar system planet transiting varies from 1.9% to 2.5%, with a probability-weighted time-averaged probability of around 2.4%. This variation is primarily due to the fact that when multiple planets transit, if their transit regions overlap one another then the probability of finding any one planet in transit is diminished. The ratio of the probability of seeing only one planet transit to the probability of seeing multiple planets transit (e.g., single vs. multi) varies from 2-10, with a probability-weighted time-averaged value of about 6.</p><p>While only 3 planets in the current solar system could be seen in transit by any outside observer, there are times when up to 6 planets are seen in transit, though with very low probabilities. This result is shown in <ref type="figure" target="#fig_1">Figure 3</ref>. More seriously, the apparent multiplicity, averaged over  <ref type="formula" target="#formula_2">2014)</ref>, CORBITS can determine the probability that any subset of solar system planets would be seen to transit by a randomly-oriented distant observer. The apparent multiplicity can be tabulated from the 64 possible combinations of transiting and non-transiting planets. Here we show the dynamical evolution of this apparent multiplicity, with probability shown on a log scale. The different colors indicate, from top to bottom, the probability of seeing exactly 1, 2, 3, 4, and 5 planets in transit. There are rare occasions when 6 planets have a very low probability to transit which are not shown; over the timeframe shown here, more than 6 planets are never seen to transit. As Kepler systems are much more compact, this graph is not representative of these systems.</p><p>all observers, can also vary as the probability of exactly m planets transiting fluctuates.</p><p>We emphasize again that Kepler observations are dominated by STIPs which are in a different regime from the solar system that mitigates the effects of dynamical evolution on multi-transiting probabilities. Still, adding dynamical evolution to the determination of multi-transiting probabilities adds significant complications and will require detailed future investigations.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3.">Application to Period Ratio Distribution of</head><p>Multi-Transiting Systems Period ratios in exoplanetary systems are a crucial diagnostic of their formation, evolution, and dynamics. In particular, period ratios that are near a ratio of two small integers are known to exhibit unique and heightened dynamical behavior due to mean-motion resonances. Dissipative dynamics are thought to drive planets into resonant configurations; subsequent planet-planet scattering or stochastic migration forces can randomize the period ratios. Thus, the ratio of Kepler has provided enormous insight into the exoplanetary period ratio distribution. First, Kepler has identified an order of magnitude more planetary systems to date than all other methods and observations combined. Second, possible eccentricity-dependent period aliases in radial velocity observations provide a difficultto-characterize source of confusion (e.g., <ref type="bibr" target="#b1">Anglada-Escudé et al. 2010</ref>). Finally, with the exception of a very rare aliases, Kepler transiting planet candidate periods and period ratios are very precisely measured, an important consideration when identifying resonant or near-resonant behavior.</p><p>Lissauer et al. (2011) performed the first investigation of the period ratio distribution of Kepler candidates. They found that the majority of systems did not show a preference for strong resonances. Still, there was a statistically significant excess of planets just wide of first-order resonances, especially the 3:2 and 2:1. Subsequent studies with more candidates find similar results <ref type="bibr" target="#b13">(Fabrycky et al. 2014;</ref><ref type="bibr">Steffen &amp; Hwang 2015)</ref>.</p><p>These studies have focused on the observed period ratio distribution <ref type="bibr">(Steffen &amp; Hwang (2015)</ref> being an important exception). We improve upon these distributions by accounting for the observational bias from multi-transiting geometry, thus determining the nature of the true underlying period ratio distribution. As pointed out in RH10, when mutual inclinations are larger than the critical inclination, whether two planets are both seen to transit is a modified product of the independent transiting probabilities. Since larger period ratios generally necessitate that one planet be further from the star and thus have a smaller transiting probability, there is some bias against finding planets with large period ratios. Therefore, it is clear that the observed distribution may be biased geometrically towards having smaller period ratios. As discussed in <ref type="bibr" target="#b10">Ciardi et al. (2013)</ref>, there is also a general observational bias against longer periods since the same planet orbiting further away would also have a decreased chance of detection.</p><p>We begin by defining a sample of Kepler candidates that are mostly free from observational biases. We use as our database of planet candidates all systems which are not classified as "False Positive" in a full download 6 of the "Kepler Objects of Interest -Q1 through Q17 DR24 KOI" These 1353 pairs of candidates do not include KOI-284 and KOI-2248, which we removed since these systems are unlikely to be true multis <ref type="bibr" target="#b13">(Fabrycky et al. 2014</ref>). We also remove Kepler-90 (KOI-351) which appears to be an outlier in having an unusually low multi-transit probability for typical mutual inclinations (see §4.5).</p><p>To ensure that we have an observationally complete sample, we employ an SNR cut of 16 and an impact parameter cut of 0.8 as in <ref type="bibr" target="#b10">Ciardi et al. (2013)</ref>. To remove the observational bias against planets at long periods, we follow <ref type="bibr" target="#b10">Ciardi et al. (2013)</ref> and <ref type="bibr" target="#b26">Lissauer et al. (2011)</ref> by taking every pair of planets and recalculating the SNR if their orbital periods were reversed, using SNR ∝ P 1/3 . Only if both planets can be detected at each other's periods do we keep the pair; this usually results in removing pairs with inner planets just above the SNR cut. Technically, this is stricter than needed for debiasing just the period ratio distribution (as opposed to the radius ratio distribution studied in <ref type="bibr" target="#b10">Ciardi et al. (2013)</ref> and <ref type="bibr" target="#b26">Lissauer et al. (2011)</ref>) . It has the effect of showing the period ratio distribution independent of radius.</p><p>Note that in systems with high multiplicity, this calcu-lation is performed pair by pair and not system by system. Although there is more physical meaning to the period ratio between neighboring planets, it is generally impossible to know for certain whether two planets are indeed neighboring, since there could be intermediate small or non-transiting planets. This could be accounted for in an extension of the method used in <ref type="bibr" target="#b26">Lissauer et al. (2011)</ref>: a forward model of simulated planetary systems that are then "observed" by a simulated Kepler could determine the underlying period ratio distribution of neighboring pairs in a much more powerful way. However, expanding that model is beyond the scope of this work and we generally just consider every possible period ratio. After these cuts, 556 period pairs remain; these are free from the dominant SNR-related observational biases. We then calculate every period ratio, P ≡ P outer /P inner , so that P &gt; 1 and only consider period ratios 1 &lt; P &lt; . Beyond a period ratio of 4, there is little meaningful structure in the period ratio distribution.</p><p>We can now use the CORBITS code to remove the geometric observational bias from these systems. As we have seen, this requires choosing a mutual inclination for each pair. Past investigations have identified that typical Kepler planets follow an inclination distribution of a Rayleigh distribution with width of ∼1.5 • (e.g. <ref type="bibr" target="#b26">Lissauer et al. 2011;</ref><ref type="bibr" target="#b14">Fang &amp; Margot 2012;</ref><ref type="bibr" target="#b2">Ballard &amp; Johnson 2014</ref>). We employ a Monte Carlo method that takes each pair and draws 10 4 Monte Carlo samples with this distribution. In combination with this inclination, we use the nominal parameters in the exoplanetarchive <ref type="table">Table,</ref> to calculate the average probability that both planets in the pair are transiting and give each value of P a weight of the inverse of this probability. Note that this gives more weight to pairs with longer orbital periods, as it should. The weighted distribution is now an approximation to the true underlying distribution since we have removed the major detection and geometric biases.</p><p>This process and the final debiased period distribution are shown in <ref type="figure" target="#fig_3">Figure 4</ref>. The top panel shows all period ratios, the middle panel shows period ratios after the observational cut, and the bottom panel shows the final distribution including the CORBITS geometric correction. We have confirmed that different SNR cuts and inclination distributions give very similar results. With each debiasing step, the mode of the distribution shifts slightly to longer period ratios, since short-period planets with small period ratios are the most likely to be detected. The excesses near resonances can also change somewhat in character. Also visible are large spikes due to single particularly improbable systems which should not be over-interpreted.</p><p>We use the minimization of an Anderson-Darling statistic to identify a smooth functional fit to the cumulative distribution function with a period-ratio maximum of 4. A reasonable match is given by a log-normal distribution with µ = 0.82 (P = 2.06) and σ = 0.31, which is shown as a dashed line in the <ref type="figure">Figure.</ref> This distribution was computed with a script written in R (R Core Team 2013), using the libraries 'ADGofTest' and 'psych.' Relative to this smooth functional form are deviations due to resonances and other spikes; see <ref type="bibr">Steffen &amp; Hwang (2015)</ref> for additional discussion on these features. The middle row shows the unweighted resonance and Hill radius distributions after a mutual SNR cut of greater than 16 and an impact parameter cut of less than 0.8 is used. The mutual SNR cut checks that the SNR cut of 16 is still maintained for each pair of planets even if the two planets' periods were swapped ( <ref type="bibr" target="#b10">Ciardi et al. 2013</ref>). The final row shows the distribution of each statistic after each pair of planets is weighted using the inverse of the geometric probability of mutual observation, effectively removing the geometric bias. This probability is computed using CORBITS. The debiased resonance and Hill radius distributions were fit using the Anderson-Darling statistic to log-normal and Gaussian distributions, respectively. The identical fit distributions are overlaid on the other histograms to demonstrate the change in the shift in distribution after the data is debiased geometrically. Notice that the debiasing shifts the mode from the 3:2 resonance to the 2:1 resonance.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.4.">Mutual Hill Sphere Distribution</head><p>Another metric for defining the distance between two planets is the mutual Hill sphere (MHS) distance. This is one dynamical measure of closeness or packedness (e.g., <ref type="bibr" target="#b18">Gladman 1993;</ref><ref type="bibr" target="#b26">Lissauer et al. 2011</ref>). Calculation of the Mutual Hill Sphere distance requires an estimate of the planetary mass; we follow ( <ref type="bibr" target="#b26">Lissauer et al. 2011</ref>) and use M = R 2.06 in Earth units. Other general mass-radius relations have been proposed, but our results depend weakly on the relation used.</p><p>With this mass estimate, we can calculate the Mutual Hill Sphere distance between neighboring pairs of planet candidates in our sample:</p><formula xml:id="formula_14">∆ = 2 a 2 − a 1 a 2 + a 1 m 1 + m 2 3M * −1/3</formula><p>As before, we show the observed distribution, the distribution with SNR and impact parameter cuts, and the final distribution debiased using weights based on the inverse of the multi-transiting probability. Because we are considering only consecutive planets, there are 936 total pairs, of which 381 remain after the cuts. Once again, the distribution shifts slightly towards wider separations as the biases are removed. Note that this distribution draws only from neighboring pairs, so some of the larger MHS values are probably explained by a missing (nontransiting) planet in between the two observed planets. As before, we use the Anderson-Darling test to find a smooth functional form that approximates the fullydebiased distribution. Although the fit in this case is worse than in the period-ratio distribution, using a script written in R (R Core Team 2013), we find a Gaussian distribution with a mean of 27.4 and a width of 14.7 to be the "best fit." A few other distributions were considered, but were even less satisfactory matches.</p><p>Like the period-ratio distribution, the MHS distribution is a diagnostic of planet formation. For example, <ref type="bibr" target="#b20">Hansen &amp; Murray (2013)</ref> use a planet formation model of in situ formation (migration, then assembly) to explain the detailed properties of Kepler systems, including the MHS distribution.</p><p>CORBITS could be used to extend these analyses to multi-planet correlations, e.g., the relationship between period ratios and MHS values for the two pairs of adjacent planets in three planet subsystems. We leave this interesting extension of the above debiasing process for future work.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.5.">Kepler-11 and Kepler-90</head><p>To demonstrate accuracy, CORBITS was also used to calculate the conditional probabilities of the existence of additional planets in the Kepler-11 system, as demonstrated in <ref type="figure" target="#fig_3">Figure 4</ref> of <ref type="bibr" target="#b26">Lissauer et al. (2011)</ref>. A partial reproduction of this graph is available as an example on the CORBITS GitHub repository.</p><p>A similar system is Kepler-90 (KOI-351, KIC 11442793) with 7 planets ( <ref type="bibr" target="#b46">Schmitt et al. 2014;</ref><ref type="bibr" target="#b7">Cabrera et al. 2014</ref>). These 7 planets are not evenly spaced and, as mentioned above, produce outliers in the period ratio digram.</p><p>We begin by estimating the possible inclination distributions that could produce the observed system. Starting with the assumption that all the planet's inclinations can be drawn from a single Rayleigh distribution parametrized by a mean mutual inclination, we draw 10 5 random systems with the observed parameters, circular orbits, and nodes drawn from a random uniform distribution. Note that the mean mutual inclination is different from the "width" parameter commonly used for a Rayleigh distribution by π/2 ≈ 1.25. Each of these is studied with CORBITS to determine various probabilities as shown in <ref type="figure" target="#fig_4">Figure 5</ref>.</p><p>Several different cases are considered. First, the standard case that the true Kepler-90 system has the observed 7 planets shows that the most probable case is that all 7 planets are coplanar, unsurprisingly. If the mutual inclination is relatively low, then the probability of detecting all 7 planets is ∼0.001, indicating that, as Kepler saw ∼1 Kepler-90 in ∼100,000 stars, the intrinsic frequency of such rich systems could be as high as ∼0.1-1%.</p><p>The periods of the observed planets are 7.0, 8.7, 59, 92, 125, 211, and 332 days. As with the Kepler-11 system, it is interesting to investigate whether there may be missing intermediate planets, particularly in the large gaps between the 8.7 and 59 day planets and the 125 and 211 day planets. Following the above methodology, now with 8 planets, we investigate the probabilities as a function of mean mutual inclination in the case of adding a hypothetical eighth planet with a period of 23 or 162 days. These periods are chosen as geometric means of the neighboring planets.</p><p>If there is a 23 day planet and it is required to not transit, it must have a relatively high inclination compared to the other planets, which is rare when all 8 inclinations are drawn from the same Rayleigh distribution. If the 7 observed planets are required to transit ("8i obs" in <ref type="figure" target="#fig_4">Figure 5</ref>) then the highest probability is ∼10 −5 , which would suggest that nearly all Kepler stars have systems like Kepler-90 (since ∼10 −5 of Kepler targets gave KOI-351), but this seems highly unlikely. This is suggestive of the idea that there is not a missing planet (large enough to be detected in transit) between the 8.7 and 59 day planets. If, instead, we ask whether this 8 planet system would have any 7 planets transiting (not necessarily the observed 7), then the probabilities are much more reasonable ("8i7trans"), though this usually results in missing one of the two outer planets.</p><p>If we add a 162 day planet and require that the known 7 planets are the only ones to transit ("8o obs"), then this limits the plausible range of mean mutual inclinations to ∼0.2-2 degrees. If any 7 of these planets must transit ("8o7trans"), the probabilities are similar to the nominal case. Therefore, the multi-transiting geometry is consistent with a putative non-transiting planet between the 125 and 211 day periods.</p><p>Even when adding extra non-transiting planets, the typical mean inclination between these planets must be limited to within ∼3 • in order for Kepler to be lucky enough to observe 7 planets around Kepler-90. This conclusion, however, is subject to the assumption of Rayleigh inclinations and uniform nodes and other caveats discussed in §3.7 and §4.2. Figure 6. Expected number of systems with m transiting planets if Kepler-90 were the prototypical system architecture. Taking the Kepler-90 system and assigning inclinations from a Rayleigh distribution with a variety of mean mutual inclinations, CORBITS is used to calculate the apparent multiplicity distribution that would result. These are normalized so that the number of systems with seven transiting planet is set equal to 1. Comparison to the observed multiplicity distribution from Kepler gives a very poor fit. For example, the number of doubly-transiting systems would either outnumber or be comparable to the number of singly-transiting systems, which is well outside the observations. This implies that the Kepler-90 system architecture is not prototypical of the STIP population. <ref type="figure" target="#fig_3">Figures 4, 5</ref>, and 6 were produced with matplotlib <ref type="bibr" target="#b23">(Hunter 2007</ref>).</p><p>Could Kepler-90 be the "prototype" STIP that represents the underlying architecture of all other Kepler STIPs? <ref type="figure">Figure 6</ref> shows the multiplicity distribution that would result from a population of seven-planet Kepler-90 systems as a function of mean mutual inclination. Like the previous chart, these data lines are computed using a Monte Carlo simulation aided extensively by CORBITS. For each data point, 10 4 exoplanet systems are drawn using the same method as in the first <ref type="figure">figure.</ref> For each hypothetical system, CORBITS computes the probabilities that an observer would see 0 to 7 planets transiting. In the chart, these probabilities are normalized to show the expected number of systems with m-transiting planets under the assumption that exactly one 7-planet system is observed. When comparing the values generated with the observed multiplicities from Kepler, we infer that no case is a good match. Most striking is the conclusion that a population of Kepler-90s would produce more doubletransiting systems than single-transiting systems for mutual inclinations lower than 2 degrees! Similarly, there are ∼20 5-planet systems from Kepler, which would imply a typical mean mutual inclination of ∼0.9 • , but this match to 5-planet systems would imply 100 2-planet systems, which is a severe underestimate. We conclude that the Kepler-90 system architecture is unlikely to merely be a fortuitously-aligned example of the remaining STIP population.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.6.">Known Kepler Multi-Transiting Systems</head><p>Using CORBITS, we computed the transit probabilities of all the KOIs with at least three candidate or confirmed transiting planets and report the results in <ref type="table" target="#tab_3">Table  2</ref> for a variety of inclination distributions. Each trial was generated by drawing the mutual inclinations of the planets from a Rayleigh distribution with a mean mutual inclination of 0, 1, 2, or 10 degrees and the longitudes of the ascending nodes from a uniform distribution. Note that this combination of inclinations and nodes does not necessarily produce a population where the mutual inclinations are exactly drawn from a Rayleigh distribution (see RH10).</p><p>The sharp decrease in probability from inclinations of 1 • to 10</p><p>• is yet another indicator that the typical mutual inclination of KOIs cannot be large. Using these simulations, we can also identify when KOIs transition between the three different regimes or Cases of multitransiting geometry described in §3.3. (Recall that in Case 1, the transit region for the outer planet was completely contained within the inner planet's transit region and detecting the outer planet in transit guarantees that the inner planet's orbit will also be aligned. In Case 3, the two planets can only be seen as doubly-transiting when the observer is along the line of nodes and the multi-transiting probability is much reduced. Case 2 is an intermediate case ( §3.3).)</p><p>We find that the mean transition points for the known KOIs occur at mean mutual inclinations of 2.5 degrees for the transition between Case 1 and 2 and 7.0 degrees for the transition between Case 2 and 3. Assuming a Rayleigh distribution with a single width of 1.5 • , this suggests that Cases 1, 2, and 3 occur with frequencies of approximately 55.3%, 44.5%, and 0.2%, respectively. However, the system-to-system variation is very large and strongly dependent on the periods of the planets. As Case 2 is very common, there is a significant probability that we would only see one or the other planet transit, which re-emphasizes the inaccuracy of estimating the probability of the observing the entire system with the probability of observing the innermost (i.e., lowest probability) planet transit ( §2).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.7.">Exoplanet Mutual Events and Circumbinary</head><p>Planets A related geometric probability question is the probability that two planets will transit/occult one another as they orbit. RH10 called these "exoplanet mutual events" and subdivided them into two specific types: "overlapping double transits" or "exosyzygies" are mutual events that occur while both planets are transiting their parent star and "planet-planet occultations" are mutual events outside of transit. These mutual events are not just fun photometric oddities; they provide significant geometric information. For example, <ref type="bibr" target="#b21">Hirano et al. (2012)</ref> detected an overlapping double transit in the KOI-94 system and used it to measure the otherwise difficult-to-determine true mutual inclination between the two planets in the system to within 0.55 degrees.</p><p>In the approximation that all bodies are orbiting the system barycenter, the geometric probability governing transiting circumbinary planets (TCBPs) is analogous to a "planet-planet occultation." Kepler has discovered several TCBPs (e.g., <ref type="bibr" target="#b11">Doyle et al. 2011</ref>), with initial geometric interpretation discussed in <ref type="bibr" target="#b52">Welsh et al. (2012)</ref>. The full geometric understanding of their transit probability is beyond the scope of this work, but the "planetplanet occultation" approximation is a possible first step. Other authors have developed useful algorithms for calculating TCBP probabilities as well <ref type="bibr">(Kratter &amp; Shannon 2014;</ref><ref type="bibr" target="#b29">Martin &amp; Triaud 2015</ref>).</p><p>We have used our experience with CORBITS to develop some codes investigating the geometric probabilities of exoplanet mutual events of different types. As they are tangentially related to the main CORBITS code, we discuss them in Appendix A.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">CONCLUSION</head><p>Even in systems with multiple known transiting planets, it is very likely that planets are missing, not only at longer periods, but an intermediate and sometimes even the shortest periods. By better understanding the biases of multi-transiting probabilities, better models can be made of the true underlying architectures of exoplanet populations. CORBITS allows for the efficient correction of geometric bias and is essential for determining the distribution of planetary systems necessary for estimating the Fraction of Stars With Planets (FSWP), the coupled multiplicity and inclination distributions, and many other important questions.</p><p>In Section 3, we describe the development of COR-BITS. Using the Gauss-Bonnet Theorem to find the areas of transit regions of the celestial sphere, a fast semi-analytic method is developed to determine multitransiting probabilities. §3.6 establishes the accuracy and speed of CORBITS through the comparison to Monte Carlo algorithms.</p><p>As an illustration of its value and capability, we present some scientific results made possible through CORBITS in Section 4. Application to the time-evolution of the solar system is used to appreciate the complexities of multitransiting probabilities. Turning to the Kepler systems, CORBITS is used to geometrically debias the period ratio and mutual Hill sphere distributions, which results in shifting these towards larger values than seen in the observed distribution. Investigation of the Kepler-90 system shows it is not a typical member of the STIP population. The Appendix presents ancillary algorithms useful for understanding the probabilities of exoplanet mutual events and transiting circumbinary planets.</p><p>Most of the results in this paper can be reproduced using the CORBITS package on GitHub at https://github.com/jbrakensiek/CORBITS. We hope that this resource will be helpful as the community continues to mine the information-rich vein of <ref type="bibr">Kepler</ref>   Note. - <ref type="table" target="#tab_3">Table 2</ref> is published in its entirety in the electronic edition of the Astrophysical Journal. A portion is shown here for guidance regarding its form and content. This table lists for each KOI with at least three planets, the probability of observing all the planets of each KOI transit as a function of the mean mutual inclination. For each KOI, the probabilities were found using 1000 Monte Carlo trials. Each trial was generated by drawing the mutual inclinations of the planets from a Rayleigh distribution with the specified mean mutual inclination and the longitudes of the ascending nodes from a uniform distribution. The CORIBTS probability of all the planets transiting was averaged for all the trials.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>APPENDIX</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>GEOMETRY OF EXOPLANET MUTUAL EVENTS AND CIRCUMBINARY PLANETS</head><p>As discussed in §4.7, understanding the probability of exoplanet mutual events can also benefit from geometric calculations similar to those used in the main CORBITS code. These are not included in the main GitHub distribution of CORBITS, but are available upon request from the authors.</p><p>For the purposes of simulation, two particular phenomena are of interest (RH10). The first, planet-planet occultations (PPOs) are the overlapping of two exoplanets from the perspective of the observer. Second, an overlapping-double transit (ODT) or exosyzygy is equivalent to a PPO when both planets are also transiting their star from the observers perspective. Our interest is to compute the probability, from the perspective of a uniformly random observer on the celestial sphere, that a PPO or an ODT occurs when the system is observed at a single uniformly random time. We assume that the the orbital phases of the planets are independent of each other (which may be violated in resonance) so that the two planets are at independent positions in their Keplerian orbits. For this reason, we can also ignore light-travel time corrections. We can convert a randomly-chosen time to a randomly-chosen angle, using the standard method of weighting by the square of the distances of the planets from their star based on Kepler's Second Law.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Efficient approximation algorithm</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Terminology</head><p>We can approximate each of these probabilities efficiently using numerical integration. We will take each potential position of the planets in their orbits and in each case compute what fraction of the celestial sphere can observe a PPO and an ODT, respectively. We will let r 1 and r 2 be the distances of the two planets from the star. Let P 1 and P 2 be the periods of the two planets. Additionally let R 1 and R 2 be the radii of the two planets, and R * the radius of the star. We will also let φ be the mutual inclination between the two orbits.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Planet-Planet Occultation</head><p>Let d(t 1 , t 2 ) be the sky-projected distance between the centers of the two planets. If we let 1 be the radius of the celestial sphere, then the region on the celestial sphere which can observe a PPO of these planets is two diametrically opposite spherical caps of radius</p><formula xml:id="formula_15">R 1 + R 2 d(t 1 , t 2 ) .</formula><p>This implies that the probability of observation at that particular time is</p><formula xml:id="formula_16">1 − 1 − R 1 + R 2 d(t 1 , t 2 ) 2 .</formula><p>We can integrate this probability over all positions to get the time-weighted average:</p><formula xml:id="formula_17">1 P 1 P 2 P1 0 P2 0 1 − 1 − R 1 + R 2 d(t 1 , t 2 ) 2 dt 1 dt 2 .</formula><p>This integral has been computed using numerical integration (that includes the weighting that accounts for Kepler's Second Law) via the trapezoid method with a small stepsize. As exosyzygies are generally a small fraction of parameter space, these PPO probabilities do not distinguish whether the planets are also transiting or being eclipsed.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Overlapping Double Transits</head><p>In the ODT case, there are three regions of the celestial sphere to keep track of: the region where a PPO is observed and the two regions where the two planets are seen to transit at that particular moment. In addition to the diametrically opposite spherical caps from before, there are now two single spherical caps of radii R * /r 1 and R/r 2 , respectively. The portion of the celestial sphere which can observe an ODT is the intersection of these three regions as shown in <ref type="figure" target="#fig_6">Figure 7</ref>.</p><p>As these regions are bounded by small circles, we can determine the area of the intersection of these regions using steps 3 to 8 of the pipeline from §3.4. The pipeline produces the probability for only one fixed configuration of the two planets with respect to their star. Due to this, we numerically integrate the probabilities over t 1 and t 2 . Like for the PPO case ( §A.1.2), we can approximate this integral by picking discrete values of t 1 and t 2 , using the trapezoidal rule for numerical integration.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Results</head><p>We performed a wide suite of Monte Carlo simulations to test the above algorithms. Our codes were compared to the Monte Carlo codes in over 6000 simulations. The deviation of the probabilities followed the normal distribution predicted by the standard error of the Monte Carlo data, indicating that our semi-analytical method is accurate. Our codes are also hundreds of times faster than the Monte Carlo equivalent. On the left is a two-dimensional cross-section of two planets transiting a star. Depending on the observer's perspective, he or she may observe (1) the PPO of the two planets, (2) the transit of the first planet, or (3) the transit of the second planet. The region where exactly one of these events can be observed is shaded light gray, the region where exactly two of these events can be observed is shaded dark gray, and the region where all three events can be observed (an ODT) is shaded black. Note that the left light gray region corresponds to a PPO and the region of the PPO obscured by the star (double eclipse) is not indicated. On the right are the regions of the celestial sphere which can observe these events (with corresponding shading). These planets are unrealistically close to the star and each other which lead to very large regions compared to what would be seen in a typical system.</p><p>Some qualitative relationships were found between the orbital parameters and the probabilities of PPOs and ODTs. The square of the sum of the radii of the planets was highly correlated with both the PPOs and ODTs, as would be expected. The mutual inclination and the period ratio had a complex relationship. As expected, the probabilities of ODTs and PPOs were significantly enhanced at the lowest mutual inclinations. However, the PPO probability is nearly independent of inclination, particularly when the period ratio is greater than 3.</p><p>This has implications for transiting circumbinary planets (TCBPs). While all known TCBPs have relatively low mutual inclinations between the orbit of the stellar binary and the orbit of the planet, this may be due to an observational bias. Our results here suggest that even very large mutual inclinations between the binary and planet do not diminish the probability of an occasional planet transit as was also found by <ref type="bibr" target="#b29">Martin &amp; Triaud (2015)</ref> and others. Therefore, as pointed out by <ref type="bibr" target="#b29">Martin &amp; Triaud (2014)</ref>, this population may be revealed by the identification of single non-periodic planet transits with (spectroscopic) follow-up identifying the primary star as a non-eclipsing binary. We note that due to the large masses of the stellar components, the planetary orbit can change significantly in orientation during the course of the observations; we do not account for these important orbital changes (e.g., <ref type="bibr" target="#b47">Schneider 1994)</ref>.</p><p>Understanding the probability of finding TCBPs has the promise of identifying orbital properties of the true underlying population of circumbinary planets with implications for how these systems formed.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 2 .</head><label>2</label><figDesc>Figure 2. Variations in the Multi-Transiting Probability for Venus and Earth due to orbital interactions. The solid line shows the time evolution of the Venus-Earth double-transiting probability evaluated by CORBITS at 0.01 MYr steps in the Fabrycky et al. (2014) secular model of the solar system. The dashed line shows the Venus-Earth mutual inclination in degrees divided by 1000, e.g., the Venus-Earth mutual inclination varies from 0.1 • -4 • . As expected, there is a clear anti-correlation between the mutual inclination of the two orbital planes and the double-transiting probability. This anti-correlation is rather non-linear due to the unique properties of multi-transiting geometry (see discussions of Cases 1-3 and Equation 4 in §3.3). The lower thicker blue line shows the time-averaged probability (the median), while the upper thinner orange line shows the probability-weighted time-averaged probability (the mean). See the text for additional discussion.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 3 .</head><label>3</label><figDesc>Figure 3. The Probability of Observing Different Numbers of Transiting Planets in the Solar System due to Dynamical Evolution. Using the secular evolution of the solar system from Fabrycky et al. (2014), CORBITS can determine the probability that any subset of solar system planets would be seen to transit by a randomly-oriented distant observer. The apparent multiplicity can be tabulated from the 64 possible combinations of transiting and non-transiting planets. Here we show the dynamical evolution of this apparent multiplicity, with probability shown on a log scale. The different colors indicate, from top to bottom, the probability of seeing exactly 1, 2, 3, 4, and 5 planets in transit. There are rare occasions when 6 planets have a very low probability to transit which are not shown; over the timeframe shown here, more than 6 planets are never seen to transit. As Kepler systems are much more compact, this graph is not representative of these systems.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head></head><label></label><figDesc>Kepler orbital periods in exoplanetary systems is a critical test of planet forma- tion theories (e.g., Rein 2012; Migaszewski et al. 2013; Baruteau &amp; Papaloizou 2013; Hands et al. 2014; Ray- mond &amp; Cossou 2014; Chatterjee &amp; Tan 2015; Pu &amp; Wu 2015)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 4 .</head><label>4</label><figDesc>Figure 4. This series of six kernel density estimates, produced using scipy (Jones et al. 2001-), compares the period ratio distribution (smoothing width of .003) and the mutual Hill radius distribution (smoothing width of .04) as the Kepler data is debiased. The two KDEs on the upper row correspond to the raw, unweighted resonance and Hill radius distributions from the Kepler data, removing KOI-284, KOI-351/Kepler-90, and KOI-2248. The middle row shows the unweighted resonance and Hill radius distributions after a mutual SNR cut of greater than 16 and an impact parameter cut of less than 0.8 is used. The mutual SNR cut checks that the SNR cut of 16 is still maintained for each pair of planets even if the two planets' periods were swapped (Ciardi et al. 2013). The final row shows the distribution of each statistic after each pair of planets is weighted using the inverse of the geometric probability of mutual observation, effectively removing the geometric bias. This probability is computed using CORBITS. The debiased resonance and Hill radius distributions were fit using the Anderson-Darling statistic to log-normal and Gaussian distributions, respectively. The identical fit distributions are overlaid on the other histograms to demonstrate the change in the shift in distribution after the data is debiased geometrically. Notice that the debiasing shifts the mode from the 3:2 resonance to the 2:1 resonance.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Figure 5 .</head><label>5</label><figDesc>Figure 5. Kepler-90 Multi-Transiting Probabilities as a function of Mean Mutual Inclination. Following the investigation shown in Figure 4 of Lissauer et al. (2011), we use a combination of Monte Carlo population synthesis and CORBITS to determine the multitransiting probability assuming different true system architectures. The legend indicates which curves are associated with which probabilities; see also the associated discussion in the text.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Figure 7 .</head><label>7</label><figDesc>Figure 7. On the left is a two-dimensional cross-section of two planets transiting a star. Depending on the observer's perspective, he or she may observe (1) the PPO of the two planets, (2) the transit of the first planet, or (3) the transit of the second planet. The region where exactly one of these events can be observed is shaded light gray, the region where exactly two of these events can be observed is shaded dark gray, and the region where all three events can be observed (an ODT) is shaded black. Note that the left light gray region corresponds to a PPO and the region of the PPO obscured by the star (double eclipse) is not indicated. On the right are the regions of the celestial sphere which can observe these events (with corresponding shading). These planets are unrealistically close to the star and each other which lead to very large regions compared to what would be seen in a typical system.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" validated="false"><head>Table 1 Solar System Transit Probabilities</head><label>1</label><figDesc></figDesc><table>Planets 
+Probability 
+N 
+
+Mercury-Venus 
+6.84 × 10 −4 1460 
+Earth-Venus 
+3.22 × 10 −4 </table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" validated="false"><head>Table as of</head><label>as</label><figDesc>July 16, 2015. Our sample includes 1353 pairs of candidates in systems with 2 or more plan- ets or planet candidates. The data and codes used to perform these calculations are available in the CORBITS code package.</figDesc><table></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" validated="true"><head>Table 2 KOI transit probabilities</head><label>2</label><figDesc></figDesc><table>KOI 
+N 
+Planetary Periods 
+i = 0 • i = 1 • i = 2 • i = 10 • 
+
+KOI-41 
+3 
+6.89, 12.82, 35.33 
+0.016 
+0.016 
+0.014 
+0.002 
+KOI-70 
+5 
+3.70, 6.10, 10.85, 19.58, 77.61 0.024 
+0.021 
+0.015 
+0.000 
+KOI-82 
+5 
+5.29, 7.07, 10.31, 16.15, 27.45 0.042 
+0.038 
+0.029 
+0.001 
+KOI-85 
+3 
+2.15, 5.86, 8.13 
+0.041 
+0.041 
+0.041 
+0.011 
+KOI-94 
+4 
+3.74, 10.42, 22.34, 54.32 
+0.022 
+0.021 
+0.016 
+0.001 
+KOI-111 3 
+11.43, 23.67, 51.76 
+0.014 
+0.014 
+0.010 
+0.001 
+KOI-116 4 
+6.16, 13.57, 23.98, 43.84 
+0.022 
+0.022 
+0.017 
+0.001 
+KOI-117 4 
+3.18, 4.90, 7.96, 14.75 
+0.044 
+0.044 
+0.042 
+0.006 
+KOI-137 3 
+3.50, 7.64, 14.86 
+0.031 
+0.031 
+0.031 
+0.007 
+KOI-148 3 
+4.78, 9.67, 42.90 
+0.015 
+0.015 
+0.014 
+0.002 
+
+</table></figure>
+
+			<note place="foot" n="5"> Note that the general form of the Gauss-Bonnet Theorem applies to any surface by writing 2πχ(M ) instead of 4π, where χ(M ) is the Euler characteristic of the surface. We have substituted χ(M ) = 2 as the Euler characteristic of sphere.</note>
+
+			<note place="foot" n="6"> Available at http://exoplanetarchive.ipac.caltech.edu/cgi-bin/ExoTables /nph-exotbls?dataset=q1 q17 dr24 koi.</note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Steffen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Sari</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Clarkson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">359</biblScope>
+			<biblScope unit="page">567</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Anglada-Escudé</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>López-Morales</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">E</forename><surname>Chambers</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">709</biblScope>
+			<biblScope unit="page">168</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Ballard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Johnson</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1410.4192</idno>
+		<imprint>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+	<note>ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Baruteau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">C B</forename><surname>Papaloizou</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">778</biblScope>
+			<biblScope unit="page">7</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Borucki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">L</forename><surname>Summers</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Icarus</title>
+		<imprint>
+			<biblScope unit="volume">58</biblScope>
+			<biblScope unit="page">121</biblScope>
+			<date type="published" when="1984" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">J</forename><surname>Burke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">R</forename><surname>Mccullough</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">792</biblScope>
+			<biblScope unit="page">79</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">J</forename><surname>Burke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Christiansen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Mullally</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1506.04175</idno>
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+<note type="report_type">ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Cabrera</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Csizmadia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Lehmann</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">781</biblScope>
+			<biblScope unit="page">18</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Chatterjee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">C</forename><surname>Tan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJL</title>
+		<imprint>
+			<biblScope unit="volume">798</biblScope>
+			<biblScope unit="page">32</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Christiansen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">D</forename><surname>Clarke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">J</forename><surname>Burke</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">207</biblScope>
+			<biblScope unit="page">35</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">R</forename><surname>Ciardi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">C</forename><surname>Fabrycky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Ford</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">763</biblScope>
+			<biblScope unit="page">41</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">R</forename><surname>Doyle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Carter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">C</forename><surname>Fabrycky</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">333</biblScope>
+			<biblScope unit="page">1602</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">C</forename><surname>Fabrycky</surname></persName>
+		</author>
+		<title level="m">Non-Keplerian Dynamics of Exoplanets</title>
+		<editor>S. Seager</editor>
+		<imprint>
+			<date type="published" when="2010" />
+			<biblScope unit="page" from="217" to="238" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">C</forename><surname>Fabrycky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Lissauer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Ragozzine</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">790</biblScope>
+			<biblScope unit="page">146</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Fang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-L</forename><surname>Margot</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">761</biblScope>
+			<biblScope unit="page">92</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Figueira</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Marmier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Boué</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">541</biblScope>
+			<biblScope unit="page">139</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Fressin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Torres</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">766</biblScope>
+			<biblScope unit="page">81</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Gillon</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:0906.4904</idno>
+		<imprint>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+<note type="report_type">ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Gladman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Icarus</title>
+		<imprint>
+			<biblScope unit="volume">106</biblScope>
+			<biblScope unit="page">247</biblScope>
+			<date type="published" when="1993" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">O</forename><surname>Hands</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">D</forename><surname>Alexander</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Dehnen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">445</biblScope>
+			<biblScope unit="page">749</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">M S</forename><surname>Hansen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Murray</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">775</biblScope>
+			<biblScope unit="page">53</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Hirano</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Narita</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Sato</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJL</title>
+		<imprint>
+			<biblScope unit="volume">759</biblScope>
+			<biblScope unit="page">36</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Holman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">W</forename><surname>Murray</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">307</biblScope>
+			<biblScope unit="page">1288</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Hunter</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Computing In Science &amp; Engineering</title>
+		<imprint>
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="page">90</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Johansen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">B</forename><surname>Davies</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P</forename><surname>Church</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Holmelin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">758</biblScope>
+			<biblScope unit="page">39</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Oliphant</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Peterson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">SciPy: Open source scientific tools for Python Kratter</title>
+		<imprint>
+			<date type="published" when="2001" />
+			<biblScope unit="volume">437</biblScope>
+			<biblScope unit="page">3727</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Lissauer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Ragozzine</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">C</forename><surname>Fabrycky</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">197</biblScope>
+			<biblScope unit="issue">8</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Lissauer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Marcy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">T</forename><surname>Bryson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">784</biblScope>
+			<biblScope unit="page">44</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Marcy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Isaacson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Howard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">210</biblScope>
+			<biblScope unit="page">20</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">V</forename><surname>Martin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">H M J</forename><surname>Triaud</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">570</biblScope>
+			<biblScope unit="page">781</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+	<note>A&amp;A</note>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Mazeh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Nachmani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Holczer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">208</biblScope>
+			<biblScope unit="page">16</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Migaszewski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Go´zdziewskigo´zdziewski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Ss Lonina</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">436</biblScope>
+			<biblScope unit="page">25</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Miralda-Escudé</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">564</biblScope>
+			<biblScope unit="page">1019</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">V</forename><surname>Moorhead</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Ford</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">C</forename><surname>Morehead</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">197</biblScope>
+			<biblScope unit="page">1</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<monogr>
+		<title level="m" type="main">Keplerian Orbits and Dynamics of Exoplanets</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">D</forename><surname>Murray</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">C M</forename><surname>Correia</surname></persName>
+		</author>
+		<editor>S. Seager</editor>
+		<imprint>
+			<date type="published" when="2010" />
+			<biblScope unit="page" from="15" to="23" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">D</forename><surname>Murray</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">F</forename><surname>Dermott</surname></persName>
+		</author>
+		<title level="m">Solar System Dynamics</title>
+		<imprint>
+			<publisher>Cambridge University Press</publisher>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Nesvorn´ynesvorn´y</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Kipping</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">A</forename><surname>Buchhave</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">336</biblScope>
+			<biblScope unit="page">1133</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">A</forename><surname>Petigura</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Marcy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Howard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">770</biblScope>
+			<biblScope unit="page">69</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Pu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Wu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">807</biblScope>
+			<biblScope unit="page">44</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">;</forename><forename type="middle">D</forename><surname>R Core Team</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Holman</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1006.3727</idno>
+		<title level="m">R: A Language and Environment for Statistical Computing, R Foundation for Statistical Computing</title>
+		<meeting><address><addrLine>Vienna, Austria Ragozzine,</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+	<note>ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Ragozzine</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">S</forename><surname>Wolf</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">698</biblScope>
+			<biblScope unit="page">1778</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Rauer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Catala</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Aerts</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Experimental Astronomy</title>
+		<imprint>
+			<biblScope unit="volume">38</biblScope>
+			<biblScope unit="page">249</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Raymond</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Cossou</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">440</biblScope>
+			<biblScope unit="page">11</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Rein</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">427</biblScope>
+			<biblScope unit="page">21</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">R</forename><surname>Ricker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">N</forename><surname>Winn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Vanderspek</surname></persName>
+		</author>
+		<title level="m">Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</title>
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="volume">9143</biblScope>
+			<biblScope unit="page">20</biblScope>
+		</imprint>
+	</monogr>
+	<note>Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</note>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">F</forename><surname>Rowe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">T</forename><surname>Bryson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Marcy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">784</biblScope>
+			<biblScope unit="page">45</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Schmitt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Fischer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">148</biblScope>
+			<biblScope unit="page">28</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Schneider</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Planet. Space Sci</title>
+		<imprint>
+			<biblScope unit="volume">42</biblScope>
+			<biblScope unit="page">539</biblScope>
+			<date type="published" when="1994" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title level="a" type="main">Differential Geometry: A First Course in Curves and Surfaces, preliminary Version Steffen</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Shifrin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<editor>J. H., &amp; Hwang, J. A</editor>
+		<imprint>
+			<biblScope unit="volume">448</biblScope>
+			<biblScope unit="page">1956</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">H</forename><surname>Steffen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">M</forename><surname>Batalha</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Borucki</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">725</biblScope>
+			<biblScope unit="page">1226</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Tremaine</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Dong</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">143</biblScope>
+			<biblScope unit="page">94</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Weissbein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Steinberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Sari</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1203.6072</idno>
+		<imprint>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b52">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">F</forename><surname>Welsh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Orosz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Carter</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">481</biblScope>
+			<biblScope unit="page">475</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b53">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">N</forename><surname>Winn</surname></persName>
+		</author>
+		<title level="m">Exoplanet Transits and Occultations</title>
+		<editor>S. Seager</editor>
+		<imprint>
+			<date type="published" when="2010" />
+			<biblScope unit="page" from="55" to="77" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b54">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">N</forename><surname>Youdin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">742</biblScope>
+			<biblScope unit="page">38</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

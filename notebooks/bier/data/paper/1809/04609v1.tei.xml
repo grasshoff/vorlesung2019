@@ -1,0 +1,1441 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2019-01-22T13:41+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">pyaneti: a fast and powerful software suite for multi-planet radial velocity and transit fitting</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2018">2018</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Barragán</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Dipartimento di Fisica</orgName>
+								<orgName type="institution">Università di Torino</orgName>
+								<address>
+									<addrLine>via P. Giuria 1</addrLine>
+									<postCode>10125</postCode>
+									<settlement>Torino</settlement>
+									<country key="IT">Italy</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Gandolfi</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Dipartimento di Fisica</orgName>
+								<orgName type="institution">Università di Torino</orgName>
+								<address>
+									<addrLine>via P. Giuria 1</addrLine>
+									<postCode>10125</postCode>
+									<settlement>Torino</settlement>
+									<country key="IT">Italy</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Antoniciello</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Dipartimento di Fisica</orgName>
+								<orgName type="institution">Università di Torino</orgName>
+								<address>
+									<addrLine>via P. Giuria 1</addrLine>
+									<postCode>10125</postCode>
+									<settlement>Torino</settlement>
+									<country key="IT">Italy</country>
+								</address>
+							</affiliation>
+							<affiliation key="aff1">
+								<orgName type="department">Dipartimento di Fisica e Astronomia &quot;Galileo Galilei&quot;</orgName>
+								<orgName type="institution">Università di Padova</orgName>
+								<address>
+									<addrLine>Vicolo dell&apos;Osservatorio 3</addrLine>
+									<postCode>35122</postCode>
+									<settlement>Padova</settlement>
+									<country key="IT">Italy</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">pyaneti: a fast and powerful software suite for multi-planet radial velocity and transit fitting</title>
+					</analytic>
+					<monogr>
+						<title level="j" type="main">MNRAS</title>
+						<imprint>
+							<biblScope unit="volume">000</biblScope>
+							<biblScope unit="page" from="1" to="15"/>
+							<date type="published" when="2018">2018</date>
+						</imprint>
+					</monogr>
+					<note type="submission">Accepted XXX. Received YYY; in original form ZZZ</note>
+					<note>Preprint 14 September 2018 Compiled using MNRAS L A T E X style file v3.0</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>methods: numerical -planets and satellites: general -techniques: pho- tometry -techniques: spectroscopy</keywords>
+			</textClass>
+			<abstract>
+				<p>Transiting exoplanet parameter estimation from time-series photometry and Doppler spectroscopy is fundamental to study planets&apos; internal structures and compositions. Here we present the code pyaneti, a powerful and user-friendly software suite to perform multi-planet radial velocity and transit data fitting. The code uses a Bayesian approach combined with an MCMC sampling to estimate the parameters of planetary systems. We combine the numerical efficiency of FORTRAN, the versatility of PYTHON, and the parallelization of OpenMP to make pyaneti a fast and easy to use code. The package is freely available at https://github.com/oscaribv/pyaneti.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">INTRODUCTION</head><p>A new branch of astrophysics was born with the discovery of the first planet orbiting a star other than the Sun <ref type="bibr" target="#b41">(Mayor &amp; Queloz 1995)</ref>. Since then, astronomers have developed new techniques to detect and characterize exoplanets <ref type="bibr" target="#b54">(Seager 2010;</ref><ref type="bibr" target="#b49">Perryman 2011</ref>). The two more successful techniques are the transit and radial velocity (RV) methods (see, e.g., <ref type="bibr" target="#b9">Bozza et al. 2016</ref>). They provide a direct measurement of the planet radius ( <ref type="bibr" target="#b12">Charbonneau et al. 2000;</ref><ref type="bibr" target="#b29">Henry et al. 1999</ref>) and minimum mass <ref type="bibr" target="#b41">(Mayor &amp; Queloz 1995)</ref>, respectively. By combining transit photometry with RV measurements, it is possible to measure the true mass and determine the planetary mean density. This allows us to to study planets' internal structure and composition and gives us important hints as to their formation and evolution.</p><p>The success of the transit method relies on both ground-(e.g., HAT-Net, KELT, WASP; <ref type="bibr" target="#b2">Bakos et al. 2004;</ref><ref type="bibr" target="#b48">Pepper et al. 2007;</ref><ref type="bibr">Pollacco et al. 2006</ref>) and space-based photometric surveys (e.g., <ref type="bibr">CoRoT, Kepler, and K2;</ref><ref type="bibr" target="#b1">Auvergne et al. 2009;</ref><ref type="bibr" target="#b8">Borucki et al. 2010;</ref><ref type="bibr" target="#b32">Howell et al. 2014</ref>), which have led to the discovery of more than 2800 transiting exoplanets <ref type="bibr">1</ref> . The RV method has strongly benefited from state-of-the-art highprecision (∼1 m s −1 ) spectrographs such as HIRES ( <ref type="bibr" target="#b57">Vogt et al. 1994</ref>), HARPS ( <ref type="bibr" target="#b42">Mayor et al. 2003)</ref>, and HARPS-N ( <ref type="bibr" target="#b14">Cosentino et al. 2012</ref>), which have opened up the doors to the Earth-E-mail: oscar.barraganvil@edu.unito.it <ref type="bibr">1</ref> As of July 2018, exoplanet.eu. mass domain. Future exoplanet surveys and follow-up observations conducted with both space-based (TESS, PLATO, CHEOPS; <ref type="bibr" target="#b52">Ricker et al. 2015;</ref><ref type="bibr" target="#b51">Rauer et al. 2014;</ref><ref type="bibr" target="#b10">Broeg et al. 2013</ref>) and ground-based (e.g., ESPRESSO, SPIRou; <ref type="bibr" target="#b47">Pepe et al. 2010;</ref><ref type="bibr" target="#b17">Donati et al. 2017</ref>) facilities will provide us with a wealth of photometric and spectroscopic time-series data sets that need powerful tools for a fast and robust analysis.</p><p>Radial velocity and transit light curves are described by time-dependent parametric equations. By comparing models with data we can determine the physical properties of planetary systems. Bayesian model fitting techniques, such as Markov chain Monte Carlo (MCMC) methods, are widely used for parameter estimation and their popularity among the astronomers' community has steadily increased in the past two decades (see, e.g., Sharma 2017).</p><p>Markov chain Monte Carlo data analysis is a reliable statistical method to estimate planetary parameters. However, it can be computationally challenging, especially when the amount of data is large and the dimension of the parameter space that one needs to explore is high. Some examples of such cases include: long-cadence photometric data -as those collected by Kepler and K2 -for which the transit model has to be re-sampled to account for the long integration time <ref type="bibr" target="#b34">(Kipping 2010)</ref>; the light curve of stars hosting ultra-shortperiod transiting planets (P &lt; 1 day), which includes hundreds or even thousands of transits (e.g., <ref type="bibr" target="#b21">Gandolfi et al. 2017;</ref><ref type="bibr" target="#b26">Guenther et al. 2017;</ref><ref type="bibr" target="#b53">Sanchis-Ojeda et al. 2014</ref>); low-mass planets whose masses can be precisely derived only collect-ing hundreds of RV data points (e.g., <ref type="bibr" target="#b28">Hatzes et al. 2011</ref>); multi-planet systems whose parameter space increases dimensionality with the addition of each planet (e.g., <ref type="bibr" target="#b24">Gillon et al. 2017</ref>). Combining sophisticated statistical methods and powerful numerical tools is therefore an optimal approach to simultaneously model photometric and RV data.</p><p>There is a variety of software packages in the literature that allow us to determine the physical parameters of exoplanets from time-series photometry and RV measurements, using either purely Bayesian approaches (e.g. PY-TRANSIT,PyTranSpot; Parviainen 2015; <ref type="bibr" target="#b33">Juvan et al. 2018)</ref>, or different methods (e.g. TLMC <ref type="bibr" target="#b15">Csizmadia et al. 2015</ref>). Some of these packages can model transit light curves (PYTRANSIT; PyTranSpot), RV curves (e.g., <ref type="bibr">RVLIN, Wright &amp; Howard 2009)</ref>, or even perform a joint analysis of the photometric and RV data (e.g., TLMC; EXOFAST, <ref type="bibr" target="#b18">Eastman et al. 2013</ref>).</p><p>In this work we present the software suite pyaneti 2 . This code is a new powerful tool to perform multi-planet fit to RV and/or transit data sets. It combines the MCMC technique with the computational power of FORTRAN and the versatility of PYTHON. This code has already been used for the analysis of several planetary systems (see, e.g., <ref type="bibr" target="#b4">Barragán et al. 2016</ref><ref type="bibr" target="#b5">Barragán et al. , 2018a</ref><ref type="bibr" target="#b11">Chakraborty et al. 2018;</ref><ref type="bibr" target="#b20">Fridlund et al. 2017;</ref><ref type="bibr" target="#b21">Gandolfi et al. 2017;</ref><ref type="bibr" target="#b26">Guenther et al. 2017;</ref><ref type="bibr" target="#b36">Li et al. 2017;</ref><ref type="bibr" target="#b37">Livingston et al. 2018</ref>).</p><p>The paper is organized as follows. For the sake of selfconsistency, we provide a short recap of Bayesian analyses and MCMC algorithms in Sect. 2. The RV and transit equations used by pyaneti are given in Sect. 3. Section 4 describes the general algorithms used by the code. We test the package in Sect. 5 and conclude in Sect. 6.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">MATHEMATICAL APPROACH</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">The Bayes' theorem</head><p>The aim of data analysis is to extract information from experiments and/or observations. In this work, we are interested in extracting planetary physical parameters by comparing parametric models with astronomical observations. From a probabilistic point of view, we want to estimate the probability that a physical parametric model M = M( ì φ), function of some parameters ì φ, describes the data D. Such probability is called the conditional probability of M given D and it can be written as P(M |D).</p><p>Bayes' theorem (Bayes &amp; Price 1763) provides a simple and robust mathematical framework to compute P(M |D) as</p><formula xml:id="formula_0">P(M |D) = P(D|M)P(M) P(D) .<label>(1)</label></formula><p>In a context of a fixed dataset, P(D|M) is a function of the model called the likelihood of observing the data set D if the model M is true, while P(M) is the prior probability associated to the model M, and P(D) is the model evidence. P(M |D) is called the joint posterior distribution and it gives the probability that a model M is true given D is true. <ref type="bibr">2</ref> From the Italian word pianeti, which means planets.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Likelihood</head><p>For a given data set D composed of N measurements D 1,..., N , we can generate a set of N predicted points M 1,..., N from a parametric model. The likelihood of a point D i being described by a point M i is written as P(D i |M i ). The likelihood of the whole data set D to be described by the model M is given by the product of each probability P(D i |M i ) as</p><formula xml:id="formula_1">P(D|M) = N i=1 P(D i |M i ).<label>(2)</label></formula><p>In order to compute P(D|M) using eq. <ref type="formula" target="#formula_1">(2)</ref>, we need to find out which likelihood functions describes better our data. If we assume that our measurements are normally distributed, independent, and that only contain uncorrelated noise σ i , the likelihood of the data point D i being true, assuming M i is also true, is written as</p><formula xml:id="formula_2">P(D i |M i ) = 1 2π(σ 2 i + σ 2 j ) exp − 1 2 (D i − M i ) 2 σ 2 i + σ 2 j ,<label>(3)</label></formula><p>where the terms σ j are used to normalize the likelihood in the case the nominal uncertainties σ i are underestimated (see e.g., Sharma 2017). If we use eq. (3) for a data set, its likelihood is given by using eq. <ref type="formula" target="#formula_1">(2)</ref> as</p><formula xml:id="formula_3">P(D i |M i ) = N i        1 2π(σ 2 i + σ 2 j )        exp − 1 2 χ 2 ,<label>(4)</label></formula><p>where</p><formula xml:id="formula_4">χ 2 = N i=1 (D i − M i ) 2 σ 2 i + σ 2 j .<label>(5)</label></formula><p>pyaneti uses the likelihood given by eq. (4), but we acknowledge that more general likelihoods exist, in which possible correlated noise between data points is taken into account (see, e.g., Parviainen 2017; Sharma 2017). We also note that for numerical reasons, it is better to treat P(M |D) in a logarithmic way (Appendix A).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.1">Priors</head><p>Priors contain previously known information about a given model parameter, e.g., some physical range in which a parameter has equal probability to lie. Alternatively, the parameter's probability can be given by a distribution based on previous estimates. Widely used priors are the uniform and Gaussian priors.</p><p>A uniform prior is called a weakly informative or uninformative prior. It is used when the only available information about a given parameter φ i is that it lies inside a range <ref type="bibr">[a, b]</ref>. For example, we know that the eccentricity of an elliptical orbit ranges between 0 and 1. If the parameter φ i lies between a and b with equal probability, its uniform prior is given by</p><formula xml:id="formula_5">U(φ i ; a, b) = (b − a) −1 : a &lt; φ i &lt; b 0 : otherwise<label>(6)</label></formula><p>A Gaussian prior is called an informative prior. This prior is useful when, for a given parameter, we have a previous measurement and its 1-σ uncertainty, and we want to use this information to weight the probability. For instance, if we have asteroseismology-derived mass and radius of a star hosting a transiting planet, we can use these quantities together with the orbital period to set a Gaussian prior on the semi-major axis of the planet's orbit through Kepler third law.</p><p>A Gaussian prior of a given parameter φ i with median a and standard deviation b is given as</p><formula xml:id="formula_6">N (φ i ; a, b) = 1 √ 2πb 2 exp − (φ i − a) 2 2b 2 .<label>(7)</label></formula><p>In this work we describe only the uniform and Gaussian priors, as those are currently implemented in pyaneti. We acknowledge the existence of other priors in the literature (see, e.g., Díaz 2018; Sharma 2017). <ref type="figure" target="#fig_0">Figure 1</ref> shows how priors can affect the final posterior distribution for a fixed likelihood. For instance, the upper and lower limits of a flat prior may truncate or exclude the maximum of the likelihood function. The influence of a Gaussian prior on the posterior distribution depends on the prior's center and width, as well as on the number of data points (e.g., <ref type="bibr" target="#b23">Gelman et al. 2004</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.2">Model evidence</head><p>The term P(D) in equation <ref type="formula" target="#formula_0">(1)</ref> is called model evidence or marginal likelihood. It has the function to normalize the posterior distribution. By definition P(D) is calculated by integrating the likelihood and prior distributions in the parameter space as</p><formula xml:id="formula_7">P(D) = P(D|M( ì φ))P(M( ì φ))d ì φ.<label>(8)</label></formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.3">Marginal posterior distribution</head><p>We now have a mathematical description of all the components to calculate P(M |D) from equation (1). In order to derive the parameters, we are interested on the shape of the posterior distribution of each parameter φ i more than in its normalized probability. The parameter estimation can be extracted from the non-normalized posterior distribution, i.e. the term P(D|M)P(M), ignoring the evidence term P(D). We note that the evidence term has an important role when doing Bayesian comparison between different models (see, e.g., <ref type="bibr" target="#b23">Gelman et al. 2004</ref>).</p><p>Since M is a parametric model, we can marginalize the parameter φ i by integrating P(D|M)P(M) over the remaining φ ji parameters. This leads to a marginal posterior distribution for each parameter φ i from which we can infer the model parameters.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Markov chain Monte Carlo</head><p>The calculation of a marginal posterior distribution can be done analytically or numerically. However, in some cases it may not have an analytic solution. For instance, numerical iterative methods are widely used to sample the parameter space in order to generate marginal posterior distributions from a collection of data points.</p><p>An efficient method to generate a set of data points in a parameter space is by using a Markov chain. Following the definition of Sharma (2017), a Markov chain is a sequence of random variables X 1 , . . . , X n such that, given the present state, the future and past are independent. If random numbers are used to generate the Markov chains, this method is called Markov chain Monte Carlo (MCMC). These random variables can be the points ì φ in the parameter space that we want to sample. For instance, if we start a point in the parameter space ì φ 1 , we can generate a set of different models ì φ i via Markov chains. In this way, we can create a set of N models from an initial ì φ 1 . There is a large variety of MCMC sampling methods, which ensure that the Markov chains converge to the optimal solution where the posterior has a static solution. For a basic MCMC algorithm, we refer the reader to the MetropolisHastings algorithm ( <ref type="bibr" target="#b43">Metropolis et al. 1953;</ref><ref type="bibr" target="#b27">Hastings 1970)</ref>. In the next section we will describe the ensemble sampler algorithm <ref type="bibr" target="#b25">(Goodman &amp; Weare 2010)</ref> that is used by pyaneti for the parameter estimations. This algorithm was first used by <ref type="bibr" target="#b31">Hou et al. (2012)</ref> to infer parameters from time-series RV measurements.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4">Ensemble sampler algorithm</head><p>The ensemble sampler algorithm uses a group of Markov chains to explore the parameter space. Each chain j starts with a point in the parameter space ì φ j,t and is evolved using the complementary chains of the ensemble.</p><p>Christen <ref type="bibr">(2007)</ref> found that it is possible to evolve the chain φ j,t to the state t + 1 via a walk move using a complementary chain of the ensemble. <ref type="bibr" target="#b25">Goodman &amp; Weare (2010)</ref> used the idea of the walk move to construct an affine invariant move called stretch move. The stretch move for the chain ì φ j,t is defined as</p><formula xml:id="formula_8">ì Φ j = ì φ k,t + z ì φ j,t − ì φ k,t ,<label>(9)</label></formula><p>where ì φ k,t is a complementary chain of the ensemble, such that j k and z is a scaling variable that regulates the step. This scaling variable has to come from a density distribution g with the symmetry condition (Christen 2007)</p><formula xml:id="formula_9">g 1 z = z g(z).<label>(10)</label></formula><p>A distribution that follows this condition is</p><formula xml:id="formula_10">g(z) ∝ 1 √ z : z ∈ 1 a , a 0 : otherwise,<label>(11)</label></formula><p>where a &gt; 1. There is no optimal value for a, but we set a = 2 to be consistent with ensemble sampler algorithms in the literature (e.g., <ref type="bibr" target="#b25">Goodman &amp; Weare 2010;</ref><ref type="bibr" target="#b31">Hou et al. 2012</ref>). To ensure the invariant distribution we have to compute the ratio The term z N −1 ensures detailed balance (for more details see <ref type="bibr" target="#b25">Goodman &amp; Weare 2010)</ref>. To decide whether we accept or not the proposed state we use</p><formula xml:id="formula_11">q = z N −1 P(M( ì Φ)|D) P(M( ì φ j,t )|D) .<label>(12</label></formula><formula xml:id="formula_12">ì φ j,t+1 = ì Φ j : q &gt; U ì φ j,t+1 = ì φ j,t : q ≤ U,<label>(13)</label></formula><p>where U is a random number between <ref type="bibr">[0,</ref><ref type="bibr">1]</ref>. After a number N of iterations and L chains, we will have N × L samples for each parameter from which we can create posterior distributions. A general overview of a single step of the ensemble sampler method is given in Algorithm 1. <ref type="figure" target="#fig_2">Figure 2</ref> shows an example of the evolution of an ensemble sampler algorithm using six chains. The latter start at a different point in the parameter space. After a finite number of iterations (in this case a few hundreds), the chains converges to a stable region of the parameter space. Details on how we create marginal posterior distributions from chain's samples are provided in Section 2.6.</p><p>Another advantage of this approach is that, since each Markov chain evolves independently, this algorithm can be parallelized <ref type="bibr" target="#b19">(Foreman-Mackey et al. 2013</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.5">Convergence</head><p>In order to infer the parameter values based on a MCMC sampling we need to use chains that have converged. A widely used convergence test has been developed by <ref type="bibr" target="#b22">Gelman &amp; Rubin (1992)</ref>. This test compares the "between-chain" B input : Initial ensemble of N states ì φ j,t output: Ensemble of N states ì φ j,t+1</p><formula xml:id="formula_13">1 for j = 1 to N do 2</formula><p>Select a complementary state from the ensemble such that j k 3 Sample the scaled variable z from the density distribution g 4 Propose the new state via a walk move</p><formula xml:id="formula_14">ì Φ j = ì φ k,t + z ì φ j,t − ì φ k,t 5</formula><p>Compute q from eq. (12) using likelihood and priors for the states ì φ j,t and ì</p><formula xml:id="formula_15">Φ j 6</formula><p>Sample an uniform random variable U between 0 and 1 and "within-chain" W variance via the scaled potential factorˆRtorˆ torˆR = [W(n − 1)/n + B/n]/W, where n is the length of each chain. We define convergence as when chains havê R &lt; 1.02 for all the parameters ( <ref type="bibr" target="#b23">Gelman et al. 2004</ref>). </p><formula xml:id="formula_16">7 if q &gt; U then 8 ì φ j,t+1 = ì Φ j 9 else 10 ì φ j,t+1 = ì φ j,t</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.6">Marginal posterior distribution from parameter sampling</head><p>Chains that have converged to a static solution represent a sample of the marginal posterior distribution from which they were sampled. The frequencies of the chains can be used to create the posterior distribution of the sampled parameters. A common way to draw the sampling frequency is with a histogram, as shown in <ref type="figure" target="#fig_2">Fig, 2</ref>. The final marginal posterior distribution for each parameter is also called credible interval.</p><p>The median and the 68% limits of the credible interval are commonly used to define the parameter's best estimate and its uncertainty (see, e.g., <ref type="bibr" target="#b30">Hogg &amp; Foreman-Mackey 2018)</ref>. When the marginal posterior distribution follows a Gaussian distribution, the median and the 68% limits of the credible interval correspond to the mean and standard deviation of a normal distribution. When the posterior distribution is skewed, the 68% limits are not symmetric with respect to the median, and they give an "first-order" idea of the shape of the marginal posterior distribution that describes a given parameter.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">MULTI-PLANET EQUATIONS</head><p>In this section, we describe the equations used by pyaneti to extract parameter values from time-series RV and photometric transit data. For a detailed derivation of the equations presented in the following sub-sections, we refer the reader to the specific literature (see, e.g., <ref type="bibr" target="#b44">Murray &amp; Correia 2010;</ref><ref type="bibr" target="#b58">Winn 2010</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Radial velocity equations</head><p>The motion of a planet orbiting a star can be reduced to a two-body problem in which one of the two body is far more massive than the other. The change of the velocity component along the line-of-sight to the host star, induced by the presence of the orbiting planet, is described by the following equation</p><formula xml:id="formula_17">f RV ( ì φ; t) = γ + K [cos (θ + ω ) + e cos ω ] ,<label>(14)</label></formula><p>where γ is the systemic velocity of the center of mass, θ is the true anomaly, e the orbital eccentricity, and ω the angle of periastron of the star. K is the radial velocity semiamplitude variation, which is given by</p><formula xml:id="formula_18">K = 2πG P 1/3 M p sin i M p + M 2/3 1 1 − e 2 1/2 ,<label>(15)</label></formula><p>Equation <ref type="formula" target="#formula_0">(15)</ref> provides a relation between the semiamplitude RV variation of the star K and the planetary M p and stellar mass M . The remaining parameters of eq. <ref type="formula" target="#formula_0">(15)</ref> are the gravitational constant G (we use the IAU units given by <ref type="bibr" target="#b50">Prša et al. 2016</ref>), the orbit inclination with respect to the line-of-sight i, and the orbital period P. Since M p &lt;&lt; M , we</p><formula xml:id="formula_19">can assume that (M p + M ) 2/3 ≈ M 2/3</formula><p>. The dependence on the orbit inclination implies that only the planet's minimum mass M p sin i can be measured, provided that the stellar mass M is known. In order to determine the planet's true mass, the orbit inclination has to be measured. For transiting exoplanets, the inclination can be derived from the modeling of the transit light curve (Sect. 3.2).</p><p>The time dependency of θ is given by</p><formula xml:id="formula_20">θ(t) = 2 arctan 1 + e 1 − e tan E(t) 2<label>(16)</label></formula><p>where the eccentric anomaly E(t) is defined via</p><formula xml:id="formula_21">A(t) = E(t) − e sin[E(t)]<label>(17)</label></formula><p>and where</p><formula xml:id="formula_22">A(t) = 2π P t − T p<label>(18)</label></formula><p>is the mean anomaly. The latter depends on time t and on a zero point T p , which is the time of passage of periastron. We stress that we fit for the time of minimum conjunction of the planet T 0 that, for transiting planets, coincides with the time of transit . It is straightforward to pass from T 0 and T p since the corresponding points in the planet's orbit are separated by an angle of π/2 − ω . We note that eq. <ref type="formula" target="#formula_0">(17)</ref> is transcendent and cannot be solved analytically with respect to the eccentric anomaly E(t). pyaneti solves eq. (17) using a Newton-Raphson algorithm.</p><p>If a star is orbited by N p planets -which we assume their mutual gravitational interaction is negligible -the general expression for eq. <ref type="formula" target="#formula_0">(14)</ref> is then</p><formula xml:id="formula_23">M RV ( ì φ; t) = γ i + N p j=1 K j cos(θ j + ω , j ) + e j cos ω , j .<label>(19)</label></formula><p>The term γ i depends on the spectrograph i to account for possible instrumental offsets. Equation <ref type="formula" target="#formula_0">(19)</ref> can be modified to add linear or quadratic acceleration terms that may be present in the data.</p><p>The general parametric function M RV ( ì φ; t), which describes the Doppler reflex motion of a star orbited by more than one planet is then</p><formula xml:id="formula_24">M RV ( ì φ; t) = f ({T 0 , P, e, w , K } j , γ i ; t),<label>(20)</label></formula><p>in which the set of parameters {T 0 , P, e, w , K } repeats for each planet j and γ i accounts for each different instrument i.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Transit equations</head><p>An eclipse occurs when an astronomical body is obscured by a second one. A transit is a special case of eclipse, in which a smaller object passes in front of a larger body. If the orbit inclination is close to 90 • , the presence of a planet orbiting its host star can be inferred by detecting the periodic drops of stellar flux caused by the planet partly occulting the stellar disk. The fraction of light occulted by a planet during a transit is proportional to its size, being about 1 % for a Jupiter-size object and 100 times smaller for an Earth-size planet transiting a Solar-like star.</p><p>An useful quantity to describe a planetary transit is the scaled projected distance between the planet's and the star's center defined as (see, e.g., Winn 2010)</p><formula xml:id="formula_25">δ = a R 1 − e 2 (1 + e cos θ(t)) 1 − sin 2 (θ(t) + ω ) sin 2 i,<label>(21)</label></formula><p>where a is the semi-major axis of the relative orbit 3 , R is the stellar radius, and the remaining parameters are the same used in the RV equations presented in Sect. 3.1. We note that δ depends on the true anomaly θ(t), which in turn is a function of time according to eqs. <ref type="formula" target="#formula_0">(16)</ref>, <ref type="formula" target="#formula_0">(17)</ref> and <ref type="formula" target="#formula_0">(18)</ref>. Following Eastman et al. <ref type="formula" target="#formula_0">(2013)</ref>, we define the projected distance δ using the argument of periastron of the star ω instead of the argument of periastron of the planet ω p . If we define r p ≡ R p /R as the planet-to-star radius ratio, from equation <ref type="formula" target="#formula_0">(21)</ref>, the transit of an exoplanet occurs only when δ &lt; 1 + r p and sin (θ(t) + ω ) &gt; 0 (star behind the planet). On the other hand, the planet's occultation -also known as secondary eclipse -occurs if δ &lt; 1 + r p and sin (θ(t) + ω ) &lt; 0 (planet behind the star).</p><p>In order to analytically describe how the total flux F(t) changes as a function of time due to the presence of a transiting planet, we need to account for the disk-integrated stellar flux F (t), the planet flux F p (t) (both reflected light and thermal emission), and the loss of light when transits/occulations occur λ(δ, r p ). The total flux F(t) is given by</p><formula xml:id="formula_26">F(t) = F (t) + F p (t) − λ(δ, r p ).<label>(22)</label></formula><p>We assume that the stellar flux F (t) is constant and equal to 1, and that any variation can be expressed as a fraction of the stellar light. We also assume that the planet contribution to the light curve is negligible (F p = 0), i.e., we assume that occulations and phase curve have no effect on the observed light curve. Under these assumptions, eq. <ref type="formula" target="#formula_1">(22)</ref> can be re-written as</p><formula xml:id="formula_27">F(t) = 1 − λ(δ, r p ).<label>(23)</label></formula><p>By definition λ = 0 when δ &gt; 1 + r p . For cases where δ &lt; 1 + r p , the change of light depends on the analytical form of λ, which accounts for the loss of light as the planet crosses the stellar disk. There are different approaches to define the analytical form of λ(δ, r p ). The simplest approach is to assume that the stellar disk is a uniform source of light <ref type="bibr" target="#b54">(Seager &amp; Mallén-Ornelas 2003)</ref>. However, real stellar disks are brighter in the center and fainter at the edge (the limb), a phenomenon known as limb darkening (see, e.g., <ref type="bibr">Claret &amp; Bloemen 2011</ref>). pyaneti uses the <ref type="bibr" target="#b40">Mandel &amp; Agol (2002)</ref>'s transit light cure model in which the stellar intensity is limbdarkened using a quadratic law with coefficients u 1 and u 2 . <ref type="bibr" target="#b40">Mandel &amp; Agol (2002)</ref> provide the function λ(δ, r p ) for a single planet transiting a star.</p><p>For a system where there are N p transiting planets, the relative flux of the star is then</p><formula xml:id="formula_28">F(t) = 1 − N p j=1 λ j (δ, r p ).<label>(24)</label></formula><p>According to eq. (24), F(t) = 1 if no planet transits the star; it reduces to the one-transiting-planet case when there is a single planet crossing the stellar disk. Equation <ref type="formula" target="#formula_1">(24)</ref> takes also into account multi-planet transit events. We note that this approach does not take into account occultations between planets that may occur.</p><p>The general parametric function M tr ( ì φ) that describes transit events in a light curve is</p><formula xml:id="formula_29">M tr ( ì φ; t) = f ({T 0 , P, e, w , R p /R , a/R , i} j , {u 1 , u 2 } i ; t).<label>(25)</label></formula><p>The set of parameters {T 0 , P, e, w , R p /R , a/R , i} repeats for each planet j. Each {u 1 , u 2 } repeats for each band i of the light curve.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Multi-planet joint fit</head><p>When both Doppler and transit data are available, the best approach to perform the analysis is via a joint fit. By comparing the RV and the transit equations (eqs. 20 and 25), we see that T 0 , P, e and ω are shared parameters. In this case the orbital parameters are fitted simultaneously. Usually, the transit light curves improve the determination of T 0 and P, whereas the RV measurements constrain better e and ω . The parameters involved in the joint fit are</p><formula xml:id="formula_30">ì φ = ({T 0 , P, e, w , R p /R , a/R , i, K } j , {u 1 , u 2 } i , γ k ),<label>(26)</label></formula><p>where {T 0 , P , e , w , R p /R , a/R , i , K } j repeats for each planet j, {u 1 , u 2 } i for each photometric band i, and γ K for each spectrograph k.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4">Parametrizations</head><p>Equation <ref type="formula" target="#formula_1">(26)</ref> defines the general set of parameters that can be extracted by modeling RV measurements and transit photometry. It is possible to use a set of convenient parametrizations to improve the exploration of the parameter space and avoid biases due to priors. In the following sub-sections we provide a brief description of the parameterizations used by pyaneti.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4.1">Eccentricity and angle of periastron</head><p>The posterior distribution of the eccentricity is not well sampled for orbits with small eccentricities <ref type="bibr" target="#b38">(Lucy &amp; Sweeney 1971)</ref>. A practical solution is to define e and ω using a polar form. pyanety adopts the parametrization proposed by <ref type="bibr" target="#b0">Anderson et al. (2011)</ref> </p><formula xml:id="formula_31">ew 1 = √ e sin ω , ew 2 = √ e cos ω .<label>(27)</label></formula><p>This parameterization has two advantages: a) it is not truncated when the eccentricity is close to zero; b) uniform priors on ew 1 and ew 2 imply uniform priors on the eccentricity.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4.2">Impact factor</head><p>As presented in Sect. 3.2, the transit of a planet can described using the scaled projected distance between the planet and star centers. It is then convenient to parametrize the stellar inclination using a parameter that takes into account the projected distance. A practical approach is via the impact parameter defined as (Winn 2010)</p><formula xml:id="formula_32">b = a R cos i 1 − e 2 1 + e sin ω .<label>(28)</label></formula><p>The advantage of using the impact factor is that b can be compared directly with the projected distance z. In this way it is easy to set priors to exclude orbits for which there are no transit, i.e., when b &gt; 1 + r p .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4.3">Limb Darkening coefficients</head><p>For the limb darkening coefficients pyaneti uses the parameterization proposed by <ref type="bibr" target="#b35">Kipping (2013)</ref>, who showed that an optimal way to sample the parameter space for the Mandel &amp; Agol (2002)'s limb darkening coefficients is via the parametrization</p><formula xml:id="formula_33">q 1 = (u 1 + u 2 ) 2 , q 2 = u 1 2(u 1 + u 2 ) .<label>(29)</label></formula><p>The advantage of this approach is that it fully accounts for our ignorance about the intensity profile and explores physical solutions by sampling uniformly q 1 and q 2 between 0 and 1. This yields robust and realistic uncertainty estimates. It is possible to recover the original u 1 and u 2 coefficients via</p><formula xml:id="formula_34">u 1 = 2q 1 √ q 2 , u 2 = √ q 1 (1 − 2q 2 ).<label>(30)</label></formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4.4">Stellar density</head><p>From Kepler's third law we obtain that</p><formula xml:id="formula_35">ρ + r 3 p ρ p = 3π GP 2 a R 3 .<label>(31)</label></formula><p>where ρ is the star's mean density, ρ p the planet's mean density, r p the planet-to-star radius ratio, P the orbital period, R the star's radius, and a the semi-major axis of the relative orbit. Since r 3 p is relatively small, the second term of the left side of eq. (31) can be neglected <ref type="bibr" target="#b58">(Winn 2010)</ref>. There is thus a relation between the stellar density and the orbital parameters P and a/R that can be used to compare stellar density derived from the modeling of the transit light curves with an independent determination (e.g., from spectroscopy).</p><p>It is convenient to parametrize a/R with ρ . If precise stellar parameters have been calculated, it is possible to set tight priors on the stellar density and hence on a/R . For a multi-planet system, it is convenient to parameterize the scaled semi-major axis a j /R of all planets j using the same stellar density. In this way the stellar density is constrained for all planets and Kepler's third law is not violated within planets orbiting the same star. are linearly related assuming r p ≈ 0 (eq. 31).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">CODE OVERVIEW</head><p>If we combine the MCMC analysis described in Sect. 2 along with the multi-planet equations presented in Sect. 3, we can develop a powerful tool to estimate planet parameters from Doppler and transit observations. We used this approach together with the computational speed of FORTRAN and the versatility of PYTHON to write the software suite pyaneti. The computation-demanding routines, such as orbital solutions, likelihood calculations, etc., are calculated by FORTRAN subroutines. The input and output routines, such as data preparation, plot creations, etc., are handled by PYTHON. FORTRAN subroutines are wrapped to PYTHON using F2PY <ref type="bibr">4</ref> .</p><p>One of the main advantages of pyaneti is that all the code controls are given inside a PYTHON-based input file. Priors, fitted parameters, and data files are controlled via flags and python objects. This allows one to run the code with only one command line. A general overview of the algorithm of the code is given in Algorithm 2.</p><p>The advantage of using the ensemble sampler algorithm described in section 2.4 is that it can be parallelized. This speed-up the global solution of the MCMC run. The parallelization is done following the procedure described in Foreman- <ref type="bibr" target="#b19">Mackey et al. (2013)</ref>, in which we divide the ensemble in two subsamples and evolve each group taking a chain from the complementary set of chains. We use Open Multi-Processing (OpenMP) to perform the parallelization inside the FORTRAN routines.</p><p>There are some physical effects that are not included in the current version of the code. Transit timing variations (TTVs), mutual interaction between planets, multiband photometry, Rossiter-McLaughlin effect, planet's occultations, planet's phase curve fitting have not been implemented yet. pyaneti currently uses likelihood and priors as described in Sect. 2. More general likelihoods, such as Gaussian Process, have not been included yet. Nevertheless, the code is written in a modular way making it easy and straightforward to implement additional physical effects or equations. We plan to keep maintaining and upgrading pyaneti.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">CODE TESTS</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1">A toy model</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1.1">Setup</head><p>We created a set of synthetic RV and transit data to check the performance of pyaneti. The simulated planetary system includes three planets: the two innermost planets transit the star, whereas the outer planet can only be seen in the RV data set.</p><p>Synthetic data points were created assuming a star with a mass of 0.66 M and radius of 0.67 R . The planets have periods of 1.21321, 5.61122, and 12.12349 days with conjunction times of 1.0, 2.21529, and 4.63963 days, respectively. Their radii and masses are 1.5, 3.0, and 7 R ⊕ , and 5, 10, and 62 M ⊕ , respectively. The orbits of the two innermost planets are circular, whereas the outer planet has a non-zero eccentricity of e c = 0.1 with the star's argoment of periastron ω ,c = 204 deg. We assumed inclinations of i b = 87 deg, i c = 88 deg, and i d = 84 deg, so that the two innermost planets transit the star while planet d does not. We assumed that gravitational interaction between the three planets is negligible. We imposed limb darkening coefficients of u 1 = 0.43 and u 2 = 0.31. We used these values to calculate the scaled parameters used by pyaneti. Details of the whole set of fitted parameters are given in <ref type="table" target="#tab_0">Table 1</ref>.</p><p>The synthetic light curve covers a range of 30 days starting at an arbitrary 0 point. We created the instantaneous normalized flux due to the transiting planets using eq. <ref type="formula" target="#formula_1">(24)</ref> with continuous time stamps separated by 5 minutes. We added Gaussian noise at the 5 × 10 −5 level to simulate high precision photometry, such as that provided by Kepler. The synthetic light curve is displayed in the upper panel of <ref type="figure" target="#fig_5">Fig. 3</ref>.</p><p>The simulated RV measurements cover the 30 days simultaneous to the light curve data. Time stamps were taken from a random uniform distribution and the corresponding RVs were calculated using eq. <ref type="bibr">(19)</ref>. We simulated data for two spectrographs called instrument A and B. For spectrograph A, we created 50 absolute RVs with Gaussian noise of 1 m s −1 assuming a systemic velocity of 10 km s −1 . For instrument B, we simulated 50 time stamps with Gaussian noise of 5 m s −1 , but we assigned error bars of 3 m s −1 to each point to simulate a jitter term of σ j = (5 2 − 3 2 ) 1/2 m s −1 = 4m s −1 . We assumed that the RVs of instrument B are relative and arbitrarily centered around 0 km s −1 . The lower panel of <ref type="figure" target="#fig_5">Fig. 3</ref> shows the synthetic data-points following the correction for the RV offset between the two instruments.</p><p>We performed a joint fit setting uniform priors for all the parameters (details are given in <ref type="table" target="#tab_0">Table 1</ref>). We used 100 independent Markov chains started randomly inside the uniform prior ranges. Once all chains converged, we used the last 5000 iterations and saved the chains' states every 10 iterations. This approach generated a posterior distribution of 50,000 points for each parameter. <ref type="table" target="#tab_0">Table 1</ref> contains the medians and 68% credible intervals of the posterior distributions of the fitted parameters. We note that the system parameter's true values are inside the posterior distribution of each parameter. In most cases, the true values are inside the 68% credible interval. This shows the power of pyaneti to infer real parameters from data.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1.2">Results</head><p>The lower panel of <ref type="figure" target="#fig_5">Fig. 3</ref> shows the simulated RV data and the inferred best-fitting three-planet model. <ref type="figure">Figure. 4</ref> displays the phase-folded transit and RV curves. <ref type="figure">Figure 5</ref> displays the posterior distributions of some of the fitted parameters. These histograms are useful diagnostic plots to check the goodness of the MCMC output. We note that our analysis provides unimodal posterior distributions. Their shapes are either Gaussian (T 0,b and P b ), or skewed (ρ <ref type="bibr">1/3</ref> and R p,c /R ). The 68% credible intervals are over plotted on input : RV and/or light curve time-series, correct input file for star-name output: Posterior distributions, plots, parameter inference of RV and/or transit models from data <ref type="bibr">1</ref> ./pyneti.py star-name (start of the run) each histogram; they corresponds to the error bars reported in <ref type="table" target="#tab_0">Table 1</ref>. We note that the jitter term of instrument B found by pyaneti (σ B = 4.09 +0.77 −0.68 m s −1 ; cfr. <ref type="table" target="#tab_0">Table 1</ref>) agrees with the simulated value of 4 m s −1 . We stress that jitter terms must be used when we have a reason to believe that the error bars are underestimated ( χ 2 /dof &gt; 1). If a fit is poor, it is recommended to first check if the model can be improved before adding a jitter term. The derived stellar density is fully consistent with the density expected for the simulated host star. We emphasize that pyaneti fits for the stellar mean density instead for the scaled semi-major axis of planet b and c (see Sect. 3.4).</p><note type="other">2 Read initial files (functions, default values) 3 Read input file with parameters for the current run (number of planets, priors, flags) 4 Read time-series data 5 Pass data and variables to FORTRAN routines 6 Start FORTRAN execution 7 Create random chains inside the prior ranges 8 Calculate likelihoods and priors for the initial state 9 Set iteration control variable continua to True 10 Initialize iterations count variable i=0 11 while continua do</note></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>5.2</head><p>The multi-planet system K2-38</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2.1">Setup</head><p>We also tested pyaneti with a real planetary system. We modeled the transit photometry and radial velocities of K2-38 and compared our results with those published by <ref type="bibr" target="#b56">Sinukoff et al. (2016)</ref>. K2-38 is G2 V star transited by two planets whose masses have been measured via Doppler spectroscopy. The inner planet, K2-38 b, orbits the star every 4 days. It has a mass of 12 M ⊕ and a radius of 1.55 R ⊕ .</p><p>The outer transiting planet, K2-38 b, has an orbital period of 10.5 days, a mass of 9.8 M ⊕ , and a radius of 2.4 R ⊕ .</p><p>K2-38 was photometrically observed by the K2 mission ( <ref type="bibr" target="#b32">Howell et al. 2014</ref>) during its campaign 2. The RV measurements were gathered with the HIRES spectrograph ( <ref type="bibr" target="#b57">Vogt et al. 1994</ref>) mounted at the Keck I 10 m telescope, at Keck Observatory (Mauna Kea, Hawai'i). <ref type="bibr" target="#b56">Sinukoff et al. (2016)</ref> detected a linear trend in the RV measurements, indicative of the presence of an additional companion in the system. While modeling the RV data, the authors added a jitter term to the nominal uncertainties to account for instrumental velocity noise not included in the nominal uncertainties and/or possible sources of stellar variability. Because of its complexity, this system is an ideal test-bench for pyaneti.</p><p>We used the EVEREST processed light curve <ref type="bibr" target="#b39">(Luger et al. 2016</ref>) to perform the transit light curve analysis. We de-trended the K2 data with exotrending <ref type="bibr">(Barragán &amp; Gan- dolfi 2017)</ref> by fitting a second-order polynomial function to the 5-hour out-out-transit data centered around each transit. The RV measurements were taken from <ref type="bibr" target="#b56">Sinukoff et al. (2016)</ref>.</p><p>We used the general form of the likelihood given in eq. <ref type="formula" target="#formula_2">(3)</ref> to account for the RV jitter term. We added a linear trend term γ to equation <ref type="formula" target="#formula_0">(19)</ref>  data <ref type="bibr" target="#b35">(Kipping 2013</ref>). We fixed q 2 to 0.5 to recover the linear limb darkening case and set Gaussian priors on q 1 with 1-σ uncertainty of 0.1. We set uniform priors for the remaining parameters (details are provided in <ref type="table">Table 2</ref>) and assumed circular orbits as adopted by <ref type="bibr" target="#b56">Sinukoff et al. (2016)</ref>. The sampling of the parameter space follows the procedure described in Sect. 5.1. Briefly, we initialized 100 independent chains created randomly inside the prior ranges. Once all chains converged, we created posterior distributions with 50,000 independent points for each parameter.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2.2">Results</head><p>The final estimates and their 1-σ uncertainties are taken as the median and the 68 % of the credible interval of the posterior distributions. Values are reported in <ref type="table">Table 2</ref>. Photometric and RV data, along with the best fitting transit and RV models are displayed in <ref type="figure">Figure 6</ref>.</p><p>We compare our results with those from <ref type="bibr" target="#b56">Sinukoff et al. (2016)</ref> in <ref type="table">Table 2</ref>. The parameter estimates agree well within their 1-σ uncertainties. However, we note that the largest discrepancies are found for the parameters derived from the K2 data. This is very likely due to the different extracted light curve used in our analysis, as well as on the different transit de-trending algorithm. As for the RV-derived parameters, our results are in excellent agreement with those reported by <ref type="bibr" target="#b56">Sinukoff et al. (2016)</ref>.</p><p>This test confirms the correct implementation of the MCMC method and multiplanet equations. Sinukoff et al. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.3">Execution performance</head><p>We show here that pyaneti is able to produce scientific results within a few minutes in a personal laptop. We ran the test case presented in section 5.2 (2 planet system, 435 data points, 10 000 iterations with 100 independent Markov chains) with different CPU configurations. We used a machine with an Intel i7-6500U CPU (Four 2.50GHz cores) and with Linux (Fedora 64-bit) operating system. We compiled the code with gfortran 8.1.1 and used 1, 2, and 4 CPUs. The respective execution times were 10m 11s, 5m 56s and 4m 22s. These results prove the power of the code to perform a full run in a personal laptop. However, we stress that the execution time depends on the analyzed data set. Based on our experience with pyaneti, the modeling of only RV data is carried withing a few minutes. For demanding fits requiring longer execution time (e.g., long time-series photometry), pyaneti can be ran in parallel in a server machine equipped with more than one CPU.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">CONCLUSIONS</head><p>We have developed and tested the code pyaneti, a software suite able to simultaneously fit RV and transit light curves of multi-planet systems. pyaneti combines the computational  power of FORTRAN with the versatility of PYTHON and it offers the option to run in parallel with OpenMP. The package has been developed under "the open source ideology", i.e., both the code and the platforms used to write the package are totally free.</p><formula xml:id="formula_36">e 0 F[0] 0 ω 0 F[0] 0</formula><p>We have tested pyaneti with synthetic data and proved that the code is able to recover the parameters of multiplanet systems. We have also performed an independent fit of K2-38 and our results are consistent with those in the literature. The joint modeling of the transit and RV measurements of the K2-38 system takes only ∼5 min on a personal laptop. This demonstrates that the code can perform fast analyses and makes pyaneti a powerful tool to perform data analysis of hundreds of systems coming from future space-and ground-based instruments, such as TESS, PLATO, CHEOPS, and ESPRESSO.</p><p>Future releases of pyaneti will include extra parametric models, such as TTV, multi-band photometry and phase curves. We anticipate that the code will also be able to use other likelihoods and priors, such as Gaussian processes. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>APPENDIX A: NUMERICAL TREATMENT OF THE POSTERIOR</head><p>Equation (4) may lead to very small/big numbers which generate numerical overflows. Therefore it is convenient to use the logarithmic of probability densities. Bayes' theorem is rewritten as ln P(M |D) = ln P(D|M) + P(M) − P(D).</p><p>We note that this treatment of the posterior does not affect the MCMC method. Since the ratio between the actual and proposed states can be calculated easily as</p><formula xml:id="formula_38">P(D| ì Φ)P( ì Φ) P(D| ì φ)P( ì φ) = exp ln P(D| ì Φ) + ln P( ì Φ) − ln P(D| ì φ) − ln P( ì φ)<label>(A2)</label></formula><p>By following this approach, the general form of the χ 2 Tot ,</p><p>where</p><formula xml:id="formula_40">χ 2 Tot = N RV i (D i,RV − M i,RV ) 2 σ 2 i + σ 2 j + N LC i (D i,LC − M i,LC ) 2 σ 2 i + σ 2 j .<label>(A4)</label></formula><p>The RV and LC sub-indexes refers to RV and light curve data and models, respectively. The logarithmic form of the likelihood given in eq. <ref type="formula" target="#formula_3">(4)</ref>  </p><p>We note that eq. (A5) can be used too model pure RV or transit data.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 .</head><label>1</label><figDesc>Figure 1. Posterior distributions (solid red line) for a fixed likelihood (blue dashed lines) and different priors (green dot-dashed lines). All quantities have been normalized for comparison purpose. Upper left: Uniform prior with limits [−3, 3]. Upper right: Uniform prior with limits [−3, 0]. Lower left: Gaussian prior with mean 1.5 and standard deviation 1.5. Lower right: Gaussian prior with mean 1.5 and standard deviation 0.3.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head></head><label></label><figDesc>One iterations of the ensemble sampler algorithm.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 2 .</head><label>2</label><figDesc>Figure 2. Example of the evolution of an ensemble sampler algorithm using six chains. Upper panel: Parameter value for each chain from iteration 0 to 5000 in logarithmic scale. Lower left panel: Chains behavior for the last 4000 iterations. Lower right panel: Histogram created using the information contained in all the chains in the last 4000 iterations.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head></head><label></label><figDesc>12 Evolve chains following Algorithm 1 ! This line can also run in parallel 13 check for convergence after N iterations !N is calculated as niter × thin_factor 14 if i == N then 15 Check convergence using Gelman &amp; Rubin (1992) criteria 16 if chains converged == False then 17 continua = True !Chains have not converged: Keep iterating 18 i = 0 ! restart iteration counter 19 else 20 continua = False !Chains have converged: save posteriors 21 end 22 end 23 end 24 Write posterior distributions with the converged chains taking into account the thin factor 25 End of FORTRAN execution 26 Run PYTHON output routines 27 Read posterior from posterior file 28 Automatic calculation of parameters and creation of plots 29 Save data in the outpy/star-name_out directory 30 End of run for star-name Algorithm 2: General algorithm of pyaneti.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Figure 3 .</head><label>3</label><figDesc>Figure 3. Upper panel: Thirty-day-long synthetic light curve. We assumed a relative flux of 1 with no trends. There are two transiting planets with different periods and sizes, marked with dashed lines. Lower panel: Synthetic RV measurements. The RV signal consists of three planets with different masses and periods. Instrument A (blue circles) has a precision of 1 m s −1 , whereas instrument B (red squares) has a precision of 5 m s −1 . The nominal error bars of instrument B were set to 3 m s −1 to simulate a jitter term (gray extensions to the nominal error bars). The best fitting model is shown as a thick black line. Offsets were subtracted to both data sets.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>(</head><label></label><figDesc>2016) used the widely used ensemble sampler package emcee (Foreman-Mackey et al. 2013).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Figure 4 .Figure 5 .Figure 6 .</head><label>456</label><figDesc>Figure 4. Upper panels: Phase-folded light curves for planet b and c of the simulated planetary system. Synthetic data points are plotted with the red circles. The best fitting transit models are over-plotted with thick black lines. Middle and lower panels: Phase-folded RV curves for planet b, c and d of the simulated planetary model. Synthetic data for instrument A is shown with blue circles, whereas for instrument B with red diamonds. The best fitting RV models are over-plotted with thick black lines. The gray error bars account for the jitter term for each instrument.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" validated="true"><head>Table 1 . System parameters.</head><label>1</label><figDesc></figDesc><table>Parameter 
+Real value 
+Prior (a) 
+Inferred value 
+
+Model Parameters planet b 
+
+Orbital period P orb (days) 
+1.21321 
+U[1.2122, 1.2142] 
+1.2132028 ± 0.0000097 
+Transit epoch T 0 
+1.0 
+U[0.9965, 1.0035] 
+1.00010 ± 0.00012 
+Scaled planet radius R p /R 
+0.020525 
+U[0, 0.1] 
+0.0204479 +0.00027 
+
+−0.00015 
+
+Impact parameter, b 
+0.33 
+U[0, 1] 
+0.25 +0.13 
+
+−0.15 
+
+e 
+0 
+F[0] 
+0 
+ω 
+0 
+F[0] 
+0 
+Radial velocity semi-amplitude variation K (m s −1 ) 
+3.95 
+U[0, 50] 
+4.16 ± 0.23 
+
+Model Parameters planet c 
+
+Orbital period P orb (days) 
+5.61122 
+U[5.6012, 5.6212] 
+5.611254 ± 0.000041 
+Transit epoch T 0 
+2.21529 
+U[2.2143, 2.2163] 
+2.21530 ± 0.00010 
+Scaled planet radius R p /R 
+0.04105 
+U[0, 0.1] 
+0.04058 +0.00057 
+
+−0.00030 
+
+Impact parameter, b 
+0.60 
+U[0, 1] 
+0.57 +0.06 
+
+−0.03 
+
+</table></figure>
+
+			<note place="foot">MNRAS 000, 1-15 (2018)</note>
+
+			<note place="foot" n="3"> The semi-major axis of the relative orbit is defined as a = a p + a , where a p and a are respectively the semi-major axes of the planet&apos;s and star&apos;s orbit with respect to the center of mass. MNRAS 000, 1-15 (2018)</note>
+
+			<note place="foot" n="4"> More documentations are available at http://www.f2py.com/.</note>
+
+			<note place="foot">This paper has been typeset from a T E X/L A T E X file prepared by the author. MNRAS 000, 1-15 (2018)</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>ACKNOWLEDGEMENTS</head><p>D. Gandolfi gratefully acknowledges the financial support of the Programma Giovani Ricercatori -Rita Levi MontalciniRientro dei Cervelli (2012) awarded by the Italian Ministry of Education, Universities and Research (MIUR).</p></div>
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">R</forename><surname>Anderson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">726</biblScope>
+			<biblScope unit="page">19</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Auvergne</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">506</biblScope>
+			<biblScope unit="page">411</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Bakos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">W</forename><surname>Noyes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Kovács</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">Z</forename><surname>Stanek</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">D</forename><surname>Sasselov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Domsa</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">116</biblScope>
+			<biblScope unit="page">266</biblScope>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Barragán</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Gandolfi</surname></persName>
+		</author>
+		<idno>ascl:1706.001</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Exotrending, Astrophysics Source Code Library</title>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Barragán</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">152</biblScope>
+			<biblScope unit="page">193</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Barragán</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">475</biblScope>
+			<biblScope unit="page">1765</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Barragán</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">612</biblScope>
+			<biblScope unit="page">95</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Bayes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Price</surname></persName>
+		</author>
+		<title level="m">1763, Philosophical Transactions (1683-1775)</title>
+		<imprint>
+			<biblScope unit="volume">53</biblScope>
+			<biblScope unit="page">370</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Borucki</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">327</biblScope>
+			<biblScope unit="page">977</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Bozza</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Mancini</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Sozzetti</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1007/978-3-319-27458-4</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Methods of Detecting Exoplanets Astrophysics and Space Science Library</title>
+		<imprint>
+			<biblScope unit="volume">428</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Broeg</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1051/epjconf/20134703005</idno>
+		<idno type="arXiv">arXiv:1305.2270</idno>
+	</analytic>
+	<monogr>
+		<title level="j">European Physical Journal Web of Conferences. p</title>
+		<imprint>
+			<biblScope unit="page">3005</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Chakraborty</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Roy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Sharma</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Mahadevan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Chaturvedi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J S S V</forename><surname>Prasad</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">G</forename><surname>Anandarao</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">156</biblScope>
+			<biblScope unit="page">3</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">M</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Latham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Mayor</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">529</biblScope>
+			<biblScope unit="page">45</biblScope>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Christen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Guanajuato Claret A., Bloemen S</title>
+		<imprint>
+			<biblScope unit="volume">529</biblScope>
+			<biblScope unit="page">75</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+		<respStmt>
+			<orgName>CIMAT</orgName>
+		</respStmt>
+	</monogr>
+<note type="report_type">Technical Report I-07-16</note>
+	<note>A&amp;A</note>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<monogr>
+		<title level="m" type="main">Ground-based and Airborne Instrumentation for Astronomy IV</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Cosentino</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1117/12.925738</idno>
+		<imprint>
+			<date type="published" when="2012" />
+			<biblScope unit="page">84461</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Csizmadia</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">584</biblScope>
+			<biblScope unit="page">13</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<monogr>
+		<title level="m" type="main">Asteroseismology and Exoplanets: Listening to the Stars and Searching for New Worlds</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">F</forename><surname>Díaz</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018" />
+			<biblScope unit="volume">49</biblScope>
+			<biblScope unit="page">199</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<monogr>
+		<title level="m" type="main">SPIRou: A nIR Spectropolarimeter/High-precision Velocimeter for the CFHT</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-F</forename><surname>Donati</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Kouach</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Lacombe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Baratchart</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Doyon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Delfosse</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1007/978-3-319-30648-3107-1</idno>
+		<imprint>
+			<date type="published" when="2017" />
+			<biblScope unit="page">107</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Eastman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">S</forename><surname>Gaudi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">125</biblScope>
+			<biblScope unit="page">83</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Goodman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">125</biblScope>
+			<biblScope unit="page">306</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Fridlund</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">604</biblScope>
+			<biblScope unit="page">16</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Gandolfi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">154</biblScope>
+			<biblScope unit="page">123</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gelman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">B</forename><surname>Rubin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Statistical Science</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="page">457</biblScope>
+			<date type="published" when="1992" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gelman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Carlin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">S</forename><surname>Stern</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">B</forename><surname>Rubin</surname></persName>
+		</author>
+		<title level="m">Bayesian Data Analysis</title>
+		<imprint>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+	<note>2nd ed</note>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Gillon</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">542</biblScope>
+			<biblScope unit="page">456</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Goodman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Weare</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Commun Appl Math Comput Sci</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="page">65</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">W</forename><surname>Guenther</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">608</biblScope>
+			<biblScope unit="page">93</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">K</forename><surname>Hastings</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Biometrika</title>
+		<imprint>
+			<biblScope unit="volume">57</biblScope>
+			<biblScope unit="page">97</biblScope>
+			<date type="published" when="1970" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">P</forename><surname>Hatzes</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">743</biblScope>
+			<biblScope unit="page">75</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Henry</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Marcy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P</forename><surname>Butler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">S</forename><surname>Vogt</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1999" />
+			<biblScope unit="page">7307</biblScope>
+		</imprint>
+		<respStmt>
+			<orgName>IAU Circ</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">236</biblScope>
+			<biblScope unit="page">11</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Hou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Goodman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Weare</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Schwab</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">745</biblScope>
+			<biblScope unit="page">198</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">B</forename><surname>Howell</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">126</biblScope>
+			<biblScope unit="page">398</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">G</forename><surname>Juvan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Lendl</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">E</forename><surname>Cubillos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Fossati</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tregloan-Reed</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Lammer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">W</forename><surname>Guenther</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Hanslmeier</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">610</biblScope>
+			<biblScope unit="page">15</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Kipping</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">408</biblScope>
+			<biblScope unit="page">1758</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Kipping</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">435</biblScope>
+			<biblScope unit="page">2152</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Stefansson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Robertson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Monson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Cañas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Mahadevan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Research Notes of the American Astronomical Society</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page">49</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">H</forename><surname>Livingston</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1806.11504</idno>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+	<note>preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">B</forename><surname>Lucy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Sweeney</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">76</biblScope>
+			<biblScope unit="page">544</biblScope>
+			<date type="published" when="1971" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Luger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Kruse</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Barnes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Becker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foremanmackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Deming</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">152</biblScope>
+			<biblScope unit="page">100</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Mandel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">580</biblScope>
+			<biblScope unit="page">171</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Mayor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Queloz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">378</biblScope>
+			<biblScope unit="page">355</biblScope>
+			<date type="published" when="1995" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<monogr>
+		<title level="m" type="main">The Messenger</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Mayor</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2003" />
+			<biblScope unit="volume">114</biblScope>
+			<biblScope unit="page">20</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Metropolis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Rosenbluth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">N</forename><surname>Rosenbluth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">H</forename><surname>Teller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Teller</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="page">1087</biblScope>
+			<date type="published" when="1953" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<monogr>
+		<title level="m" type="main">Keplerian Orbits and Dynamics of Exoplanets</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">D</forename><surname>Murray</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">C M</forename><surname>Correia</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2010" />
+			<biblScope unit="page" from="15" to="23" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Parviainen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">450</biblScope>
+			<biblScope unit="page">3233</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<monogr>
+		<title level="m" type="main">Bayesian Methods for Exoplanet Science</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Parviainen</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1007/978-3-319-30648-3149-1</idno>
+		<imprint>
+			<date type="published" when="2017" />
+			<biblScope unit="page">149</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<monogr>
+		<title level="m" type="main">Ground-based and Airborne Instrumentation for Astronomy III</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">A</forename><surname>Pepe</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1117/12.857122</idno>
+		<imprint>
+			<date type="published" when="2010" />
+			<biblScope unit="page">77350</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Pepper</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">119</biblScope>
+			<biblScope unit="page">923</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<analytic>
+		<title level="a" type="main">The Exoplanet Handbook Pollacco D</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">; L</forename><surname>Perryman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">118</biblScope>
+			<biblScope unit="page">1407</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Prša</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">152</biblScope>
+			<biblScope unit="page">41</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Rauer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Experimental Astronomy</title>
+		<imprint>
+			<biblScope unit="volume">38</biblScope>
+			<biblScope unit="page">249</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b52">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">R</forename><surname>Ricker</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Astronomical Telescopes, Instruments, and Systems</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page">14003</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b53">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Sanchis-Ojeda</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Rappaport</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">N</forename><surname>Winn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">C</forename><surname>Kotson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Levine</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">El Mellah I</title>
+		<imprint>
+			<biblScope unit="volume">787</biblScope>
+			<biblScope unit="page">47</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+	<note>ApJ</note>
+</biblStruct>
+
+<biblStruct xml:id="b54">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Seager</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Exoplanets</forename><surname>Seager</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Mallén-Ornelas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">585</biblScope>
+			<biblScope unit="page">1038</biblScope>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b55">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Sharma</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ARA&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">55</biblScope>
+			<biblScope unit="page">213</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b56">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Sinukoff</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">827</biblScope>
+			<biblScope unit="page">78</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b57">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">S</forename><surname>Vogt</surname></persName>
+		</author>
+		<idno type="doi">doi:10.1117/12.176725</idno>
+		<title level="m">Proc. SPIEVol. 2198, Instrumentation in Astronomy VIII</title>
+		<editor>Crawford D. L., Craine E. R.</editor>
+		<meeting>SPIEVol. 2198, Instrumentation in Astronomy VIII</meeting>
+		<imprint>
+			<date type="published" when="1994" />
+			<biblScope unit="page">362</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b58">
+	<monogr>
+		<title level="m" type="main">Exoplanet Transits and Occultations</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">N</forename><surname>Winn</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2010" />
+			<publisher>University of Arizona Press</publisher>
+			<biblScope unit="page" from="55" to="77" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b59">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Wright</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Howard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">182</biblScope>
+			<biblScope unit="page">205</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

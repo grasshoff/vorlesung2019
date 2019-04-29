@@ -1,0 +1,1499 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-11T13:19+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Bayesian Methods for Exoplanet Science</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Hannu</forename><surname>Parviainen</surname></persName>
+						</author>
+						<title level="a" type="main">Bayesian Methods for Exoplanet Science</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<abstract>
+				<p>Exoplanet research is carried out at the limits of the capabilities of current telescopes and instruments. The studied signals are weak, and often embedded in complex systematics from instrumental, telluric, and astrophysical sources. Combining repeated observations of periodic events, simultaneous observations with multiple telescopes, different observation techniques, and existing information from theory and prior research can help to disentangle the systematics from the planetary signals, and offers synergistic advantages over analysing observations separately. Bayesian inference provides a self-consistent statistical framework that addresses both the necessity for complex systematics models, and the need to combine prior information and heterogeneous observations. This chapter offers a brief introduction to Bayesian inference in the context of exoplanet research, with focus on time series analysis, and finishes with an overview of a set of freely available programming libraries.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Introduction</head><p>Statistical inference has a major role in the interpretation of astrophysical observations. Exoplanet research is generally carried out at the limits of the capabilities of current telescopes and instruments, and the planetary signals of interest are weak and embedded in complex systematics (noise) from instrumental, telluric, and astrophysical sources. The reliability of the information inferred from the observations depends on how well we understand the statistical characteristics of the observaHannu Parviainen Instituto de Astrofísica de Canarias, C. Via Lactea S/N, E-38205, La Laguna, Tenerife, Spain;</p><p>Dpto. de Astrofísica, Universidad de La Laguna, 38206,La Laguna, Tenerife, Spain; e-mail: hannu@iac.es tions, and on how well these characteristics are taken into account by the methods used to carry out the inference.</p><p>Of the two major schools of statistical inference, frequentist and Bayesian, the latter has gained popularity in physics over the last decades. The reasons for the increasing interest in Bayesian methods are manifold: first, Bayesian inference offers a consistent approach for combining observational information from different types of observations (e.g., radial velocities, ground-and space-based photometric time series, etc.) with prior information; second, Bayesian inference allows for versatile modelling of the observational uncertainties (errors), facilitating robust analyses; and third, Bayesian inference offers an unified, self-consistent, approach for parameter estimation and model comparison. However, Bayesian inference is in general computationally more demanding than the frequentist approaches, and its wide adoption has been made possible only by the recent advances in numerical methods and computing power.</p><p>The Bayesian approach assigns a probability to a hypothesis. A prior probability distribution is used to encode our prior information about the hypothesis, and this prior is updated using observations to obtain a posterior probability distribution. When new data is acquired, the posterior based on the previous data can be used as a prior distribution, and the new data is used to obtain a new, updated, posterior distribution.</p><p>The problems in statistical inference can be roughly divided into parameter estimation and model comparison. Bayesian parameter estimation aims to infer the joint posterior distribution for model parameters given a model (that we believe is sufficient to explain the observations), prior information, and observations, while model comparison aims to find which of the possible models is best-suited to explain the observations.</p><p>Bayesian parameter estimation results in a joint posterior distribution for the model parameters. This offers improved versatility over frequentist methods that generally yield point estimates, since the ways to summarise the posterior can be tailored to take its complexity into account. For example, an approximately normal posterior can be summarised by its mean and central 68% posterior interval to yield the common mean and 1σ uncertainty estimate; while a powerlaw-like posterior can be summarised by fitting an appropriate analytic distribution; and a more complex posterior can be described by a set of percentiles, or as a mixture of analytic distributions. A common case in exoplanet characterisation is to encounter parameters (eccentricity, impact parameter, etc.) where the posterior is close-to constant for small parameter values, and starts tapering off towards large values after some point. In these cases the data can only constrain the upper boundary for the parameter, and reporting a point estimate (other than the upper boundary corresponding to some posterior percentile) would make little sense.</p><p>In Bayesian model comparison setting we are usually either interested in finding out how many physical signals a dataset contains (e.g., radial velocity planet searches), or what is the most likely physical cause for a signal (statistical validation of planet candidates found by transit and RV surveys). Other use cases exists, but these two are currently the dominant uses for model comparison in exoplanet research. In the first case, we want to find out when to stop introducing complexity (hypothetical planets) to the model. We are not only interested in finding the model that best fits the given data, but we want to find the model that explains the actual information content in the data without overfitting (fitting the noise). In the latter case, the models can be of similar complexity (e.g., a planet candidate signal can be caused by a bona-fide planet or a blended eclipsing binary), but the model comparison needs to combine evidence from different data sources. For example, the probability that a transiting planet candidate is a real planet can be estimated by combining information from the discovery light curve (transit shape, secondary eclipse depth, phase variations, etc.), Milky Way population synthesis simulations (blending probability given the aperture size and host star location), stellar characterisation, ground-based follow-up observations, etc.</p><p>This chapter aims to offer an introduction to the use of Bayesian inference in exoplanet research, with a focus on time series analysis (photometry and radial velocity observations). We present the basic concepts, theory, and methods, and also overview some issues specific to exoplanet research. However, given the depth of the topic, the chapter can only scratch the surface of Bayesian inference, and does not discuss the more advanced topics. Instead, we aim to direct the reader to more in-depth books and publications thorough the chapter, and finish with an overview to useful literacy.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Theory</head><p>The goal of Bayesian inference is to make probability statements about unobserved quantities conditional on observed data (freely citing <ref type="bibr" target="#b30">Gelman et al. 2013</ref>, Sect. 1.3). In the case of parameter estimation (model fitting), we want to infer the joint probability distribution for the model parameters given observational data and prior information. This probability distribution is called the posterior distribution (posterior), and it is obtained by updating a prior distribution (prior) with a sampling distribution (also known as the likelihood, or data distribution.)</p><p>We follow the notation laid out by <ref type="bibr">Gelman et al. (2013, Sect. 1.2)</ref>, where θ θ θ is a vector containing the unobservable quantities (model parameters), y y y is a vector containing the observed data (e.g., RV measurements or photometry), and X X X is a matrix containing the explanatory variables (also known as covariates, independent variables, or predictors) for the observations. Both the model parameters and observations are modelled as random quantities, but the covariates are considered to be known exactly. In general, the elements of y y y can be vectors themselves, in which case we have a matrix of observations Y Y Y . This is, however, not that usual in exoplanet research (transmission spectroscopy being an exception, where the observed dataset consists of a set of narrow-band light curves constructed from a spectroscopic time series), so we consider each y y y element as scalar for simplicity. The covariates-such as the mid-exposure time, airmass, and seeing, when dealing with ground-based observations-are stored as vectors in covariate matrix, X X X, one per ob-servation. However, if we have only a single covariate (usually time in time series analysis), we represent the covariate vector as x x x.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Posterior distribution</head><p>The posterior distribution encodes the information about the model parameters given the prior information and the likelihood from observations. Posterior probabilities for individual parameters are obtained through marginalisation, where the posterior is integrated over all other parameters than the parameter of interest. Finally, different summary statistics can be derived to describe the posterior distributions concisely.</p><p>The joint posterior distribution can be derived starting from the Bayes' theorem</p><formula xml:id="formula_0">Pr(H|D) = Pr(H)Pr(D|H) Pr(D) ,<label>(1)</label></formula><p>where Pr(H|D) is the posterior probability for a hypothesis H given data D, Pr(H) is the prior probability for the hypothesis, Pr(D|H) is the probability for the data given the hypothesis, and Pr(D) is the probability for the data. In parameter estimation setting, the hypothesis H is a (continuous) model parameter vector θ θ θ , the probabilities are continuous probability distributions, and the posterior distribution is P(θ θ θ |y y y) = P(θ θ θ )P(y y y|θ θ θ ) P(y y y) = P(θ θ θ )P(y y y|θ θ θ )</p><formula xml:id="formula_1">P(θ θ θ )P(y y y)dθ θ θ .<label>(2)</label></formula><p>The integral in the denominator, probability for the data, is a normalising constant called marginal probability (or model evidence), and ensures that the posterior integrates to unity.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Prior distribution</head><p>The role of a prior distribution is to encapsulate the current information and assumptions about a model parameter (or a quantity that depends on the model parameters).</p><p>As new information (observations) is obtained, the prior is updated by the likelihood to produce a posterior distribution, which can be used as a prior distribution in future analyses. Priors can be (roughly) classified as either informative priors or weakly informative (uninformative) priors, depending on how strongly they constrain the parameter space. Informative priors can be based on previous research and theory. For example, one can use a normal distribution with mean and standard deviation based on previously reported parameter mean and uncertainty estimates. Weakly informative priors are used to express our ignorance about a parameter, and aim to minimise the effect the prior has on the posterior, allowing the data to 'speak for itself'.</p><p>The choice of a prior distribution is not objective. When setting informative priors based on previous research, one needs to decide how much the reported values can be trusted. For example, if several competing estimates exists, it may be better to create a prior that encompasses all the estimates, rather than base a prior on any single estimate. In any case, it is important to report the priors used in an analysis, and, unless trivial, describe the justification for the priors (i.e., how and why the priors were chosen). It is also a good practice to test how sensitive the analysis is on the priors. Sensitivity analysis is especially important in a model selection setting, where the priors generally have a larger impact than in parameter estimation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Likelihood</head><p>The likelihood represents the probability that the observations follow from a given model evaluated at a given point in the model parameter space. In parameter estimation setting, the model generally consists of a deterministic and a stochastic part. The deterministic part models the signals that can be modelled using a parametric model, and the stochastic part aims to explain the noise, that is, everything not explained by the parametric model.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>White noise</head><p>If the observations can be explained by a parametric model with additive uncorrelated (white) noise, the joint likelihood is a product of independent likelihoods,</p><formula xml:id="formula_2">P(d|θ θ θ ) = ∏ i P(d i |θ θ θ ),<label>(3)</label></formula><p>where d is the dataset, d i are the individual observations and θ θ θ is the model parameter vector. The product in Eq. 3 can easily lead to numerical under-or overflows, and it is common to work with log densities instead, so that</p><formula xml:id="formula_3">ln P(d|θ θ θ ) = ∑ i ln P(d i |θ θ θ ).<label>(4)</label></formula><p>As an example, if the noise is normally distributed, a single observation y i follows</p><formula xml:id="formula_4">y i ∼ N (m(θ θ θ , x x x i ), σ i ),<label>(5)</label></formula><p>where N stands for the normal distribution, m is the parametric model (in this case also called the mean function), θ θ θ are the model parameters, x x x is the vector of covariates for observation i, and σ i is the standard deviation (uncertainty) for observation i. The likelihood of a single observation is now</p><formula xml:id="formula_5">P(y i |θ θ θ , x x x i , σ i ) = 1 σ i √ 2π exp − (y i − m(θ θ θ , x x x i )) 2 2σ 2 i ,<label>(6)</label></formula><p>and the log likelihood of a dataset consisting of n observations is ln P(y y y|θ θ θ , X X X,</p><formula xml:id="formula_6">σ σ σ ) = − 1 2 n ln 2π + n ∑ i ln σ 2 i + n ∑ i=1 r 2 i 2σ 2 i ,<label>(7)</label></formula><p>where r i is the residual, r i = y i − m(θ θ θ , x x x i ).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Correlated noise</head><p>Unfortunately, observational noise is rarely white. The instrument, Earth's atmosphere, and different astrophysical processes all give rise to signals, of which only a part can be represented as simple functions of quantities measured simultaneously with the observations (covariates). The rest of these noise signals aggregate into time-correlated (red) noise that has to be accounted for in the analysis using statistical methods. If not accounted for, red noise can lead to biased parameter estimates with underestimated uncertainties, and false detections in planet searches. For example, stellar granulation can lead to time-correlated photometric variability with amplitude and time-scale comparable to planetary transits, while star spots give rise to RV signals that can be mistaken as of planetary origin. Correlated noise can be represented as a stochastic (random) process in time, and if the noise process follows a normal distribution, it can generally be modelled as a Gaussian process <ref type="bibr">(GP, Rasmussen and Williams 2006;</ref><ref type="bibr" target="#b57">Roberts et al. 2013;</ref><ref type="bibr" target="#b31">Gibson et al. 2012</ref>). Generic Gaussian processes require an inversion of an n × n covariance matrix, where n is the number of time series datapoints, which does not scale well for large time series. However, methods have been developed to evaluate temporally correlated GPs with better scaling, which allow GPs to be used in most time series analysis problems encountered in exoplanet research.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Generic Gaussian Processes</head><p>The scalar log-likelihood Eq. 7 can be written in a more general vector form as</p><formula xml:id="formula_7">ln P(y y y|θ θ θ ) = − 1 2 n ln 2π + ln |Σ Σ Σ | + r T Σ Σ Σ −1 r ,<label>(8)</label></formula><p>where n is the number of datapoints, r is the residual vector, and Σ Σ Σ is the covariance matrix. The covariance matrix is diagonal for white noise, which yields Eq. 7 as a special case, but contains off-diagonal elements when the noise is correlated. Gaussian processes (GPs) offer a versatile way to model normally distributed stochastic processes, with extensions existing for Student-t-distributed processes ( <ref type="bibr" target="#b60">Shah et al. 2014</ref>). In GP formalism, the covariance matrix elements are given by</p><formula xml:id="formula_8">Σ Σ Σ i, j = k(x i , x j ) + σ 2 δ i j ,<label>(9)</label></formula><p>where k is called the covariance function (or kernel), x are input parameter vectors, δ is the Kronecker delta function, and σ 2 is the white noise term for the ith datapoint. The covariance function maps the input vectors to a scalar covariance, and thus defines the behaviour of the GP. Gaussian processes are versatile: they can be used with any number of inputs and outputs; they can be used to model processes that combine aperiodic, periodic and quasi-periodic behaviour; and they can be used to extract different additive processes from a time series. However, in its most general form, a GP evaluation requires the inversion of a covariance matrix, which has a time complexity O(n 3 ), where n is the number of input points.</p><p>Despite the bad scaling properties, GPs have been used in exoplanet research extensively. For example, <ref type="bibr" target="#b31">Gibson et al. (2012)</ref> introduced Gaussian processes to the exoplanet research community as a robust tool to model systematics in transmission spectroscopy (with an excellent overview of the GP basics in the Appendix); ( <ref type="bibr" target="#b53">Rajpaul et al. 2015</ref>) demonstrated how GPs can be used to disentangle the stellar activity signal from planetary signal(s) in radial velocity time series; and ( <ref type="bibr" target="#b19">Czekala et al. 2017</ref>) showed how GPs can be used to model stellar spectra to improve radial velocity measurements.</p><p>The O(n 3 ) scaling restricts the use of generic GPs to problems with a relatively small number of datapoints. However, the matrix inversion can be accelerated (or bypassed completely) for several special cases, which are discussed below.</p><p>Temporally correlated noise with power law power spectral density Carter and Winn (2009) introduce a wavelet-based method to calculate the likelihood for a time series having temporally correlated noise with power spectral density (PSD) varying as 1/ f γ . The approach uses fast wavelet transform (FWT) and computes the likelihood in linear time (that is, the method has time complexity O(n)). The method is implemented in many transit modelling packages, and offers a good alternative to the computation-heavy GPs if the time sampling is approximately uniform, time is used as the only input parameter, and if the noise PSD follows a power law. However, more versatile methods should be used if any of these restrictions is not met.</p><p>Temporally correlated noise with a (nearly) arbitrary kernel The computational cost of Gaussian processes can be alleviated in the special case when time is the only input parameter, and the kernel yields covariance matrices satisfying special conditions. ( <ref type="bibr" target="#b1">Ambikasaran et al. 2014</ref>) describe an approach that allows for the covariance matrix inversion in O(n log 2 n) time, and covariance matrix determinant computation in O(n log n) time. This difference in scalability allows the approach to be used in the analysis of large time series, such as with Kepler light curves.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Temporally correlated noise with kernel consisting of complex exponentials</head><p>Describing the covariance function as a mixture of complex exponentials allows one-dimensional GPs to be evaluated in linear time <ref type="bibr" target="#b27">(Foreman-Mackey et al. 2017</ref>). Despite its restrictions, such a kernel is flexible enough to model a wide range of astrophysical variability, and is especially well-suited to model quasiperiodic behaviour.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Marginal likelihood</head><p>Marginal likelihood, also known as model evidence, can be ignored in parameter estimation setting, but is an important quantity in Bayesian model comparison. The marginal likelihood, Z, is obtained by integrating the posterior over the whole parameter space</p><formula xml:id="formula_9">Z = P(θ θ θ ) P(y y y|θ θ θ ) dθ θ θ .<label>(10)</label></formula><p>The integration is rarely analytically tractable, and generally requires specialised numerical methods.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Parameter estimation</head><p>The aim of model parameter estimation is to obtain an estimate of the joint posterior distribution for the model parameters given the data and prior information. Per-parameter marginal posteriors can then be derived from the joint posterior, and reported concisely using different summarisation methods.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Marginal posterior distribution</head><p>The marginal likelihood can be ignored in the parameter estimation setting, allowing us to work with an unnormalised joint posterior density P(θ θ θ |y y y) = P(θ θ θ )P(y y y|θ θ θ ).</p><p>The posterior distribution for a single parameter θ i is obtained by integrating the joint posterior density over all other parameters</p><formula xml:id="formula_11">P(θ i |y y y) = P(θ θ θ |y y y) dθ θ θ j =i .<label>(12)</label></formula><p>This is called marginalisation, and results in a marginal posterior distribution for the parameter.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Summarising posteriors</head><p>Bayesian inference is generally based on a random sample drawn from the posterior, which can then be described concisely using summary statistics. Common point estimates, such as the mean and the mode (or modes, if the posterior is multimodal), and a set of posterior percentiles all convey useful information. Especially, Gelman et al. (2013, see Sects. 2.3 and 10.5) recommend reporting the 2.5%, 25%, 50%, 75%, and 97.5% percentiles, which provide the posterior median, 50% and 95% posterior intervals, and also information about the posterior skewness.</p><p>If a marginal posterior can be approximately modelled by an analytical distribution, then the parameters of the distribution fitted to the samples can be reported. However, even then, it is useful to report the posterior percentiles to allow for easy comparison with other studies.</p><p>When practical, it is useful to visualise the marginal posteriors and joint pairwise posteriors. This can be done directly from the samples using either 1D and 2D histograms or kernel density estimation (KDE), and provides insight into the parameter distributions, and whether there were any problems in the sampling process.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Estimating posteriors: Markov chain Monte Carlo</head><p>Markov chain Monte Carlo (MCMC) sampling is a fundamental tool for posterior estimation when we cannot sample from the posterior directly. The method produces a set of samples drawn from the posterior by iteratively constructing a Markov chain with the posterior distribution as its equilibrium distribution.</p><p>The sampler starts a chain from a point in the parameter space, proposes a move to another point, and either accepts or rejects the move based on the posterior density ratios between the current and proposed locations. The location after the proposal is added to the chain (no matter whether the proposal was accepted or rejected), and the sampling continues by proposing a new step. The proposal move is constructed in a way to satisfy a set of conditions that ensure that the distribution of the samples in the chain asymptotically converges to the posterior distribution, but the speed of convergence depends on the complexity of the posterior and the MCMC implementation (see <ref type="bibr" target="#b30">Gelman et al. 2013</ref>, Sect. 11; Robert 2007, Sect. 6.3; and Gregory 2005, Sect. 12 for a comprehensive explanation; and Betancourt 2017 for a historical overview).</p><p>General considerations Markov chain Monte Carlo is, actually, an umbrella term for a family of sampling methods. The basic MCMC approaches, such as the Metropolis-Hastings algorithm <ref type="bibr" target="#b37">(Hastings 1970)</ref>, are easy to code, but the more advanced methods, such as NUTS (Hoffman and Gelman 2011), are not straightforward to implement by oneself. MCMC sampling packages exist for all the major programming environments, some of which are listed in Sect. , and usually the first step to do when starting an analysis is to choose the best sampler applicable to the problem at hand. A good sampler can explore the posterior space efficiently, with a minimal number of posterior evaluations. The modern MCMC samplers, like NUTS, can be very efficient if the posterior derivatives can be calculated analytically. However, if this is not possible, a less-advanced sampler needs to be used.</p><p>While the different sampling approaches have their own peculiarities, some basic steps for obtaining a reliable posterior sample can be considered common:</p><p>1. Try to set up the problem in a way that allows for efficient sampling. For example, choose a sampling parametrisation that reduces mutual correlations between parameters, as discussed in Sect. . Bad model parametrisation can make it impossible for a sampler to explore the whole posterior space. Acceptance rate The fraction of accepted jump proposals to the number of total proposals (acceptance rate) is an useful diagnostic of the sampler's efficiency. For multidimensional models, the acceptance rate should be close to 23% <ref type="bibr" target="#b29">(Gelman et al. 1996;</ref><ref type="bibr">Roberts et al. 1997</ref>).</p><p>Chain warm-up With a finite chain, the starting location can affect the chain's convergence. For example, if starting the chain far from the posterior mode, it may take time before the chain starts sampling the high-probability posterior space. The influence of the starting point is reduced by excluding an initial warm-up (or burnin) period <ref type="bibr" target="#b30">(Gelman et al. 2013</ref>, p. 282). There are no hard rules for deciding the appropriate length for the warm-up period, but it generally can be decided based on convergence tests and visual inspection of chains.</p><p>Autocorrelation and thinning The consecutive samples in the MCMC chain are not independent, but correlated, and the strength of correlation depends on the sampler's ability to sample the posterior. A set of independent samples can be obtained by thinning the chain, i.e., by selecting every nth sample, where n is close to the chain autocorrelation length. However, chain thinning is not strictly necessary if the chains have converged ( <ref type="bibr" target="#b46">Link and Eaton 2012;</ref><ref type="bibr" target="#b30">Gelman et al. 2013</ref>, p. 282), but can still be practical for memory and disk-space saving purposes.</p><p>Testing chain convergence The MCMC chain approximates the posterior asymptotically. However, the number of steps needed to obtain a representative sample depends on how efficiently the sampler can cover the posterior, and the chains need to be tested for convergence before they can be used for inference. Converged chains should be statistically similar to each other, and thus a set of chains started from different points in the parameter space allows us to test for convergence of the chains in the set. The tests can be further improved by splitting the individual chains into two parts (after removing the warm-up phase), since the halves should be similar to each other if the chains are stationary and well-mixed. The Gelman-Rubin diagnostic (Gelman and Rubin 1992, also, Gelman et al. 2013, p. 284) offers a practical way to test convergence using a set of chains. The diagnostic compares the estimate for the marginal posterior variance V for parameter θ to the mean within-chain variance W . The two should be approximately equal for a set of well-converged chains, and the estimated scale reduction for M chains with N steps,</p><formula xml:id="formula_12">ˆ R = N − 1 N + M + 1 NM B W ,<label>(13)</label></formula><p>should be close to unity (we have dropped the factor df/(df − 2) from Gelman and Rubin 1992, Eq. 20). Here B is the between-chain variance, and W the within-chain variance,</p><formula xml:id="formula_13">B = N M − 1 M ∑ m=1ˆθ m=1ˆ m=1ˆθ m − ˆ θ 2 ,<label>(14)</label></formula><formula xml:id="formula_14">W = 1 M M ∑ m=1ˆσ m=1ˆ m=1ˆσ 2 m ,<label>(15)</label></formula><p>wherê θ is the parameter mean estimated using all samples, ˆ θ m is the mean estimated from a single chain, andˆσandˆ andˆσ 2 m is the parameter variance estimated from a single chain.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Model comparison</head><p>Bayesian model comparison is based on model evidence (also known as marginal likelihood)</p><formula xml:id="formula_15">Z = P(θ θ θ ) P(y y y|θ θ θ ) dθ θ θ ,<label>(16)</label></formula><p>which we also recognise as the normalising constant in Eq. 2, i.e., the integrated posterior density. Here, the multidimensional integration becomes the main problem. The integration can rarely be carried out analytically and numerical integration of multidimensional densities is far from trivial. The use of model evidence in model comparison aims to penalise model complexity that is not justified by the data: since the posterior is the likelihood multiplied by the prior, and since each additional model parameter must be accompanied by a prior reflecting our knowledge about the parameter, the addition of a model parameter must increase the likelihood more than the prior penalises the posterior (Gregory 2005, Sect. 3.5; MacKay 2003, Sect. 28.1).</p><p>Given two competing models, the posterior odds in favour of model M 1 over model M 2 are</p><formula xml:id="formula_16">O 12 = Pr(M 1 |y y y) Pr(M 2 |y y y) = Z 1 Z 2 P(M 1 ) P(M 2 ) = B 12 P(M 1 ) P(M 2 ) ,<label>(17)</label></formula><p>where P(M 1 ) and P(M 2 ) are the prior model probabilities and B 12 is called the Bayes factor, the ratio of the model evidences. Given a set of models, the posterior model probabilities can be calculated from the posterior odds as</p><formula xml:id="formula_17">P(M i |y y y) = O i1 ∑ n 1 O i1 ,<label>(18)</label></formula><p>but model comparison is usually carried out based on odds or log-odds. If the models have equal prior probabilities, the prior ratio equals to unity, and the model comparison can be done purely based on the Bayes factors. <ref type="bibr" target="#b41">Kass and Raftery (1995)</ref> provide general guidelines for interpreting Bayes factors or odds ratios, reproduced in <ref type="table" target="#tab_1">Table 1</ref>. The limits are somewhat arbitrary, and should not be taken as hard rules. Bayesian evidence can be very sensitive on the choice of priors, and sensitivity analysis should be carried out as a standard part of the analysis.</p><p>Methods for evidence estimation start from simple approaches that can work with low-dimensional models, such as direct Monte Carlo integration; to slightly more involved, such as different importance sampling approaches; to complicated, such as the more advanced nested sampling approaches, bridge and path sampling, and Bayesian quadrature. The methods are too numerous and intricate to be presented here, but are thoroughly reviewed by <ref type="bibr" target="#b17">Clyde et al. (2007)</ref>, <ref type="bibr" target="#b25">Ford et al. (2007)</ref>, and Robert (2007, Sect. 7).</p><p>Nested sampling <ref type="bibr" target="#b63">(Skilling 2004</ref><ref type="bibr" target="#b64">(Skilling , 2006</ref>; Chopin and Robert 2010) has gained popularity in astrophysics. The method provides both an evidence estimate and a sample from the posterior, and has publicly available implementations that can efficiently sample posteriors with multiple modes <ref type="bibr" target="#b21">(Feroz et al. 2009</ref><ref type="bibr" target="#b22">(Feroz et al. , 2013</ref> and phase transitions <ref type="bibr" target="#b4">(Brewer 2014</ref>). The software packages are listed in Sect. .</p><p>Finally, Bayesian quadrature <ref type="bibr" target="#b54">(Rasmussen and Ghahramani 2002;</ref><ref type="bibr" target="#b51">Osborne et al. 2012;</ref><ref type="bibr" target="#b36">Gunter et al. 2014;</ref><ref type="bibr" target="#b38">Hennig et al. 2015</ref>) offers an integration approach that can be useful with relatively low-dimensional problems where the posterior evaluation is computationally expensive. Bayesian quadrature approximates the posterior density as a Gaussian process, which can be integrated analytically, and allows for intelligent sampling.</p><p>As a final note, the Bayesian community is somewhat divided what comes to model comparison and the use of Bayesian evidence. Model comparison problems can often be transformed into parameter estimation problems, in which case a parameter estimation approach can advisable <ref type="bibr" target="#b30">(Gelman et al. 2013</ref>, Sect. 7.4).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Practical issues in exoplanet research</head><p>While the theory behind Bayesian inference is straightforward, obtaining a reliable posterior estimate can be tricky in practise. MCMC samplers can fail to properly sample multimodal posteriors, and the samplers can be inefficient if any of the parameters are strongly correlated. The optimal parametrisation for RV and transit modelling, and how to deal with the stellar limb darkening in transit modelling, are especially important practical issues in exoplanet research, and we briefly outline the current best practices below.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Multimodal posteriors</head><p>Multimodal posteriors are rare in transit light curve modelling (indeed, a multimodal posterior in transit analysis most often means that there is a problem in the code or the data), but quite common in radial velocity planet searches.</p><p>The main issue with multimodal posteriors is that an MCMC sampler can fail to travel through the valleys between the modes, and get stuck to sample the local mode nearest to where the chain was started from. In this case, the multimodality might not be visible from the posterior estimate at all, and we might end up with an overly simplistic picture of the posterior space. This can be alleviated by</p><p>• starting multiple chains from random locations in the parameter space (for example, drawing the starting locations from the prior), • starting multiple chains close to the posterior maxima obtained using a global optimiser, • starting multiple chains close to the maxima estimated using local optimiser started from different points in the parameter space, • or using an MCMC approach designed to sample multimodal distributions efficiently (such as parallel tempering MCMC).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Parametrisation in transit and RV modelling</head><p>Basic MCMC algorithms, such as Metropolis-Hastings, are most efficient sampling approximately multivariate normal posteriors with minimal correlation between parameters (this is because the proposal distribution is usually multivariate normal). Inefficient sampling shows as a long autocorrelation time, and means that a long chain is required to obtain a representative posterior sample. It generally makes sense to carry out the sampling with a parameter set that aims to minimise mutual correlations (sampling parametrisation), which is then mapped to the native model parametrisation.</p><p>Priors must be considered when deciding the sampling parameters. A weakly informative (noninformative) prior on a sampling parameter will not be a weakly informative prior on the model parameter if the mapping from one to another involves nonlinear transformations ( <ref type="bibr" target="#b6">Burke et al. 2007</ref>, see the appendix). For example, a uniform prior on planet-star area ratio, d = k 2 , where k is the planet-star radius ratio, does not lead to a uniform prior on the radius ratio. While this is not a significant issue with parameters strongly constrained by the likelihood, it may lead to biases for parameters for which the observations do not yield a lot of information (that is, when the prior dominates the posterior). If one desires to set a weakly informative prior on a model parameter that is mapped from the sampling parametrisation through a nonlinear transformation, one needs to calculate the Jacobian of the transformation.</p><p>Ford <ref type="formula" target="#formula_1">(2006)</ref>; <ref type="bibr" target="#b8">Carter et al. (2008)</ref>; Kipping (2010) (among others) have investigated how the sampling parameter set affects the efficiency of basic MCMC routines in the RV and transit light curve modelling. A transit model can be generally defined using from 7 to 11 parameters, and an RV model with five parameters. Typical "physical" model parametrisations are Transit model: 1) zero epoch; 2) orbital period; 3) orbital inclination; 4) semimajor axis; 5) eccentricity; 6) argument of periastron; 7) planet-star radius ratio; and 8) n limb darkening coefficients, depending on the limb darkening model Radial velocity model: 1) zero epoch; 2) orbital period; 3) eccentricity; 4) argument of periastron; and 5) M sin i but the optimal sampling parametrisation depends on the purpose of the analysis. Below we consider generic transit or RV modelling, but, for example, RV planet searches can benefit from using log p as a sampling parameter, where p is the orbital period, instead of p.</p><p>Inclination and impact parameter In transit light curve modelling, orbital inclination i can be substituted by the impact parameter b. The mapping is</p><formula xml:id="formula_18">b = a s cos i 1 − e 2 1 + e sin ω , i = arccos b a s 1 + e sin ω 1 − e 2 ,<label>(19)</label></formula><p>where a s = a/R , that is, the semi-major axis divided by the stellar radius, e is the eccentricity and ω the argument of periastron. The eccentricity-dependent term in square brackets equals to unity for circular orbits, and can be ignored for small e.</p><p>The impact parameter is bounded by [0, 1 + k] for a transiting planet, where k is the planet-star radius ratio.</p><p>Semi-major axis and stellar density The scaled semi-major axis, a s , can be replaced by transit duration (Kipping 2010) or stellar density, ρ . The latter is practical since information from stellar characterisation can be used to create physicallybased informative priors on stellar density, and the estimated stellar density can be used in planet candidate validation <ref type="bibr" target="#b59">(Seager and Mallen-Ornelas 2003;</ref><ref type="bibr" target="#b65">Tingley et al. 2011;</ref><ref type="bibr" target="#b44">Kipping 2014</ref>). The mapping can be derived from the Kepler's third law, and is</p><formula xml:id="formula_19">a s = Gρ p 2 3π 1/3 , ρ = 3πa 3 s Gp 2 (20)</formula><p>where G is the gravitational constant, p is the period, and ρ is the stellar density (all in SI units).</p><p>Eccentricity and argument of periastron Direct sampling in eccentricity, e, and argument of periastron, ω, can be inefficient with most MCMC samplers. The argument of periastron is not well constrained for low-eccentricity orbits, and it can have a bimodal posterior if modelling only photometry without RV observations (such as when modelling light curves observed over the whole orbital phase, where the phase curve and secondary eclipse yield information about e and ω).</p><p>Ford <ref type="formula" target="#formula_1">(2005)</ref> suggested using e cos ω and e sin ω as an efficient sampling parametrisation, but noted later that setting an uniform prior on the parameters would set a non-uniform prior on the eccentricity, leading to biased eccentricity estimates <ref type="bibr" target="#b24">(Ford 2006</ref> </p><formula xml:id="formula_20">a = √ e cos ω, b = √ e sin ω,<label>(21)</label></formula><p>which can be mapped to e and ω as</p><formula xml:id="formula_21">e = a 2 + b 2 , ω = arctan(b, a).<label>(22)</label></formula><p>This parametrisation ensures that an uniform prior on a and b leads to an uniform prior on the eccentricity.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Stellar limb darkening in transit modelling</head><p>Stellar limb darkening (LD) is a significant source of uncertainty in transit modelling. The transit codes represent the stellar limb darkening profile as a linear combination of basis functions <ref type="bibr" target="#b48">(Mandel and Agol 2002;</ref><ref type="bibr" target="#b32">Giménez 2006</ref>). The coefficients of these functions (limb darkening coefficients, LDC) are mutually correlated and degenerate with the planet-star radius ratio and impact parameter. That is, a wide combination of LDC values, radius ratios and impact parameters may explain the observations equally well.</p><p>Several approaches have been used in attempt to overcome the degeneracies: the LDC can be fixed to theoretical values, they can be left completely unconstrained in order to marginalise over the whole LDC space allowed by the data, or they can be constrained with informative priors based on theoretical models.</p><p>Fixed limb darkening coefficients In the early phases of transiting exoplanet research, the limb darkening coefficients were usually fixed to values interpolated from limb darkening coefficient tables based on numerical stellar models, such as the tables by <ref type="bibr">Claret (2004)</ref>; <ref type="bibr" target="#b14">Claret and Bloemen (2011);</ref><ref type="bibr" target="#b15">Claret et al. (2012</ref><ref type="bibr" target="#b16">Claret et al. ( , 2014</ref> and <ref type="bibr" target="#b61">Sing (2010)</ref>. This is an easy way to circumvent the complications due to limb darkening if the stellar models are reliable. However, if they are not (they were not, see <ref type="bibr">Claret 2008</ref><ref type="bibr">Claret , 2009</ref>, fixing the limb darkening coefficients leads to biased parameter estimates ( <ref type="bibr" target="#b18">Csizmadia et al. 2013</ref>; Espinoza and Jordan 2015, but see also <ref type="bibr">Müller et al. 2013</ref> for a counterargument).</p><p>The stellar models have improved during the last decade, and the current models can be considered more reliable than the ones compared by <ref type="bibr">Claret (2008</ref><ref type="bibr">Claret ( , 2009</ref>. However, the possible biases are not the only problem when fixing the LDCs. Even in the case of a perfect stellar model, we generally do not know the planet host star perfectly. Fixing the LDCs does not allow us to account for the uncertainties in the stellar parameters, which leads to underestimated uncertainties in the planet characterisation.</p><p>Thus, fixing the LDC cannot really be advocated in a Bayesian setting, since it can lead to biases and ignores the uncertainties in the stellar characterisation.</p><p>Unconstrained limb darkening coefficients A second approach is to leave limb darkening completely unconstrained, so that the radius ratio and impact parameter estimates are marginalised over the whole limb darkening parameter space allowed by the data. This is the best way to minimise the parameter estimate biases, but since the LD coefficients are mutually correlated, the approach can reduce the MCMC sampling efficiency.</p><p>Here again, the sampling efficiency can be improved by using a less correlated parametrisation. Using the quadratic limb darkening model as an example, linear combinations of the two coefficients have often been used as sampling parameters (e.g. <ref type="bibr" target="#b40">Holman et al. 2006;</ref>). Especially, a mapping proposed by <ref type="bibr" target="#b43">Kipping (2013)</ref> </p><formula xml:id="formula_22">u 1 = 2 √ q 1 q 2 , u 2 = √ q 1 (1 − 2q 2 ) ,<label>(23)</label></formula><formula xml:id="formula_23">q 1 = (u 1 + u 2 ) 2 , q 2 = u 1 2(u 1 + u 2 ) ,<label>(24)</label></formula><p>where u 1 and u 2 are the quadratic coefficients, and q 1 and q 2 are the sampling parameters, has proven practical. With most parametrisations, one needs to carry out separate tests to ensure that the coefficients yield physically viable limb darkening profiles, but this mapping allows one to use uniform priors from 0 to 1 on q 1 and q 2 to cover the whole physically viable (u 1 , u 2 )-space.</p><p>Kipping (2016) introduced a similar mapping for the three-parameter non-linear limb darkening model by <ref type="bibr" target="#b62">Sing et al. (2009)</ref>, and provides code implementing the mapping, its inverse, and the analytical criteria for the physical validity of the threeparameter LD model from https://github.com/davidkipping/LDC3.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Limb darkening coefficients constrained by model-based informative priors</head><p>The third approach is a compromise between the two extremes. The LD coefficients can be assigned informative priors based on stellar atmosphere models and the uncertainties in the host star characterisation. This approach allows one to use information from the models, but reduces biases and is less likely to seriously underestimate the parameter uncertainties. While the creation of priors is slightly more complicated than either of the two other approaches, tools exist to make the approach straightforward <ref type="bibr" target="#b52">(Parviainen and Aigrain 2015;</ref><ref type="bibr" target="#b20">Espinoza and Jordan 2015)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Tools for Bayesian inference</head><p>We finish the chapter with a list of some of the most matured tools for posterior estimation, nested sampling, and Gaussian processes that provide a PYTHON interface. (We constrain the discussion to PYTHON since it is currently the de facto programming language for astrophysics. All major programming languages have similar packages available.)</p><p>Posterior estimation Several generic packages exist for posterior estimation using MCMC sampling.</p><p>PYMC3 by <ref type="bibr" target="#b58">Salvatier et al. (2015)</ref>   <ref type="bibr" target="#b34">Goodman and Weare (2010)</ref>. The sampler is efficient in sampling correlated parameter spaces, and does not require the ability to calculate posterior derivatives, unlike many of the advanced MCMC samplers. The implementation also offers straightforward MPI parallelisation, which allows the sampling to be carried out efficiently in a cluster environment.</p><p>Nested sampling Of all the evidence estimation methods, nested sampling is currently the most popular (and accessible) one used in astrophysics. Nested sampling covers a variety of sampling methods, each with their advantages and disadvantages, and the research of new approaches is vibrant.</p><p>MULTINEST implements a nested sampling algorithm written in FORTRAN 90 that excels in sampling multimodal densities with strong degeneracies <ref type="bibr" target="#b21">(Feroz et al. 2009</ref><ref type="bibr" target="#b22">(Feroz et al. , 2013</ref>. MULTINEST draws samples from a constrained prior distribution approximated with ellipsoids, which makes it efficient for moderate dimensional problems (up to ∼40), but other approaches can work better for high-dimensional problems <ref type="bibr" target="#b5">(Brewer and Foreman-Mackey 2016</ref> Gaussian processes In their most basic form, Gaussian processes (GPs) can be implemented with 3-5 lines of PYTHON code using SCIPY's linear algebra module. However, more advanced functionality-such as the ability to construct complex kernels, combine kernels, and solve the GP with better than O(n 3 ) scaling-requires more involved approaches. Gaussian processes are widely used by the machine learning community, and are usually implemented in one form or another in various machine learning packages.</p><p>GEORGE is a Gaussian process framework that implements two GP solvers: a basic solver that uses SCIPY's Cholesky decomposition, and a HODLR solver implementing the <ref type="bibr" target="#b1">Ambikasaran et al. (2014)</ref> approach that scales as O(n log 2 n). The package has been used widely by the astrophysics community, and is available from https://github.com/dfm/george. CELERITE implements the O(n) GP solver described by <ref type="bibr" target="#b27">Foreman-Mackey et al. (2017)</ref>; Ambikasaran (2015). The approach is restricted to 1D processes where the covariance kernel is represented as a sum of complex expo-nentials, but is flexible enough to model a wide variety of astrophysical variability. The code with C++ and PYTHON interfaces is available from https://github.com/dfm/celerite, and a JULIA implementation can be found from https://github.com/ericagol/ celerite.jl. GEEPEA is a general GP package developed by Neale Gibson ( <ref type="bibr" target="#b31">Gibson et al. 2012,</ref> https://github.com/nealegibson/GeePea ). The package is lightweight and easily extensible, and has been widely used in exoplanet transmission spectroscopy. GPY is a Python GP framework developed by the Sheffield machine learning group. The package offers a wide variety of kernels, and is available from https://github.com/SheffieldML/GPy. GPFLOW is a GP package using TENSORFLOW ( <ref type="bibr" target="#b49">Matthews et al. 2016</ref>). The package has been developed following GPY, but uses the TENSORFLOW machine learning framework to allow for faster and bigger computations. The package can be found from https://github.com/GPflow/ GPflow. PYMC3 offers a lightweight but versatile GP framework with a set of basic covariance functions, and provides tools to modify the covariance matrix directly.</p><p>SCIKIT-LEARN is a multi-purpose machine learning package that includes Gaussian processes. The package is available from https://github.com/ scikit-learn/scikit-learn.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Literature and resources</head><p>Bayesian inference is a wide-ranging topic with books devoted to various subfields. This chapter has scratched the surface in the hope this will allow the reader to understand the basic concepts commonly encountered in Exoplanet research, but has not tried to delve into any of the more advanced topics, such as hierarchical modelling. However, in order to apply Bayesian methods in research, one should read at least one of the entry-level books dedicated to Bayesian inference</p><p>• Gregory (2005) covers the basics of Bayesian inference in an astrophysical context, with several exoplanet-related examples.</p><p>• <ref type="bibr" target="#b30">Gelman et al. (2013)</ref> offers an overarching treatise to Bayesian inference, starting from the basics, but also covering a wide variety of advanced topics.</p><p>• Robert (2007) offers an in-depth look into Bayesian inference from the perspective of decision theory.</p><p>• MacKay (2003) covers Bayesian inference (amongst other topics) from the perspective of information theory.</p><p>Numerical methods improve continuously, and the landscape of generally accessible computational tools changes quickly. Internet is an important source of up-to-date information. Websites, such as Cross validated https://stats. stackexchange.com (choose tag "bayesian"), offer a way to connect researches not specialised to statistics with specialists, and statistics blogs, such as http: //andrewgelman.com and https://xianblog.wordpress.com, can help to keep one up-to-date with current developments in the field.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" validated="false"><head></head><label></label><figDesc>2. Test the sampler by simulating a set of short chains and check the acceptance rate and parameter autocorrelation lengths. See if the sampler has parameters that can be tuned to improve the sampling, or try to reparametrise the problem if the sampler is not able to explore the posterior properly. Modern MCMC packages also often offer an automatic tuning functionality, which aims to optimise the sampling. 3. Run multiple chains starting from different locations in the parameter space. Sim- ulating multiple chains allows one to test for chain convergence, and can reveal posterior multimodality. 4. Test for chain convergence using numerical convergence tests.</figDesc><table>Most MCMC 
+packages implement several convergence tests. If the chains have not converged, 
+continue sampling. 
+5. Inspect the chains and parameter posteriors visually. This may not always be 
+practical, e.g., if the MCMC simulations need to be repeated for many targets, 
+but visual inspection may give useful insight about the convergence, sampling, 
+and warm-up phase. 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" validated="true"><head>Table 1 Guidelines for interpreting Bayes factors, as presented by Kass and Raftery (1995).</head><label>1</label><figDesc></figDesc><table>2 ln B 10 
+B 10 
+Evidence against H 0 
+
+0 to 2 
+1 to 3 
+Not worth more than a bare mention 
+2 to 6 
+3 to 20 
+Positive 
+6 to 10 
+20 to 150 
+Strong 
+&gt; 10 
+&gt; 150 
+Very strong 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" validated="false"><head></head><label></label><figDesc>). Anderson et al. (2011) improved the parametrisation slightly into</figDesc><table></table></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">Generalized Rybicki Press algorithm</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Ambikasaran</surname></persName>
+		</author>
+		<idno type="doi">10.1002/nla.2003</idno>
+		<ptr target="http://doi.wiley.com/10.1002/nla.2003" />
+	</analytic>
+	<monogr>
+		<title level="j">Numerical Linear Algebra with Applications</title>
+		<imprint>
+			<biblScope unit="volume">22</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<biblScope unit="page" from="1102" to="1114" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Ambikasaran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Greengard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>O&amp;apos;neil</surname></persName>
+		</author>
+		<ptr target="http://arxiv.org/abs/1403.6015" />
+		<title level="m">Fast Direct Methods for Gaussian Processes and the Analysis of NASA Kepler Mission Data URL</title>
+		<imprint>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">WASP-30b: A 61 M Jup BROWN DWARF TRANSITING A V = 12, F8 STAR</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">R</forename><surname>Anderson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Collier</forename><surname>Cameron</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Hellier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename></persName>
+		</author>
+		<ptr target="http://adsabs.harvard.edu/abs/2011ApJ...726L..19A" />
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">726</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page">19</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<monogr>
+		<title level="m" type="main">The Convergence of Markov chain Monte Carlo Methods: From the Metropolis method to Hamiltonian Monte Carlo URL</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Betancourt</surname></persName>
+		</author>
+		<ptr target="http://arxiv.org/abs/1706.01520" />
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<monogr>
+		<title level="m" type="main">Inference for Trans-dimensional Bayesian Models with Diffusive Nested Sampling URL</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">J</forename><surname>Brewer</surname></persName>
+		</author>
+		<ptr target="http://arxiv.org/abs/1411.3921" />
+		<imprint>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Brewer Bj Foreman-Mackey</surname></persName>
+		</author>
+		<ptr target="http://arxiv.org/abs/1606.03757" />
+		<title level="m">DNest4: Diffusive Nested Sampling in C++ and Python URL</title>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">XO2b: Transiting Hot Jupiter in a Metalrich Common Proper Motion Binary</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">J</forename><surname>Burke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">R</forename><surname>Mccullough</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Valenti</forename><surname>Ja</surname></persName>
+		</author>
+		<ptr target="http://stacks.iop.org/0004-637X/671/i=2/a=2115" />
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">671</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="2115" to="2128" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">PARAMETER ESTIMATION FROM TIME-SERIES DATA WITH CORRELATED ERRORS: A WAVELET-BASED METHOD AND ITS APPLICATION TO TRANSIT LIGHT CURVES</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Carter Ja</forename><surname>Winn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">N</forename></persName>
+		</author>
+		<ptr target="http://stacks.iop.org/0004-637X/704/i=1/a=51?key=crossref.38a235bbafd054bbdf05d00d5c364393" />
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">704</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="51" to="67" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">Analytic Approximations for Transit LightCurve Observables, Uncertainties, and Covariances</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Carter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">C</forename><surname>Yee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Eastman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">S</forename><surname>Gaudi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">N</forename><surname>Winn</surname></persName>
+		</author>
+		<ptr target="http://adsabs.harvard.edu/abs/2008ApJ...689..499C" />
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">689</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="499" to="512" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">NEAR-INFRARED TRANSIT PHOTOME-TRY OF THE EXOPLANET HD 149026b</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Carter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">N</forename><surname>Winn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Gilliland R Holman</surname></persName>
+		</author>
+		<ptr target="http://arxiv.org/abs/0902.1542" />
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">696</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="241" to="253" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">Properties of nested sampling</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">P</forename><surname>Chopin N Robert</surname></persName>
+		</author>
+		<idno type="doi">10.1093/biomet/asq021</idno>
+		<ptr target="http://biomet.oxfordjournals.org/cgi/doi/10.1093/biomet/asq021" />
+	</analytic>
+	<monogr>
+		<title level="j">Biometrika</title>
+		<imprint>
+			<biblScope unit="volume">97</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="741" to="755" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">A new non-linear limb-darkening law for LTE stellar atmosphere models. III-Sloan filters: Calculations for-5. 0 not more than log not more than+ 1, 2000 K not</title>
+		<ptr target="http://www.csa.com/partners/viewrecord.php?requester=gs&amp;collection=TRD&amp;recid=2005091623165SO" />
+	</analytic>
+	<monogr>
+		<title level="j">Claret A</title>
+		<imprint>
+			<biblScope unit="volume">1005</biblScope>
+			<biblScope unit="page" from="1001" to="1005" />
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+	<note>A&amp;A</note>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">Testing the limb-darkening coefficients measured from eclipsing binaries</title>
+		<idno type="doi">10.1051/0004-6361:200809370</idno>
+		<ptr target="http://www.aanda.org/10.1051/0004-6361:200809370" />
+	</analytic>
+	<monogr>
+		<title level="j">Claret A</title>
+		<imprint>
+			<biblScope unit="volume">482</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="259" to="266" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+	<note>A&amp;A</note>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">Does the HD 209458 planetary system pose a challenge to the stellar atmosphere models?</title>
+		<idno type="doi">10.1051/0004-6361/200912423</idno>
+		<ptr target="http://www.aanda.org/10.1051/0004-6361/200912423" />
+	</analytic>
+	<monogr>
+		<title level="j">Claret A</title>
+		<imprint>
+			<biblScope unit="volume">506</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="1335" to="1340" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+	<note>A&amp;A</note>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Gravity and limb-darkening coefficients for the Kepler</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Claret A Bloemen S ; Corot</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Spitzer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ubvrijhk</forename><surname>Uvby</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Sloan</forename><surname>Systems</surname></persName>
+		</author>
+		<idno type="doi">10.1051/0004-6361/201116451</idno>
+		<ptr target="http://www.aanda.org/10.1051/0004-6361/201116451" />
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">529</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">New limb-darkening coefficients for PHOENIX/1D model atmospheres</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Claret</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">H</forename><surname>Hauschildt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Witte</surname></persName>
+		</author>
+		<idno type="doi">10.1051/0004-6361/201219849</idno>
+		<ptr target="http://www.aanda.org/10.1051/0004-6361/201219849" />
+	</analytic>
+	<monogr>
+		<title level="j">Astronomy &amp; Astrophysics</title>
+		<imprint>
+			<biblScope unit="volume">546</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Theoretical gravity and limb-darkening coefficients for the MOST satellite photometric system</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Claret</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Dragomir</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Matthews</surname></persName>
+		</author>
+		<ptr target="http://www.aanda.org/articles/aa/full_html/2014/07/aa23515-14/aa23515-14.html" />
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">567</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Current Challenges in Bayesian Model Choice</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Clyde</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">O</forename><surname>Berger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Bullard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Statistical Challenges in Modern Astronomy IV</title>
+		<imprint>
+			<date type="published" when="2007" />
+			<biblScope unit="volume">371</biblScope>
+			<biblScope unit="page" from="224" to="240" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">The effect of stellar limb darkening values on the accuracy of the planet radii derived from photometric transit observations</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Csizmadia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Pasternacki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Dreyer</surname></persName>
+		</author>
+		<idno type="doi">10.1051/0004-6361/201219888</idno>
+		<ptr target="http://www.aanda.org/10.1051/0004-6361/201219888" />
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">549</biblScope>
+			<biblScope unit="page">9</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Czekala</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">S</forename><surname>Mandel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">M</forename><surname>Andrews</surname></persName>
+		</author>
+		<ptr target="http://arxiv.org/abs/1702.05652" />
+		<title level="m">Disentangling Time Series Spectra with Gaussian Processes: Applications to Radial Velocity Analysis URL</title>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Limb darkening and exoplanets: testing stellar model atmospheres and identifying biases in transit parameters</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Espinoza N Jordan</surname></persName>
+		</author>
+		<idno type="doi">10.1093/mnras/stv744</idno>
+		<ptr target="http://mnras.oxfordjournals.org/cgi/doi/10.1093/mnras/stv744" />
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">450</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="1879" to="1899" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">MultiNest: an efficient and robust Bayesian inference tool for cosmology and particle physics</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Feroz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">P</forename><surname>Hobson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Bridges</surname></persName>
+		</author>
+		<idno type="doi">10.1111/j.1365-2966.2009.14548.x</idno>
+		<ptr target="https://academic.oup.com/mnras/article-lookup/doi/10.1111/j.1365-2966.2009.14548.x" />
+	</analytic>
+	<monogr>
+		<title level="j">Monthly Notices of the Royal Astronomical Society</title>
+		<imprint>
+			<biblScope unit="volume">398</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="1601" to="1614" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Feroz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">P</forename><surname>Hobson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Cameron</forename><forename type="middle">E</forename><surname>Pettitt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">N</forename></persName>
+		</author>
+		<ptr target="http://arxiv.org/abs/1306.2144" />
+		<title level="m">Importance Nested Sampling and the MultiNest Algorithm pp 1-28</title>
+		<imprint>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">Quantifying the Uncertainty in the Orbits of Extrasolar Planets</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Ford</surname></persName>
+		</author>
+		<ptr target="http://stacks.iop.org/1538-3881/129/i=3/a=1706" />
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">129</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="1706" to="1717" />
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Improving the Efficiency of Markov Chain Monte Carlo for Analyzing the Orbits of Extrasolar Planets</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Ford</surname></persName>
+		</author>
+		<ptr target="http://stacks.iop.org/0004-637X/642/i=1/a=505" />
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">642</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="505" to="522" />
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">Bayesian Model Selection and Extrasolar Planet Detection</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Ford</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Street</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">C</forename><surname>Gregory</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">STATISTICAL CHALLENGES IN MODERN ASTRONOMY IV</title>
+		<imprint>
+			<date type="published" when="2007" />
+			<biblScope unit="volume">371</biblScope>
+			<biblScope unit="page" from="189" to="205" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">emcee : The MCMC Hammer</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Lang D Goodman</surname></persName>
+		</author>
+		<idno type="doi">10.1086/670067</idno>
+		<ptr target="http://arxiv.org/abs/1202.3665http://www.jstor.org/stable/info/10.1086/670067" />
+	</analytic>
+	<monogr>
+		<title level="j">Publications of the Astronomical Society of the Pacific</title>
+		<imprint>
+			<biblScope unit="volume">125</biblScope>
+			<biblScope unit="issue">925</biblScope>
+			<biblScope unit="page" from="306" to="312" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<monogr>
+		<title level="m" type="main">Fast and scalable Gaussian process modeling with applications to astronomical time series</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Angus R Ambikasaran</surname></persName>
+		</author>
+		<ptr target="http://arxiv.org/abs/1703.09710" />
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">Inference from iterative simulation using multiple sequences</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Gelman A Rubin</surname></persName>
+		</author>
+		<ptr target="http://www.jstor.org/stable/2246093" />
+	</analytic>
+	<monogr>
+		<title level="j">Statistical science</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page">457472</biblScope>
+			<date type="published" when="1992" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gelman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">R</forename><surname>Gilks</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Efficient Metropolis Jumping Rules. Bayesian statistics</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="page" from="599" to="607" />
+			<date type="published" when="1996" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<monogr>
+		<title level="m" type="main">Bayesian Data Analysis, Third Edition</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gelman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Carlin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">S</forename><surname>Stern</surname></persName>
+		</author>
+		<ptr target="https://books.google.com.pa/books?id=eSHSBQAAQBAJ" />
+		<imprint>
+			<date type="published" when="2013" />
+			<publisher>CRC Press</publisher>
+		</imprint>
+	</monogr>
+	<note>3rd edn</note>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title level="a" type="main">A Gaussian process framework for modelling instrumental systematics: application to transmission spectroscopy</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Gibson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Roberts</surname></persName>
+		</author>
+		<idno type="doi">10.1111/j.1365-2966.2011.19915.xhttp://mnras.oxfordjournals.org/cgi/doi/10.1111/j.1365-2966.2011.19915.x</idno>
+		<ptr target="http://doi.wiley.com/10.1111/j.1365-2966.2011.19915.xhttp://mnras.oxfordjournals.org/cgi/doi/10.1111/j.1365-2966.2011.19915.x" />
+	</analytic>
+	<monogr>
+		<title level="j">Monthly Notices of the Royal Astronomical Society</title>
+		<imprint>
+			<biblScope unit="volume">419</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="2683" to="2694" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">Equations for the analysis of the light curves of extra-solar planetary transits</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Giménez</surname></persName>
+		</author>
+		<ptr target="http://adsabs.harvard.edu/abs/2006A&amp;A...450.1231G" />
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">450</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="1231" to="1237" />
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<monogr>
+		<title level="m" type="main">Hannu Parviainen</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title level="a" type="main">Ensemble samplers with affine invariance</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Goodman J Weare</surname></persName>
+		</author>
+		<ptr target="http://pjm.math.berkeley.edu/camcos/2010/5-1/p04.xhtml" />
+	</analytic>
+	<monogr>
+		<title level="j">Communications in Applied Mathematics and Computational Science</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="65" to="80" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<monogr>
+		<title level="m" type="main">Bayesian Logical Data Analysis for the Physical Sciences</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">C</forename><surname>Gregory</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2005" />
+			<publisher>Cambridge University Press</publisher>
+			<pubPlace>Cambridge</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title level="a" type="main">Sampling for Inference in Probabilistic Models with Fast Bayesian Quadrature</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Gunter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Osborne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Garnett</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Hennig</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Roberts</surname></persName>
+		</author>
+		<ptr target="http://papers.nips.cc/paper/5483-sampling-for-inference-in-probabilistic-models-with-fast-bayesian-quadrature" />
+	</analytic>
+	<monogr>
+		<title level="m">Advances in Neural Information Processing Systems pp</title>
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="page" from="2789" to="2797" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title level="a" type="main">Monte Carlo sampling methods using Markov chains and their applications</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">K</forename><surname>Hastings</surname></persName>
+		</author>
+		<idno type="doi">10.1093/biomet/57.1.97</idno>
+		<ptr target="http://biomet.oxfordjournals.org/content/57/1/97.abstracthttps://academic.oup.com/biomet/article-lookup/doi/10.1093/biomet/57.1.97" />
+	</analytic>
+	<monogr>
+		<title level="j">Biometrika</title>
+		<imprint>
+			<biblScope unit="volume">57</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="97" to="109" />
+			<date type="published" when="1970" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title level="a" type="main">Probabilistic numerics and uncertainty in computations</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Hennig</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Osborne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Girolami</surname></persName>
+		</author>
+		<ptr target="http://rspa.royalsocietypublishing.org/content/471/2179/20150142" />
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings Mathematical, physical, and engineering sciences / the Royal Society</title>
+		<imprint>
+			<biblScope unit="volume">471</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<monogr>
+		<title level="m" type="main">The No-U-Turn Sampler: Adaptively Setting Path Lengths in Hamiltonian Monte Carlo</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Hoffman Md Gelman</surname></persName>
+		</author>
+		<ptr target="http://arxiv.org/abs/1111.4246" />
+		<imprint>
+			<date type="published" when="2008" />
+			<biblScope unit="volume">30</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title level="a" type="main">The Transit Light Curve Project. I. Four Consecutive Transits of the Exoplanet XO1b</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Holman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">N</forename><surname>Winn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Latham</surname></persName>
+		</author>
+		<ptr target="http://stacks.iop.org/0004-637X/652/i=2/a=1715" />
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">652</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="1715" to="1723" />
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title level="a" type="main">Bayes factors</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Kass</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">E</forename><surname>Raftery</surname></persName>
+		</author>
+		<idno type="doi">10.2307/2291091</idno>
+		<ptr target="http://www.jstor.org/stable/10.2307/2291091" />
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the american statistical association</title>
+		<imprint>
+			<biblScope unit="volume">90</biblScope>
+			<biblScope unit="issue">430</biblScope>
+			<biblScope unit="page" from="773" to="795" />
+			<date type="published" when="1995" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title level="a" type="main">Investigations of approximate expressions for the transit duration</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Kipping</surname></persName>
+		</author>
+		<ptr target="http://arxiv.org/abs/1004.3819" />
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">407</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="301" to="313" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title level="a" type="main">Efficient, uninformative sampling of limb darkening coefficients for two-parameter laws</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Kipping</surname></persName>
+		</author>
+		<idno type="doi">10.1093/mnras/stt1435http://arxiv.org/abs/1308.0009</idno>
+		<ptr target="http://mnras.oxfordjournals.org/cgi/doi/10.1093/mnras/stt1435http://arxiv.org/abs/1308.0009" />
+	</analytic>
+	<monogr>
+		<title level="j">Monthly Notices of the Royal Astronomical Society</title>
+		<imprint>
+			<biblScope unit="volume">435</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="2152" to="2160" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title level="a" type="main">Characterizing distant worlds with asterodensity profiling</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Kipping</surname></persName>
+		</author>
+		<idno type="doi">10.1093/mnras/stu318https://academic.oup.com/mnras/article-lookup/doi/10.1093/mnras/stu318</idno>
+		<ptr target="http://arxiv.org/abs/1311.1170http://dx.doi.org/10.1093/mnras/stu318https://academic.oup.com/mnras/article-lookup/doi/10.1093/mnras/stu318" />
+	</analytic>
+	<monogr>
+		<title level="j">Monthly Notices of the Royal Astronomical Society</title>
+		<imprint>
+			<biblScope unit="volume">440</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="2164" to="2184" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title level="a" type="main">Efficient, uninformative sampling of limb-darkening coefficients for a three-parameter law</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Kipping</surname></persName>
+		</author>
+		<idno type="doi">10.1093/mnras/stv2379</idno>
+		<ptr target="https://academic.oup.com/mnras/article-lookup/doi/10.1093/mnras/stv2379" />
+	</analytic>
+	<monogr>
+		<title level="j">Monthly Notices of the Royal Astronomical Society</title>
+		<imprint>
+			<biblScope unit="volume">455</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="1680" to="1690" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title level="a" type="main">On thinning of chains in MCMC</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Link Wa Eaton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Methods in Ecology and Evolution</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="112" to="115" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J</forename><surname>Mackay</surname></persName>
+		</author>
+		<idno type="doi">DOI10.1017/S026357470426043X</idno>
+		<ptr target="http://www.cambridge.org/0521642981http://www.inference.phy.cam.ac.uk/mackay/itila/http://www.journals.cambridge.org/abstract_S026357470426043Xhttp://www.ncbi.nlm.nih.gov/pubmed/13217055" />
+		<title level="m">Information Theory, Inference, and Learning Algorithms</title>
+		<imprint>
+			<publisher>Cambridge University Press</publisher>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+	<note>7th edn</note>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title level="a" type="main">Analytic Light Curves for Planetary Transit Searches</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Mandel</surname></persName>
+		</author>
+		<ptr target="http://adsabs.harvard.edu/abs/2002ApJ...580L.171M" />
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">580</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="171" to="175" />
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<monogr>
+		<title level="m" type="main">GPflow: A Gaussian process library using TensorFlow pp 1-6</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Matthews</forename><surname>Agdg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Van Der Wilk</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Nickson</surname></persName>
+		</author>
+		<ptr target="http://arxiv.org/abs/1610.08733" />
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<analytic>
+		<title level="a" type="main">High-precision stellar limbdarkening measurements</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">M</forename><surname>Müller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">F</forename><surname>Huber</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Czesla</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><surname>Wolter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jhmm</forename><surname>Schmitt</surname></persName>
+		</author>
+		<idno type="doi">10.1051/0004-6361/201322079</idno>
+		<ptr target="http://www.aanda.org/10.1051/0004-6361/201322079" />
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">560</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<analytic>
+		<title level="a" type="main">Bayesian Quadrature for Ratios</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Osborne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Garnett</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Roberts</surname></persName>
+		</author>
+		<ptr target="http://jmlr.csail.mit.edu/proceedings/papers/v22/osborne12.html" />
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the Fifteenth International Conference on Artificial Intelligence and Statistics</title>
+		<meeting>the Fifteenth International Conference on Artificial Intelligence and Statistics</meeting>
+		<imprint>
+			<date type="published" when="2012" />
+			<biblScope unit="volume">22</biblScope>
+			<biblScope unit="page" from="832" to="840" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b52">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Parviainen H Aigrain</surname></persName>
+		</author>
+		<idno type="doi">10.1093/mnras/stv1857http://mnras.oxfordjournals.org/lookup/doi/10.1093/mnras/stv1857</idno>
+		<ptr target="http://arxiv.org/abs/1508.02634http://dx.doi.org/10.1093/mnras/stv1857http://mnras.oxfordjournals.org/lookup/doi/10.1093/mnras/stv1857" />
+	</analytic>
+	<monogr>
+		<title level="m">ldtk: Limb Darkening Toolkit</title>
+		<imprint>
+			<date type="published" when="2015" />
+			<biblScope unit="volume">453</biblScope>
+			<biblScope unit="page" from="3821" to="3826" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b53">
+	<analytic>
+		<title level="a" type="main">A Gaussian process framework for modelling stellar activity signals in radial velocity data</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Rajpaul</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Osborne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Reece</forename><forename type="middle">S</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Monthly Notices of the Royal Astronomical Society</title>
+		<imprint>
+			<biblScope unit="volume">452</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="2269" to="2291" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b54">
+	<analytic>
+		<title level="a" type="main">Bayesian monte carlo</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Rasmussen Ce Ghahramani</surname></persName>
+		</author>
+		<ptr target="http://machinelearning.wustl.edu/mlpapers/paper_files/AA01.pdf" />
+	</analytic>
+	<monogr>
+		<title level="j">Advances in neural</title>
+		<imprint>
+			<biblScope unit="issue">1</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b55">
+	<monogr>
+		<title level="m" type="main">Gaussian processes for machine learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">E</forename><surname>Rasmussen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Williams</surname></persName>
+		</author>
+		<ptr target="http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.86.3414" />
+		<imprint>
+			<date type="published" when="2006" />
+			<publisher>The MIT Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b56">
+	<analytic>
+		<title level="a" type="main">Weak convergence and optimal scaling of random walk Metropolis algorithms</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">P</forename><surname>Robert</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Annals of Applied Probability</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="110" to="120" />
+			<date type="published" when="1997" />
+			<publisher>Springer</publisher>
+		</imprint>
+	</monogr>
+	<note>Gelman A Gilks WR</note>
+</biblStruct>
+
+<biblStruct xml:id="b57">
+	<analytic>
+		<title level="a" type="main">Gaussian processes for time-series modelling</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Osborne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Ebden</surname></persName>
+		</author>
+		<ptr target="http://www.ncbi.nlm.nih.gov/pubmed/23277607" />
+	</analytic>
+	<monogr>
+		<title level="j">Philosophical transactions Series A, Mathematical, physical, and engineering sciences</title>
+		<imprint>
+			<biblScope unit="volume">371</biblScope>
+			<date type="published" when="1984" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b58">
+	<monogr>
+		<title level="m" type="main">Probabilistic Programming in Python using PyMC</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Salvatier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Wiecki T Fonnesbeck</surname></persName>
+		</author>
+		<ptr target="http://arxiv.org/abs/1507.08050" />
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+<note type="report_type">Arxiv pp 1-24</note>
+</biblStruct>
+
+<biblStruct xml:id="b59">
+	<analytic>
+		<title level="a" type="main">A Unique Solution of Planet and Star Parameters from an Extrasolar Planet Transit Light Curve</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Seager S Mallen-Ornelas</surname></persName>
+		</author>
+		<ptr target="http://adsabs.harvard.edu/abs/2003ApJ...585.1038S" />
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">585</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="1038" to="1055" />
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b60">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Shah</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Wilson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Ghahramani</surname></persName>
+		</author>
+		<ptr target="http://arxiv.org/abs/1402.4306" />
+		<title level="m">Student-t Processes as Alternatives to Gaussian Processes</title>
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="volume">33</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b61">
+	<analytic>
+		<title level="a" type="main">Stellar limb-darkening coefficients for CoRot and Kepler</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">K</forename><surname>Sing</surname></persName>
+		</author>
+		<idno type="doi">10.1051/0004-6361/200913675</idno>
+		<ptr target="http://www.aanda.org/10.1051/0004-6361/200913675" />
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">510</biblScope>
+			<biblScope unit="page">21</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b62">
+	<analytic>
+		<title level="a" type="main">Transit spectrophotometry of the exoplanet HD 189733b</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">K</forename><surname>Sing</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Désert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Lecavelier Des Etangs</surname></persName>
+		</author>
+		<idno type="doi">10.1051/0004-6361/200912776</idno>
+		<ptr target="http://arxiv.org/abs/0907.4991v1%5Cnpapers3://publication/uuid/2E560D9E-CF3E-44A1-B205-25C2C919A5F8http://www.aanda.org/10.1051/0004-6361/200912776" />
+	</analytic>
+	<monogr>
+		<title level="j">Astronomy and Astrophysics</title>
+		<imprint>
+			<biblScope unit="volume">505</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="891" to="899" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b63">
+	<analytic>
+		<title level="a" type="main">Nested Sampling</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Skilling</surname></persName>
+		</author>
+		<ptr target="http://link.aip.org/link/?APC/735/395/1&amp;Agg=doi" />
+	</analytic>
+	<monogr>
+		<title level="j">AIP Conference Proceedings</title>
+		<imprint>
+			<biblScope unit="volume">735</biblScope>
+			<biblScope unit="page" from="395" to="405" />
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b64">
+	<analytic>
+		<title level="a" type="main">Nested sampling for general Bayesian computation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Skilling</surname></persName>
+		</author>
+		<ptr target="http://projecteuclid.org/euclid.ba/1340370944" />
+	</analytic>
+	<monogr>
+		<title level="m">ISBA 8th World Meeting on Bayesian Statistics</title>
+		<imprint>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b65">
+	<analytic>
+		<title level="a" type="main">USING STELLAR DENSITIES TO EVAL-UATE TRANSITING EXOPLANETARY CANDIDATES</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Tingley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">S</forename><surname>Bonomo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">J</forename><surname>Deeg</surname></persName>
+		</author>
+		<ptr target="http://stacks.iop.org/0004-637X/726/i=2/a=112?key=crossref.1f7718777e8ac3923c916ecf58d816a4" />
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">726</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page">112</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b66">
+	<monogr>
+		<title level="m" type="main">Edward: A library for probabilistic modeling, inference</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Tran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Kucukelbir</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">B</forename><surname>Dieng</surname></persName>
+		</author>
+		<ptr target="http://arxiv.org/abs/1610.09787" />
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

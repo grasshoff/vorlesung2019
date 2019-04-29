@@ -1,0 +1,1439 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-04T16:20+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">CONSTRUCTING A FLEXIBLE LIKELIHOOD FUNCTION FOR SPECTROSCOPIC INFERENCE</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2015-09-16">September 16, 2015 September 16, 2015</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ian</forename><surname>Czekala</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Sean</forename><forename type="middle">M</forename><surname>Andrews</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Kaisey</forename><forename type="middle">S</forename><surname>Mandel</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">David</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Gregory</forename><forename type="middle">M</forename><surname>Green</surname></persName>
+						</author>
+						<title level="a" type="main">CONSTRUCTING A FLEXIBLE LIKELIHOOD FUNCTION FOR SPECTROSCOPIC INFERENCE</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2015-09-16">September 16, 2015 September 16, 2015</date>
+						</imprint>
+					</monogr>
+					<note>Draft version Preprint typeset using L A T E X style emulateapj v. 5/2/11 Draft version</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>Subject headings: stars: fundamental parameters -techniques: spectroscopic -stars: late-type - stars: statistics -methods: data analysis -methods: statistical</keywords>
+			</textClass>
+			<abstract>
+				<p>We present a modular, extensible likelihood framework for spectroscopic inference based on synthetic model spectra. The subtraction of an imperfect model from a continuously sampled spectrum introduces covariance between adjacent datapoints (pixels) into the residual spectrum. For the high signal-to-noise data with large spectral range that is commonly employed in stellar astrophysics, that covariant structure can lead to dramatically underestimated parameter uncertainties (and, in some cases, biases). We construct a likelihood function that accounts for the structure of the covariance matrix, utilizing the machinery of Gaussian process kernels. This framework specifically address the common problem of mismatches in model spectral line strengths (with respect to data) due to intrinsic model imperfections (e.g., in the atomic/molecular databases or opacity prescriptions) by developing a novel local covariance kernel formalism that identifies and self-consistently downweights pathological spectral line &quot;outliers.&quot; By fitting many spectra in a hierarchical manner, these local kernels provide a mechanism to learn about and build data-driven corrections to synthetic spectral libraries. An open-source software implementation of this approach is available at http://iancze.github.io/Starfish, including a sophisticated probabilistic scheme for spectral interpolation when using model libraries that are sparsely sampled in the stellar parameters. We demonstrate some salient features of the framework by fitting the high resolution V-band spectrum of WASP-14, an F5 dwarf with a transiting exoplanet, and the moderate resolution K-band spectrum of Gliese 51, an M5 field dwarf.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">INTRODUCTION</head><p>All astronomers recognize that spectroscopy offers a wealth of information that can help characterize the properties of the observing target. In the context of stellar astrophysics, spectroscopy plays many fundamental roles. The relative strengths and widths of stellar absorption lines provide access to physical properties like effective temperature (T eff ) and surface gravity (log g), enabling model comparisons in the Hertzsprung-Russell diagram to estimate the masses and ages so crucial to understanding stellar evolution, as well as individual elemental abundances or the collective "metallicity" (typically parameterized as <ref type="bibr">[Fe/H]</ref>), facilitating studies of the chemical hallmarks of different stellar populations. With sufficient resolution, a spectrum also conveys information about rotation (v sin i) and kinematics (e.g., association with a cluster or companion through the radial velocity, v r ). While many fields benefit from such spectroscopic measurements, they are of acute interest to the exoplanet community. There, all estimates of the planet properties are made relative to the host properties (e.g., the mass function and planet-to-host radius ratio are constrained with the radial velocity or transit techniques, respectively). Moreover, essential clues to the planet formation process are encapsulated in the dependences of planet frequency on host mass (e.g., <ref type="bibr" target="#b30">Johnson et al. 2007;</ref><ref type="bibr" target="#b27">Howard et al. 2010</ref>) and metallicity (e.g., <ref type="bibr" target="#b17">Fischer &amp; Valenti 2005;</ref><ref type="bibr" target="#b9">Buchhave et al. 2014</ref>).</p><p>1 Harvard-Smithsonian Center for Astrophysics, 60 Garden Street, Cambridge, MA 02138; iczekala@cfa.harvard.edu <ref type="bibr">2</ref> Center for Cosmology and Particle Physics, Department of Physics, New York University, 4 Washington Place, New York, NY, 10003, USA</p><p>The robust and quantitative extraction of physical (or empirical) parameters from an observed spectrum can be an extraordinary challenge. Stellar models serve as comparative benchmarks to associate observed spectral features with the parameters of interest. Generating a synthetic model spectrum involves a complex numerical treatment of the stellar structure and radiative transfer through the atmosphere (e.g., <ref type="bibr" target="#b33">Kurucz 1993;</ref><ref type="bibr" target="#b11">Castelli &amp; Kurucz 2004;</ref><ref type="bibr" target="#b24">Hauschildt et al. 1999;</ref><ref type="bibr" target="#b28">Husser et al. 2013;</ref><ref type="bibr" target="#b37">Paxton et al. 2011</ref>). Detailed models calibrated to individual stars are important, but rare (e.g., the Sun, Vega); therefore, these stellar models are relatively untested in large swaths of parameter-space. Moreover, they necessarily include simplifications to treat complicated physical processes (e.g., convection) or computational limitations (e.g., boundary conditions), and often must rely on incomplete or inaccurate atomic and molecular information (e.g., opacities). In principle, the models could be improved with appropriate reference to spectroscopic data. Nevertheless, they are remarkably successful in reproducing many diagnostic spectral features.</p><p>There are various well-tested approaches being used in stellar astrophysics to compare these models with observed spectra and thereby infer basic parameters. Perhaps the most common is a straightforward empirical technique that relies on distilling an information-rich subset of the data, usually in the form of spectral line equivalent widths and/or local continuum shapes. A combined sequence of the ratios of these quantities can be especially sensitive to a given model parameter (e.g., <ref type="bibr">MOOG;</ref><ref type="bibr" target="#b48">Sneden 1973;</ref><ref type="bibr" target="#b20">Gray 1994;</ref><ref type="bibr" target="#b43">Reid et al. 1995;</ref><ref type="bibr" target="#b44">Rojas- Ayala et al. 2010</ref>. This "indexing" approach has the advantage of being trivially fast. But, each con-densed relationship is only informative over a limited swath of parameter-space, and it potentially masks degeneracies that are encoded in the spectral line shapes. Another standard approach exploits the cross-correlation of an observed spectrum with a suite of model templates to optimize a set of parameters, usually with some weighting applied to specific spectral regions (e.g., SPC; <ref type="bibr" target="#b8">Buchhave et al. 2012</ref>). In this case, the speed advantage is maintained (perhaps enhanced) and more data content is used (particularly in the spectral dimension), thereby achieving higher precision even for data with comparatively low signal-to-noise. The disadvantage is that the model quality and parameter inferences are assessed in a heuristic (rather than probabilistic) sense, making it difficult to quantify uncertainty in the stellar parameters. A more direct method employs a pixel-by-pixel comparison between model and data. This has the benefits of increased parametric flexibility (e.g., one can fit for arbitrary abundances or structures) and a proper inference framework (usually a least-squares approach, although increasingly in a Bayesian format; <ref type="bibr" target="#b47">Shkedy et al. 2007;</ref><ref type="bibr" target="#b46">Schönrich &amp; Bergemann 2014</ref>). Ultimately, rather than pre-computing a library of sythetic spectra, one would like to incorporate the spectral synthesis back-end (e.g., SME; <ref type="bibr" target="#b52">Valenti &amp; Piskunov 1996</ref>) directly into the likelihood function, bypassing any interpolation when assessing the fit of stellar parameters in-between grid points in the library. Unfortunately, this is not yet computationally feasible beyond a limited wavelength range.</p><p>In this article, we construct a flexible forward-modeling method for the general spectroscopic inference problem in a Bayesian framework, building on the best aspects of the latter two approaches highlighted above. The key developments in this design include a spectral emulator to address the difficult task of interpolation in coarsely sampled synthetic spectral libraries and a non-trivial covariance matrix parameterized by both global (stationary) and local (non-stationary) Gaussian process kernels. When combined with an appropriately sophisticated set of quantitative metrics for the relevant physical parameters, this method will efficiently propagate systematic uncertainties into the parameter inferences. Ultimately, this approach could be employed to leverage spectroscopic data as a reference for improving the models.</p><p>A complete overview of the methodology behind this approach is provided in Section 2. Some tests and example applications (for a high resolution optical spectrum of an F star, and a medium-resolution near-infrared spectrum of a mid-M star) are described in Section 3. Finally, a discussion of its potential utility, especially the possibility of extending it to develop data-driven spectral models, is provided in Section 4.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">METHODOLOGY</head><p>This section describes a generative Bayesian modeling framework that confronts some of the key technical obstacles in the spectroscopic inference problem. The goal is to conservatively extract the maximal amount of information about a prescribed (and usually degenerate) parameter set by forward-modeling an observed spectrum, while also recognizing and explicitly accounting for the covariances (and potentially biases) introduced by pathologically imperfect models. The method is modular, and therefore can easily incorporate additional physical or nuisance parameters as desired without sacrificing an accurate reflection of the limitations in the data. The specific applications discussed here are related to the spectra of individual stars, but the methodology is generic (and could be used for the composite spectra of unresolved stellar clusters, galaxies, etc.). <ref type="figure">Figure 1</ref> serves as a graphical guide to the mechanics of this modeling framework, and the remainder of this section. First, a model spectrum is generated for a given set of physical parameters (Section 2.1; Appendix A), and then post-processed to mimic reality using a set of observational and practical nuisance parameters (Section 2.2). Next, a direct, pixel-by-pixel comparison between the data and model spectra is made with a prescribed likelihood function and a parametric treatment of the covariances between pixel residuals (Section 2.3). That process is iterated using Markov Chain Monte Carlo (MCMC) simulations in a multi-stage Gibbs sampler to numerically explore the posterior probability density of the model conditioned on the data, and thereby to determine constraints on the parameters of interest (Section 2.5). Along the way, these procedures are illustrated with observations of the high resolution optical spectrum from a nearby F star. That specific application, along with some alternative demonstrations of the method, are discussed in more detail in Section 3.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">Generating a Model Spectrum</head><p>There are many approaches for generating a model spectrum, f λ , for a specific set of parameters, θ * = {T eff , log g, [Fe/H]}. In the most direct case of spectral synthesis, a model atmosphere structure is assembled and simulations of energy transport through it are conducted with a radiative transfer code (e.g., <ref type="bibr" target="#b33">Kurucz 1993;</ref><ref type="bibr" target="#b24">Hauschildt et al. 1999</ref>). However, in general this approach is often computationally prohibitive for most iterative methods of probabilistic inference. One partial compromise is to interpolate over a library of atmosphere structures that were pre-computed for a discrete set of parameter values, {θ * } grid , for some arbitrary θ * . Then, perform a radiative transfer calculation with that interpolated atmosphere to synthesize f λ (e.g., SME; <ref type="bibr" target="#b52">Valenti &amp; Piskunov 1996)</ref>. A more common variant is to interpolate over a pre-synthesized library of model spectra, f λ ({θ * } grid ) (e.g., <ref type="bibr" target="#b28">Husser et al. 2013;</ref><ref type="bibr" target="#b46">Schönrich &amp; Bergemann 2014)</ref>. Although the former approach is preferable, the computational cost of repeated spectral synthesis is enough to make a detailed exploration of parameter space less appealing (although see Section 4). Although the framework we are advocating is applicable for any "back-end" that generates a model spectrum, it is illustrated here using the latter approach with the <ref type="bibr">Husser et al. (2013) PHOENIX library.</ref> In practice, this reliance on spectral interpolation within a model library requires a sophisticated treatment of associated uncertainties. The key problems are that the spectra themselves do not vary in a straightforward way as a function of θ * (especially within spectral lines), and that the typical model library is only sparsely sampled in θ * . Because of these issues, standard interpolation methods necessarily result in some information loss. The practical consequence is that the inferred posteriors on the model parameters are often sharply peaked near a grid point in the library, {θ * } grid , potentially biasing the results and artificially shrinking the inferred parameter uncertainties (e.g., <ref type="bibr" target="#b12">Cottaar et al. (2014)</ref>). To mitigate these effects, we develop a spectral "emulator" that smoothly interpolates in a sparse model library and records a covariance term to be used in the likelihood calculation that accounts for the associated uncertainties. The emulator is described in detail in Appendix A. We first decompose the model library into a representative set of eigenspectra using a principal component analy-  <ref type="figure">Figure 1</ref>. A flowchart showing how the parameters of the model are combined to forward model a spectrum. Before starting inference for a particular star, a Bayesian emulator is tuned to efficiently interpolate a grid of synthetic spectra (Appendix A) for any queried set of "intrinsic" stellar parameters (θ * ). The spectrum is then modified according to "extrinsic" stellar parameters (θext) like v sin i and vr. Then, calibration polynomials (φ P ) provide slight adjustment to the continuum shape of the model to account for uncertainties in flux calibration. The second major component of the framework is accounting for covariant residual structure by using kernels to set the structure of the "noise" matrix to downweight erroneous residual structure. Then, the multidimensional likelihood function is evaluated using the sum of these covariance matrices. sis. At each gridpoint in the library, the corresponding spectrum can be reconstructed with a linear combination of these eigenspectra. The weights associated with each eigenspectrum contribution vary smoothly as a function of the parameters, and so are used to train a Gaussian process to interpolate the weights associated with any arbitrary θ * . In this way, the emulator delivers a probability distribution that represents the range of possible interpolated spectra. By then marginalizing over this distribution, we can modify the likelihood function to propagate the associated interpolation uncertainty. In the remainder of this section, the details of generating the reconstructed (interpolated) spectrum are not especially relevant (see Appendix A).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.">Post-Processing</head><p>Typically, the "raw" interpolated model spectrum f λ (θ * ) that was generated above is highly over-sampled, and does not account for several additional observational and instrumental effects that become important in comparisons with real data. Therefore, a certain amount of post-processing is required before assessing the model quality. We treat that post-processing in two stages. The first stage deals with an additional set of "extrinsic" parameters, θ ext , that incorporate some dynamical considerations as well as observational effects related to geometry and the relative location of the target. The second stage employs a suite of nuisance parameters, φ, designed to forward model some imperfections in the data calibration.</p><p>We can further divide θ ext into those parameters that impact the model primarily in the spectral or flux dimensions. For the former, we consider three kernels that contribute to the line-of-sight velocity distribution function. The first, F inst v , treats the instrumental spectral broadening. For illustrative purposes, we assume F inst v is a Gaussian with a mean of zero and a constant width σ v at all λ, although more sophisticated forms could be adopted. The second, F rot v , characterizes the broadening induced by stellar rotation, parameterized by v sin i as described by <ref type="bibr">Gray (2008, his Eq. 18.14)</ref>, the rotation velocity at the stellar equator projected on the line of sight (where i is the inclination of the stellar rotation axis). And the third, F dop v = δ(v − v r ), incorporates the radial velocity through a Doppler shift. The model spectrum is modified by the parameters [σ v , v sin i, v r ] through these kernels, using a convolution in velocity-space, 3</p><formula xml:id="formula_0">f λ (θ * , σ v , v sin i, v r ) = f λ (θ * ) * F inst v * F rot v * F dop v ,<label>(1)</label></formula><p>and then re-sampled onto the discrete wavelengths corresponding to each data pixel,</p><formula xml:id="formula_1">f λ (θ * , σ v , v sin i, v r ) → M(θ * , σ v , v sin i, v r ),<label>(2)</label></formula><p>where the → symbol denotes a re-sampling operator that maps the model spectrum onto the N pix -element model vector M (N pix is the number of pixels in the spectrum).  <ref type="figure" target="#fig_0">Figure 2</ref>. (top) The line-of-sight velocity distribution function (solid black curve) and its decomposition into broadening kernels. The instrumental kernel (dotted) is treated as a Gaussian, the rotation kernel (dashed) is a Gaussian-like function of the projected rotational velocity, and the Doppler kernel (solid) is a δ-function that introduces the radial velocity. In this specific case, σv = 2.9 km s −1 , v sin i = 5 km s −1 , and vr = 7 km s −1 , appropriate for the example in Section 3.1. (bottom) A segment of a raw, full-resolution model spectrum and its post-processed equivalent after convolution and re-sampling at the coarser resolution of the detector pixels.</p><p>the flux that would be measured at the stellar surface, and so needs to be diluted by the subtended solid angle, Ω = (R * /d) 2 , where R * is the stellar radius and d is the distance. An additional wavelength-dependent scaling factor is applied to account for interstellar extinction, assuming some previously-derived extinction law A λ (e.g., <ref type="bibr" target="#b10">Cardelli et al. 1989</ref>) that is parameterized by A V . The parameters [Ω, A V ] are then applied as</p><formula xml:id="formula_2">M(Θ) = M(θ * , θ ext ) (3) = M(θ * , σ v , v sin i, v r ) × Ω × 10 −0.4 A λ , with simplified notation such that Θ ≡ [θ * , θ ext ], where θ ext = [σ v , v sin i, v r , Ω, A V ]</formula><p>. Some spectral libraries provide spectra as with peak fluxes normalized to a constant value, in that case, Ω will simply serve as an arbitrary scaling parameter. The procedure so far is composed of straightforward operations demanded by practical astronomical and computing issues. If the data were perfectly calibrated, we could proceed to a likelihood calculation that makes a direct comparison with M(Θ). However, the calibration of the continuum shape for data with reasonably large spectral range is often not good enough to do this. A common example of this imperfect calibration can be readily seen when comparing the overlaps between spectral orders from echelle observations. Even if such imperfections (e.g., in the flat field or blaze corrections, or perhaps more likely in the flux calibration process) induce only minor, low-level deviations in the continuum shape, they can add up to a significant contribution in the likelihood function and thereby potentially bias the results.</p><p>The traditional approach to dealing with this issue has been avoidance; a low-order polynomial or spline function is matched (separately) to the model and the data and then divided off to normalize the spectra. While this is straightforward to do for earlier type stars, it only masks the problem. <ref type="bibr">4</ref> This normalization procedure disposes of useful physical information content available in the continuum shape, and can be considerably uncertain in cases where the spectral line density is high (e.g., for cooler stellar photospheres). Moreover, it can not propagate the uncertainty inherent in deriving the normalization functions into a proper inference framework.</p><p>Instead, we employ a more rigorous approach that forward-models the calibration imperfections with a set of nuisance parameters that modify the shape of the model spectrum. By later marginalizing over these nuisance parameters, we properly account for any uncertainties that these kinds of calibration imperfections induce on the stellar parameters of interest while also maintaining the useful information in the continuum shape. In practice, this is achieved by distorting segments of the model with polynomials, P (e.g., <ref type="bibr" target="#b16">Eisenstein et al. 2006;</ref><ref type="bibr" target="#b32">Koleva et al. 2009</ref>). <ref type="figure">Figure 3</ref> demonstrates how these nuisance parameters are applied to the model. For N ord spectral orders, each denoted with index o, the model spectrum can be decomposed as</p><formula xml:id="formula_3">M(Θ, φ P ) = {M o (Θ) × P o } (4) = {M o (Θ) × n c (n) o T (n) o },</formula><p>where T (n) is an n th degree Chebyshev function. The nN ord coefficients are considered a set of nuisance parameters,</p><formula xml:id="formula_4">φ P = [{c (0) o , c (1) o , . . . , c (n−1) o }].</formula><p>Judicious priors can ensure that the real spectral features (e.g., molecular bands) are not treated as residual calibration artifacts. The lowest-degree (scaling) coefficient, c (0) , is degenerate with the solid angle, Ω. Therefore, we enforce an additional constraint that the mean of the polynomial is unity. For data with a single spectral order, this means simply setting c (0) = 1. In the multiple order case, we assign c (0) = 1 in an arbitrary order as an anchor, but permit the c (0) in other orders to be different.  <ref type="figure">Figure 3</ref>. A demonstration of our treatment for residual calibration mismatches. The observed spectra at the overlap of two echelle orders (top) have slightly (∼1-3%) discrepant continuum levels. By using Chebyshev polynomials (middle, top) one can correct for that mismatch by adjusting the data (middle, bottom); instead, in practice we equivalently distort the model by these polynomials (bottom) such that the model remains linear in the Chebyshev coefficients (Eq. 4). Note that this procedure preserves the natural units of flux and any intrinsic shape of the spectral energy distribution-the spectrum is not continuum normalized.</p><p>The fit of the model spectrum is assessed by comparing to the data with a pixel-by-pixel likelihood calculation. If we denote the data spectrum as D, then a corresponding residual spectrum (an N pix -element vector) can be defined for any input parameter set,</p><formula xml:id="formula_5">R ≡ R(Θ, φ P ) ≡ D − M(Θ, φ P ).<label>(5)</label></formula><p>To quantify the probability of the data conditioned on the model, we adopt a standard multi-dimensional Gaussian likelihood function</p><formula xml:id="formula_6">p(D|M) = 1 [(2π) Npix det(C)] 1/2 exp − 1 2 R T C −1 R<label>(6)</label></formula><p>that penalizes models which yield larger residuals and explicitly allows for covariances in the residual spectrum through the N pix × N pix matrix C. For practical reasons, the log-likelihood is used as the quality metric, where</p><formula xml:id="formula_7">ln p(D|M) = − 1 2 R T C −1 R + ln det C + N pix ln 2π .<label>(7)</label></formula><p>The covariance matrix C characterizes both the measurement uncertainty (σ; "noise") in each pixel and the covariance between pixels. When using a spectral emulator to interpolate model spectra, C will be the sum of the covariance matrix described here and the emulator matrix derived in Appendix A (Eq. A40). In the special case where each pixel is independent, the covariance matrix is diagonal, C ij = δ ij σ 2 i , where σ i is the uncertainty in pixel i and δ ij is the Kronecker delta function, and Eq. 7 reduces to the familiar</p><formula xml:id="formula_8">ln p(D|M) − constant = − 1 2 Npix i R 2 i σ 2 i ≡ − χ 2 2 ,<label>(8)</label></formula><p>the sum of the square of the residuals weighted by their inverse variances. However, that simplification rarely applies in practice. A more complex covariance matrix is required, so that additional off-diagonal terms can be used to explicitly characterize (1) pixel-to-pixel covariances imposed by the discrete over-sampling of the linespread function, and (2) highly correlated residuals as manifestations of systematic imperfections in the model library. The following sections describe how these issues are addressed by constructing a more sophisticated C.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.1.">Global Covariance Structure</head><p>Astronomical spectrographs are designed to have the detector over-sample the instrumental line-spread function with at least a few pixels. Therefore, adjacent pixels never record independent samples of the true spectrum. In that case, a difference between an observed and modeled spectral feature creates a correlated residual that spans multiple pixels. This can be demonstrated clearly in the autocorrelation of R: a slight model mismatch will produce correlated residuals over a characteristic scale similar to the instrumental or rotation broadening kernel width (whichever is larger). <ref type="figure" target="#fig_2">Figure 4</ref> shows an example of these correlated residuals in real data; a significant autocorrelation signal is seen on an ∼8 pixel scale, corresponding to the 6.8 km s −1 FWHM of F inst v . It is important to distinguish here between "noise" and the fit residuals. Noise introduced to the spectrograph by astrophysical or instrumental effects is generally uncorrelated with wavelength. The arrival and propagation of each photon through the instrument and into the detector can be considered an independent event. In essence, the noise itself is not correlated, but the fit residuals likely are. However, from a mathematical perspective the correlated residuals can be treated in the same way as correlated noise, by constructing a non-trivial covariance matrix with off-diagonal terms. In practice, this is achieved by parameterizing C with a kernel that describes the covariance between any pair of pixels, indexed ij, representing wavelengths λ i and λ j .</p><p>For a well-designed spectrograph and sufficiently accurate model, this global (i.e., present throughout the spectrum) covariance should have a relatively low amplitude and small correlation length. To describe that  structure, we use a stationary covariance kernel (or radial basis function) with an amplitude that depends only on the velocity separation between two pixels,</p><formula xml:id="formula_9">r ij ≡ r(λ i , λ j ) = c 2 λ i − λ j λ i + λ j ,<label>(9)</label></formula><p>where c is the speed of light. This kernel is used to characterize the covariance between pixel residuals,</p><formula xml:id="formula_10">K G ij = R i R j .<label>(10)</label></formula><p>A variety of useful kernels have been developed in the field of Gaussian processes to parameterize such a covariant structure (e.g., <ref type="bibr" target="#b40">Rasmussen &amp; Williams 2005;</ref><ref type="bibr" target="#b45">Santner et al. 2013</ref>), and are seeing increased use in many areas of astrophysics (for some specific examples in stellar and planetary applications, see Foreman- <ref type="bibr" target="#b19">Mackey et al. 2014;</ref><ref type="bibr" target="#b0">Aigrain et al. 2015;</ref><ref type="bibr" target="#b3">Barclay et al. 2015</ref>). After some experimentation, we adopted the Matérn kernel with ν = 3/2 because it performed well at reproducing the appearance of realistic residuals for this specific problem. In this case, <ref type="bibr">,]</ref>, an amplitude (a G ) and a scale (). The φ C,G are termed hyperparameters here; because a Gaussian process describes a population of functions generated by random draws from a probability distribution set by a mean vector and a covariance matrix, the kernel parameters are naturally part of a hierarchical model. In this specific case, the functions described by these hyperparameters represent many realizations of covariant residuals from a spectral fit. <ref type="figure">Figure 5</ref> shows an example of the Gaussian process kernel and the covariant residuals that can be generated from it. To ensure that C remains a relatively sparse matrix (for computational expediency), we employ a Hann window function</p><formula xml:id="formula_11">K G ij (φ C,G ) = w ij a G 1 + √ 3 r ij exp − √ 3 r ij , (11) with φ C,G = [a G ,</formula><formula xml:id="formula_12">w ij (r 0 ) = 1 2 + 1 2 cos πrij r0 r ij ≤ r 0 0 r ij &gt; r 0 (12)</formula><p>to taper the kernel. The truncation distance r 0 can be set to a multiple of the scale (we set r 0 = 4).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.2.">Local Covariance Structure</head><p>In addition to the global covariance structure, there can be local regions of highly correlated residuals. These patches of large R are usually produced by pathologically incorrect spectral features in the model, due to systematic imperfections like missing opacity sources or poorly constrained atomic/molecular data (e.g., oscillator strengths). Some representative examples are shown in <ref type="figure">Figure 6</ref>. To parameterize such regions in C, we introduce a sequence of non-stationary kernels that explicitly depend on the actual wavelength values of a pair of pixels (λ i and λ j ), and not simply their separation (r ij ).</p><p>Assuming that these local residual features are primarily due to discrepancies in the spectral line depth (rather than the line shape or central wavelength), a simple Gaussian is a reasonable residual model. In that case, the pixel residuals of the k-th such local feature could be described as</p><formula xml:id="formula_13">R j ≡ R(λ j ) = A k exp − r 2 (λ j , µ k ) 2σ 2 k (13)</formula><p>with peak amplitude A k , central wavelength µ k , and width σ k . We assume that the amplitude of this Gaus- <ref type="figure">Figure 5</ref>. A decomposition of the modeling procedure, explicitly highlighting the roles of the various contributions to the covariance matrix. The top panels show a typical comparison between the data and model spectrum, along with the associated residual spectrum. The subsequent panels focus on the illustrative region shaded in grey. The left column of panels show the corresponding region of the covariance matrix C, decomposed into its primary contributions: from top to bottom, the trivial noise matrix, then combined with the global covariance kernel, and finally including an appropriate local covariance kernel. In the right column, we show the zoomed-in residual spectrum (black) along with example random draws from the subsets of C exhibited to the left. The shaded contours (orange) represent the 1, 2, and 3 σ dispersions of an ensemble of 200 random draws from C. Note that the trivial noise matrix (δ ij σ i ) poorly reproduces both the scale and structure of the residual spectrum. The addition of a global kernel (K G ) more closely approximates the structure and amplitude of the residuals, but misses the outlier line at 5202.2 ˚ A. Including a local kernel (K L ) at that location results in a covariance structure that does an excellent job reproducing all the key residual features.</p><p>sian feature is drawn from a normal distribution</p><formula xml:id="formula_14">A k ∼ N (0, a 2 k )<label>(14)</label></formula><p>with mean 0 and variance a 2 k . The pixels in this Gaussian-shaped residual are correlated because each pixel shares a common random scale factor (A k ). Then, the covariance of any two pixels in this region is given by Eq. 10, where the expectation value is taken with respect to the probability distribution in Eq. 14</p><formula xml:id="formula_15">K L,k ij = A k exp − r 2 (λ i , µ k ) 2σ 2 k A k exp − r 2 (λ j , µ k ) 2σ 2 k = A 2 k exp − r 2 (λ i , µ k ) + r 2 (λ j , µ k ) 2σ 2 k = a 2 k exp − r 2 (λ i , µ k ) + r 2 (λ j , µ k ) 2σ 2 k . (15)</formula><p>The full local covariance kernel covering all of the possible Gaussian residuals is composed of a linear combination of kernels,</p><formula xml:id="formula_16">K L ij (φ C,L ) = N k w k ij K L,k ij ,<label>(16)</label></formula><p>with a corresponding set of hyperparameters</p><formula xml:id="formula_17">φ C,L = [{a 1 , µ 1 , σ 1 , . . . , a N , µ N , σ N }].</formula><p>Note that we again taper the kernels with Hann windows (Eq. 12) to ensure a sparse covariance matrix; in this case, the truncation distance r 0 can be set to some multiple of the width parameter (e.g., r 0 = 4σ k ). In effect, these kernels systematically down-weight the influence of strong residuals in the likelihood calculation, mitigating any potential bias they might induce on inferences of the interesting parameters (Θ). Similar in spirit to robust linear regression and "bad data" mixture models ( <ref type="bibr" target="#b26">Hogg et al. 2010</ref>), these kernels provide a means for (correlated) outlier rejection that preserves the integrity of the probabilistic framework (as opposed to the common manual or thresholdbased techniques of masking or clipping). In principle, the concept of these local kernels can be extended to account for more complex residual structures. For example, late-type stars with imperfectly modeled molecular bandheads may produce a complicated pattern of positive and negative residuals or a pronounced mismatch over a relatively large spectral scale. This phenomenologically different local covariance behavior can still be treated in this framework if an appropriate kernel morphology is adopted.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.3.">Composite Covariance Matrix</head><p>We can now compute the covariance matrix employed in the likelihood calculation (Eq. 7) as the linear combination of the trivial pixel-by-pixel noise matrix and the global and local kernels discussed above,</p><formula xml:id="formula_18">C ij (φ C ) = b δ ij σ 2 i + K G ij (φ C,G ) + K L ij (φ C,L ),<label>(17)</label></formula><p>with hyperparameters</p><formula xml:id="formula_19">φ C = [φ C,G , φ C,L ].</formula><p>The factor b is a parameter that scales up the Poisson noise in each pixel by a constant factor to account for additional detector or data reduction uncertainties (e.g., read noise, uncertainties in the spectral extraction procedure, etc.); typically b &lt; 1.1 for well-calibrated optical spectra. If there are  <ref type="figure">Figure 6</ref>. A particularly illustrative spectral region with substantial localized structure in the residuals due to "outlier" spectral lines in the model library. For any specific line, there might exist a set of model parameters, Θ, that will improve its match with the data, but a Θ that will properly fit all the outlier lines does not exist in a pre-computed library with (necessarily) limited parametric flexibility. Out of concern that such intrinsic mismatches can bias the inference on Θ, the methodology advocated here introduces local kernels to inflate the covariance around these outliers, self-consistently down-weighting their influence on the fit.</p><p>N loc local covariance patches (see Section 2.5 on how this is determined), then there are 4N loc + 2 elements in the set of covariance hyperparameters, φ C . <ref type="figure">Figure 5</ref> provides a graphical illustration of how the kernels that comprise the covariance matrix are able to reproduce the structure present in a typical residual spectrum.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4.">Priors</head><p>The Bayesian framework of this inference approach permits us to specify prior knowledge about the model parameters, p(M). As will be discussed further in Sections 3 and 4, in most cases it is necessary to utilize some independent information (e.g., from asteroseismology constraints or stellar evolution models) as a prior on the surface gravity. But otherwise we generally recommend a conservative assignment of uniform priors, such that p(θ * ) is flat over the spectral library grid (and zero elsewhere) and p(θ ext ) is flat for physically meaningful values (e.g. v sin i ≥ 0, Ω &gt; 0, and A V ≥ 0).</p><p>For (early type) stars with a clear continuum, it makes sense to assume flat priors on the polynomial parameters φ P . However, information about the calibration accuracy (e.g., from comparisons of multiple calibration sources in the same observation sequence) can be encoded into a simple prior on the Chebyshev coefficients; for example, Gaussian priors with widths that represent the fractional variance between different derived calibration functions would be reasonable. For (late type) stars with a poorly defined continuum, some judicious tapering of the priors (such that small coefficients at high n are preferred) may be required to ensure that broad spectral features are not absorbed into the polynomial (see Section 3).</p><p>In general, uniform (non-negative) priors are recommended for the global kernel hyperparameters. For the local kernels, we typically adopt uniform priors for the amplitudes and means {a k , µ k }, but construct a logistic prior for the widths {σ k } that is flat below the width of the line-of-sight velocity distribution function (defined as the convolution of three broadening kernels in Eq. 1), σ los , and smoothly tapers to zero at larger values:</p><formula xml:id="formula_20">p(σ k ) = 1 1 + e σ k −σ los .<label>(18)</label></formula><p>Such a prior formulation prevents local kernels from diffusing to large σ k and low a k , since that kind of behavior is better treated by the global kernel. When modeling real data, there is no a priori information about the locations {µ k } of the local kernels; they are instantiated as needed (see Section 2.5). However, using the knowledge gained from previous inferences of similar targets, one could instead start by instantiating kernels at the outset with priors on {µ k } where there are known to be systematic issues with the synthetic spectra.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.5.">Exploring the Posterior</head><p>The inference framework developed here has a natural blocked structure between the collections of "interesting" parameters, Θ = [θ * , θ ext ], the nuisance parameters φ P , and the covariance hyperparameters φ C . The conditional dependencies of these parameters are shown graphically in <ref type="figure" target="#fig_3">Figure 7</ref> as a directed acyclic graph <ref type="bibr" target="#b5">(Bishop 2006;</ref><ref type="bibr" target="#b34">Mandel et al. 2009</ref>). To explore the posterior distribution, <ref type="bibr">(19)</ref> for this type of structure, it is convenient to employ Markov Chain Monte Carlo (MCMC) simulations with a blocked Gibbs sampler coupled to the MetropolisHastings algorithm. This procedure works by sampling in a subset of parameters (with Metropolis-Hastings proposals) conditioned on the current (fixed) values of the other parameters. After each iteration, the Gibbs sampler updates the sampled parameters and then cycles through all the (previously fixed) different parameter subsets in the same way (for a more mathematical description, see Chapter 11 of <ref type="bibr" target="#b20">Gelman et al. 2013</ref>). A step-by-step prescription follows, where the i th iteration of the Gibbs sampler is indexed with a superscript:</p><formula xml:id="formula_21">p(Θ, φ P , φ C |D) ∝ p(D|Θ, φ P , φ C ) p(Θ, φ P , φ C )</formula><formula xml:id="formula_22">φ P θ w φ C Ξ M D θ ext</formula><p>(1) Initialize the parameters. One might set Θ 0 based on estimates in the literature or scaling behaviors, and make simple assumptions about φ 0 P . Here, we set the Chebyshev coefficients (φ 0 P ) so that the polynomials are constant (c </p><formula xml:id="formula_23">C = φ i−1 C ). Then update Θ i−1 → Θ i .</formula><p>(2b) For each spectral order, sample in the polynomial parameters φ P and covariance hyperparameters φ C , conditioned on the other parameters being held fixed</p><formula xml:id="formula_24">Θ i = Θ i−1 . Then update φ i−1 P → φ i P and φ i−1 C → φ i C . (3) Repeat</formula><p>Step (2) for 20,000 samples. In Step (2b), local covariance kernels are instantiated according to the following procedure. First, an "average" residual spectrum is generated by combining ∼500 residual spectra that were stored during a burn-in period using only the global kernels (prior to this storage, the Markov chain is thinned to account for autocorrelation of the posterior samples). This average spectrum is then iteratively examined for deviations outside a critical threshold. When a large residual is identified, a local kernel is introduced with a mean (µ k ) at its location. <ref type="bibr">5</ref> After some experimentation with different threshold criteria, we chose to instantiate when the local residual is &gt;4× the standard deviation in the average residual spectrum. <ref type="bibr">6</ref> Alternative schemes, such as re-evaluating the kernel locations with each iteration of the Gibbs sam-5 Although this may seem similar to the procedure of "sigmaclipping", there is a crucial difference. Rather than rejecting outlier data once it is found (i.e., setting its weight in the inference problem to zero), this procedure will actually self-consistently determine how to weight the outliers inside the probabilistic framework.</p><p>6 Lower thresholds result in more local kernels, thereby reducing the amplitude of the global kernel. In the extreme case of a very low threshold, a local kernel would be instantiated for every spectral line (and no global kernel would be required). We found that ultimately the posterior inferences on the parameters of interest are relatively insensitive to the choice of a threshold level, so long as it is set low enough to capture the egregious outliers.</p><p>pler, yield similar results; however, the adopted approach consistently converges with minimal computational overhead. Once all the local kernels are instantiated, the Gibbs sampler is run for another period of burn-in. <ref type="bibr">7</ref> This entire procedure can be a significant computational challenge. A typical spectrum has N pix &gt; O(10 3 ), and therefore the many evaluations of the matrix product R T C −1 R in the likelihood calculation can be numerically expensive. However, because C is a symmetric, positive semi-definite matrix, we can employ Cholesky factorization to optimize the evaluation of the matrix product and avoid the direct calculation of the matrix inversion (C −1 ). For multi-order echelle spectra or multiple spectra of the same target (perhaps taken with different instruments), the nuisance parameters for each segment of the spectrum are independent. This means that the computationally intensive steps of generating a model spectrum for a specific wavelength range and evaluating the likelihood can be parallelized. The only segment of the code that needs to be synchronized is the MCMC proposal of stellar parameters, which are shared between all chunks of the spectrum. The massive parallelization of this algorithm on a computer cluster therefore enables the simultaneous inference of interesting parameters over wide spectral ranges at high resolution, or from multiple datasets. To sample the posteriors in this mode, we extend the Metropolis-Hastings sampler included in the emcee package <ref type="bibr" target="#b18">(Foreman-Mackey et al. 2013</ref>) to function within a parallelized blocked Gibbs sampler.</p><p>The time required to thoroughly explore the posterior depends on both the data volume and the desired precision on the inference of the covariance hyperparameters. If only the stellar parameters Θ are of interest, one can first optimize the kernel parameters and then proceed with them fixed, since the stellar parameter posteriors are relatively insensitive to the precise value of the kernel parameters (once near their optimal value). A fit of an R ≈ 40, 000 spectrum with &gt;30 echelle orders takes ∼2 hours (parallelized on a cluster). If the full posteriors for the nuisance parameters are desired, the computation might take an order of magnitude longer.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">DEMONSTRATIONS</head><p>In this section, we illustrate how the modeling framework operates for two real datasets. The first is an elaboration of the example shown throughout Section 2, using a high resolution optical spectrum of the F5 star (and transiting exoplanet host) WASP-14 ( <ref type="bibr" target="#b31">Joshi et al. 2009;</ref><ref type="bibr" target="#b50">Torres et al. 2012</ref>). The second uses a medium resolution near-infrared spectrum of the M5 dwarf Gliese 51 (hereafter Gl 51), observed as part of the NASA/IRTF library of spectral standards ( <ref type="bibr" target="#b14">Cushing et al. 2005;</ref><ref type="bibr" target="#b41">Rayner et al. 2009</ref>). In both cases, we sequentially build up the complexity of the modeling framework to demonstrate how each of the components described in Section 2 affects the posteriors on the parameters of interest (θ * ). We adopt the recent incarnation of the Phoenix library ( <ref type="bibr" target="#b28">Husser et al. 2013</ref>) for the models, although comment on systematic differences between libraries in Section 3.3. Note. -The best-fit parameter values (peak of the marginal posteriors) and associated (1 σ) uncertainties (68.3% confidence intervals) for the four tests of increasing complexity described in the text. Note that log g is fixed to 4.29 (cf., <ref type="bibr" target="#b31">Joshi et al. 2009</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">WASP-14</head><p>A high resolution (R ≈ 44, 000) optical spectrum of WASP-14 was obtained on 2009 June 14 using the Tillinghast Reflector Echelle Spectrograph (TRES; F˝ urész 2008) on the Fred Lawrence Whipple Observatory 1.5 m telescope. TRES delivers an echelle spectrum with 51 orders that cover the full optical range, from 3860-9100Å9100Å. The data were reduced and calibrated using standard techniques in the TRES pipeline (cf., <ref type="bibr" target="#b7">Buchhave et al. 2010</ref>; see <ref type="bibr" target="#b50">Torres et al. 2012</ref> for more specific details). At 5100Å5100Å, the S/N is ∼150 per resolution element. Following <ref type="bibr" target="#b50">Torres et al. (2012)</ref>, we focus here on the central three TRES orders, covering ∼5100-5400Å5400Å.</p><p>We start with a "standard" inference, using the most commonly employed likelihood function (i.e., ∝ χ 2 , with a trivial covariance matrix using only the Poisson uncertainties). Interpolation in the model library is performed with a basic tri-linear algorithm (in this specific case, θ * has only three dimensions). To avoid a prominent systematic (see Section 3.3), we fix the surface gravity to log g = 4.29 (with a δ-function prior). This independent prior information comes from the combination of a constraint on the mean stellar density based on exoplanet transit depth measurements and a comparison of optical photometry with stellar models in the color-magnitude diagram ( <ref type="bibr" target="#b31">Joshi et al. 2009</ref>). The resulting marginal posteriors on T eff and [Fe/H], listed in <ref type="table" target="#tab_3">Table 1</ref> and shown in <ref type="figure" target="#fig_8">Figure 8</ref>, are remarkably narrow -unbelievably so, given how subtly the spectrum changes over such small parameter deviations.</p><p>For the second test, we increase the complexity of the covariance matrix by introducing the global kernel treatment discussed in Section 2.3.1. We find non-negligible amplitudes and correlation lengths for these kernels, as would be expected for a typical correlated residual spectrum. With respect to the standard inference, the uncertainty associated with T eff has increased by roughly a factor of three, but the [Fe/H] posterior is only marginally broadened (by ∼50%). Upon closer inspection of the latter, it becomes clear that the posterior has an artificially sharp peak located at a grid point in the model library ([Fe/H] = −0.5). This 'noding' is an artifact of naive interpolation over a sparsely-sampled dimension in the library grid; when the uncertainty in the interpolation itself constitutes a significant fraction of the total error budget, the fit will be driven toward grid points (where the interpolation error is naturally minimized; see also <ref type="bibr" target="#b12">Cottaar et al. 2014</ref>). To mitigate this behavior, we need to employ an interpolation scheme that properly incorporates this kind of uncertainty.</p><p>Therefore, in a third test we implement the Bayesian emulator described in Appendix A to propagate uncertainty in the interpolation. This procedure successfully avoids the 'noding' behavior in <ref type="bibr">[Fe/H]</ref>, and inflates the associated uncertainty by a factor of 2.5 compared to the "standard" inference approach. The uncertainty on T eff is now 5× larger than in the original test.</p><p>Finally, in a fourth test we fold in the methodology for the local covariance kernels described in Section 2.3.2. This has little effect on the widths of the parameter posteriors (10% increase), but does shift their peaks to slightly higher values in both T eff and <ref type="bibr">[Fe/H]</ref>. We suspect this is likely driven by a bias in the inference of <ref type="bibr">[Fe/H]</ref>, produced because the Phoenix models tend to have more 'outlier' spectral lines with over-predicted line depths. Without the local covariance kernels to downweight these outliers, the models tend toward lower metallicity to account for them. But when the local kernels are included, this bias is reduced and a more appropriate higher <ref type="bibr">[Fe/H]</ref> value is inferred. <ref type="figure" target="#fig_9">Figure 9</ref> demonstrates how well the modeling framework can match the character of the residual spectrum when employing the sophisticated covariance matrix (test 4) advocated here.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">Gl 51</head><p>A moderate resolution (R ≈ 2, 000) near-infrared spectrum of Gl 51 was obtained on 2000 Nov 6 using the SPEX instrument ( <ref type="bibr" target="#b42">Rayner et al. 2003</ref>   (2) including global covariance terms from Gaussian process kernels (orange); (3) employing a Bayesian emulator for more appropriate interpolation (purple); and (4) also including local covariance kernels to downweight systematic outlier spectral lines (magenta). Note. -The best-fit parameter values and associated (1 σ) uncertainties (as in <ref type="table" target="#tab_3">Table 1</ref>) for the four tests of increasing complexity described in the text. Note that log g is fixed to 5.0 (cf., <ref type="bibr" target="#b44">Rojas-Ayala et al. 2012</ref>).</p><formula xml:id="formula_25">p(T eff | D) [1/K] linear + trivial linear + K G emulator + K G emulator + K G + K L -0.550 -0.500 -0.450 -0.400 [Fe/H] [dex]</formula><p>cross-dispersed echelle spectrograph that covers the redoptical to thermal-infrared spectrum (0.7-5.5 µm) in two settings. These data were obtained as part of the IRTF spectral standard library project ( <ref type="bibr" target="#b14">Cushing et al. 2005;</ref><ref type="bibr" target="#b41">Rayner et al. 2009</ref>), and were processed through the wellvetted Spextool reduction pipeline ( <ref type="bibr" target="#b15">Cushing et al. 2004;</ref><ref type="bibr" target="#b51">Vacca et al. 2003</ref>) to deliver a fully calibrated spectrum. At 2.1 µm, the S/N is ∼400 per resolution element.</p><p>Modeling late-type stellar atmosphere structures and their spectra is considerably more complex than for Sunlike stars, due to lingering uncertainties in the atmosphere physics and molecular opacities. Especially confounding is the presence of complex condensates (clouds) at the coolest temperatures ( <ref type="bibr" target="#b1">Allard et al. 2013</ref>), making it considerably more challenging to determine (sub-) stellar properties ( <ref type="bibr" target="#b38">Rajpurohit et al. 2014</ref>). Various approaches have been taken to infer the key parameters in the face of these difficulties, including iteratively masking regions with poor spectral agreement (e.g., <ref type="bibr" target="#b35">Mann et al. 2013</ref>). Astutely, Mann et al. note that such a scheme may exclude regions of the spectrum that contain intrinsically useful information for discriminating between physical properties, and that a more sophisticated approach would weight each spectral region based on its consistency with the data. The modeling framework that we have constructed here does exactly that.</p><p>As another demonstration of this framework, we carried out the sequence of tests outlined in the previous section for the K-band portion of the SPEX spectrum of Gl 51. Following the analysis of similar data for this star by <ref type="bibr" target="#b44">Rojas-Ayala et al. (2012)</ref>, we fix the surface gravity to log g = 5.0 based on a comparison with standard stellar evolution models. The test results are listed in <ref type="table" target="#tab_4">Table 2</ref>; the posteriors for T eff and [Fe/H] are shown together in <ref type="figure" target="#fig_10">Figure 10</ref>. Like WASP-14, we find that a more appropriate treatment of the covariance matrix results in a substantial broadening of the parameter posteriors; the uncertainties on T eff and [Fe/H] are inflated by a factor of ∼10 and 4, respectively.</p><p>However, in this case the parameter values (posterior peaks) also exhibit substantial movement along the sequence of tests. The underlying cause of this behavior lies with the Na I and Ca I resonance line depths, which are systematically under-predicted in the Phoenix library (even for high metallicities; see also <ref type="bibr" target="#b44">Rojas-Ayala et al. 2012</ref>). <ref type="bibr" target="#b39">Rajpurohit et al. (2010)</ref> suggest that these discrepancies may be the consequence of inaccurate atomic data (oscillator strengths and/or opacities). In the first test with a trivial covariance matrix, these 'outlier' lines drive the model to favor a very high <ref type="bibr">[Fe/H]</ref>. But when we consider the more sophisticated versions of C that em-   appropriate range. Because this portion of the spectrum has only these two outlier features, their influence can be mitigated either with a larger global covariance kernel amplitude (a G ), or with a smaller a G but significant contributions from local covariance kernels (which explains why there is little difference between the posteriors in the third and fourth tests in the sequence). For reference, <ref type="figure" target="#fig_11">Figure 11</ref> compares the observations with draws from the posterior distribution for the advocated modeling approach (corresponding to the fourth test). The methodology behind the likelihood calculations we have developed could prove especially useful for spectroscopic inferences of the parameters of cool stars like Gl 51, where substantial uncertainties in their more complex atmospheres will naturally produce systematic deviations between models and data. However, many of those discrepancies will be manifested in molecular features, which likely result in considerably more complex residual structures than noted here (e.g., the TiO bands in the red-optical; see <ref type="bibr" target="#b35">Mann et al. 2013</ref>, their <ref type="figure" target="#fig_9">Fig. 9</ref>). The overall framework we have employed should still function, although more appropriate local covariance kernels may need to be developed to capture the different nature of these outliers. For example, one might employ hybrid kernels (like the product of a truncated exponential and a Matérn kernel) or empirically-motivated parametric shapes (e.g., a saw-tooth pattern) to provide a better representation than a simple Gaussian feature.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.">Synopsis and Systematics</head><p>The results of the sequence of tests in the previous two sections illustrate some key issues in the spectroscopic inference of stellar parameters. First, the residual spectra derived from (typically) imperfect models exhibit correlated structure (e.g., see <ref type="figure" target="#fig_2">Fig. 4</ref>) that cannot be explained well with a trivial (diagonal) covariance matrix. If that naive assumption is made (as is usually the case), the resulting posteriors are unrealistically narrow and may end up being biased (particularly for [Fe/H] or for cases influenced by prominent 'outlier' lines).</p><p>This issue of implausibly small formal uncertainties has long been recognized in the stellar spectroscopy community. The standard solution has been to add (in quadrature) a 'floor' contribution, imposed independently on each parameter and meant to be representative of the systematics (e.g., see <ref type="bibr" target="#b50">Torres et al. 2012</ref><ref type="bibr" target="#b46">or Schönrich &amp; Bergemann 2014</ref> for clear and open discussions of this approach). The key problems with this tactic are that these systematics are in reality degenerate (and so should not be applied independently) and that they dominate the uncertainty budget, but are in a large sense arbitrary -they are not self-consistently derived in the likelihood framework. Our goal here has been to treat one aspect of this systematic uncertainty budget internal to the forward-modeling process, by employing a nontrivial covariance matrix that accounts for generic issues in the pixel-by-pixel inference problem. Given the results above, we have demonstrated that this procedure successfully accounts for a substantial fraction of the (empirically motivated) ad hoc systematic 'floor' contribution typically adopted in inference studies.</p><p>However, although a likelihood function that can properly account for the character of the residuals is important, it does not by itself treat all of the important kinds of systematics in the general spectroscopic inference problem. In future work that can build on the flexible likelihood formalism we have advocated here, there are three other important sources of systematic uncertainty that should be considered: (1) data calibration; (2) optimized parameter sensitivity; and (3) model assumptions, or flexibility. We discuss each of these issues briefly, with attention paid to potential remedies that fit within the likelihood framework developed here.</p><p>Perhaps the most familiar source of systematics lies with issues in the data calibration. In the idealized case of perfect calibration, the physical parameters inferred from different observations of the same (static) source should be indistinguishable. But given the complexity of a detailed spectroscopic calibration, that is not typically the case in practice. The common approach to quantify the systematic uncertainties contributed by calibration issues is to compare the inferences made using different spectra (e.g., from different instruments and/or observations). The final parameter values are usually presented as an average of these separate inferences, with the uncertainties inflated by adding in quadrature some parameter-independent terms that account for their dispersion. The more appropriate way of combining these inferences is to model the individual spectra simultaneously in a hierarchical framework like the one discussed in Section 2: in that way, the dispersion is appropriately propagated into the parameter uncertainties while any intrinsic degeneracies are preserved (which is not possible in the standard 'weighted average' approach). Ultimately, one could also introduce some empirically-motivated nuisance parameters that are capable of forward-modeling imperfections in the data calibration, similar to the approach adopted in Section 2.2 (e.g., see <ref type="figure">Fig. 3</ref>).</p><p>Another important source of systematic bias comes from the fact that certain physical parameters have only a relatively subtle effect on the spectrum. Stellar spectroscopists are familiar with this being an issue when inferring the surface gravity, log g, since it is primarily manifested as low-level modifications to the wings of certain spectral lines like Mg b and in the equivalent widths of lines from singly-ionized elements like Ti II and Fe II. When modeling data with a large spectral range, the effects of varying log g are small compared to the residuals introduced by the many other model imperfections. Consequently, the surface gravity will not be constrained well, and inferences on log g (and therefore other degenerate parameters) can be substantially biased. As an example, when fitting the WASP-14 data in Section 3.1 without prior information on the surface gravity, we find a shift of ∼0.9 dex to lower log g (and accompanying shifts in T eff and <ref type="bibr">[Fe/H]</ref>). If we instead use a customized version of the <ref type="bibr" target="#b11">Castelli &amp; Kurucz (2004)</ref> models designed to more accurately reproduce this part of the optical spectrum for Sun-like stars (as employed by SPC; <ref type="bibr" target="#b8">Buchhave et al. 2012)</ref>, there is still a 0.2 dex shift compared to the independent, accurate constraints from the transiting planet ( <ref type="bibr" target="#b31">Joshi et al. 2009</ref>). Similar work with larger samples indicate a typical scatter in the log g values inferred solely from spectra relative to independent, accurate constraints from other data (∼0.5 dex; <ref type="bibr" target="#b12">Cottaar et al. 2014;</ref><ref type="bibr" target="#b46">Schönrich &amp; Bergemann 2014)</ref>.</p><p>There are two commonly utilized, and not mutually exclusive, approaches to mitigating this kind of bias. First is the judicious use of a prior, based on either independent and accurate measurements (e.g., from asteroseismology, dynamical masses and distances, etc.) or stellar evolution models (as is demonstrated here). Of course, such information is unfortunately not always readily available for the target of interest. A second approach is to severely limit the spectral range of the data being modeled, focusing primarily on those spectral features especially sensitive to the parameter of interest. But that carries its own risk, since the models derived from the inferred posteriors might well be wildly inconsistent with the rest of the spectrum. Recently, <ref type="bibr" target="#b6">Brewer et al. (2015)</ref> proposed a sophisticated, iterative approach that apparently resolves this issue, employing a sequence of conditional inferences based on sets of specific spectral features that are especially sensitive to individual physical parameters. This seems like a promising component for future inclusion in the likelihood framework we have developed in Section 2.</p><p>Finally, and perhaps most significant, there are also sources of systematic bias and uncertainty introduced by limitations in the synthetic stellar models themselves. Different models make varied assumptions in their treatments of the atmosphere structures, boundary conditions (e.g., convection), fundamental atomic/molecular data (e.g., opacities), and radiative transfer. Taken together, these variations produce notably different model spectra for the same values of the physical parameters. As a benchmark for estimating the scope of this source of bias, we re-performed the inference described in the fourth test of Section 3.1, but using the customized <ref type="bibr" target="#b11">Castelli &amp; Kurucz (2004)</ref>  While the relevant physics included in these models is very similar for these temperatures and the inferred stellar parameters are similar in an absolute sense, it is still striking that the systematic shift between models is several times larger than the statistical uncertainties derived from our likelihood function. At this point, there is little to be done to rectify these model-dependent differences; in the future, one hopes that the model inputs can be refined based on feedback from the data (see Sect. 4). Any inferences of physical parameters should only be considered in the context of the assumed models.</p><p>Aside from these different assumptions and inputs, the limited flexibility of these models certainly also contributes to the systematic uncertainty budget, and is possibly also a source of systematic bias. Model spectral libraries typically have neglected dimensions in parameterspace that, if made available, would be expected to broaden and possibly shift the posteriors for the primary physical parameters. One typical example lies with element-specific abundance patterns, often distilled to the enhancement of α-elements (i.e., <ref type="bibr">[α/Fe]</ref>). If the target star has a non-zero [α/Fe] (an enhancement or deficit relative to the solar ratios), but is fit with a single, global metallicity pattern, it is not clear that the sophisticated covariance formalism developed here would be capable of appropriately capturing such residual behavior. Another prominent example of an important hidden parameter dimension is the microturbulence, which for some spectral types and spectral resolution may impact the spectrum in a similar way as the surface gravity (and may be partly responsible for the log g bias discussed above; <ref type="bibr" target="#b21">Gray et al. 2001</ref>). To mitigate the resulting deficiencies in precision (and potentially accuracy) on the inference of other parameters, we would ideally employ libraries or modeling front-ends that can incorporate some flexibility in these hidden (i.e., ignored) dimensions of parameterspace (e.g., individual elemental or group-based abundance patterns, microturbulence, etc.).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">DISCUSSION</head><p>Astronomers exploit spectroscopy to retrieve physical information about their targets. Ideally, such inferences are made with the maximal precision afforded by the measurement noise, and accurately reflect the uncertainties with minimal systematic bias. But in practice, the spectral models used as references are never perfect representations. Even modest mismatches between data and model can propagate substantial systematic uncertainty into the inference problem. In high-sensitivity applications (e.g., stellar and exoplanetary astrophysics), ignoring these systematics can give a false sense of both precision and accuracy in the inferences of key parameters. Typically, the more egregious of these imperfections are "mitigated" by dismissal (explicitly not considering a subset of the data; e.g., masking, clipping). Rarely, they are confronted directly with painstaking, computationally expensive fine-tuning of more general (nuisance) parameters in the model (e.g., oscillator strengths, opacities), albeit only over a very limited spectral range and region of physical parameter-space.</p><p>We have presented an alternative approach to dealing with this fundamental issue, grounded in a generative Bayesian framework. The method advocated here constructs a sophisticated likelihood function, employing a non-trivial covariance matrix to treat the correlated pixel-to-pixel residuals generated from intrinsically imperfect models. That matrix is composed of a linear combination of global (stationary) and local (non-stationary) Gaussian process kernels, which parameterize an overall mild covariance structure as well as small patches of highly discrepant outlier features. In the context of a given model parameterization (i.e., synthetic spectral library, or a more complex and flexible model generator), the framework we have developed provides a better inference than the standard χ 2 (or cross-correlation) comparison. We have built up a series of tests that demonstrates how the emulator, global kernels, and local kernels affect the nature of the inference on the stellar parameters. To demonstrate how the framework is used, we determined the surface parameters of main-sequence stars with mid-F and mid-M spectral types from high-S/N optical and near-infrared data, with reference to pre-computed model libraries (Sect. 3). The source code developed here is open and freely available for use: see http://iancze.github.io/Starfish.</p><p>The novelty of employing this kind of likelihood function in the spectroscopic inference problem is that the treatment of data-model mismatches (in essence, the fit quality) is explicitly built into the forward-modeling framework. This offers the unique advantage that discrepant spectral features (outliers), which may contain substantial (even crucial) information about the parameters of interest, can still effectively propagate their useful information content into the posteriors with a weighting that is determined self-consistently. From a practical standpoint, this means that a larger spectral range can be used and model imperfections can be downweighted by the usage of covariance kernels. The global covariance framework provides more appropriate estimates of the posterior probability distribution functions (i.e., the precision or uncertainty estimates) for the model parameters. The automated identification and disciplined downweighting of problematic "outlier" spectral lines (those that cannot be reproduced with any combination of the model parameters) with local covariance kernels can prevent them from overly influencing (and possibly biasing, especially in cases with few spectral features available) the inferences. In many cases, the underlying physical problem lies with incorrect (or inaccurate) atomic and/or opacity data used in the models. In this sense, the posteriors of the hyperparameters of the local covariance kernels can actually indicate in what sense and scale these inputs need to be modified to better reproduce observational reality.</p><p>The approach we describe is generally applicable to any spectroscopic inference problem (e.g., population synthesis in unresolved star clusters or galaxies, physical/chemical models of emission line spectra in starforming regions, etc.). Moreover, it has the flexibility to incorporate additional information (as priors) or parametric complexity (if desired), and could be deployed as a substitute for a simplistic χ 2 metric in alreadyestablished tools (e.g., SME). Another potential application might be in the estimation of radial velocities using traditional Doppler-tracking pipelines for exoplanet or binary star research. Poorly modeled micro-tellurics can lead to incorrect measurements of radial velocities for certain contaminated chunks of the spectrum, causing them to give unrealistically precise but biased velocity measurements. A flexible noise model would broaden the posteriors on these points and allow them to be combined into a more accurate systemic velocity.</p><p>Ultimately, the benefits of employing covariance kernels to accommodate imperfect models could be extended well beyond modeling the spectra of individual targets. In principle, the approach we have described here can be used to systematically discover and quantify imperfections in spectral models and eventually to build datadriven improvements of those models that are more appropriate for spectroscopic inference. By fitting many stellar spectra with the same family of models, we can catalog the covariant structure of the fit residuals -especially the parameters of the local covariance kernelsto collate quantitative information about where and how the models tend to deviate from observational reality. That information can be passed to the spectral synthesis community, in some cases enabling modifications that will improve the quality of the spectral models. On a large enough scale, this feedback between observers and modelers could be used to refine inputs like atomic and molecular data (oscillator strengths, opacities), elemental abundance patterns, and perhaps the stellar atmosphere structures. If one has access to the radiative synthesis process that generates the model spectra, there are many possible means to improve their quality. In particular, a process of history matching can be used to rule out regions of parameter space where the models do not fit well (e.g., for a use in galaxy formation simulations, see <ref type="bibr" target="#b53">Vernon et al. (2010)</ref>). For example, if one had full control over the radiative synthesis code, stellar structure code, and atomic line database, one could improve the performance of the spectral emulator by ruling out regions of parameter space for these separate components that are inconsistent with a collection of observed spectra, such as a set of standard stars spanning the full range of spectral classifications.</p><p>In a similar vein, we could also simultaneously use several synthetic spectral libraries to infer the stellar parameters while also identifying discrepant regions of the spectrum. A treatment using multiple synthetic libraries would likely reveal interesting correlations between model discrepancies, such as a specific signature among many lines (e.g. deviations in spectral line shape that cannot be explained by variations in θ). Conversely, if a discrepant feature is seen for all models, it could be due to either an anomaly with the given star (e.g., a chromospheric line due to activity or perhaps an intervening interstellar absorption line) or a correlated difficulty among all models (e.g., an incorrect atomic constant).</p><p>Alternatively, this kind of feedback could be used to make data-driven modifications to the already existing models, creating a new semi-empirical model library. This could be accomplished by linking the parameters of the covariance kernels while fitting many stars of similar spectral type in a hierarchical Bayesian model, which would add confidence to the assessment that certain spectral features are systematic outliers and offer general quantitative guidance on how to weight them in the likelihood calculation. Rather than simply assembling an empirical spectral library using only observations, this combined machine-learning approach would naturally provide a physical anchoring for the key physical parameters, since they are reflected in the spectra based on the physical assumptions in the original models. This kind of large-scale analysis holds great promise in the (ongoing) era of large, homogeneous high resolution spectroscopic datasets (e.g., like those being collected in programs like the APOGEE and HERMES surveys; <ref type="bibr" target="#b36">Nidever et al. 2012;</ref><ref type="bibr" target="#b54">Zucker et al. 2012</ref>), since they provide enormous leverage for identifying and improving the underlying model systematics.</p><p>The authors would like to acknowledge the following people for many extraordinarily helpful discussions and key insights: Daniel Foreman-Mackey, Guillermo Torres, David Latham, Lars Buchhave, John Johnson and the ExoLab, Daniel Eisenstein, Rebekah Dawson, Tom Loredo and the ExoStat group, Allyson Bieryla, and Maxwell Moe. Two anonymous reviewers provided encouraging and very useful comments on the manuscript draft that greatly improved its clarity and focus. IC is supported by the NSF Graduate Fellowship and the Smithsonian Institution. K.M. is supported at Harvard by NSF grant AST-1211196. This research made extensive use of Astropy <ref type="bibr">(Astropy Collaboration et al. 2013</ref>) and the Julia language ( <ref type="bibr" target="#b4">Bezanson et al. 2012</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>APPENDIX</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A. SPECTRAL EMULATOR FOR INTERPOLATION</head><p>The spectral emulator is designed to serve as an improved interpolator for the synthetic spectral library. Rather than a (tri-)linear interpolator, which would deliver a single spectrum for a given θ * , the spectral emulator delivers a probability distribution of possible interpolated spectra. In this manner, it is possible to incorporate realistic uncertainties about the interpolation process into the actual likelihood calculation. In the limit of moderate to high signal-to-noise spectra, these interpolation uncertainties can have a significant effect on the posterior distribution of θ * . A schematic of the emulator is shown in <ref type="figure" target="#fig_0">Figure 12</ref>, which is a continuation of <ref type="figure">Figure 1</ref>. Briefly, the emulator consists of a set of eigenspectra, representing the synthetic spectral library, that can be summed together with different weights to reproduce any spectrum originally in the library. To produce spectra that have θ * in between {θ * } grid , the weights are modeled with a smooth Gaussian process (GP). This GP delivers a probability distribution over interpolated spectra, which can then be incorporated into the covariance matrix introduced in Section 2.3. Here we describe the design and construction of our spectral emulator.</p><p>Model library spectra are stored as (1-dimensional) arrays of fluxes, sampled on high resolution wavelength grids. In the case of interest here, the sets of model parameters {θ * } grid = [{T eff , log g, [Fe/H]}] define the dimensions of the library grid. The full spectral library, f λ ({θ * } grid ), is therefore encapsulated in a 4-dimensional array. The libraries used here have grid spacings of 0.5 dex in log g and 0.5 dex in <ref type="bibr">[Fe/H]</ref>; the <ref type="bibr" target="#b11">Castelli &amp; Kurucz (2004)</ref> library steps by 250 K in T eff , but the Phoenix library has finer coverage in 100 K increments.</p><p>The first step in designing a spectral emulator is to break down the library into an appropriate basis ( <ref type="bibr" target="#b23">Habib et al. 2007;</ref><ref type="bibr" target="#b25">Heitmann et al. 2009</ref>). We chose the principal component basis to decompose the library into a set of "eigenspectra", following the techniques of Ivezi´c <ref type="bibr" target="#b29">Ivezi´c et al. (2013)</ref>. Prior to this decomposition, we isolate a subset of the library (containing M spectra) with parameter values that will be most relevant to the target being considered (e.g., for Gl 51, this means considering only effective temperatures below ∼3800 K). We then standardize these spectra by subtracting off their mean spectrum and then "whiten" them by dividing off the standard deviation spectrum measured in each pixel across the grid. The mean spectrum is  <ref type="figure" target="#fig_0">Figure 12</ref>. A continued flowchart explaining the contribution of the spectral emulator to the likelihood function. The synthetic library is first decomposed into an eigenspectram basis. Then, the extrinsic parameters θext modify the eigenspectra. The intrinsic stellar parameters θ * are fed into a Gaussian process (GP), which delivers a probability distribution of weights used to sum the eigenspectra. The mean weights can be used to reconstruct a mean model spectrum, while the variances of the weights are used to propagate interpolation uncertainties into the likelihood function. and the standard deviation spectrum is</p><formula xml:id="formula_26">ξ µ = 1 M M i=1 f λ ({θ * } grid i ) (A1)</formula><formula xml:id="formula_27">ξ σ = 1 M M i=1 f λ ({θ * } grid i ) − ξ µ 2 , (A2)</formula><p>where {θ * } grid denotes the full collection of the M sets of stellar parameters under consideration in the library and {θ * } grid i denotes a single set of those parameters drawn from this collection. Both ξ µ and ξ σ are vectors with length N pix , the same size as a raw synthetic spectrum (f λ ). In effect, all library spectra are standardized by subtracting the mean spectrum and dividing by the standard deviation spectrum</p><formula xml:id="formula_28">ˆ f λ ({θ * } grid ) = f λ ({θ * } grid ) − ξ µ ξ σ . (A3)</formula><p>The eigenspectra are computed from this standardized grid using principal component analysis <ref type="bibr">(PCA;</ref><ref type="bibr" target="#b29">Ivezi´cIvezi´c et al. 2013</ref>). Each eigenspectrum is a vector with length N pix , denoted as ξ k , where k is the principal component index k = {1, 2, . . . , m}. We decided to truncate our basis to the first m eigenspectra, where m is decided by the minimum number of eigenspectra required to reproduce any spectrum in the grid to better than 2% accuracy for all pixels (the typical error for any given pixel is generally much smaller than this, 0.5%). As an example, the eigenspectra basis computed for Gl 51 using the Phoenix library is shown in the top panel of <ref type="figure" target="#fig_13">Figure 13</ref>.</p><p>Using the principal component basis, we can lossily reconstruct any spectrum from the library with a linear combination of the eigenspectra</p><formula xml:id="formula_29">f λ ({θ * } grid i ) ≈ ξ µ + ξ σ m k=1 w k ({θ * } grid i ) ξ k (A4)</formula><p>where w k is the weight of the k th eigenspectrum. These weights are 3-dimensional scalar functions that depend on the stellar parameters θ * . Any given weight, which is generally a smooth function of the stellar parameters (see the left panel of <ref type="figure" target="#fig_2">Figure 14)</ref>, can be determined at any grid point in the library by taking the dot product of the standardized synthetic spectrum with the eigenspectrum</p><formula xml:id="formula_30">w k ({θ * } grid i ) = λ ˆ f λ ({θ * } grid i ) ξ k .<label>(A5)</label></formula><p>To simplify notation, we can write the collection of eigenspectra weights in a length-m column vector</p><formula xml:id="formula_31">w(θ * ) =     w 1 (θ * ) w 2 (θ * ) . . . w m (θ * )     (A6)</formula><p>and horizontally concatenate the eigenspectra into a matrix with N pix rows and m columns</p><formula xml:id="formula_32">Ξ = [ξ 1 ξ 2 · · · ξ m ] .<label>(A7)</label></formula><p>Then, we can rewrite Eq. (A4) as</p><formula xml:id="formula_33">f λ ({θ * } grid i ) ≈ ξ µ + ξ σ • Ξ w({θ * } grid i ) (A8)</formula><p>where • represents the element-wise multiplication of two vectors.</p><p>To recapitulate, the framework described above can be used to decompose the synthetic spectra in a model library into a principal component basis, allowing us to reconstruct any spectrum in the library as a (weighted) linear combination of m eigenspectra. The weights corresponding to each eigenspectrum are moderatelysmooth scalar functions of the three stellar parameters, θ * . Therefore, to create a spectrum corresponding to an arbitrary set of these parameters that is not represented in the spectral library, we must interpolate the weights to this new set. In practice, it may be possible to use a traditional scheme like spline interpolation to do this directly. However, we found that with sensitive spectra (e.g., for Gl 51 the S/N is &gt;400), the uncertainty in the T eff interpolated representation of the spectrum can constitute a significant portion of the total uncertainty budget. This, combined with the under-sampling of the synthetic grid can cause artificial "noding" of the posterior near grid points in the synthetic library, because the interpolated spectrum is not as good as the raw spectrum at the grid point. Even explicitly accounting for interpolation error by doing "drop-out" interpolation tests and empirically propagating it forward does not relieve this noding issue. So instead, we address this problem by employing a Gaussian process to model the interpolation of the eigenspectra weights over θ * , thereby encapsulating the range of possible interpolated spectra. Each weight is modeled by a Gaussian process for each eigenspectrum. For a single eigenspectrum with index k, we denote the collection of w k ({θ * } grid i ) evaluated for all the spectra in the library as a length M vector w grid k . The Gaussian process treats w grid k as a collection of random variables drawn from a joint multi-variate Gaussian distribution <ref type="bibr" target="#b40">(Rasmussen &amp; Williams 2005)</ref>,</p><formula xml:id="formula_34">w grid k ∼ N 0, Σ grid k ,<label>(A9)</label></formula><p>with Σ grid k denoting the covariances. The kernel that describes the covariance matrix for this distribution is assumed to be a 3-dimensional squared exponential,</p><formula xml:id="formula_35">K(θ * ,i , θ * ,j |φ int,k ) = a 2 int exp − (T effi − T effj ) 2 2 2 T eff × exp − (log g i − log g j ) 2 2 2 log g (A10) × exp − ([Fe/H] i − [Fe/H] j ) 2 2 2 [Fe/H] ,</formula><p>with hyperparameters φ int,k = {a int , T eff , log g , <ref type="bibr">[Fe/H]</ref> } representing an amplitude and length scale for each dimension of θ * . Unlike the Matérn kernel used in Section 2 (which produces a more structured behavior reminiscent of the spectral residuals), this squared exponential kernel has a smooth functional form that is more appropriate to represent the behavior of the eigenspectra weights across the library grid, as demonstrated in <ref type="figure" target="#fig_2">Figure 14</ref>. The M × M -dimensional covariance matrix is</p><formula xml:id="formula_36">Σ grid k = K({θ * } grid , {θ * } grid | φ int,k ),<label>(A11)</label></formula><p>the evaluation of the covariance kernel for all pairings of stellar parameters at library gridpoints. Once the Gaussian processes for each k are specified, we can construct the joint distribution.  </p><formula xml:id="formula_37">w grid ∼ N (0, Σ grid ) (A13)</formula><p>Although we could optimize the hyperparameters of each Gaussian process independently based upon how well it reproduces the collection of weights for that eigenspectrum, ideally we would like to optimize the hyperparameters according to a metric that describes how well the emulator actually reproduces the original library of synthetic spectra.</p><p>Following <ref type="bibr" target="#b23">Habib et al. (2007)</ref>, we write down a likelihood function describing how well the reconstructed spectra match the entirety of the original synthetic grid</p><formula xml:id="formula_38">L(F|w grid , λ ξ ) ∝ λ M Npix/2 ξ exp − λ ξ 2 F − Φw grid T F − Φw grid (A14)</formula><p>Here, F represents a length M N pix vector that is the collection of all of the synthetic flux vectors concatenated end to end. The precision of the eigenspectra basis representation, or the statistical error in the ability of the emulator to reproduce the known eigenspectra is represented by λ ξ . Because we have truncated the eigenspectra basis to only m components, where m &lt; M is much smaller than the number of raw spectra in the library, the emulator will not be able to reproduce the synthetic spectra perfectly. By including this "nugget" term in the emulator, we are also forward propagating the interpolation uncertainty for θ * near or at values of {θ * } grid . We specify a broad Γ function prior on λ ξ because we expect it to be well constrained by the data.</p><formula xml:id="formula_39">p(λ ξ ) = Γ(a λ ξ , b λ ξ ) (A15)</formula><p>where shape a λ ξ = 1 and rate b λ ξ = 0.0001. To facilitate the manipulation of Eqn A14, we create a large M N pix × M m matrix that contains the all of the eigenspectra</p><formula xml:id="formula_40">Φ = [I M ⊗ ξ 1 , . . . , I M ⊗ ξ m ] (A16)</formula><p>where ⊗ is the Kronecker product. This operation creates a matrix, which, when multiplied by the vector w grid , enables (lossy) reconstruction of the entire synthetic library F ≈ Φw grid (A17) up to truncation error in the eigenspectrum basis (λ ξ ). For a given λ ξ , the maximum likelihood estimate for Eqn A14 isˆwisˆ isˆw grid = Φ T Φ −1 Φ T F. UsingˆwUsingˆ Usingˆw grid , we can factorize Eqn A14 into</p><formula xml:id="formula_41">L(F|w grid , λ ξ ) ∝ λ M m/2 ξ exp − λ ξ 2 w grid − ˆ w grid T Φ T Φ w grid − ˆ w grid × λ M (Npix−m)/2 ξ exp − λ ξ 2 F T I − Φ(Φ T Φ) −1 Φ T F (A18)</formula><p>Now, only the middle line of this distribution depends onˆwonˆ onˆw grid , so we can reformulate this equation into a dimensionality reduced likelihood function and absorb the other terms into a modified prior on λ ξ .</p><formula xml:id="formula_42">L( ˆ w grid | w grid , λ ξ ) ∝ λ M m/2 ξ exp − λ ξ 2 w grid − ˆ w grid T Φ T Φ w grid − ˆ w grid (A19)</formula><p>To summarize, we have reduced the dimensionality of the distribution from</p><formula xml:id="formula_43">L F | w grid , λ ξ = N F | Φw grid , λ −1 ξ I M Npix (A20) to L ˆ w grid | w grid , λ ξ = N w grid | ˆ w grid , (λ ξ Φ T Φ) −1 (A21)</formula><p>Although we introduced the likelihood function in Eqn A14, we have yet to include the Gaussian processes or the dependence on the emulator parameters φ int . We do this by multiplying Eqn A21 with our prior distribution on the weights (Eqn A13),</p><formula xml:id="formula_44">p w grid | ˆ w grid , λ ξ , φ int = N w grid | ˆ w grid , (λ ξ Φ T Φ) −1 N (w grid | 0, Σ grid ) (A22)</formula><p>and integrate out the dependence on w grid . We perform this integral using Eqn A.7 of <ref type="bibr" target="#b40">Rasmussen &amp; Williams (2005)</ref> for the product of two Gaussians, which yields</p><formula xml:id="formula_45">p( ˆ w grid |λ ξ , φ int ) = (2π) −M m/2 (λ ξ Φ T Φ) −1 + Σ w −1/2 × exp − 1 2 ˆ w T d (λ ξ Φ T Φ) −1 + Σ w −1 ˆ w d (A23)</formula><p>The dimensionality reduction operation changes the priors on λ ξ (Eqn A15) to</p><formula xml:id="formula_46">a λ ξ = a λ ξ + M (N pix − m) 2 (A24) b λ ξ = b λ ξ + 1 2 F T I − Φ ΦΦ T −1 Φ T F (A25)</formula><p>To complete the posterior distribution for the emulator, we specify Γ function priors on the Gaussian process length scale kernel parameters φ int . Typically, these priors are broad and peak at lengths corresponding to a few times the spacing between grid points, which helps the Gaussian process converge to the desired emulation behavior. The full posterior distribution is given by</p><formula xml:id="formula_47">p(λ ξ , φ int | ˆ w grid ) ∝ p( ˆ w grid | λ ξ , φ int ) p(λ ξ , φ int ) (A26)</formula><p>where the prior is given by</p><formula xml:id="formula_48">p(λ ξ , φ int ) = Γ(a λ ξ , b λ ξ )Γ m (a T eff , b T eff )×</formula><p>Γ m (a log g , b log g )Γ m (a <ref type="bibr">[Fe/H]</ref> , b <ref type="bibr">[Fe/H]</ref> ). (A27)</p><p>Now that we have fully specified a posterior probability distribution, we can sample it and find the joint posteriors for the parameters λ ξ and the φ int for all k simultaneously. Once we have identified the best-fit parameters for the emulator, we fix these parameters for the remainder of the spectral fitting. Now, the emulator is fully specified and can be used to predict the values of the weights at any arbitrary set of stellar parameters θ * by considering them drawn from the joint distributionˆw</p><formula xml:id="formula_49">distributionˆ distributionˆw grid w ∼ N 0 0 , (λ ξ Φ T Φ) 0 0 0 + Σ w grid ,w<label>(A28)</label></formula><p>where Σ w grid ,w is an augmented covariance matrix that includes the point θ * . To simplify notation, we let</p><formula xml:id="formula_50">V 11 V 12 V 21 V 22 = (λ ξ Φ T Φ) 0 0 0 + Σ w grid ,w<label>(A29)</label></formula><p>With this notation, the M m × M m matrix V 11 is the region of the covariance matrix that describes the relations between the set of parameters in the grid, {θ * } grid . The M m × m matrix V 12 (and its transpose V 21 ) describe the relations between the set of parameters in the grid and the newly chosen parameters to interpolate at θ * . The structure of V 12 is set by evaluating K i (Eqn A11) across a series of rows of {θ * } grid like in Σ grid , for i = 1, 2, . . . m, and across m columns of θ * . V 22 is a m × m diagonal matrix that represents K i evaluated at the zero-spacing parameter pair (θ * , θ * ), i = 1, 2, . . . m. Then, to predict a vector of weights at the new location, we use the conditional probability</p><formula xml:id="formula_51">p(w|ˆww|ˆ w|ˆw grid , θ * ) = N (w | µ w (θ * ), Σ w (θ * ))<label>(A30)</label></formula><p>where</p><formula xml:id="formula_52">µ w (θ * ) = V 21 V −1 11ˆw11ˆ 11ˆw grid (A31) Σ w (θ * ) = V 22 − V 21 V −1 11 V 12 (A32)</formula><p>These equations are also commonly referred to as kriging equations <ref type="bibr" target="#b13">(Cressie &amp; Cassie 1993)</ref>. Though the notation is complex, the interpretation is straightforward: the probability distribution of a set of eigenspectra weights w is a m-dimensional Gaussian distribution whose mean and covariance are a function of θ * , conditional upon the (fixed) values ofˆwofˆ ofˆw grid and the squared exponential hyperparameters (an example for a single w k is shown in <ref type="figure" target="#fig_2">Figure 14</ref>, right panel).</p><p>If we desired actual values of the interpolated weights, for example to reconstruct a model spectrum, we could simply draw a Gaussian random variable w from the probability distribution in Eq. (A30). However, because we now know the probability distribution of the weight as a function of θ * , we can rewrite our data likelihood function (Eq. 7) in such a way that it is possible to analytically marginalize over all possible values of w, and thus all probable spectral interpolations.</p><p>Up until this point, we have described the reconstruction of a spectrum as a linear combination of the eigenspectra that characterize the synthetic library <ref type="figure" target="#fig_13">(Fig- ure 13)</ref>. But in practice, that reconstructed spectrum must be further post-processed as detailed in Section 2.2. Fortunately, because convolution is a linear operation, we can first post-process the raw eigenspectra according to θ ext , and then represent the reconstructed spectrum as a linear combination of these modified eigenspectra without loss of information. Unfortunately, the Doppler shift and resampling operations are not linear operations, and there will be some loss of information when trying to approximate them in this manner. However, we find that in practice when the synthetic spectra are oversampled relative to the instrument resolution by a reasonable factor, the flux error due to resampling is smaller than 0.2% across all pixels, and thus any effect of that information loss is negligible. For notational compactness, we let ξ µ , ξ σ , and Ξ represent the post-processed eigenspectra, with an implied dependence on the current values of the extrinsic observational parameters (θ ext ) and the polynomial nuisance parameters (φ P ). Now, the model spectrum is a function of the vector of eigenspectra weights</p><formula xml:id="formula_53">M(w) = ξ µ + Xw<label>(A33)</label></formula><p>where</p><formula xml:id="formula_54">X = ξ σ I Npix Ξ.<label>(A34)</label></formula><p>Because the Gaussian process describes a probability distribution of the weights, we now have a distribution of possible (interpolated) models and the likelihood function (Eq. 6) is specified conditionally on the weights,</p><formula xml:id="formula_55">p D| M(w) = p(D| w) = N D| ξ µ + Xw, C . (A35)</formula><p>The final task of designing the spectral emulator is to combine this data likelihood function with the posterior predictive distribution of the eigenspectra weights (Eq. A30) and then marginalize over the weights p(D|θ * ) = p(D|w)p(w|θ * )dw (A36) such that we are left with a modified posterior distribution of the data that incorporates the range of probable interpolation values for the model. To perform this multidimensional integral, we use a convenient lemma found in <ref type="bibr">Gelman et al. (2013, their Appendix A)</ref>: if the probability distributions of w and D|w are specified conditionally as in Eq. A30 and A35, respectively, then the marginal distribution (Eq. A36) is</p><formula xml:id="formula_56">p(D|θ * , θ obs , Φ) = N D ξ µ + Xµ w , XΣ w X T + C ,<label>(A37)</label></formula><p>where the dependence on the model parameters is now made explicit. We can couch this modified likelihood function in the form of Eqn 7 by rewriting</p><formula xml:id="formula_57">M = ξ µ + Xµ w (A38) R = D − M (A39) C = XΣ w X T + C (A40)</formula><p>where M can be thought of as the "mean model spectrum" given the model parameters, and the covariance matrix has been modified to account for the various probable manifestations of the model spectrum about that mean spectrum.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 2 shows</head><label>2</label><figDesc>a (condensed) graphical representation of these post-processing steps. At this stage, the model is further modified in the flux dimension. A typical synthetic spectrum is computed as</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 4 .</head><label>4</label><figDesc>Figure 4. (top) A comparison of the data and a typical model with parameters drawn from the posterior distribution, along with the corresponding residual spectrum. (middle) A zoomed view of the gray band in the top panels, highlighting the mildly covariant residual structure that is produced by slight mismatches between the data and model spectra. (bottom) The autocorrelation of the residual spectrum. Notice the substantial autocorrelation signal for offsets of 8 pixels, demonstrating clearly that the residuals are not well described by white (Poisson) noise alone.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 7 .</head><label>7</label><figDesc>Figure 7. A probabilistic graphical model representing how the parameters of the model are combined to forward model a spectrum and evaluate the likelihood function (Eq. 6). When interpolating models using a spectral emulator (Appendix A), the stellar parameters (θ * ) determine the weights (w) of the eigenspectra (Ξ), which are modified according to the observational parameters (θext) and polynomial parameters (φ P ). Together, these parameters specify the model spectrum (M). If one uses linear interpolation instead of a spectral emulator, then there would be no intermediate nodes for w and Ξ. The structure of the covariance matrix, which is included in the likelihood function, is determined by the covariance hyperparameters (φ C ). Together, the model spectrum and the covariance matrix predict the resulting dataset (D).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>,</head><label></label><figDesc>∀ o) and assume only the trivial noise spectrum (and spectral emulator kernel; see Appendix A) contributes to the C (i.e., φ 0 C = 0). (2a) Start the i th iteration of the Gibbs sampler. For each iteration of the Metropolis-Hastings algorithm, sample in Θ to evaluate the posterior (Eq. 19) following the framework laid out in Sections 2.3 and 2.4. This rep- resents a "slice" through the posterior space conditioned on the other parameters being held fixed (φ P = φ i−1 P and φ</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>( 4 )</head><label>4</label><figDesc>Repeat the procedure in Steps (1)-(3) with different initializations, storing the samples for each Markov chain. After removing the burn-in samples for each chain, we compute the Gelman-Rubin convergence diagnostic, ˆ R (Gelman et al. 2013, their Eq. 11.4). IfˆR Ifˆ IfˆR &lt; 1.1, we can be reasonably sure that all of the chains have converged to the posterior distribution.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head>Figure 8 .</head><label>8</label><figDesc>Figure 8. The marginal posterior probability distributions for the WASP-14 T eff and [Fe/H] based on the PHOENIX model library, for various levels of model complexity, including: (1) a simple linear interpolation scheme and trivial covariance matrix (blue-green); (2) including global covariance terms from Gaussian process kernels (orange); (3) employing a Bayesian emulator for more appropriate interpolation (purple); and (4) also including local covariance kernels to downweight systematic outlier spectral lines (magenta).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head>Figure 9 .</head><label>9</label><figDesc>Figure 9. (top) A representative segment of the TRES spectrum of WASP-14 (blue), overlaid with a Phoenix model (red) generated by drawing parameters from the posterior distribution (under the assumption of a fixed log g = 4.29). (bottom) The corresponding residual spectrum overlaid on contours representing the distributions of a large number of random draws from the covariance matrix (the shading is representative of the 1, 2, and 3 σ spreads of that distribution of draws), as in Fig. 5. Note the utility of local patches of increased residual variance in accounting for outlier features, which are introduced by the local covariance kernels described in Sect. 2.3.2.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_10"><head>Figure 10 .</head><label>10</label><figDesc>Figure 10. The marginal posterior probability distributions for the WASP-14 T eff and [Fe/H] based on the PHOENIX model library, for various levels of model complexity, including: (1) a simple linear interpolation scheme and trivial covariance matrix (bluegreen); (2) including global covariance terms from Gaussian process kernels (orange); (3) employing a Bayesian emulator for more appropriate interpolation (purple); and (4) also including local covariance kernels to downweight systematic outlier spectral lines (magenta).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_11"><head>Figure 11 .</head><label>11</label><figDesc>Figure 11. The K-band SPEX spectrum of Gl 51 (blue) compared with a Phoenix model (red) generated by drawing parameters from the inferred posterior distribution. (bottom) The residual spectrum along with contours representing the distributions of a large number of random draws from the covariance matrix (the shading is representative of the 1, 2, and 3 σ spreads of that distribution of draws), as in Fig. 9. Note how the 'outlier' features (Na I at 2.21 µm and Ca I at 2.26 µm) are identified and treated by the local covariance kernels.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_12"><head></head><label></label><figDesc>model library instead of the Husser et al. (2013) library. The resulting inferences for T eff and [Fe/H] are in excellent agreement with those derived by Torres et al. (2012) using the SPC method, but are shifted by 150 K (higher) and 0.15 dex (higher), respec- tively, compared to the Phoenix results.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_13"><head>Figure 13 .</head><label>13</label><figDesc>Figure 13. (top) The mean spectrum, standard deviation spectrum, and five eigenspectra that form the basis of the Phoenix synthetic library used to model Gl 51, generated using a subset of the parameter-space most relevant for M dwarfs. (bottom) The original synthetic spectrum from the Phoenix library (θ * = [T eff = 3000 K, log g = 5.0 dex, [Fe/H] = 0.0 dex]) compared with a spectrum reconstructed from a linear combination of the derived eigenspectra using Eqn A4 (with the weights w k listed in the top panel figure).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_14"><head>Figure 14 .</head><label>14</label><figDesc>Figure 14. The Gaussian process modelling of the principal component weights for the Gl51 Phoenix spectral library. (left) the blue dots mark the weights w grid 2 of the 2nd eigenspectrum ξ 2 computed at a one-dimensional slice of the spectral library for grid points with log g = 5.0, [Fe/H] = 0.0 and various values of T eff . In reality, the weights are a three-dimensional function of θ * . The thin blue lines show 50 random draws of possible functional forms described by the Gaussian process. (inset) a zoomed portion showing the scatter in the possible functional forms. The black vertical line represents a slice through the scatter of the predicted weight value at θ * = [T eff = 3150 K, log g = 5.0 dex, [Fe/H] = 0.0 dex]. (right) The posterior predictive probability of the collection of all weights w at this value of θ * is completely described by Eqn A30, allowing us to analytically marginalize over all probable values of the weights, and thus marginalize over all probable spectral interpolations.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_16"><head></head><label></label><figDesc>(A12) We use w grid to denote the concatenation of w grid k vectors into a single length M m vector, and Σ grid as the M m × M m covariance matrix,</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" validated="true"><head>Table 1 Demonstration Tests for WASP-14</head><label>1</label><figDesc></figDesc><table>Test 
+Interp 
+C 
+T eff 
+[Fe/H] 
+
+(1) 
+linear 
+trivial 
+6280 ± 5 
+−0.471 ± 0.004 
+(2) 
+linear 
++ K G 
+6297 ± 16 −0.500 ± 0.006 
+(3) 
+emulator 
++ K G 
+6281 ± 26 −0.482 ± 0.012 
+(4) 
+emulator + K G + K L 6301 ± 29 −0.431 ± 0.012 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4" validated="true"><head>Table 2 Demonstration Tests for Gl 51</head><label>2</label><figDesc></figDesc><table>Test 
+Interp 
+C 
+T eff 
+[Fe/H] 
+
+(1) 
+linear 
+trivial 
+3256 ± 3 
+0.89 ± 0.01 
+(2) 
+linear 
++ K G 
+3022 ± 35 0.00 ± 0.03 
+(3) 
+emulator 
++ K G 
+3230 ± 30 0.27 ± 0.03 
+(4) 
+emulator + K G + K L 3180 ± 35 0.28 ± 0.04 
+
+</table></figure>
+
+			<note place="foot" n="3"> In practice, these convolutions are performed as multiplications in Fourier-space to better preserve spectral information (cf., Tonry &amp; Davis 1979); the mathematical formalism is presented for clarity.</note>
+
+			<note place="foot" n="4"> For instance, the imperfect calibration would still in principle be discernible through the slight differences of the normalization functions derived for the data and model.</note>
+
+			<note place="foot" n="7"> There is no practical reason to delete local kernels once instantiated. If the parameters have changed such that a given local kernel is no longer required, that kernel amplitude will be driven towards zero and represent a negligible contribution to C; in effect, the model will act as if the kernel were deleted automatically.</note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">T</forename><surname>Hodgkin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Irwin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Lewis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Roberts</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">447</biblScope>
+			<biblScope unit="page">2880</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+	<note>2.3.1</note>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Allard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Homeier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Freytag</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Schaffenberger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">S</forename><surname>Rajpurohit</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2013" />
+			<publisher>Memorie della Societa Astronomica Italiana Supplementi</publisher>
+			<biblScope unit="volume">24</biblScope>
+			<biblScope unit="page">128</biblScope>
+		</imprint>
+	</monogr>
+	<note>3.2</note>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">P</forename><surname>Robitaille</surname></persName>
+			<affiliation>
+				<orgName type="collaboration">Astropy Collaboration</orgName>
+			</affiliation>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Tollerud</surname></persName>
+			<affiliation>
+				<orgName type="collaboration">Astropy Collaboration</orgName>
+			</affiliation>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">558</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+	<note>A33 [4</note>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Barclay</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Endl</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Huber</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">800</biblScope>
+			<biblScope unit="page">46</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+	<note>2.3.1</note>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Bezanson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Karpinski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">B</forename><surname>Shah</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Edelman</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1209.5145[cs.PL</idno>
+		<imprint>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">M</forename><surname>Bishop</surname></persName>
+		</author>
+		<title level="m">Pattern recognition and machine learning</title>
+		<imprint>
+			<publisher>springer</publisher>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+	<note>2.5</note>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Brewer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Fischer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Basu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Valenti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Piskunov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">805</biblScope>
+			<biblScope unit="page">126</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+	<note>3.3</note>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">A</forename><surname>Buchhave</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">A</forename><surname>Bakos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Hartman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">720</biblScope>
+			<biblScope unit="page">1118</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+	<note>3.1</note>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">A</forename><surname>Buchhave</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Latham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Johansen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">486</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+	<note>375 [1, 3.3</note>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">A</forename><surname>Buchhave</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Bizzarro</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Latham</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">509</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">593</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Cardelli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">C</forename><surname>Clayton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">S</forename><surname>Mathis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">345</biblScope>
+			<biblScope unit="page">245</biblScope>
+			<date type="published" when="1989" />
+		</imprint>
+	</monogr>
+	<note>2.2</note>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<monogr>
+		<title level="m" type="main">ArXiv Astrophysics e-prints</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Castelli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">L</forename><surname>Kurucz</surname></persName>
+		</author>
+		<idno>astro-ph/0405087</idno>
+		<imprint>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+	<note>1, 3.3, A</note>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Cottaar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">R</forename><surname>Covey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Meyer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">794</biblScope>
+			<biblScope unit="page">125</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+	<note>2.1, 3.1, 3.3</note>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">A</forename><surname>Cressie</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">A</forename><surname>Cassie</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Statistics for spatial data</title>
+		<imprint>
+			<biblScope unit="volume">900</biblScope>
+			<date type="published" when="1993" />
+			<publisher>Wiley</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">C</forename><surname>Cushing</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Rayner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">D</forename><surname>Vacca</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="issue">623</biblScope>
+			<biblScope unit="page">1115</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+	<note>3, 3.2</note>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">C</forename><surname>Cushing</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">D</forename><surname>Vacca</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Rayner</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">116</biblScope>
+			<biblScope unit="page">362</biblScope>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+	<note>3.2</note>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J</forename><surname>Eisenstein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Liebert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">C</forename><surname>Harris</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">167</biblScope>
+			<biblScope unit="page">40</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+	<note>2.2] F˝ urész, G. 2008 [3.1</note>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Fischer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Valenti</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">622</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">1102</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Goodman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">125</biblScope>
+			<biblScope unit="page">306</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+	<note>2.5</note>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Morton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">795</biblScope>
+			<biblScope unit="page">64</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+	<note>2.3.1</note>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gelman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Carlin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Stern</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">CRC Texts in Statistical Science</title>
+		<meeting><address><addrLine>Taylor &amp; Francis</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="1994" />
+			<biblScope unit="volume">106</biblScope>
+			<biblScope unit="page">1248</biblScope>
+		</imprint>
+	</monogr>
+	<note>PASP</note>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">O</forename><surname>Gray</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">W</forename><surname>Graham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">R</forename><surname>Hoyt</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">121</biblScope>
+			<biblScope unit="page">2159</biblScope>
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+	<note>3.3</note>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<monogr>
+		<title level="m" type="main">The Observation and Analysis of Stellar Photospheres</title>
+		<imprint>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+	<note>2.2</note>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Habib</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Heitmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Higdon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Nakhleh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Williams</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Phys. Rev. D</title>
+		<imprint>
+			<biblScope unit="volume">76</biblScope>
+			<biblScope unit="page">83503</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+	<note>A, A</note>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">H</forename><surname>Hauschildt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Allard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Baron</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">512</biblScope>
+			<biblScope unit="page">377</biblScope>
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+	<note>1, 2.1</note>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Heitmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Higdon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>White</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="issue">705</biblScope>
+			<biblScope unit="page">156</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Bovy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lang</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1008.4686[astro-ph.IM</idno>
+		<imprint>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+<note type="report_type">ArXiv e-prints</note>
+	<note>2.3.2</note>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Howard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Marcy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Johnson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">330</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">653</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T.-O</forename><surname>Husser</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Wende-Von</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Berg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Dreizler</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">553</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+	<note>A6 [1, 2.1, 3, 3.3</note>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">˙</forename><forename type="middle">Z</forename><surname>Ivezi´civezi´c</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Connolly</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Vanderplas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gray</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Statistics, Data Mining, and Machine Learning</title>
+		<imprint>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+	<note>A, A</note>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P</forename><surname>Butler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Marcy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">670</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">833</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><forename type="middle">C</forename><surname>Joshi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Pollacco</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Collier Cameron</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">392</biblScope>
+			<biblScope unit="page">1532</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+	<note>3, 1, 3.1, 3.3</note>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Koleva</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Prugniel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Bouchard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Wu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">501</biblScope>
+			<biblScope unit="page">1269</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+	<note>2.2</note>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<monogr>
+		<title level="m" type="main">SYNTHE spectrum synthesis programs and line data</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">L</forename><surname>Kurucz</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1993" />
+		</imprint>
+	</monogr>
+	<note>1, 2.1</note>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">S</forename><surname>Mandel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">M</forename><surname>Wood-Vasey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">S</forename><surname>Friedman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P</forename><surname>Kirshner</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">704</biblScope>
+			<biblScope unit="page">629</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+	<note>2.5</note>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Mann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Gaidos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Ansdell</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">779</biblScope>
+			<biblScope unit="page">188</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+	<note>3.2</note>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">L</forename><surname>Nidever</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Zasowski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">R</forename><surname>Majewski</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">755</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+	<note>L25 [4</note>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Paxton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Bildsten</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Dotter</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">192</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">3</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">S</forename><surname>Rajpurohit</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Reylé</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Allard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">564</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+	<note>A90 [3.2</note>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">S</forename><surname>Rajpurohit</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Reylé</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Schultheis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Allard</surname></persName>
+		</author>
+		<title level="m">SF2A-2010: Proceedings of the Annual meeting of the French Society of Astronomy and Astrophysics</title>
+		<editor>S. Boissier, M. Heydari-Malayeri, R. Samadi, &amp; D. Valls-Gabaud</editor>
+		<imprint>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+	<note>275 [3.2</note>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">E</forename><surname>Rasmussen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">K I</forename><surname>Williams</surname></persName>
+		</author>
+		<title level="m">Gaussian Processes for Machine Learning (Adaptive Computation and Machine Learning</title>
+		<imprint>
+			<publisher>The MIT Press</publisher>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+	<note>2.3.1, A, A</note>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Rayner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">C</forename><surname>Cushing</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">D</forename><surname>Vacca</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">185</biblScope>
+			<biblScope unit="page">289</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+	<note>3, 3.2</note>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Rayner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Toomey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">M</forename><surname>Onaka</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">115</biblScope>
+			<biblScope unit="page">362</biblScope>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+	<note>3.2</note>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">N</forename><surname>Reid</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">L</forename><surname>Hawley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">E</forename><surname>Gizis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">110</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">1838</biblScope>
+			<date type="published" when="1995" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Rojas-Ayala</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">R</forename><surname>Covey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">S</forename><surname>Muirhead</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Lloyd</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">720</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">93</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+	<note>ApJ. 1, 2, 3.2</note>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<monogr>
+		<title level="m" type="main">The design and analysis of computer experiments</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">J</forename><surname>Santner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">J</forename><surname>Williams</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">I</forename><surname>Notz</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2013" />
+			<publisher>Springer Science &amp; Business Media</publisher>
+		</imprint>
+	</monogr>
+	<note>2.3.1</note>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Schönrich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Bergemann</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">443</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+	<note>698 [1, 2.1, 3.3</note>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Shkedy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Decin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Molenberghs</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Aerts</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">377</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">120</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">A</forename><surname>Sneden</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1973" />
+		</imprint>
+		<respStmt>
+			<orgName>The University of Texas at Austin</orgName>
+		</respStmt>
+	</monogr>
+<note type="report_type">PhD thesis</note>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tonry</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Davis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">84</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page">1511</biblScope>
+			<date type="published" when="1979" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Torres</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Fischer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Sozzetti</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">757</biblScope>
+			<biblScope unit="page">161</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+	<note>3, 3.1, 3.3</note>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">D</forename><surname>Vacca</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">C</forename><surname>Cushing</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Rayner</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">115</biblScope>
+			<biblScope unit="page">389</biblScope>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+	<note>3.2</note>
+</biblStruct>
+
+<biblStruct xml:id="b52">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Valenti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Piskunov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;AS</title>
+		<imprint>
+			<biblScope unit="volume">118</biblScope>
+			<date type="published" when="1996" />
+		</imprint>
+	</monogr>
+	<note>595 [1, 2.1</note>
+</biblStruct>
+
+<biblStruct xml:id="b53">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Vernon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Goldstein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">G</forename><surname>Bower</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Bayesian Anal</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page">619</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b54">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">B</forename><surname>Zucker</surname></persName>
+			<affiliation>
+				<orgName type="collaboration">Hermes Team</orgName>
+			</affiliation>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>De Silva</surname></persName>
+			<affiliation>
+				<orgName type="collaboration">Hermes Team</orgName>
+			</affiliation>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Freeman</surname></persName>
+			<affiliation>
+				<orgName type="collaboration">Hermes Team</orgName>
+			</affiliation>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Bland-Hawthorn</surname></persName>
+			<affiliation>
+				<orgName type="collaboration">Hermes Team</orgName>
+			</affiliation>
+		</author>
+		<title level="m">Galactic Archaeology: Near-Field Cosmology and the Formation of the Milky Way</title>
+		<editor>W. Aoki, M. Ishigaki, T. Suda, T. Tsujimoto, &amp; N. Arimoto</editor>
+		<imprint>
+			<date type="published" when="2012" />
+			<biblScope unit="volume">458</biblScope>
+			<biblScope unit="page">421</biblScope>
+		</imprint>
+	</monogr>
+	<note>Astronomical Society of the Pacific Conference Series</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-04T16:04+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Title : will be set by the publisher PIERNIK MHD CODE -A MULTI-FLUID, NON-IDEAL EXTENSION OF THE RELAXING-TVD SCHEME (I)</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2018">2018</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Michaa L Hanasz</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Kacper</forename><surname>Kowalik</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Dominik</forename><forename type="middle">Wólta´</forename><surname>Wólta´nski</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Rafaa</forename></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Paww</forename><surname>Laszek</surname></persName>
+						</author>
+						<title level="a" type="main">Title : will be set by the publisher PIERNIK MHD CODE -A MULTI-FLUID, NON-IDEAL EXTENSION OF THE RELAXING-TVD SCHEME (I)</title>
+					</analytic>
+					<monogr>
+						<title level="j" type="main">EAS Publications Series</title>
+						<imprint>
+							<date type="published" when="2018">2018</date>
+						</imprint>
+					</monogr>
+					<note>Editors : will be set by the publisher</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<abstract>
+				<p>We present a new multi-fluid, grid MHD code PIERNIK, which is based on the Relaxing TVD scheme. The original scheme has been extended by an addition of dynamically independent, but interacting fluids: dust and a diffusive cosmic ray gas, described within the fluid approximation, with an option to add other fluids in an easy way. The code has been equipped with shearing-box boundary conditions, and a selfgravity module, Ohmic resistivity module, as well as other facilities which are useful in astrophysical fluid-dynamical simulations. The code is parallelized by means of the MPI library. In this paper we shortly introduce basic elements of the Relaxing TVD MHD algorithm , following Trac &amp; Pen (2003) and Pen et al. (2003), and then focus on the conservative implementation of the shearing box model, constructed with the aid of the Masset&apos;s (2000) method. We present results of a test example of a formation of a gravitationally bounded object (planet) in a self-gravitating and differentially rotating fluid.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction -the basic Relaxing TVD scheme</head><p>The Relaxing-TVD conservative scheme <ref type="bibr" target="#b5">(Jin &amp; Xin 1995)</ref> presented by <ref type="bibr">Trac &amp; Pen (2003)</ref> and <ref type="bibr" target="#b8">Pen et al. (2003)</ref>, who provided short codes with a basic implementation of the method, is a second order algorithm in space and time. The scheme efficiently deals with shocks without artificial viscosity. The code is very flexible and can be extended with new modules representing additional physical processes. The simplicity and robustness of the code is reflected in general performance of 10 5 zone-cycles/s (on 2 GHz AMD Opteron processors).</p><p>The conservative form of MHD equations serves as a starting point</p><formula xml:id="formula_0">∂ t u + ∂ x F(u, B) + ∂ y G(u, B) + ∂ z H(u, B) = 0. (1.1)</formula><p>where u = (ρ, m x , m y , m z , e) and F(u, B), G(u, B), H(u, B) are fluxes of the conserved fluid variables in x, y and z directions, respectively. Other symbols have their common meaning i.e. ρ denotes density of the fluid, whereas m x , m y , m z are components of momentum density and e stands for total energy density. Firstly, a dimensional splitting of equation (1.1) is made by constructing numerical solution with timestep ∆t to the equation</p><formula xml:id="formula_1">∂ t u + ∂ x F(u, B) = 0, (1.2)</formula><p>separately for each dimension. Then u and F are split into waves that propagate leftwards and rightwards</p><formula xml:id="formula_2">u L ≡ 1 2 u − F c , u R ≡ 1 2 u + F c , u = u L + u R , (1.3) F L = cu L , F R = cu R , F = F R + F L (1.4)</formula><p>where c, called the freezing speed, is a function that satisfies c ≥ max (|v ± c f |), v is the fluid speed and c f is the fast magnetosonic speed. Now, equation (1.2) is equivalent to two independent equations:</p><formula xml:id="formula_3">∂ t u L − ∂ x F L = 0, ∂ t u R + ∂ x F R = 0. (1.5)</formula><p>The above pair of equations (1.5) is solved by means of an upwind conservative scheme, separately for right-and left-going waves, using cell-centered fluxes. To achieve 2nd order spatial accuracy, a monotone upwind interpolation of fluxes onto cell boundaries is made, with the aid of a flux limiter. Second order accuracy of time integration is achieved through the Runge-Kutta scheme (details see <ref type="bibr">Trac &amp; Pen 2003</ref><ref type="bibr" target="#b8">, Pen et al. 2003</ref> 2 Source terms</p><p>In order to incorporate gravity we modified the original Relaxing TVD scheme through the addition of source terms within the Runge-Kutta algorithm. To achieve a good accuracy in simulations of near-hydrostatic equilibrium states, the gravity source terms are computed separately for the left-and right-going waves, by replacing zeros on the rhs. of eqns. (1.5) by the gravity source terms</p><formula xml:id="formula_4">S(u L ) = (0, g L x ρ L , g L y ρ L , g L z ρ L , g L · m L ) and S(u R ) = (0, g R x ρ R , g R y ρ R , g R z ρ R , g R · m R ).</formula><p>The superscripts 'L' and 'R' in the gravitational acceleration reflects the fact that g is interpolated in a slightly different manner for the left-going and right-going waves.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Constrained Transport</head><p>The original RTVD MHD scheme by <ref type="bibr" target="#b8">Pen et al. (2003)</ref> incorporates magnetic field evolution through the "constrained transport" (CT) algorithm <ref type="bibr" target="#b1">(Evans et al. 1988</ref>).</p><p>Magnetic field B is updated during the advection-constraint steps. The electromotive force is computed in the advection step by the RTVD scheme and then used in the constraint step to preserve ∇ · B = 0 ( <ref type="bibr" target="#b8">Pen et al. 2003)</ref>.</p><p>Our extension of the RTVD algorithm includes an unsplit evolution of magnetofluid, i.e. the simultaneous update of fluid variables and magnetic field in each Runge-Kutta step.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Parallelization</head><p>Piernik-MHD is fully parallelized with the aid of MPI library, by means of the block decomposition. Computational domain can be divided into any number of equal size blocks in any direction (see <ref type="figure" target="#fig_0">fig. 1</ref>). A test of code scalability has been done for HD Sedov explosion, in a series of experiments for different numbers of fixed size (n x = n y = n z = 64) MPI blocks, distributed over different CPU cores. The results displayed in <ref type="figure">Fig. 2</ref> demonstrate that the growth of the core number from 8 up to 1024 results in the growth of the wall time only by a few percent. As it is apparent, the simplicity and homogeneity of the grid decomposition results in an excellent scaling of the code.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Shearing box</head><p>In addition to the the standard shearing model <ref type="bibr" target="#b4">(Hawley et al. 1995)</ref>, we implemented a modification of the shearing box method that allows to get rid of the average shear velocity (v = −qΩ 0 x) when applying the CFL condition. Firstly, we make a simple transformation of initial conservative variables u = (ρ, ρv x , ρv y , ρv z , e) =⇒˜u=⇒˜ =⇒˜u = (ρ, ρv x , ρ˜vρ˜v y , ρv z , ˜ e), (5.1) where˜vwhere˜ where˜v y = v y − v, ˜ e = e − 1 2 ρ(v 2 + 2 ˜ v y v) are quantities deprived of the terms containing mean shear flow. It can be shown that the transformation (5.1) does not break the conservative form of basic HD equations</p><formula xml:id="formula_5">∂ t ˜ u + ∂ x F(˜ u, v x ) + ∂ y G(˜ u, v y ) + ∂ z H(˜ u, v z ) = S. (5.2)</formula><p>Following the fast Eulerian transport algorithm for differentially rotating disks introduced by Masset (2000) we can rewrite (5.2) as</p><formula xml:id="formula_6">∂ t ˜ u + ∂ x F(˜ u, v x ) + ∂ y ˜ G(˜ u, ˜ v y ) + ∂ z H(˜ u, v z ) + v∂ y ˜ u = ˜ S.<label>(5.</label></formula><p>3)</p><p>The algorithm solving the equation (5.3) is then split into three steps:</p><p>1. computation of source terms˜Sterms˜ terms˜S(˜ u), 2. transport of˜uof˜ of˜u in x, y and z directions with v x , ˜ v y , v z accordingly</p><formula xml:id="formula_7">∂ t ˜ u + ∂ x F(˜ u, v x ) + ∂ y ˜ G(˜ u, ˜ v y ) + ∂ z H(˜ u, v z ) = ˜ S, (5.4)</formula><p>using RTVD scheme, 3. transport of˜uof˜ of˜u in y with v described by the linear advection equation</p><formula xml:id="formula_8">∂ t ˜ u + v∂ y ˜ u = 0, (5.5)</formula><p>The linear advection equation is being solved by the means of Fast Fourier Transform (FFT). Fluid variables are transformed into the frequency domain along y direction and phase shifted of φ = v∆t. The algorithm is now being extended to MHD equations in a manner preserving ∇ · B = 0 ( <ref type="bibr" target="#b6">Johnson et al. 2008</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">Selfgravity</head><p>We have implemented a Poisson solver in order to incorporate selfgravity of the fluids. Currently, our code supports selfgravity under condition of periodicity (or quasi-periodicity) of the domain in two or three directions, as our solver is based on FFT techniques. Utilisation of FFT is fully consistent with the previously described shearing box model. Poisson equation is solved in the shearing box by (1) the phase shift of the domain into the nearest periodic point (1D FFT in y), (2) application of suitable algorithm for periodic boundary conditions (two 1D FFT in x ), (3) shift back of the calculated gravitational potential (one 1D FFT). <ref type="figure">Fig. 3</ref>. Snapshots of logarithm of surface density for times t = 3, 5, 9, 30Ω −1 . Initially marginally stable state is slightly disturbed and undergoes fragmentation. Due to high cooling rate gas collapses to one gravitationally bounded object.</p><p>The new, efficient shearing box algorithm has been tested in simulations of gravitational instability in protoplanetary disks <ref type="bibr" target="#b7">(Kowalik 2008)</ref>. Following Gammie (2001) we set initially uniform density distribution of ideal gas (γ = 2) with a subsonic (0.01c s ) velocity perturbation. Depending on how efficient the cooling of the gas is, fragmentation to gravitationally bounded object or gravitoturbulence may occur. Our results correspond closely to the results of a similar approach that uses a non-conservative scheme <ref type="bibr" target="#b2">(Gammie 2001;</ref><ref type="bibr" target="#b0">Brandenburg &amp; Dobler 2002</ref>).</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Fig. 1 .</head><label>1</label><figDesc>Fig. 1. Total magnetic field in a global simulation of CR-driven galactic dynamo. The computational domain is dived into 1600 (20 × 20 × 4) equal blocks.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Piernik scaling (constant work per CPU) 4 out of 8 cores on 2x Xeon E5345 per node 8 out of 8 cores on 2x Xeon E5345 per nodeFig. 2 .</head><label>42</label><figDesc>Fig. 2. Results of the weak scaling test. In each test one CPU core processed one MPI block of fixed size (nx = ny = nz = 64).</figDesc></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Acknowledgements</head><p>This work was partially supported by Nicolaus Copernicus University through Rector's grant No. 516-A, by European Science Foundation within the ASTROSIM project and by Polish Ministry of Science and Higher Education through the grants 92/N-ASTROSIM/2008/0 and PB 0656/P03D/2004/26.</p></div>
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Brandenburg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Dobler</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Comp. Phys. Comm</title>
+		<imprint>
+			<biblScope unit="volume">147</biblScope>
+			<biblScope unit="page">471</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">R</forename><surname>Evans</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">F</forename><surname>Hawley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">332</biblScope>
+			<biblScope unit="page">659</biblScope>
+			<date type="published" when="1988" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">F</forename><surname>Gammie</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">553</biblScope>
+			<biblScope unit="page">174</biblScope>
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Gottlieb</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C.-W</forename><surname>Shu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Tadmor</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">SIAM Review</title>
+		<imprint>
+			<biblScope unit="volume">43</biblScope>
+			<biblScope unit="page">89</biblScope>
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">F</forename><surname>Hawley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">F</forename><surname>Gammie</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">A</forename><surname>Balbus</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">440</biblScope>
+			<biblScope unit="page">742</biblScope>
+			<date type="published" when="1995" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Jin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Xin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Comm. Pure Appl. Math</title>
+		<imprint>
+			<biblScope unit="volume">48</biblScope>
+			<biblScope unit="page">235</biblScope>
+			<date type="published" when="1995" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">M</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Guan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">F</forename><surname>Gammie</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">177</biblScope>
+			<biblScope unit="page">373</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Kowalik</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;AS</title>
+		<imprint>
+			<biblScope unit="volume">141</biblScope>
+			<biblScope unit="page">165</biblScope>
+			<date type="published" when="2000" />
+		</imprint>
+		<respStmt>
+			<orgName>Master thesis at Nicolaus Copernicus University Masset</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U.-L</forename><surname>Pen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Arras</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Wong</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">149</biblScope>
+			<biblScope unit="page">447</biblScope>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">The Numerical Method of Lines</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">E</forename><surname>Schiesser</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">115</biblScope>
+			<biblScope unit="page">303</biblScope>
+			<date type="published" when="1991" />
+			<publisher>Academic Press Trac</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>
