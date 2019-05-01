@@ -1,0 +1,942 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-11T13:19+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Modelling Light and Velocity Curves of Exoplanet Hosts</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Rodrigo</forename><forename type="middle">F</forename><surname>Díaz</surname></persName>
+						</author>
+						<title level="a" type="main">Modelling Light and Velocity Curves of Exoplanet Hosts</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<abstract>
+				<p>Research in extrasolar-planet science is data-driven. With the advent of radial-velocity instruments like HARPS and HARPS-N, and transit space missions like Kepler, our ability to discover and characterise extrasolar planets is no longer limited by instrumental precision but by our ability to model the data accurately. This chapter presents the models that describe radial-velocity measurements and transit light curves. I begin by deriving the solution of the two-body problem and from there, the equations describing the radial velocity of a planet-host star and the distance between star and planet centres, necessary to model transit light curves. Stochastic models are then presented and I delineate how they are used to model complex physical phenomena affecting the exoplanet data sets, such as stellar activity. Finally, I give a brief overview of the processes of Bayesian inference, focussing on the construction of likelihood functions and prior probability distributions. In particular, I describe different methods to specify ignorance priors.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>In the scientist dialogue with Nature data play a crucial role. It is the language by which we receive information from our experiments and observations. Nature communicates with scientists exclusively through data. Without data, there is no science. To be able to interpret the messages encoded in the language of physical observaRodrigo F. Díaz Département d'Astronomie, Université de Genève, Versoix, Switzerland, e-mail: rodrigo.diaz@unige.ch Universidad de Buenos Aires, Facultad de Ciencias Exactas y Naturales, Buenos Aires, Argentina CONICET-Universidad de Buenos Aires, Instituto de Astronomía y Física del Espacio (IAFE), Buenos Aires, Argentina tions, we use mathematical models. It is probably useless to stare at a series of data points or samples from a distribution without an underlying idea, however vague, of what the mechanism producing them could be. This idea can be flexible and allow for modifications, but it is an unavoidable step in translating data to knowledge. Roughly speaking, the idea of how data are produced by Nature is a model. More precisely, when the model is expressed using mathematical concepts and terminology it becomes a mathematical model.</p><p>Mathematical models consist of one or more equations relating independent to dependent variables, for example time and the radial velocity of a star at that time. Both of these can be measured in an experiment or by an astronomical observation. These equations have constants that represent properties of the system being described, and are usually referred to as the model parameters. The basic task of data analysis is to obtain information on model parameters from a set of observations or measurements.</p><p>Here we are interested in studying mathematical models of extrasolar-planet data. In particular, we will focus on radial-velocity data and transit light curves. To fully describe these data sets, one needs not only to consider the physics describing the movement of the planets and stars, as well as the geometry of the occultation of a fraction of the stellar disc by the planet, but also the mechanisms producing the actual observed data and their uncertainties, plus all sources of additional radial velocity or photometric variability not of primary interest to us. Actually, at the present stage of exoplanet research, the data are of good enough quality to permit the detection and characterisation of planets of very small mass and size, similar to Earth. However, the signals produced by this type of planetary companions are usually comparable or even smaller than the effects produced by other sources, such as stellar activity, which in addition are usually much more difficult to model. As we will see, the signals we are interested in are relatively simple to model but the determination of the parameters can be hindered or biased by the more complicated effects. Our ability to detect and characterise extrasolar planets is no longer limited by the precision of our instruments but by our ability to model and analyse the data.</p><p>Generally speaking, the mathematical model of datum d i (which we assume taken at time t i , although this is not fundamental to our formulation) consists of two parts: a prediction of the value the datum d i should take, m i , and an error term, e i , that accounts for the uncertainties in the data and quantifies the possible discrepancies between the m i and the datum d i . In general, we can write:</p><formula xml:id="formula_0">d i = m i + e i .<label>(1)</label></formula><p>As we will describe in detail in Sect. 3, the mathematical formulation leading to m i can be deterministic or statistical. In the deterministic case, for a certain set of parameters on which the model depends there is no uncertainty in the predicted value m i . The second term, e i , will be assumed to come exclusively from a statistical model of the data. This model can be as simple as the mathematical model corresponding to a series of independent Gaussian variables, but it can be as complicated as one needs to correctly represent the data. This includes models with correlation between the measurements, mixture models etc. (see Sect. 3.2).</p><p>In this chapter, I will discuss the mathematical models describing the production of two of the most important data types in exoplanet science: radial-velocity measurements and transit light curves (although the focus will be mostly on the radial-velocity models). In Sect. 2, I describe the physical models of the orbiting planetary companions, focussing in the case of single-planet systems, that permit an exact analytical description (under certain assumptions). I discuss in Sect. 3 the stochastic models needed to describe the error term e i and more complicated phenomena not easily amenable to an analytical description. Finally, Sect. 4 presents a brief introduction to Bayesian inference and the processes involved in obtaining information on the model parameters from a set of observations.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Physical models</head><p>In this section, I describe physical models used to reproduce the radial-velocity time series and light-curve data of a star hosting a planetary companion. In both cases, to reach an analytical expression we need to make a series of assumptions and approximations. Those common to both types of data are:</p><p>1. that the movement of the bodies follows the laws of Newtonian dynamics, and 2. that the bodies do not have electrical charge or any other property besides mass that allows them to interact with each other.</p><p>These approximations are usually good in the range of velocities, masses, and distances we will be dealing with.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Radial velocities</head><p>To model radial-velocity data we make one additional assumption: the bodies are dimensionless point particles. This means that the bodies have no internal structure and therefore do not experiment any kind of tidal force. Although this is of course wrong, as we know stars and planets have interiors and processes may occur inside them, the resulting forces are usually much weaker than the gravitational attraction between the bodies and therefore in most cases only produce observable effects over very long time scales (e.g., <ref type="bibr" target="#b40">Zahn, 1977;</ref><ref type="bibr" target="#b23">Hut, 1981)</ref>. Under these assumptions, the movement of the planet and the star reduces to the two-body problem, a traditional problem in classical mechanics. In particular, to obtain a model for the observed radial velocities, we need to obtain the position of the bodies in time. This is known as the Kepler problem. In this section, I follow closely the presentation of the two-body problem by <ref type="bibr" target="#b33">Murray &amp; Dermott (2000)</ref>   Murray . An approach using Lagrangian mechanics is given by Goldstein (1980).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.1">Elliptical motion</head><p>Let us consider two objects of masses m 1 (the star) and m 2 (the planet) interacting gravitationally. Their equations of motion are described in an inertial frame S with origin at O:</p><formula xml:id="formula_1">F 1 = m 1 ¨ r 1 = +G m 1 m 2 r 3 r ,<label>(2)</label></formula><formula xml:id="formula_2">F 2 = m 2 ¨ r 2 = −G m 1 m 2 r 3 r ,<label>(3)</label></formula><p>where G is the Universal gravitational constant and r = r 2 − r 1 is the relative position vector, pointing from the star to the planet (see <ref type="figure" target="#fig_1">Fig. 1</ref>). Dividing Eq. (2) by m 1 and Eq. (3) by m 2 , these equations can be combined to produce the equation of relative motion:</p><formula xml:id="formula_3">¨ r + G(m 1 + m 2 ) r r 3 = 0 .<label>(4)</label></formula><p>Taking the vector product of Eq. (4) with the relative position vector r, and using the fact that r × r = 0, we find the first conserved magnitude of the two-body problem: r × ¨ r = 0, which is promptly integrated to give</p><formula xml:id="formula_4">r × ˙ r = h .<label>(5)</label></formula><p>The vector h is constant and, because it is the vector product of r and ˙ r, it is perpendicular both to the position and velocity vectors. This means that the motion of Modelling Light and Velocity Curves of Exoplanet Hosts 5 the system happens in a plane perpendicular to the constant vector h, known as the orbital plane. It is then practical to express the position and velocity vector in polar coordinates on this plane: r = r ˆ r, ˙ r = ˙ r ˆ r + r ˙ θ ˆ θ , wherê r is the unit vector pointing from the star to the planet andˆθandˆ andˆθ is a unit vector perpendicular tô r. We then find that</p><formula xml:id="formula_5">h = r 2 ˙ θ ˆ z ,<label>(6)</label></formula><p>wherê z is a unit vector forming a right-handed triad withˆrwithˆ withˆr andˆθandˆ andˆθ . This is a good approximation of angular momentum of the system when 1 m 2 m 1 . From the conservation of h, one can deduce the second law of planetary motion discovered by <ref type="bibr">Kepler (see Murray &amp; Dermott, 2000</ref>, sect. 2.2), which states that equal areas are swept out by the position vector in equal times. Additionally, it can be shown that the area swept by unit time is dA dt = h 2 .</p><p>With this conserved quantity, we can express the general solution of Eq. <ref type="formula" target="#formula_3">(4)</ref>:</p><formula xml:id="formula_7">r = p 1 + e cos(θ − ϖ) ,<label>(8)</label></formula><p>where</p><formula xml:id="formula_8">p = h 2 G(m 1 + m 2 )<label>(9)</label></formula><p>and e and ϖ are two constants of integration. Equation <ref type="formula" target="#formula_7">(8)</ref> is the general equation of a conic section in polar coordinates. In particular, whenever 0 &lt; e &lt; 1 and p = a(1 − e 2 ), the equation describes an ellipse of eccentricity e and semi-major axis a:</p><formula xml:id="formula_9">r = a(1 − e 2 ) 1 + e cos(θ − ϖ)</formula><p>. This is one possible solution for the movement of a planet around a star. The two extreme distances, called periapsis and apoapsis occur when the θ = ϖ and θ = π +ϖ, respectively, and are equal to a(1−e) and a(1+e) (see <ref type="figure" target="#fig_3">Fig. 2</ref>). We can define a new polar angle, ν, such that ν = θ − ϖ, i.e., we measure the angles starting at the periapsis. This angle usually receives the name of true anomaly. Then,</p><formula xml:id="formula_10">r = a(1 − e 2 ) 1 + e cos ν .<label>(10)</label></formula><p>The area enclosed by the ellipse, πab, where b is the semi-minor axis of the ellipse, b = a(1 − e 2 ), is swept by the position vector in one orbital period, P. From Kepler's second law, and the fact that h 2 = G(m 1 + m 2 )a(1 − e 2 ) (cf. Eq. 9), we  arrive at Kepler's third law of planetary motion:</p><formula xml:id="formula_11">r = a(1 e 2 ) 1 + e cos(✓ $) pericentre r peri = a(1 e) apocentre r apo = a(1 + e) $ ✓ = $ ✓ = $ + ⇡</formula><formula xml:id="formula_12">P 2 = 4π 2 G(m 1 + m 2 ) a 3 .<label>(11)</label></formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.2">Barycentric orbits</head><p>Combining Eqs. 2 and 3, one obtains the equation of motion for the centre of mass (CM) of the system:</p><formula xml:id="formula_13">m 1 ¨ r 1 + m 2 ¨ r 2 = 0 ,<label>(12)</label></formula><p>which can be easily integrated to obtain the equation describing the position of the CM in time:</p><formula xml:id="formula_14">R(t) = αt + β m 1 + m 2 ,<label>(13)</label></formula><p>where R = (m 1 r 1 +m 2 r 2 )/(m 1 +m 2 ) is the position of the CM of the system <ref type="figure" target="#fig_1">(Fig. 1)</ref>.</p><p>As expected from the conservation of momentum, the CM of the system moves with a constant velocity with respect to the origin O. Since the original frame of reference S was assumed inertial, this means that a reference frame with origin in the CM is also inertial. We will find it useful to describe the motions of the planet and the star in this reference frame. We can then write the positions of the masses with respect to the CM as</p><formula xml:id="formula_15">R 1 = − m 2 m 1 + m 2 r ,<label>(14)</label></formula><formula xml:id="formula_16">R 2 = + m 1 m 1 + m 2 r .<label>(15)</label></formula><p>Modelling Light and Velocity Curves of Exoplanet Hosts 7</p><p>This means that R 1 and R 2 always have opposite directions and that the CM is in the line joining the two vectors. Besides, it implies that the trajectories of the star and the planet with respect to the barycentre of the system are simply scaled down versions of the conic section describing the relative motion of the bodies (Eq. 10). In the case of the ellipse, the semi-major axis of the star and planet orbital trajectories are scaled down by a factor m 2 /(m 1 + m 2 ) and m 1 /(m 1 + m 2 ), respectively. Note that in the typical case where m 2 m 1 , the stellar orbit with respect to the CM becomes very small while the planet orbit resembles the relative orbit.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.3">Projection and radial velocity</head><p>The orientation of the orbit in three-dimensional space can be described by three angles. The angle of the orbital plane with respect to the plane of the sky is the orbital inclination I. The intersection between the plane of the sky and the orbital plane is called the line of nodes. The longitude of the ascending node, Ω , is the angle between a reference direction in the plane of the sky and the radius vector at the ascending node, where the planet crosses the plane of the sky from below to above. Finally, the argument of periapsis, ω, is the angle between that same radius vector and the orbital periapsis measured on the orbital plane. For I ∼ 0, we have ϖ = ω + Ω , where ϖ is the two-body constant already found in Eq. <ref type="bibr">(8)</ref>.</p><p>To obtain the expected radial velocity of the star in the system, let us project the expression of the orbit to a cartesian coordinate system centred in the CM of the system and oriented so that the positive z axis points towards an observer on Earth and the xy plane corresponds to the plane of the sky. To simplify the resulting expressions, we further assume that the reference direction defined by the positive x axis coincides with the line of nodes (i.e., Ω = 0). Under these conditions, the cartesian components of the barycentric movement of the stellar body are:</p><formula xml:id="formula_17">x = r 1 cos(ω + ν) ,<label>(16)</label></formula><formula xml:id="formula_18">y = r 1 sin(ω + ν) cos I ,<label>(17)</label></formula><formula xml:id="formula_19">z = r 1 sin(ω + ν) sin I ,<label>(18)</label></formula><p>with</p><formula xml:id="formula_20">r 1 = a m 2 m 1 + m 2 (1 − e 2 ) 1 + e cos ν</formula><p>the distance between the star and the CM of the system. Deriving Eq. <ref type="formula" target="#formula_0">(18)</ref> with respect to time and using the fact that</p><formula xml:id="formula_21">˙ ν = ˙ θ = h/r 2 = 2π P a 2 √ 1 − e 2 r 2 ,</formula><p>we get the expression of the stellar radial velocity V as a function of the true anomaly:</p><formula xml:id="formula_22">V = V 0 + K [cos (ν + ω) + e cos ω] ,<label>(19)</label></formula><p>8</p><p>Rodrigo F. Díaz</p><formula xml:id="formula_23">with K = 2πG P 1/3 1 √ 1 − e 2 m 2 sin I (m 1 + m 2 ) 2/3 ,<label>(20)</label></formula><p>and V 0 and integration constant corresponding to the velocity of the CM with respect to the observer on Earth. If we neglect m 2 with respect to m 1 in the denominator of Eq. <ref type="formula" target="#formula_1">(20)</ref>, which is reasonable in the typical case m 2 m 1 , we see that the radial-velocity signal scales linearly with the mass m 2 of the orbiting companion, and inversely with P 1/3 . These two facts introduce strong biases in the sample of detected planets and in the shapes of the distributions of their orbital parameters. Note that the RV amplitude depends on the combination of m 2 and sin I. Using RV data alone it is therefore not possible to measure the real mass of the planets, but only the so-called "minimum mass", m 2 sin I.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.4">Kepler problem</head><p>Up to this point we have obtained a description of the trajectories followed by the bodies of a star-planet system and have reached an expression for the radial velocity of the star as a function of the position of the planet in the orbit, ν. What remains to be done to link this expression (Eq. 19) with the observations is to describe the motion of the bodies in time as they traverse their orbits. In other words, we need to find the function ν = ν(t). This is known as the Kepler problem and is much more involved than obtaining the equation of the orbit or the radial-velocity expression. We give here a summarised description of the solution to the Kepler problem and refer the interested reader to specialised literature (e.g., <ref type="bibr" target="#b16">Goldstein, 1980;</ref><ref type="bibr" target="#b33">Murray &amp; Dermott, 2000</ref>).</p><p>The integrals involved in finding ν(t) are more easily solved using two auxiliary variables: the eccentric anomaly, ψ, defined through the expression</p><formula xml:id="formula_24">r = a(1 − e cos ψ) ,<label>(21)</label></formula><p>and the mean anomaly, µ,</p><formula xml:id="formula_25">µ = 2π P (t − τ) ,</formula><p>where τ is the time of passage through the periapsis 2 . Note that the time t enters explicitly in the definition of µ. It can be shown that µ and ψ are related through the Kepler equation:</p><formula xml:id="formula_26">µ = ψ − e sin ψ ,<label>(22)</label></formula><p>which is transcendental and requires iterative methods to solve it 3 . By inverting the Kepler equation, one can find ψ and the radial distance r as a function of time <ref type="bibr">(Eq. 21)</ref>. Furthermore, comparing the defining equation (Eq. 21) with the equation of the elliptical orbit (Eq. 10) one can find, after some algebra, an expression for ν as a function of ψ:</p><formula xml:id="formula_27">tan ν 2 = 1 + e 1 − e tan ψ 2 .<label>(23)</label></formula><p>We have shown how to obtain the time dependence of the true anomaly ν, and therefore of the radial-velocity expression <ref type="bibr">(Eq. 19)</ref>, which can be promptly used to compare the model with the observations (see Sect. 4).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Transits</head><p>When the orbital inclination I is close to 90 degrees, the orbiting planet, as seen from Earth, passes in front of the stellar disk, causing a slight dimming of the star known as a transit. This event is extremely rich in information about the star-planet system. In particular, it allows lifting the m 2 sin I degeneracy and measure the real planet mass.</p><p>Under certain assumptions, the model of the light curve of a transiting planet can be written analytically. We need to abandon the assumption of point masses used for the radial-velocity model, but assume both the planet and the star are perfectly spherical with radii R p and R s , respectively. Additionally, we assume that the planet is completely opaque and emits no radiation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.1">Uniform source</head><p>Further assuming that the star is a uniform source, we can write the expression of the ratio between obscured to unobscured flux, F(k, δ ) = 1 − λ (k, δ ), where λ is the flux loss as a function of the radius ratio k = R p /R s and δ = d/R s is the projected centre-to-centre distance between the star and the planet, normalised by the radius of the star. Following <ref type="bibr" target="#b30">Mandel &amp; Agol (2002)</ref>, and assuming k &lt; 1, we find:  <ref type="figure">Fig. 3</ref> Schematic view of a flat-bottomed transit. Three of the four parameters describing the model are indicated: the transit depth ∆ F, the total transit duration, t T , and the duration of the flat part, t F . The remaining parameter is the orbital period P.</p><formula xml:id="formula_28">λ (k, δ ) =            0, δ &gt; 1 + k , 1 π k 2 κ 0 + κ 1 − 4δ 2 −(1+δ 2 −k 2 ) 2 4 , 1 − k &lt; δ ≤ 1 + k , k 2 , δ ≤ 1 − k ,<label>(24)</label></formula><formula xml:id="formula_29">κ 0 = cos −1 k 2 + δ 2 − 1 2kδ , κ 1 = cos −1 1 − k 2 + δ 2 2δ .<label>(25)</label></formula><p>In other words, there is no flux loss as long as d &gt; R p + R s , and the loss is constant and equal to (R p /R s ) 2 when the planet disc is completely inside the stellar disc (see <ref type="figure">Fig. 3</ref>).</p><p>If the planet is on a circular orbit, Seager &amp; Mallén-Ornelas <ref type="formula" target="#formula_1">(2003)</ref> showed there is a unique relation between the four parameters describing the model (see <ref type="figure">Fig. 3</ref>) and some combinations of the physical parameters of the system. This allows obtaining, in this simple case, information about the planetary system by measuring the transit properties:</p><formula xml:id="formula_30">R p R s = √ ∆ F ,<label>(26)</label></formula><formula xml:id="formula_31">b = a R s cos I =    sin 2 ω T 1 − √ ∆ F 2 − sin 2 ω F 1 + √ ∆ F 2 sin 2 ω T − sin 2 ω F    1/2 ,<label>(27)</label></formula><formula xml:id="formula_32">a R s =    1 + √ ∆ F 2 − b 2 1 − sin 2 ω T sin 2 ω T    1/2 ,<label>(28)</label></formula><p>where ω F = t F π/P and ω T = t T π/P. Note that, combining Eqs. <ref type="formula" target="#formula_1">(27)</ref> and <ref type="formula" target="#formula_1">(28)</ref>, one can measure the orbital inclination I. Combining this information with RV data providing m 2 sin I one can measure the true planet mass m 2 . Interestingly, using Kepler's third law, we can write an expression involving the mean densities of the planet and the star:</p><formula xml:id="formula_33">ρ s + k 3 ρ p = 3π G 1 P 2 a R s 3 ,<label>(29)</label></formula><p>Modelling Light and Velocity Curves of Exoplanet Hosts 11 where the mean density is ρ s = M s 4πR 3 s /3 −1 , and an equivalent expression for ρ p . In the usual case in which k 1 and M p M s , the mean density of the star can be approximately obtained using Eq. <ref type="formula" target="#formula_1">(28)</ref>:</p><formula xml:id="formula_34">ρ s ≈ 3π GP 2    1 + √ ∆ F 2 − b 2 1 − sin 2 ω T sin 2 ω T    3/2 ,<label>(30)</label></formula><p>valid only in the case of circular orbits. The transit duration is usually measured in hours while the orbital period P is usually of the order of days. Therefore, we see that the parameters ω T and ω F are necessarily small. In this case the sine function can be approximated sin 2 x ≈ x 2 , and Eqs. <ref type="bibr">(27)</ref> and <ref type="formula" target="#formula_1">(28)</ref> can be simplified:</p><formula xml:id="formula_35">b ≈    t 2 T 1 − √ ∆ F 2 − t 2 F 1 + √ ∆ F 2 t 2 T − t 2 F    1/2 ,<label>(31)</label></formula><formula xml:id="formula_36">a R s ≈ 2P π ∆ F 1/4 t 2 T − t 2 F .<label>(32)</label></formula><p>In the case of non-circular orbits, complicated algebra arises and it is no longer possible to find exact analytical expressions for the physical system parameters. <ref type="bibr" target="#b39">Winn (2010)</ref> gives approximate expressions valid when R p R s a. The expression for the radius ratio (Eq. 26) and for the impact parameter (Eq. 27) remain the same, but the normalised semi-major axis is scaled by a factor</p><formula xml:id="formula_37">√ 1 − e 2 / (1 + e sin ω): a R s ≈ 2P π ∆ F 1/4 t 2 T − t 2 F √ 1 − e 2 1 + e sin ω .<label>(33)</label></formula><p>Depending on the orientation of the orbit in the sky, the semi-major axis can be smaller or larger than the one measured in the circular case. As a consequence, the mean stellar density computed by means of Eq. <ref type="formula" target="#formula_2">(30)</ref> can be under-or overestimated if the orbit is incorrectly assumed circular. Further analysis in the case of eccentric orbits is presented by <ref type="bibr" target="#b28">Kipping (2008)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.2">Non-uniform source</head><p>In reality, stars are not observed as uniform disks of light. Instead, their brightness appears to decrease from the centre to the limb of the disc, an effect known as limb darkening. <ref type="bibr" target="#b30">Mandel &amp; Agol (2002)</ref> provide analytical equations of the flux drop, F, as a function of the normalised star-to-planet centre separation, δ , for a quadratic and non-linear limb-darkening laws, which most accurately describe the observed darkening effect <ref type="bibr" target="#b11">(Claret, 2000</ref>). Their codes are available to the community and are widely used by researchers in the field. When limb darkening is included in the transit model, the physical parameters become strongly covariate and the model is degenerate, which complicates the process of inferring the system parameters from data (see Sect. 4).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.3">Projected distance as a function of time</head><p>The model of the drop in flux produced by the transit of a planetary object is given as a function of the projected centre-to-centre normalised distance, δ = d/R s , where d is the sky-projected distance between the centres of the planet and the star. To obtain a model that we can compare directly 4 to a time series of flux measurements, we need to express δ as a function of time. This is promptly achieved by considering the projection of the relative orbit into cartesian coordinates described in Sect. 2.1.3. Recalling that we had chosen the axes so that the xy plane coincided with the plane of the sky, we can write:</p><formula xml:id="formula_38">δ = 1 R s x 2 + y 2 = a R s 1 − e 2 1 + e cos ν 1 − sin 2 (ω + ν) sin 2 I ,<label>(34)</label></formula><p>where we have replaced the distance r 2 by the relative distance r (a is the semi-major axis of the relative orbit). Substituting this expression in the models for the drop of flux, and using the dependence of the true anomaly ν with time we can compute a model transit light curve to compare with the data time series.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Non-Keplerian models</head><p>Up to here, we have assumed the modelled planetary companion moves in a Keplerian orbit around its host star. This is a good approximation when tidal forces originating in the interior of the objects can be neglected, which is often the case, as discussed above. However, the assumption of Keplerian motion is invalidated by the presence of additional objects in the system. Indeed, if the star is orbited by multiple planets, their mutual gravitational interactions will make their motion depart from the Keplerian orbit. The effect of the planet-planet interactions is usually very small on the radial-velocity data. It requires measurements with extreme precision spanning a long time for these effects to be detectable (see <ref type="bibr" target="#b12">Correia et al., 2010)</ref>. If detected, planet-planet interactions can lift the degeneracy between the RV-measured minimum masses and the orbital inclination I. Gravitational interactions between the planets are more easily detected in transit light curves through the measurement of the timing of the transits, and their depar-ture from perfect periodicity. This effect, known as transit timing variations (TTV) was predicted and studied for years (e.g., <ref type="bibr" target="#b2">Agol et al., 2005;</ref><ref type="bibr" target="#b21">Holman &amp; Murray, 2005</ref>) before the detection of the first transit system with clear TTV ( <ref type="bibr" target="#b22">Holman et al., 2010)</ref>. Besides, planet-planet interactions can change the duration of the transits, as the planets cross the stellar discs at different latitudes at different times. This gives rise to transit duration variations or TDV. Timing methods have been used to measure the mass of transiting planets for which no radial velocity measurement was possible (e.g., <ref type="bibr" target="#b27">Jontof-Hutter et al., 2015)</ref> and to accurately measure the physical parameters of systems independently of stellar models ( <ref type="bibr" target="#b4">Almenara et al., 2015;</ref><ref type="bibr" target="#b3">Almenara et al., 2016</ref>). TTV of a transiting planet can also be employed to detect non-transiting planets (e.g., <ref type="bibr" target="#b5">Ballard et al., 2011</ref>). However, unless TDV are also present (see Nesvorn´y <ref type="bibr" target="#b33">Nesvorn´y et al., 2013;</ref><ref type="bibr" target="#b6">Barros et al., 2014</ref>), the parameters of the unseen planet are usually degenerate <ref type="figure" target="#fig_1">(Ballard et al., 2011)</ref>.</p><p>Most of the analysis on TTV and TDV rely on the measurement of timings and durations of individual transits, and are limited by the precision obtained in these measurements. A way to dramatically improve the precision obtained in the parameters of systems analysed through transit timing is to perform a full photodynamical model (e.g., <ref type="bibr" target="#b10">Carter et al., 2011;</ref><ref type="bibr" target="#b14">Doyle et al., 2011;</ref><ref type="bibr" target="#b4">Almenara et al., 2015;</ref><ref type="bibr" target="#b3">Almenara et al., 2016)</ref>. The full photodynamical model uses a dynamical N-body simulation to compute distances between all the planets and the star at each time step. This is then input in the light curve models discussed above. In this way, the timing of each individual transit is constrained by the data from the entire light curve and not just by the points taken during that particular transit. As a consequence, analyses using photodynamical models produce superior results than those using measurements from individual transits ( <ref type="bibr" target="#b3">Almenara et al., 2016</ref>), but at the expense of the increased computational time required to perform the dynamical simulation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Statistical models</head><p>Let us go back to Eq. (1):</p><formula xml:id="formula_39">d i = m i + e i .<label>(35)</label></formula><p>Last section was dedicated to obtaining deterministic physical models for the term m i . To do this we made a series of simplifying assumptions to render the problem tractable and arrived at deterministic expressions for the radial velocity or light curve of a star with an orbiting planetary companion. In other words, for each set of model parameters at a given time, the models from the previous sections provide a precise value for the radial velocity or flux drop. In this section we describe a second type of models used to describe (exoplanet) data: statistical models. In a statistical (or stochastic) model there is not a single model output value for a given set of input parameters and independent variables (time), but rather a probability distribution of values. Stochastic models are strictly necessary when the system being modelled is probabilistic in nature. This is of course the case of quantum mechanics, but also of all problems involving uncertain measurements.</p><p>In Eq. (35), the error term e i represents the discrepancy between the model m i and the observed data. For data with non-zero uncertainty (real data) this term exhibits a stochastic behaviour. Its probabilistic nature comes from a combination of actual probabilistic processes -such as the emission of radiation by the atoms in the stellar atmosphere -with very complex, but in principle deterministic, systemssuch as the detailed behaviour of the telescope and instruments used to acquire the data or weather conditions at the time of observation. These complex systems are better described in probabilistic terms instead of using complicated deterministic models with a large number of parameters.</p><p>Besides the probabilistic nature of the error term, e i , a second source of randomness comes from uncertainties in the physical model term m i . We have already mentioned that m i is not necessarily deterministic. Indeed, m i may contain a probabilistic part related either to uncertainty in the model itself or in the independent variable used to compute it. The latter is discussed in some detail in <ref type="bibr">Gregory (2005, sect. 4.8.2)</ref>. Here, we will deal exclusively with the former, and will break down the model term as</p><formula xml:id="formula_40">m i = m d i + m s i ,<label>(36)</label></formula><p>where the d and s indices stand for deterministic and stochastic, respectively. In general, the term m s i can include complicated processes affecting the data and on which we are not primarily interested. A prime example of this is stellar activity. As we will describe in this section, it is possible to produce a relatively simple model of the effects of stellar activity using statistical models. As we are not primarily interested in studying stellar activity, the parameters of this part of the model can be marginalised out to fully account for their effect on the uncertainty of the remaining model parameters. A deterministic alternative would require producing a model that provides the precise effect of stellar activity on the data for a given time. This usually requires a large number of parameters to describe, for example, the position, size, temperature and spectrum of active regions in time. Although this type of models exist and have been successfully put to practice <ref type="bibr" target="#b9">(Boisse et al., 2012;</ref><ref type="bibr" target="#b28">Kipping, 2012;</ref><ref type="bibr" target="#b15">Dumusque et al., 2014</ref>), they are plagued with degeneracies, because the available data are usually not sufficient to determine all model parameters independently. Besides, these models tend to require a substantial amount of computing time, which renders them impractical for iterative algorithms such as Markov chain Monte Carlo (MCMC). Another typical case where statistical models provide a simpler description than their deterministic counterparts is instrument systematics. In summary, the term m s i includes all "complex physics", defined here as all processes or systems too complicated to be described by a deterministic model with a reasonable number of parameters.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Modelling Light and Velocity Curves of Exoplanet Hosts 15</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Uncorrelated errors</head><p>The simplest possible model for the error term e i arises when the observed data points are assumed uncorrelated and their errors are normally distributed with known variance σ 2 i , not necessarily the same for all measurements. The expression for the distribution function of the error term, f (e i ) is then simply:</p><formula xml:id="formula_41">f σ i (e i ) = N(0, σ i ) = 1 2πσ 2 i exp − e 2 i 2σ 2 i ,<label>(37)</label></formula><p>where N(µ, σ ) is a Gaussian distribution with mean value µ and variance σ 2 .</p><p>A slightly more sophisticated model consists in assuming the errors are over-or underestimated, and therefore introducing a multiplicative correction factor α:</p><formula xml:id="formula_42">f σ i ,α (e i ) = N(0, ασ i ) = 1 √ 2πασ i exp − e 2 i 2α 2 σ 2 i .<label>(38)</label></formula><p>Note that this model already has an additional nuisance parameter α, which in principle is not of primary interest. The α term can be assumed to be the same for all measurements (for all i), or depend on subindex i, with the subsequent multiplication of nuisance parameters.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Gaussian processes</head><p>A stochastic process can be roughly described as a generalisation of a probability distribution to functions <ref type="bibr" target="#b35">(Rasmussen &amp; Williams, 2005</ref>). In other words, it is the probability distribution of an infinite-dimensional random variable, one that describes the values of the function in all possible points in input space. A Gaussian process (GP) can be seen as a collection of such random variables, any finite number of which have a joint multivariate normal distribution <ref type="bibr" target="#b35">(Rasmussen &amp; Williams, 2005</ref>). Because of their great flexibility, attractive mathematical properties and computational tractability, GPs have been used as models by the machine learning community. Only recently GP regression has made its way to the exoplanet community. A thorough treatment of GPs is outside the scope of this chapter and we therefore give only a brief introduction to the subject in the context of exoplanetary science.</p><p>In general, GP regression is used in exoplanetary science to model complicated signals that are difficult to describe analytically. These include, but are not limited to, systematic effects originating in the instruments and signals produced by stellar activity. Sometimes GPs are said to model the covariate noise of a given dataset. This is equivalent, but means the GP is included in the error term e i instead of in the stochastic model term m s i . A GP is completely specified by its mean function and covariance function, which we denote m( x) and k( x, x ), respectively, where x and x are input vectors of the process. An input vector can have any number of dimensions, as the process can have any number of input variables. For example, when modelling stellar activity signals, one would naturally include time as an input variable, but may also find it useful to include activity proxies, such as the Ca II H &amp; K lines index, log R HK . For any real process f ( x), the mean and covariance functions are defined as</p><formula xml:id="formula_43">m( x) = E[ f ( x)] and k( x, x ) = E[( f ( x) − m( x))( f ( x − m( x )] .</formula><p>The mean function is usually the physical model included in addition to the GP model (i.e., m d i ). For a pure GP model, the mean function can be considered as zero. We need, then, to specify only the covariance function k( x, x ), which needs to produce a valid covariance (i.e., a positive semi-definite symmetric) matrix.</p><p>One very popular example of covariance matrix is the squared-exponential:</p><formula xml:id="formula_44">k(t i ,t j ) = σ 2 f exp − (t i − t j ) 2 2τ 2 .<label>(39)</label></formula><p>For simplicity we assumed time is the only input variable and changed the notation accordingly. The function has two free parameters, σ f and τ, called hyperparameters. We can sample from the GP defined by the covariance function in Eq. <ref type="formula" target="#formula_2">(39)</ref>, and without including yet any data point. We call this the prior GP. The obtained sample is shown in <ref type="figure" target="#fig_4">Fig. 4</ref> for three different values of the length scale parameter τ.</p><p>In fact, to draw the functions in <ref type="figure" target="#fig_4">Fig. 4</ref> we have evaluated the covariance at a finite time vector t * of length n * , known as the input vector. The corresponding matrix of covariance values is denoted K(t * ,t * ), where for simplicity we left out the vector notation for the input vector.</p><p>The functions drawn in <ref type="figure" target="#fig_4">Fig. 4</ref> are samples from the prior GP. Usually, we are interested in knowing how these functions change when we condition the GP to some data. For example, let us assume we have obtained a number of observations at times t i , for i = 1, 2, . . . , n. At these points we know the values of the function, f i , with some noise, which we assume normally distributed with variance σ 2 i , for i = 1, 2, . . . , n, i.e., the observation at time t i is y i = f i + ε i , where ε i is distributed <ref type="figure">as  N(0, σ i )</ref>. This data set is called the training set. We want to incorporate the new information and see how our process changes. <ref type="bibr" target="#b35">Rasmussen &amp; Williams (2005)</ref> explain that one way to do this is to produce a large number of samples from the prior GP and reject those that do not agree with the data. Of course, this is very inefficient computationally. Fortunately, the properties of GPs permit giving analytical formulae for the mean and covariance function of the posterior GP, f * , conditioned to the data (see eqs. 2.22-2.24 from <ref type="bibr" target="#b35">Rasmussen &amp; Williams, 2005</ref>):</p><formula xml:id="formula_45">E[ f * | t,, y] = K(X * , X) K(X, X) + σ 2 n I −1 y ,<label>(40)</label></formula><formula xml:id="formula_46">cov( f * ) = K(X * , X * ) − K(X * , X) K(X, X) + σ 2 n I −1 K(X, X * ) ,<label>(41)</label></formula><p>where the symbol K(X, X * ) represents the n × x * matrix of covariances evaluated at all pairs of training and input points. <ref type="figure" target="#fig_5">Figure 5</ref> shows three draws from the posterior GP conditioned to two observations, separated by 3.3 "time units". When the decay time is much smaller than this separation (panel (a)), the GP has a large variance between the observations, while its variance is much smaller when the separation of the training points is comparable with the decay time (panel (c)). In other words, if the covariance function falls off rapidly, having observed at one point in time gives little information about the rest of the points. Note that independently of the chosen hyperparameter values, the posterior GPs always manage to produce functions that accurately reproduce the training points. This attests the flexibility of the GPs, and warns us about their ability to potentially absorb coherent signals such as the signature of planets.</p><p>Another covariance function widely used to model the effect of stellar activity is the quasi-periodic kernel,</p><formula xml:id="formula_47">k(t i ,t j ) = σ 2 f exp − (t i − t j ) 2 2τ 2 − 2 sin 2 (π(t i − t j )/P) η 2 ,<label>(42)</label></formula><p>with four hyperparameters: the covariance amplitude σ 2 f , the decay timescale τ, the pseudo-period P and the structure parameter η. We present samples from this process in <ref type="figure" target="#fig_2">Fig. 6</ref>.</p><p>The quasi-periodic kernel produces functions which resemble remarkably the light curve of spotted stars, and has been used to model both light curves and RV variations of active stars (e.g., <ref type="bibr" target="#b20">Haywood et al., 2014;</ref><ref type="bibr" target="#b34">Rajpaul et al., 2015</ref>). The pseudo-period, or recurrence timescale, P, can be identified with the stellar rotation period, which is often known from the light curve and in some situations from the radial-velocity time series. The decay time is associated with the time of the  Functions drawn from a GP with a pseudoperiodic kernel function, with amplitude σ 2 f = 1, decay time scale τ = 3, pseudo period P = 1.75. The structure parameter is η = 0.75 (a), η = 1.0 (b), and η = 2.0 (c). We can see that as the structure (hyper)parameter increases, the functions resemble a sinusoidal function more closely, and can more accurately describe a light curve dominated by a single long-lived spot. Functions with smaller structure parameter have a larger number of contributions and resemble more closely stars with more than one active region. For example, in panel (b) functions clearly have two periodic components that evolve independently. evolution of the active regions, which is harder to measure, but has been calibrated for solar-type stars using Kepler photometry. Additionally, as shown in <ref type="figure" target="#fig_2">Fig. 6</ref>, the structure parameter can be tuned to describe stars with a varying number of active regions. This kernel function allows therefore to describe a large variety of activity signals, making it very useful.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Bayesian inference</head><p>This chapter on data modelling would not be complete without a description, however brief and summarised, of the techniques and methods used to obtain information on the model parameters from the data. The models presented so far are relatively simple and can in most cases be expressed by closed analytical formulae. However, the non-linear dependence on the model parameters and strong covariances between them makes the task of statistical inference challenging. In this section, we present a brief overview of the concepts involved in Bayesian statistical inference and provide a necessarily short introduction to a family of widely used algorithms: Markov chain Monte Carlo.</p><p>Statistical inference is the process by which we recover quantities of interest from available data, which are noisy or otherwise uncertain (see, e.g., <ref type="bibr" target="#b18">Gregory, 2005;</ref><ref type="bibr" target="#b38">Trotta, 2017</ref>, for an introduction addressed at astrophysicists and astronomers). The notion of probability is central in statistical inference. Statistics, sometimes called "inverse probability", is focussed on learning about the underlying probabilistic processes that give rise to the observed data. This is done by learning about the numerical values of the model parameters. Unlike the classical (frequentist) concept of probability, which is related to the number of times an event occurs, and is therefore defined only for random variables, the Bayesian theory allows us to define the probability of any proposition. Indeed, the Bayesian concept of probability is related to the degree of belief in a given proposition, with the extremes being the concepts of True or False used in classical Aristotelian logic. Actually, Bayesian probability theory can be seen as an extension of logic allowing us to reason in the face of uncertainty. A wonderful description of the concepts underlying Bayesian probability theory and the process leading to considering it an extension of logic is given by <ref type="bibr" target="#b24">Jaynes (2003)</ref>. Many other advantages of the Bayesian approach have been identified and are usually quoted (see, e.g., <ref type="bibr" target="#b38">Trotta, 2017)</ref>.</p><p>In Bayesian inference the prior knowledge of any proposition -such as "the orbital period of this planet is between 3.5 and 3.51 days", or "this star is orbited by six planetary companions" -is encoded in the prior probability distribution, p(θ |I), where θ represents a proposition, which can represent a given hypothesis or be related to the value of the model parameters for a given hypothesis. In any case, I represents the knowledge available before taking into consideration the data. In what follows, we assume for simplicity that θ represents the parameter vector of a given model.</p><p>Once the data are incorporated in the analysis, the prior distribution transforms into the posterior distribution, p(θ |D, I). All the information provided by the data is encoded in this distribution. In general, the knowledge on θ changes when (new) data are incorporated. The way in which this change takes place is described by Bayes' theorem:</p><formula xml:id="formula_48">p(θ |D, I) = p(D|θ , I)p(θ |I) p(D|I) ,<label>(43)</label></formula><p>where D represents the data. The function p(D|θ , I) ≡ L (θ ) is called the likelihood function and describes how probable the current data are given a certain value of the model parameters, θ . In the denominator, we find the marginal likelihood, p(D|I), which is a constant term with respect to θ and ensures the correct normalisation of the posterior distribution. For the purpose of parameter inference, this can be safely ignored in most cases. On the other hand, the marginal likelihood has a central role in model comparison problems, which we do not cover here. The posterior distribution is therefore proportional to the likelihood times the prior:</p><formula xml:id="formula_49">p(θ |D, I) ∝ p(D|θ , I) p(θ |I) .</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Likelihood function</head><p>The likelihood function has therefore an important role in the inference process. A detailed description on how to construct likelihood functions is presented by <ref type="bibr">Gre- gory (2005, sect. 4.8</ref>). In particular, readers are referred to this book for a description on how to construct likelihoods with stochastic models.</p><p>Here we describe the simple case where the model is deterministic and the data errors are uncorrelated. Under these assumptions, one can deduce from Eq. (1) that the probability distribution of a given datum, d i , is equal to that of the error term 5 e i . Proposition D is simply the logical conjunction of propositions concerning individual data points:</p><formula xml:id="formula_50">D = d 1 , d 2 , · · · , d N .</formula><p>Therefore, for independent errors, we have:</p><formula xml:id="formula_51">L (θ ) = p(D|θ , I) = p(d 1 , d 2 , · · · , d N |θ , I) = p(e 1 , e 2 , · · · , e N |θ , I) = N ∏ i=1 p(e i |θ , I) .<label>(44)</label></formula><p>In the case of normally distributed errors (Eq. 37), the likelihood function has the form:</p><formula xml:id="formula_52">L (θ ) = N ∏ i=1 1 √ 2πσ i exp − (d i − m(t i , θ )) 2 2σ 2 i ,<label>(45)</label></formula><p>where m(t i , θ ) is the model function, where we have explicitly indicated its dependence on the independent variable (time), t i , and the model parameter vector, θ . Because of the large dynamical range of this likelihood function, it is usual to use its natural logarithm instead:</p><formula xml:id="formula_53">log L (θ ) = − N 2 log(2π) − 1 2 N ∑ i=1 log σ 2 i − 1 2 N ∑ i=1 (d i − m(t i , θ )) 2 σ 2 i .<label>(46)</label></formula><p>The first term on the right-hand side of Eq. <ref type="formula" target="#formula_3">(47)</ref> is a constant and is usually irrelevant for inference problems. The last term is proportional to the usual χ 2 statistics. Note that if no model parameters appear in the data uncertainties, σ i , maximising the likelihood function is equivalent to minimising the χ 2 statistics. However, if data errors risk being underestimated, one might wish to include an additional (nuisance) parameter in the model to account for this (see <ref type="bibr">Eq. 38)</ref>. In that case the second term on the right-hand side acts as a counterbalance impeding the likelihood from becoming artificially large by increasing the size of the error bars. When the uncertainties are correlated, or when a GP is included as part of the model, the log-likelihood function is:</p><formula xml:id="formula_54">log L (θ ) = − N 2 log(2π) − 1 2 log |K| − 1 2 r T · K · r ,<label>(47)</label></formula><p>where K is the covariance matrix, |K| is its determinant and r is the vector of residuals obtained by subtracting the model prediction from the observed data points.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Priors</head><p>The prior distribution of θ is the second element needed to compute the posterior distribution. Prior distributions (or simply "priors") are a controversial feature of Bayesian statistics. While some see in them a way to naturally include relevant prior information in the analysis others deem prior distributions as an inherently subjective element of the theory. In any case, defining the priors of a given problem is usually difficult and tricky. Priors need to include all relevant information on a problem, which can range from the results of a previous analysis to the educated guess of a renown scientific <ref type="figure">figure.</ref> As priors need to have the form of probability distributions, a non-trivial problem of codification arises. While there is no universally accepted method to assign priors that convey information, there is a vast body of literature on ways to define ignorance priors. Ignorance priors are intended to convey the least possible information about θ . One could argue that absolute ignorance is an abstract concept and that some degree of information on a given parameter value is always available. To this Jaynes <ref type="bibr">(2003)</ref> replies that ignorance priors play the role of the "zero" in Bayesian statistics, i.e., no information, and as such have an important theoretical role. In more practical terms, ignorance priors are usually handy when one needs to specify the priors for parameters for which little can be said before considering the data.</p><p>The literature contains a large number of digressions on how ignorance priors should be defined. We give a brief description of the most popular of them here: seems intuitive, it is not easily extended to continuous variables, besides lacking invariance to transformation. 2. Invariance rules. For a certain type of parameters, "total ignorance" can be represented as invariance under certain transformations <ref type="bibr" target="#b18">(Gregory, 2005)</ref>. For example, when the parameter represents a location, as for example the position X of the largest tree along a river, total ignorance requires that the problem be invariant under a translation: X = X + c, for any constant c. This leads to the uniform prior:</p><formula xml:id="formula_55">p(X|I) = constant .<label>(48)</label></formula><p>For scale parameters, such as the Poisson rate of an unknown source or the lifetime of new bacteria, ignorance is reflected by a lack of information on the order of magnitude of the parameter (the bacteria can live from a few minutes to a few days or weeks). This can be translated to invariance under rescaling, X = αX, which leads to a log-flat prior:</p><formula xml:id="formula_56">p(X|I) = constant X .<label>(49)</label></formula><p>Although these rules are useful, not all parameters can be classified in any of these two categories. Besides, the invariance under transformations gives us the functional form of the prior distribution, but not its boundaries (normalisation). One needs still to define the extrema of the distributions, if proper priors are needed. 3. Jeffreys-rule prior. The rule advocated by <ref type="bibr" target="#b25">Jeffreys (1946</ref><ref type="bibr" target="#b26">Jeffreys ( , 1961</ref> uses the expected Fisher information for a given problem:</p><formula xml:id="formula_57">I(θ ) = E D − ∂ 2 ∂ θ i ∂ θ j log L (θ ) ,<label>(50)</label></formula><p>where the expectation is over the data 6 . Jeffreys's rule defines the prior for θ as p(θ |I) = I(θ ) .</p><p>Jeffreys's rule produces the optimal prior for one-dimensional models. Besides, it reproduces the results from the invariance rules. For example, the prior for the mean value of a normal model with known variance is a flat prior, and that of the scale of a normal with known mean value is a log-flat prior. However, Jeffreysrule priors run into serious issues when applied to multi-dimensional parameters <ref type="bibr" target="#b8">(Berger et al., 2015</ref>), reducing drastically their applicability.</p><p>Other methods involve the principle of maximum entropy <ref type="bibr" target="#b24">(Jaynes, 1957</ref><ref type="bibr" target="#b24">(Jaynes, , 1968</ref>). More recent developments include reference priors <ref type="bibr" target="#b7">(Berger et al., 2009</ref><ref type="bibr" target="#b8">(Berger et al., , 2015</ref>, where the Kullback-Leibler divergence between prior and posterior is maximised seeking a prior that maximises the expected difference between posterior and prior distributions. In one-dimensional problems, reference priors reduce to Jeffreys-rule priors, but their properties in multi-dimensional problems are better.</p><p>In any case, sensitivity analyses are warranted and should be performed systematically. However, as expressed by Trotta (2017, sect. 3.3):</p><p>A sensitivity analysis should always be performed, i.e., change the prior in a reasonable way and assess how robust the ensuing posterior is. Unfortunately, this is seldom done in the astrophysics and cosmology literature.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3">Sampling the posterior: Markov chain Monte Carlo</head><p>Once the prior distribution is specified and the likelihood function is constructed, the posterior probability distribution (or simply the "posterior") can be obtained. In most practical cases it is not possible to perform inference on the posterior distribution analytically. For this reason, a series of algorithms to explore the posterior exist. Chief among them, Markov chain Monte Carlo (MCMC) is a family of algorithms that can be employed to produce a sample of arbitrary size from the posterior. With a sample at hand, one can make inferences on the model parameters, define credible intervals, explore the marginalised distributions etc. An introduction to MCMC can be found in <ref type="bibr" target="#b18">Gregory (2005)</ref>. Another useful reading is the appendix of <ref type="bibr" target="#b37">Tegmark et al. (2004)</ref>. A vast body of literature and online resources exist on the subject and are promptly available.</p><p>The basic idea behind MCMC is to construct a Markov chain starting at a given point in parameter space. New links are added to the chain following some stochastic algorithm. Under quite general conditions it can be shown that after some steps, the links of the chain are samples from the posterior distribution (e.g., <ref type="bibr" target="#b18">Gregory, 2005</ref>). MCMC algorithms differ in the way the new chain links are produced. Many algorithms use a random walk process to generate a candidate link which is later accepted as part of the chain or not following some criterion.</p><p>The most popular Random Walk MCMC algorithm in exoplanetary science is the Metropolis-Hastings (MH) algorithm <ref type="bibr" target="#b31">(Metropolis et al., 1953;</ref><ref type="bibr" target="#b19">Hastings, 1970)</ref>. In this algorithm, new steps for the chain are proposed by means of a random walk, usually the addition of a multivariate normal random variable to the current parameter vector, θ , to produce a candidate link, θ . The proposed new state, θ , is then accepted with probability r = min 1, p(θ |D, I) p(θ |D, I) q(θ |θ ) q(θ |θ ) , where q(y|x) is the probability of proposing state y from state x. In the case of the normal proposal distribution, the ratio q(θ , θ )/q(θ , θ ) cancels out. In other words, if at the proposed step the posterior density increases with respect to θ , it is accepted automatically. Otherwise, the algorithm accepts θ with probability p(θ |D, I)/p(θ |D, I) &lt; 1.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Modelling</head><label></label><figDesc>Light and Velocity Curves of Exoplanet Hosts 3</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Fig. 1</head><label>1</label><figDesc>Fig. 1 Schematic view of the forces and positions in the two-body problem.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>6 Rodrigo F.</head><label>6</label><figDesc>Díaz Murray &amp; Dermott "Solar System Dynamics" Maximum and minimum distances:</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Fig. 2</head><label>2</label><figDesc>Fig. 2 Schematic view of the trajectory of an orbiting companion to the central star (at the origin of coordinates), as seen vertically from above the orbital plane. The pericentre, apocentre, and their corresponding distances are indicated.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Fig. 4</head><label>4</label><figDesc>Fig. 4 Functions drawn from a GP with a squared-exponential kernel. The length scale parameter changes from 0.5 (a) to 1.0 (b) to 2.0 (c). As the length scale increases, the typical functions generated by the GP vary more slowly. In other words, the distance between two points in time that differ significantly increases with length scale.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Fig. 5</head><label>5</label><figDesc>Fig. 5 Three draws from a GP obtained by conditioning the processes from Fig. 4 with two training points, with time coordinates, t 1 = −2.2, t 2 = 1.1, and observed values y 1 = 1.98, y 2 = 0.74. The variance of the noise term ε is 0.01 for both points. As the distance between the point becomes comparable with the decay time scale, the variance of the GP becomes smaller between the points. In other words, the information provided by one point</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Fig. 6</head><label>6</label><figDesc>Fig. 6 Functions drawn from a GP with a pseudoperiodic kernel function, with amplitude σ 2 f = 1, decay time scale τ = 3, pseudo period P = 1.75. The structure parameter is η = 0.75 (a), η = 1.0 (b), and η = 2.0 (c). We can see that as the structure (hyper)parameter increases, the functions resemble a sinusoidal function more closely, and can more accurately describe a light curve dominated by a single long-lived spot. Functions with smaller structure parameter have a larger number of contributions and resemble more closely stars with more than one active region. For example, in panel (b) functions clearly have two periodic components that evolve independently.</figDesc></figure>
+
+			<note place="foot" n="2"> Rodrigo F. Díaz</note>
+
+			<note place="foot" n="1"> As we are describing the relative motions of the bodies, the actual angular momentum of the system contains a term related to the motion of the star. Whenever m 2 m 1 , this term can be neglected and h is equal to the total angular momentum of the system per unit mass of the body m 2 .</note>
+
+			<note place="foot" n="2"> Of course, exactly as we have redefined the polar angle so that ν is 0 at periapsis, we could also measure time starting at the moment of periastron passage, and get rid of τ in the definition of the mean anomaly. However, usually τ is unknown and including it as a model parameter allows us to measure it.</note>
+
+			<note place="foot" n="3"> A Python code to compute the true anomaly from the mean anomaly and eccentricity has been made available at https://github.com/exord/faial/blob/master/ trueanomaly.py.</note>
+
+			<note place="foot" n="4"> Special care must be taken when the timescale of the variability is comparable to the integration time of individual points (Kipping, 2010).</note>
+
+			<note place="foot">Rodrigo F. Díaz</note>
+
+			<note place="foot" n="5"> The derivation is not as trivial as one may think from considering Eq. (1).</note>
+
+			<note place="foot" n="6"> Real data D are not available at the moment of specifying priors for the model parameters.</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<monogr>
+		<title level="m" type="main">Laplace (1812) introduced a principle for assigning probabilities to a set of n discrete hypotheses H 1 , H 2 , . . . , H n when nothing allows to prefer one over the others</title>
+		<imprint>
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+	<note>Principle of indifference. If the set is complete (i.e., they cover the entire set of possible outcomes), we have p(H i |I) the literature (e.g., Haario et al.</note>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Goodman &amp;amp; Weare ; Díaz</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Steffen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Sari</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Clarkson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">359</biblScope>
+			<biblScope unit="page">567</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Almenara</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">F</forename><surname>Díaz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Bonfils</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Udry</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">595</biblScope>
+			<biblScope unit="page">5</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Almenara</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">F</forename><surname>Díaz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Mardling</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">453</biblScope>
+			<biblScope unit="page">2644</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Ballard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Fabrycky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Fressin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">743</biblScope>
+			<biblScope unit="page">200</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">C C</forename><surname>Barros</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">F</forename><surname>Díaz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Santerne</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">561</biblScope>
+			<biblScope unit="page">1</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">O</forename><surname>Berger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Bernardo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Sun</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Annals of Statistics</title>
+		<imprint>
+			<biblScope unit="page">905</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">O</forename><surname>Berger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Bernardo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Sun</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Bayesian Analysis</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="page">189</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Boisse</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Bonfils</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">C</forename><surname>Santos</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">545</biblScope>
+			<biblScope unit="page">109</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Carter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">C</forename><surname>Fabrycky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Ragozzine</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">331</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Claret</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">363</biblScope>
+			<biblScope unit="page">1081</biblScope>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">C M</forename><surname>Correia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Couetdic</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Laskar</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">511</biblScope>
+			<biblScope unit="page">21</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">F</forename><surname>Díaz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Almenara</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Santerne</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">441</biblScope>
+			<biblScope unit="page">983</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">R</forename><surname>Doyle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Carter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">C</forename><surname>Fabrycky</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">333</biblScope>
+			<biblScope unit="page">1602</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Dumusque</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Boisse</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">C</forename><surname>Santos</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">796</biblScope>
+			<biblScope unit="page">132</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Goldstein</surname></persName>
+		</author>
+		<title level="m">Classical Mechanics</title>
+		<imprint>
+			<publisher>Addison-Wesley Publishing Company</publisher>
+			<date type="published" when="1980" />
+		</imprint>
+	</monogr>
+	<note>2nd edition.</note>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Goodman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Weare</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Communications in applied mathematics and computational science</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="page">65</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">C</forename><surname>Gregory</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Haario</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Saksman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tamminen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Bayesian Logical Data Analysis for the Physical Sciences: A Comparative Approach with &apos;Mathematica&apos; Support</title>
+		<meeting><address><addrLine>Cambridge, UK</addrLine></address></meeting>
+		<imprint>
+			<publisher>Cambridge University Press</publisher>
+			<date type="published" when="2001" />
+			<biblScope unit="page">223</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Hastings</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Biometrika</title>
+		<imprint>
+			<biblScope unit="volume">57</biblScope>
+			<biblScope unit="page">97</biblScope>
+			<date type="published" when="1970" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">D</forename><surname>Haywood</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Collier Cameron</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Queloz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">443</biblScope>
+			<biblScope unit="page">2517</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Holman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">W</forename><surname>Murray</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">307</biblScope>
+			<biblScope unit="page">1288</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Holman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">C</forename><surname>Fabrycky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Ragozzine</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">330</biblScope>
+			<biblScope unit="page">51</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Hut</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">99</biblScope>
+			<biblScope unit="page">126</biblScope>
+			<date type="published" when="1981" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">T</forename><surname>Jaynes</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Probability Theory: The Logic of Science</title>
+		<imprint>
+			<publisher>Cambridge University Press</publisher>
+			<date type="published" when="1957" />
+			<biblScope unit="volume">106</biblScope>
+			<biblScope unit="page">227</biblScope>
+		</imprint>
+	</monogr>
+	<note>Physical review</note>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Jeffreys</surname></persName>
+		</author>
+		<title level="m">Proceedings of the Royal Society of London a: mathematical, physical and engineering sciences</title>
+		<meeting>the Royal Society of London a: mathematical, physical and engineering sciences</meeting>
+		<imprint>
+			<publisher>The Royal Society</publisher>
+			<date type="published" when="1946" />
+			<biblScope unit="volume">186</biblScope>
+			<biblScope unit="page" from="453" to="461" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<monogr>
+		<title level="m" type="main">Theory of probability</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Jeffreys</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1961" />
+			<publisher>Clarendon Press</publisher>
+			<pubPlace>Oxford</pubPlace>
+		</imprint>
+	</monogr>
+	<note>3rd edn.</note>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Jontof-Hutter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">F</forename><surname>Rowe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Lissauer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">C</forename><surname>Fabrycky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Ford</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">522</biblScope>
+			<biblScope unit="page">321</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Kipping</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">389</biblScope>
+			<biblScope unit="page">2487</biblScope>
+			<date type="published" when="1383" />
+		</imprint>
+	</monogr>
+	<note>MNRAS</note>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Laplace</surname></persName>
+		</author>
+		<title level="m">Theorie Analytique des Probabilities. (Courcier)</title>
+		<imprint>
+			<date type="published" when="1812" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Mandel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJL</title>
+		<imprint>
+			<biblScope unit="volume">580</biblScope>
+			<biblScope unit="page">171</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Metropolis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Rosenbluth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">N</forename><surname>Rosenbluth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">H</forename><surname>Teller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Teller</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Chemical Physics</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="page">1087</biblScope>
+			<date type="published" when="1953" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">D</forename><surname>Murray</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">C M</forename><surname>Correia</surname></persName>
+		</author>
+		<editor>Exoplanets, ed. S. Seager</editor>
+		<imprint>
+			<date type="published" when="2010" />
+			<publisher>University of Arizona Press</publisher>
+			<biblScope unit="page" from="15" to="23" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">D</forename><surname>Murray</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">F</forename><surname>Dermott</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Nesvorn´ynesvorn´y</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Kipping</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Terrell</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Solar System Dynamics</title>
+		<imprint>
+			<publisher>Cambridge University Press</publisher>
+			<date type="published" when="2000" />
+			<biblScope unit="volume">777</biblScope>
+			<biblScope unit="page">3</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Rajpaul</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Osborne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Reece</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Roberts</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">452</biblScope>
+			<biblScope unit="page">2269</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">E</forename><surname>Rasmussen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">K I</forename><surname>Williams</surname></persName>
+		</author>
+		<title level="m">Gaussian Processes for Machine Learning (Adaptive Computation and Machine Learning</title>
+		<imprint>
+			<publisher>The MIT Press</publisher>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Seager</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Mallén-Ornelas</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">585</biblScope>
+			<biblScope unit="page">1038</biblScope>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Tegmark</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Strauss</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Blanton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Phys. Rev. D</title>
+		<imprint>
+			<biblScope unit="volume">69</biblScope>
+			<biblScope unit="page">103501</biblScope>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Trotta</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1701.01467</idno>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+<note type="report_type">ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">N</forename><surname>Winn</surname></persName>
+		</author>
+		<editor>Exoplanets, ed. S. Seager</editor>
+		<imprint>
+			<date type="published" when="2010" />
+			<publisher>University of Arizona Press</publisher>
+			<biblScope unit="page" from="55" to="77" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-P</forename><surname>Zahn</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">57</biblScope>
+			<biblScope unit="page">383</biblScope>
+			<date type="published" when="1977" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

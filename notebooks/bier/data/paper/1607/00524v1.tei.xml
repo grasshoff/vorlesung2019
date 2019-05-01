@@ -1,0 +1,1292 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-11T13:22+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">EVEREST: PIXEL LEVEL DECORRELATION OF K2 LIGHT CURVES</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2016-07-05">July 5, 2016</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Rodrigo</forename><surname>Luger</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Eric</forename><surname>Agol</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ethan</forename><surname>Kruse</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Rory</forename><surname>Barnes</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Andrew</forename><surname>Becker</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Daniel</forename><surname>Foreman-Mackey</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Drake</forename><surname>Deming</surname></persName>
+						</author>
+						<title level="a" type="main">EVEREST: PIXEL LEVEL DECORRELATION OF K2 LIGHT CURVES</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2016-07-05">July 5, 2016</date>
+						</imprint>
+					</monogr>
+					<note type="submission">Draft version July 5, 2016</note>
+					<note>Draft version Preprint typeset using L A T E X style emulateapj v. 5/2/11</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<abstract>
+				<p>We present EVEREST, an open-source pipeline for removing instrumental noise from K2 light curves. EVEREST employs a variant of pixel level decorrelation (PLD) to remove systematics introduced by the spacecraft&apos;s pointing error and a Gaussian process (GP) to capture astrophysical variability. We apply EVEREST to all K2 targets in campaigns 0-7, yielding light curves with precision comparable to that of the original Kepler mission for stars brighter than K p ≈ 13, and within a factor of two of the Kepler precision for fainter targets. We perform cross-validation and transit injection and recovery tests to validate the pipeline, and compare our light curves to the other de-trended light curves available for download at the MAST High Level Science Products archive. We find that EVEREST achieves the highest average precision of any of these pipelines for unsaturated K2 stars. The improved precision of these light curves will aid in exoplanet detection and characterization, investigations of stellar variability, asteroseismology, and other photometric studies. The EVEREST pipeline can also easily be applied to future surveys, such as the TESS mission, to correct for instrumental systematics and enable the detection of low signal-to-noise transiting exoplanets. The EVEREST light curves and the source code used to generate them are freely available online.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">INTRODUCTION</head><p>Launched in 2009, the Kepler spacecraft has to date led to the discovery of nearly 5000 extrasolar planet candidates and to a revolution in several fields of astronomy including but not limited to exoplanet science, eclipsing binary characterization, asteroseismology and stellar variability studies. Its unprecedented photometric precision allowed for the study of astrophysical signals down to the level of ∼ 15 parts per million ( <ref type="bibr" target="#b8">Gilliland et al. 2011</ref>), which has enabled the discovery of small planets in the habitable zones of their stars (e.g., <ref type="bibr" target="#b3">Borucki et al. 2013;</ref><ref type="bibr" target="#b16">Quintana et al. 2014;</ref><ref type="bibr" target="#b21">Torres et al. 2015</ref>). Unfortunately, after the failure of its second reaction wheel in May 2013, the spacecraft was no longer able to achieve the fine pointing accuracy required for high precision photometry, and the nominal mission was brought to an end. Engineering tests suggested that by aligning the spacecraft along the plane of the ecliptic, pointing drift could be mitigated by the solar wind pressure and by periodic thruster firings. As of May 2014 the spacecraft has been operating in this new mode, known as K2, and has continued to enable high precision photometry science, monitoring tens of thousands of stars near the plane of the ecliptic during campaigns lasting about 75 days each ( <ref type="bibr" target="#b10">Howell et al. 2014</ref>).</p><p>However, because of the reduced pointing accuracy, K2 raw aperture photometry is between 3 and 4 times less precise than that of the original Kepler mission and displays strong instrumental artefacts with different timescales, including a ∼ 6 hour trend, which severely compromise its ability to detect small transits. Recently, several authors have developed powerful methods to cor- rect for these systematics, often coming within a factor of ∼ 2 of the original Kepler precision.</p><p>In particular, the K2SFF pipeline <ref type="bibr">(Vanderburg &amp; John- son 2014</ref>) decorrelates K2 aperture photometry with the centroid position of the stellar images. Centroids are determined based either on the center-of-light or via a Gaussian fit to the stellar PSF. The motion of the centroids is then fit with a polynomial and transformed into a single parameter that relates spacecraft motion to flux variations, which is then used to de-trend the data. Similar methods are employed in the K2VARCAT pipeline ( <ref type="bibr" target="#b2">Armstrong et al. 2015</ref>), developed specifically for variable K2 stars, the K2P 2 pipeline ( <ref type="bibr" target="#b13">Lund et al. 2015</ref>), which uses an intelligent clustering algorithm to define custom apertures, and in the pipeline of <ref type="bibr" target="#b11">Huang et al. (2015)</ref>, which employs astrometric solutions to the motion of K2 targets, determining the X and Y motion of a target from the behavior of multiple stars on the same spacecraft module. Finally, the K2SC pipeline ( <ref type="bibr" target="#b0">Aigrain et al. 2015</ref><ref type="bibr" target="#b1">Aigrain et al. , 2016</ref> and the pipeline of <ref type="bibr" target="#b5">Crossfield et al. (2015)</ref> both employ a Gaussian process (GP) to remove instrumental noise, using the X and Y coordinates of the target star as the regressors to derive a model for the instrumental systematics. The nonparametric nature of the GP results in a flexible model with increased de-trending power especially for dim K2 targets.</p><p>In one way or another, all of these techniques rely on numerical methods to identify and remove correlations between the stellar position and the intensity fluctuations. Even when a nonparametric technique such as a GP is used, assumptions are still made about the nature of the correlations between spacecraft motion and instrumental variability. Moreover, the process of determining the stellar centroids is prone to uncertainties and relies on assumptions about the shape of the stellar PSF.</p><p>A powerful alternative to these methods is pixel level decorrelation (PLD), a method developed by <ref type="bibr" target="#b6">Deming et al. (2015)</ref> to correct for systematics in Spitzer ob-servations of transiting hot Jupiters. The tenet of PLD is that the best way to correct for noise introduced by the motion of the stellar image does not involve actual measurements of the position of the star. The centroid of the stellar image is, after all, a secondary data product of photometry, and is subject to additional uncertainty. PLD skips these two numerical steps (i.e., fitting for the stellar position and solving for the correlations) by operating on the primary data products of photometry, the intensities in each of the detector pixels. These intensities are normalized by the total flux in the chosen aperture then used as basis vectors for a linear leastsquares (LLS) fit to the aperture-summed flux. Since astrophysical signals (stellar variability, planet transits, stellar eclipses, etc.) are present in all of the pixels in the aperture, the normalization step removes astrophysical information from the basis set, ensuring that PLD is sensitive only to the signals that are different across the aperture. PLD is therefore an "agnostic" method of performing robust flat-fielding corrections with minimal assumptions about either the nature of the intra-pixel variability or the correlation between spacecraft jitter and intensity fluctuations. We note that our method is similar to that of Foreman-  and <ref type="bibr" target="#b15">Montet et al. (2015)</ref>, who use the principal components of the variability among the full set of K2 campaign 1 light curves as "eigen light curve" regressors. However, rather than deriving our basis vectors from other stars in the field, whose light curves contain undesired astrophysical signals, our basis vectors are derived solely from the pixels of the star under consideration.</p><p>In this paper we build on the PLD method of <ref type="bibr">Dem- ing et al. (2015)</ref>, extending it to higher order in the pixel fluxes and performing principal component analysis (PCA) on the basis vectors to limit the flexibility of the model and thus prevent overfitting. We further couple PLD with a GP to disentangle astrophysical and instrumental variability.</p><p>We apply our pipeline, EVEREST (EPIC Variability Extraction and Removal for Exoplanet Science Targets), to the entire set of K2 light curves from campaigns 0-7 and generate a publicly-available database of processed light curves. Our code is open-source and will be made available online.</p><p>The paper is organized as follows: in §2 we review the basics of PLD and derive our third-order PLD/PCA/GP model, and in §3 we describe our pipeline in detail. Results are presented in §4, and in §5 we conclude and outline plans for future work.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">PIXEL LEVEL DECORRELATION</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">First Order PLD</head><p>The linear PLD model developed in <ref type="bibr" target="#b6">Deming et al. (2015)</ref> is given by the expression</p><formula xml:id="formula_0">m i = l a l p il k p ik + α + βt i + γt 2 i (1)</formula><p>where m i denotes the noise model at time t i , p il denotes the flux in the l th pixel at time t i , and a l is the linear PLD coefficient for the l th pixel. Both sums are taken over all pixels in the aperture; the last three terms are a polynomial in time used to capture temporal variations in the flux baseline due to intrinsic variability of the star.</p><p>The coefficients are obtained by minimizing the sum of the squares of the difference between the model m i and the simple aperture photometry (SAP) flux, y i :</p><formula xml:id="formula_1">∂χ 2 ∂a l = 0<label>(2)</label></formula><p>where</p><formula xml:id="formula_2">χ 2 = i (y i − m i ) 2 σ 2 i .<label>(3)</label></formula><p>In the expression above, σ i are the standard errors of the flux and</p><formula xml:id="formula_3">y i = k p ik .<label>(4)</label></formula><p>Framed in this manner, computation of the PLD model is a linear regression problem; the coefficients are readily found by simultaneously solving Equation (2) for all coefficients a l , as well as α, β, and γ. <ref type="bibr" target="#b6">Deming et al. (2015)</ref> found that the pointing jitter of the Spitzer telescope was sufficiently small that extending PLD to higher order in the pixel fluxes was unnecessary. However, because of the large pointing variations of the K2 spacecraft on short timescales, we find it necessary to extend PLD to higher order. Keeping terms up to third order in the pixel fluxes, we may express this model as</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.">Higher Order PLD</head><formula xml:id="formula_4">m i = l a l p il k p ik + l m b lm p il p im ( k p ik ) 2 + l m n c lmn p il p im p in ( k p ik ) 3 + α + βt i + γt 2 i (5)</formula><p>where once again index i denotes time and all other indices denote the pixel number. The PLD coefficients are now a l (one per pixel), b lm (one per pixel pair), and c lmn (one per group of three pixels). Despite the added complexity, the model remains linear and may be solved in a similar fashion as before.</p><p>In <ref type="figure">Figure 1</ref>, we illustrate the de-trending technique for EPIC 201367065 (K2-3), a star host to three known transiting planets ( <ref type="bibr" target="#b5">Crossfield et al. 2015</ref>). The top panel shows the normalized raw aperture-summed flux after subtracting off the background; note the large systematics at very short (∼ 6 hr) timescales. The next panel shows the flux de-trended with first order PLD (Equation 1). The scatter is reduced by a factor of 2.9 and the seven transits become visible by eye. The following two panels show the results of second and third order PLD, which improve the scatter over the raw data by factors of 4.7 and 5.2, respectively. Note, importantly, that even data collected during thruster fire events (the outlier points seen above the continuum every ∼ 6 hr in the top two plots), is properly corrected by higher order PLD.</p><p>One might wonder why not go to even higher order in the pixel coefficients. While possible in principle, the number of regressors increases steeply with the PLD order. For a typical K2 star, this number is around 5 × 10 3 for third order PLD, and would increase to ∼ 5 × 10 4 for fourth order and ∼ 3 × 10 5 for fifth order PLD. While such a large number of regressors can become computationally expensive, the most serious drawback of higher order PLD is that it can become so flexible as to lead to overfitting. As we discuss in §3.3 below, PLD can sometimes overstep and remove part of the white noise component of the light curve. This is particularly problematic when the number of regressors becomes very large, in which case PLD can lead to artificially low scatter in the de-trended light curve, washing out astrophysical signals (including transits) in the process.</p><p>To avoid these issues, in <ref type="figure">Figure 1</ref> we computed the PLD basis vectors from the 10 brightest pixels in the aperture. In practice, however, we obtain better results by instead performing principal component analysis (PCA) on the first, second, and third order fractional pixel fluxes (the terms in Equation 5). This gives us a set of N basis vectors x that describe most of the instrumental variability in the light curve. We use these to construct our design matrix</p><formula xml:id="formula_5">X =         x 0,0 x 0,1 ... x 0,N 1 x 1,0 x 1,1 ... x 1,N 1 ... ... ... ... ... x M,0 x M,1 ... x M,N 1        <label>(6)</label></formula><p>where M denotes the total number of data points along the time dimension. We choose the number of principal components N that maximize the de-trending power while preventing overfitting. We explain our method in §3.3 below; typically, N &lt; 200. Since our problem is still linear, our model is simply</p><formula xml:id="formula_6">m = X · c (7)</formula><p>where c is the vector of coefficients, one for each basis vector in X. Their values are given by solving the generalized least-squares (GLS) problem</p><formula xml:id="formula_7">c = X · K −1 · X −1 · X · K −1 · y (8)</formula><p>where K is the covariance matrix of the data and y is the SAP flux given by Equation (4). Note that for a diagonal covariance K ij = δ ij σ 2 i , Equation <ref type="formula">(8)</ref> is mathematically equivalent to Equations (2) and (3) from before.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.">Gaussian Process Regression</head><p>In Equation (6) we purposefully neglected the temporal polynomial terms. In principle, modeling stellar variability should not be necessary if all we wish to remove is the instrumental noise. By virtue of using the fractional pixel fluxes as basis vectors (from which the astrophysical signal has been removed by the normalization), PLD should fit out instrumental variability only, obviating the need for an extra temporal term. However, in practice, this is not always the case. To illustrate this, in <ref type="figure" target="#fig_0">Figure 2</ref>   <ref type="bibr">1980 1985 1990 1995 2000 2005 2010 2015</ref> Time (days) 0.9975</p><p>1.0000</p><p>1.0025</p><p>1.0050 3rd Order PLD 6-hr scatter: 19.7 ppm <ref type="figure">Fig. 1</ref>.-PLD applied to a portion of the data for EPIC 201367065 (K2-3). The top panel is the background-subtracted, normalized SAP flux in a large 35-pixel aperture centered on the target. The bottom three panels show the normalized PLD-detrended flux for 1 st , 2 nd , and 3 rd order PLD, respectively, using only the 10 brightest pixels. PLD increases the 6-hr photometric precision by factors of 2.9 (1 st order), 4.7 (2 nd order), and 5.2 (3 rd order).</p><p>Kepler mission ( <ref type="bibr" target="#b3">Borucki et al. 2011</ref>). We chose this star over one from the K2 mission simply because it is easier to discriminate between instrumental and astrophysical signals by eye for this light curve, though our arguments apply equally well to K2. <ref type="figure" target="#fig_0">Figure 2a</ref> shows the raw simple aperture photometry (SAP) data in black (top panel); in red we plot a simple first-order PLD fit with no polynomial term (obtained from the solution to Equation 2). Below it are the residuals of the PLD fit (second panel, black) and the fully de-trended data after smoothing with a GP to remove stellar noise (third panel). The bottom panel shows the de-trended data folded on the period of the planet candidate, with the 1-hr median shown in red. Note that the PLD fit is quite good, as it removes the low-frequency arc as well as the flux jump at t ∼ 375 d and the thermal features at t ∼ 385 d and t ∼ 400 d. Since the star isn't significantly variable, the temporal term is not necessary.</p><p>However, this is not the case when the star is variable. In the next three columns we multiply the pixel level light curve by a sinusoid with a period of 25 days to simulate stellar variability. We choose an amplitude comparable to the amplitude of the instrumental signal, and de-trend the light curve three different ways: PLD only (b), PLD plus a tenth order polynomial (c) and PLD plus a GP (d). in the other columns we artificially injected a sinusoidal signal with a period of 25 days and an amplitude comparable to that of the instrumental variability. The top row shows the raw SAP data (black) and the first order PLD model (red); the residuals of the fit are indicated directly below. The third row shows the final residuals after smoothing with a GP to eliminate low-frequency stellar variability. Finally, the bottom row shows these residuals folded on the orbital period of the planet candidate (black), with the 1-hr median indicated in red. Combining PLD with a GP ensures PLD fits out only the instrumental variability without inflating the white noise.</p><p>The PLD-only fit <ref type="figure" target="#fig_0">(Figure 2b</ref>) is quite poor. The general shape of the PLD curve is mostly preserved and, as expected, the stellar signal is still present in the residuals, but the fit increases the white noise by a factor of ∼ 4, all but washing out the transits (bottom panel). This happens because of a serious limitation of the LLS problem framed in Equation 2, which yields the PLD coefficients that minimize the scatter of the PLD term m i about the flux y i . If m i is not a suitable approximation to the flux, as in the case of a highly variable star, the χ 2 of the fit will necessarily be large. It is not hard to show that χ 2 can be substantially reduced by inflating the white noise component of m i , leading to the large scatter seen in the de-trended data. Absent a model for the astrophysical variability, PLD naturally exchanges correlated noise for white noise, which severely compromises its de-trending power.</p><p>A straightforward way to improve the quality of the fit is to include the polynomial term to capture the stellar variability, as in <ref type="bibr" target="#b6">Deming et al. (2015)</ref>. We do this in <ref type="figure" target="#fig_0">Fig- ure 2c</ref>, where we use a tenth order polynomial. While the fit is significantly improved, PLD still inflates the white noise component, since the polynomial is not flexible enough to capture all of the stellar signal. Though the transit is visible in the bottom plot, the quality of the de-trended data is significantly degraded when compared to that of the non-variable star.</p><p>One might imagine that a higher order polynomial would do the trick. However, there is an alternate approach, one that naturally follows from Equation 8. Rather than model the stellar signal explicitly, we instead treat it non-parametrically by performing Gaussian process regression, in which we use a GP to estimate the covariance matrix K. Provided K is a reasonable approximation to the true covariance of the stellar signal, Equation 8 will yield a set of PLD coefficients that fit out only the instrumental component of the noise. We illustrate this in <ref type="figure" target="#fig_0">Figure 2d</ref>, where we use a Matérn-3/2 kernel (see Equation 11 below) with amplitude α m = 100 and timescale τ m = 20 days to model the stellar signal. Unlike in the previous two cases, the PLD model (top panel, red) no longer attempts to fit out the stellar signal; in fact, the curve is almost identical to the fit to the original data ( <ref type="figure" target="#fig_0">Figure 2a</ref>). The astrophysical signal is recovered to high fidelity by subtracting the PLD term (second panel). After removing it, the final residuals (third panel) show a comparable (in fact, marginally smaller) RMS to the residuals of the original data. It is also clear from the bottom panel that the transit shape and depth are well preserved.</p><p>We note that another advantage of GP regression is that the PLD model is relatively insensitive to the particular choice of kernel function and values of its hyperparameters. This can be seen in the example above; even though the stellar variability signal was generated from a 25-day period sinusoidal function, a radial Matérn-3/2 kernel with a timescale of 20 days was sufficient to ensure the instrumental signal was removed without inflating the white noise. This is important because the stellar signal is generally unknown a priori, and any attempt to estimate it from the data will be subject to how well one can discriminate between instrumental and stellar effects.</p><p>Finally, we caution that GP regression assumes Gaus-sian noise. Deviations from Gaussianity, such as the presence of outliers, can invalidate the assumptions of the method and lead to poor fits to the data. Although we remove outliers prior to optimizing the GP, users accessing our de-trended light curves are encouraged to check for Gaussianity with methods such as an Anderson-Darling test. In §3 we describe our iterative procedure for removing outliers and optimizing the GP kernel.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">METHODS</head><p>In §2 we outlined the basics of principal component regression on the fractional pixel fluxes using a GP. In this section, we describe how we apply this method to K2 data.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Pre-Processing</head><p>For each star in the K2 EPIC catalog, we download the target pixel files and select aperture number 15 from the K2SFF catalog <ref type="bibr">(Vanderburg &amp; Johnson 2014;</ref><ref type="bibr">Vander- burg 2014</ref>), which is derived by fitting the Kepler pixel response function (PRF) to the stellar image. The K2SFF data contain twenty such apertures of varying sizes for each star. We find that aperture 15 is typically the best compromise between having enough pixels to generate a good basis set for PLD while preventing excess contamination from neighboring stars. We note that when contamination is not an issue, the choice of aperture has little effect on our results. As in <ref type="bibr">Vanderburg &amp; Johnson (2014)</ref>, we then compute the median per-timestamp flux in the pixels of the image that lie outside the aperture and subtract it from all pixels to remove the background signal. In this paper, we consider only the long cadence (LC) K2 dataset.</p><p>Next, we perform iterative sigma-clipping to mask large outliers. Just as PLD can artificially inflate the white noise in an attempt to remove stellar variability ( §2.3), it can do so in the presence of short timescale features such as eclipses, transits, flares, or cosmic ray hits. <ref type="bibr" target="#b6">Deming et al. (2015)</ref> deal with this by explicitly adding a transit term to the PLD model (Equation 1), but this requires knowledge of the transit parameters. Since we do not know a priori whether there are transits in a given light curve, we instead mask all features in the light curve that are not well modeled by either the PLD terms or the GP. We then train our model on the masked light curve to compute the PLD coefficients and use those to de-trend the full, unmasked light curve.</p><p>We detect outliers by dividing the light curve into five chunks and de-trending each with a first order PLD model. We use a 2-day Matérn-3/2 covariance (see §3.2) with amplitude equal to the median standard deviation of the flux in all 2-day segments; again, we note that our results are relatively insensitive to the particular value of these parameters. Next, we perform a median absolute deviation (MAD) cut at 5σ to identify outliers. We then re-compute the PLD model by masking those outliers and de-trend the full light curve, identifying a new set of outliers. This process is repeated until no new outliers are identified. We find that this identifies deep transits, eclipses, and other outliers that could affect the quality of the PLD fit.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">GP Optimization</head><p>The next step is to compute the covariance matrix K, which we do using the george 5 Python package <ref type="bibr">(Am- bikasaran et al. 2016</ref>). We parametrize it as</p><formula xml:id="formula_8">K ij = k w (t i , t j ) + k t (t i , t j )<label>(9)</label></formula><p>where</p><formula xml:id="formula_9">k w (t i , t j ) = σ 2 δ ij (10)</formula><p>is a white noise kernel with standard deviation σ and k t is either an additive or multiplicative combination of one or more of an exponential kernel k e , a Matérn-3/2 kernel k m , and a cosine kernel k c :</p><formula xml:id="formula_10">k e (t i , t j ) = α e e −|ti−tj |/τe k m (t i , t j ) = α m 1 + 3(t i − t j ) 2 e − √ 3(ti−tj ) 2 /τm k c (t i , t j ) = α c cos 2π P (t i − t j ) .<label>(11)</label></formula><p>The choice of kernel depends on the properties of the stellar signal, which we do not know a priori, since it is mixed with the instrumental signal in the light curve. We therefore adopt an iterative procedure, where we guess at the initial kernel form and hyperparameters and use it to de-trend the light curve with PLD, thus obtaining an approximate stellar component. We then train the GP on this stellar component and use it to run our PLD analysis again. While this can be repeated multiple times, we find that two iterations are typically enough for most targets. This procedure is illustrated in <ref type="figure">Figure 3</ref>. Our initial kernel is a Matérn-3/2 kernel with τ m = 2 days and amplitude equal to the median variance in 2-day chunks of the light curve. We split the light curve into 5-10 roughly equal chunks and de-trend each of them with first order PLD using Equations 7 and 8. Since we use first order PLD at this step, we do not perform PCA here. We then compute the autocorrelation function of the de-trended data and perform least-squares fits on different additive and multiplicative combinations of the kernels in Equation 11, using the peaks in a LombScargle periodogram as the initial guess for the periods in the cosine kernels. We choose the kernel and corresponding hyperparameters that result in the best fit and compute its overall amplitude as well as the amplitude of the white noise kernel k w by maximizing the marginal likelihood L of the data given the model,</p><formula xml:id="formula_11">log L = − 1 2 y · K −1 · y − 1 2 log |K| − n 2 log 2π (12)</formula><p>where y is the de-trended flux and n is the number of data points in y <ref type="bibr" target="#b17">(Rasmussen &amp; Williams 2006</ref>). In principle, one may optimize the parameters of each of the kernel combinations in this way to obtain the best estimate of the covariance matrix. However, such a procedure is computationally expensive. After considerable experimentation, we find that the method outlined abovewhich takes on the order of one minute on a single core of a 2.66 GHz machine-is sufficient to ensure PLD removes only the instrumental component of the noise for most targets. Period (days) In the top left panel we plot the raw SAP flux (black) and a ten chunk, first order PLD fit (red); the residuals are shown in the panel below. These are used to compute the power spectrum of the stellar signal (top right), and its autocorrelation function (bottom right, black curve). Different kernels are then fit to the autocorrelation function, and the one with the lowest χ 2 value is chosen for the de-trending step (red curve). The grey envelope about the autocorrelation curve is the ad hoc standard error assumed to compute χ 2 .</p><note type="other">0</note></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.">Design Matrix Optimization</head><p>The next step in our pipeline is to construct our design matrix (Equation 6). In order to do so, we must choose the number of PLD principal components to use in the regression. This number must be large enough to capture most of the instrumental variability but not so large as to lead to overfitting. In fact, one must take care to prevent PLD (or any other de-trending technique) from fitting out the white noise component of the light curve. As the number of basis vectors grows to become very large, there begin to exist linear combinations of these vectors that can artificially remove white noise from the data, improving the apparent quality of the fit but leading to spurious results. This is best illustrated by considering the example in <ref type="figure">Figure 1</ref>, where we kept only 285 basis vectors in the bottom panel. Had we de-trended with all 8435 components, we would obtain the light curve shown in <ref type="figure">Figure 4</ref>. While the median scatter improved by a factor of ∼ 4, the in-transit scatter increased by a factor of several thousand. This is because we masked the transits of K2-3b, c, and d during the de-trending step (see §3.1). The poor performance of the extrapolated model betrays its terrible predictive power, a clear sign of overfitting.</p><p>In order to limit the flexibility of our PLD model, we implement a simple cross-validation scheme. We divide the light curve into training sets (large chunks of data that we use to compute the PLD coefficients) and validation sets (small randomly selected chunks that we detrend using the coefficients computed from the training sets). We then compute the 6-hr precision in the validation sets for a range of design matrix sizes (details below). Since the validation data is never used to compute the PLD coefficients, the model cannot overfit in the validation set. Instead, as the number of regressors becomes too large and PLD begins to fit out astrophysical signals and/or white noise, the scatter in the validation set will grow. This process is illustrated in <ref type="figure" target="#fig_2">Figure 5</ref>, where we 0.9975 1.0000</p><p>1.0025</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>1.0050</head><p>De-trended Flux 6-hr scatter: 4.9 ppm <ref type="bibr">1980 1985 1990 1995 2000 2005 2010 2015</ref> Time (days) <ref type="bibr">0</ref>  <ref type="figure">Fig. 4</ref>.-Top: Third order PLD applied to EPIC 201367065, but this time keeping all basis vectors. Compare to <ref type="figure">Figure 1</ref>. While the median scatter improved by a factor of about 4, the scatter in the transits (which were masked during the de-trending) increased by a factor of several thousand. Bottom: The same figure, but zoomed out to show the in-transit scatter.</p><p>plot the scatter in the training set (blue) and the scatter in the validation set (red) as a function of the number of principal components n pc .</p><p>Initially, as n pc increases, the scatter in both the training and validation data decreases. As the number of components increases further, the training precision continues to improve, eventually surpassing the photon noise limit for n pc 1000. This is obviously unphysical and a clear sign of overfitting. The scatter in the validation set, on the other hand, begins to increase steadily above n pc ∼ 50, indicating that the predictive power of the model worsens as the number of principal components is increased. The minimum in the red curve, which occurs for n pc ∼ 80, is the best we can do; above that point, PLD is likely to begin fitting out white noise.</p><p>We employ this cross-validation method for each EPIC target. In practice, we compute the 6-hr precision (see  <ref type="figure">)</ref>; the red dots are the median precision in 6-hr chunks that were masked during the detrending step (the validation set). Solid curves indicate our GP fit to the data points. Initially, the scatter decreases in both cases as the number of components is increased. However, above ∼ 50 components, while the scatter in the training set continues to decrease, the scatter in the validation set (where the model is extrapolated) begins to grow. This is the signature of overfitting. We therefore choose 50 principal components for the de-trending, yielding a precision of 55 ppm (versus ∼ 70 ppm for the K2SFF de-trended flux). §4.3) in the validation sets fifty times for each value of n pc and take the median. Each validation set is a group of 10 non-overlapping chunks that are masked when computing the PLD coefficients; each chunk is chosen randomly from the set of all contiguous 13-cadence segments of the light curve. Our grid in n pc typically ranges from 1 to 250 principal components, with a spacing of ten components. After computing the median scatter for each value of n pc , we smooth the curves with a GP and choose the value of n pc that minimizes the scatter in the validation set.</p><p>Finally, for campaign 1 we found it necessary to split all light curves into two separate timeseries, with a breakpoint at BJD − 2454833 = 2017, a mid-campaign data gap. Inspection of the top left panel of <ref type="figure">Figure 3</ref> reveals a qualitative change in the instrumental systematics in the second half of the campaign, likely due to a reversal in the direction of the spacecraft roll (see, e.g., <ref type="bibr" target="#b1">Aigrain et al. 2016</ref>). While similar reversals are also present in other campaigns, campaign 1 is the only one in which we obtain a de-trending improvement significant enough to justify the breakpoint.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4.">De-trending</head><p>After optimizing the GP and choosing the order of the PLD, the number of principal components, and the number of light curve subdivisions, we de-trend each EPIC light curve by subtracting the model given by Equations 7 and 8. We then add the median value of the SAP flux to the result to obtain our final, de-trended light curves.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">RESULTS</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">Transit Injections</head><p>Since the PLD basis vectors are obtained from the fractional pixel fluxes, they do not in principle contain any astrophysical signals. De-trending with PLD should therefore preserve the transit shape and depth, a fact that is confirmed for the transits of several hot Jupiters observed with Spitzer ( <ref type="bibr" target="#b6">Deming et al. 2015</ref>). However, as we showed in §3.3, PLD can increase the scatter of regions of the data that are not used to compute the coefficients (such as transits that are flagged as outliers) when too many principal components are present (see <ref type="figure">Figure 4</ref>). If a transit is missed in the outlier detection step, the transit shape may also be affected, since PLD can exploit linear combinations of the white noise component to decrease the transit depth and therefore improve the likelihood of the fit. The smaller values at the top indicate the fraction of transits recovered with depths lower and higher than the bounds of the plots. Finally, the two columns distinguish between the default runs (left) and runs where the transits were explicitly masked (right); the three rows correspond to different injected depths: 10 −2 , 10 −3 , and 10 −4 . PLD preserves transit depths if the transits are properly masked; otherwise, a small bias toward smaller depths is introduced.</p><p>In order to test whether our pipeline is robust against these effects, we ran a set of transit injection and recovery tests on a sample of EPIC targets that do not contain known transit events. We randomly selected 200 campaigns 0-6 stars from each magnitude bin in the range 8 ≤ K p ≤ 18 (K p is the Kepler bandpass magnitude) for a total sample size of 2000 stars per run. We then injected synthetic transits of varying depths into the light curve by multiplying each pixel by a transit model generated by the pysyzygy 6 package, which calculates fast limb-darkened light curves based on the <ref type="bibr" target="#b14">Mandel &amp; Agol (2002)</ref> transit model. We randomly chose orbital periods in the range 3-10 days and fixed the transit duration at 2.5 hours, assuming zero eccentricity and quadratic limb darkening parameters a = 0.45 and b = 0.30. We then ran our pipeline to de-trend the light curves.</p><p>Performing a full transit search is outside the scope of this paper. Since our goal is to determine whether or not PLD can bias transit depths, we fix all the parameters except for the depth at their true values and recover the transit depth by linear regression, simultaneously fitting the baseline flux in the vicinity of the transit with a thirdorder polynomial. Our results are shown in <ref type="figure" target="#fig_3">Figure 6</ref>.</p><p>Each panel shows two histograms of the recovered depth as a fraction of the true depth, D/D 0 . In blue, we plot the recovery results after de-trending with our pipeline. As a control, we also injected transits directly into the de-trended data; we plot the corresponding distributions in red. Provided EVEREST does not affect transit depths or increase in-transit scatter, these two sets of distributions should be similar. The numbers at the top left and right of each panel respectively indicate the fraction of recovered depths below and above the limits of the plot. The median values M of each distribution are also shown.</p><p>Each row in the figure corresponds to a different injected depth: 10 −2 , 10 −3 , and 10 −4 , ranging from a typical hot Jupiter to a roughly Earth-sized planet. The left column corresponds to the default runs of our pipeline; the right column corresponds to runs in which the transits were explicitly masked (more details on this below).</p><p>In the top left panel (D 0 = 10 −2 ), both distributions have medians equal to 1.00, corresponding to an unbiased recovery of the transit depth. Moreover, the spread is similar in both distributions, indicating that EVEREST does not introduce significant in-transit scatter. In the next two panels (D 0 = 10 −3 and 10 −4 ), however, a bias toward smaller transit depth is visible; the EVEREST detrending causes transits of these small planets to be shallower by ∼ 5 and ∼ 10%, respectively. This is because our sigma-clipping outlier detection technique ( §3.1) is not effective at finding shallow transits, and thus these transits are not masked during the de-trending step. As we mentioned above, since we have no term in our design matrix (Equation 6) to explicitly model transits, the PLD model picks up the slack and partially fits out these features by inflating the white noise, slightly improving the quality of the overall fit. This is similar to the example in <ref type="figure" target="#fig_0">Figure 2</ref>, where PLD inflated the white noise to remove an astrophysical signal.</p><p>When the transits are properly masked (right column of the figure), both the bias and the increased scatter in the recovered depths disappear for transits of all depths. This shows that our cross-validation technique ( §3.3) is <ref type="bibr">6</ref> https://github.com/rodluger/pysyzygy correctly preventing overfitting and enforcing the high predictive power of the model in the masked regions of the dataset.</p><p>In order to remove the small bias introduced in the presence of shallow, unmasked transits, we strongly encourage those making use of our light curves for transiting exoplanet characterization to run EVEREST while explicitly masking these transits. This can be done by specifying the transit times and durations when calling the EVEREST Python module; the code takes only a few seconds to run. The same applies to those using our light curves for transiting planet searches. Once features of interest are detected, one should run EVEREST again with those features masked to obtain unbiased estimates of the transit parameters.</p><p>It is important to note, however, that some transits with very low signal-to-noise could be completely fit out during the de-trending step, preventing their detection in the first place. As Foreman-  point out, this is an inevitable consequence of the de-trendthen-search method. It is always best to use a model that captures all the features of the data, allowing one to solve for instrumental noise, stellar variability, and transits simultaneously. To this end Foreman-  explicitly include a transit model in their design matrix, solving Equation 8 over a fine grid of periods and transit epochs. This eliminates the de-trending step in favor of a combined de-trending/planet searching step, which effectively circumvents the overfitting problems inherent to least-squares de-trending techniques. However, such an approach is very computationally expensive, given that each light curve must be processed once for every combination of transit parameters. We therefore defer this procedure to a future paper.</p><p>We note, finally, that other K2 pipelines are subject to similar overfitting problems. Consider the example in <ref type="figure" target="#fig_4">Figure 7</ref>, which shows the (folded and normalized) primary and secondary eclipses of the eclipsing binary EPIC 202072563. Four datasets are presented: the raw SAP flux (left), the default EVEREST light curve, the masked EVEREST light curve, and the K2SFF light curve. The EVEREST and K2SFF fluxes have been smoothed with a GP to remove astrophysical variability. It is clear from the second column that our outlier detection technique failed to mask all points during the eclipse, leading to a ∼ 20% decrease in the eclipse depths. When properly masking the eclipses, however, the depth is correctly recovered (third column). In the last column, we see that the K2SFF depths are also shallower, but by nearly 50%. Proper modeling or masking of these features would be necessary to preserve their depths during the K2SFF detrending step.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.">Limitations</head><p>We find that there are two particular situations in which PLD is likely to fail: saturated stars and crowded apertures. These limitations are inherent to the method itself and not specific to K2 data.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.1.">Saturated Stars</head><p>The Kepler detectors begin to saturate for stars with K p 11.5, leading to flux bleeding along the pixel columns ( <ref type="bibr" target="#b9">Gilliland et al. 2010</ref>). Since the total charge is well conserved for stars dimmer than K p ≈ 7, this is not an issue for aperture photometry; transit depths and shapes are preserved in the SAP flux. However, the basic assumption of PLD-that the fractional pixel fluxes p il / k p ik (see Equation 5) contain no astrophysical information-breaks down for these stars. This occurs because saturated pixels contain virtually no transit signal, as both the in-transit flux and the out-of-transit flux are above the saturation level, resulting in a relatively featureless timeseries. Since the total flux is conserved, the transit signal overflows into the adjacent pixels, traveling along the column until it reaches an unsaturated pixel. In these "overflow" pixels, the fractional transit depth is much larger than the true depth, since it contains the total transit signal from all of the saturated pixels in that column. Consequently, the normalization p il / k p ik will only partially remove the transit in the "overflow" pixels. Conversely, it will over-correct the saturated pixel fluxes, leading to an inverted transit shape in the PLD basis vectors corresponding to those pixels. This is illustrated in <ref type="figure">Figure 8</ref>, which shows the fractional pixel fluxes as a function of their position on the detector for the saturated hot-Jupiter host Kepler-3b. We again choose a Kepler target for illustrative purposes, though the idea applies equally to K2. Saturated pixels are indicated in red; "overflow" pixels are indicated in blue; both groups of pixels contain the transit signal. Unsurprisingly, PLD fails to properly de-trend this target, removing most of the transit signal along with the instrumental noise.</p><p>In <ref type="figure">Figure 9</ref>, we show an example of a saturated light curve of an eclipsing binary processed with K2SFF and EVEREST. The K2SFF pipeline removes a significant amount of the instrumental noise while preserving most of the astrophysical signal. EVEREST, on the other hand, fits out both the stellar variability and the eclipses, leading to spurious low scatter.</p><p>In principle, the saturation effects may be mitigated by collapsing each saturated column into a single timeseries; since charge is conserved within individual columns, this would enforce the correct transit depth in those "superpixels," which could then be used as basis vectors for PLD. However, we leave this procedure to future work. At present, we flag saturated stars in our database that are at risk of PLD overfitting. As a general rule, while saturation may occur for stars as faint as K p = 11.5, we find that PLD preserves transit depths for most stars dimmer than K p = 11.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.2.">Crowded Apertures</head><p>The other situation in which PLD performs poorly is in apertures containing significant contamination from other stars. In simple aperture photometry, the transit depth can be decreased in the presence of another star within the aperture. To correct for this, one can simply scale the depth by the (inverse of the) crowding metric, the ratio of the flux due to the planet host to the total flux in the aperture. However, this is not the case for data de-trended with PLD, for reasons we describe below.</p><p>In the case of a single star, the pixel flux p il in the l th pixel at the i th time is the product of the (position-dependent) stellar signal a il and the (positionindependent) transit signal τ i , such that the fractional pixel flux is</p><formula xml:id="formula_12">p il k p ik = a il τ i k a ik τ i = a il k a ik ,<label>(13)</label></formula><p>which, as we have argued before, contains no transit signal. In the case of two stars, a il and b il , the first of which contains a transit, we may write the fractional flux as</p><formula xml:id="formula_13">p il k p ik = a il τ i + b il k a ik τ i + b ik .<label>(14)</label></formula><p>Note that in this case the transit signal does not cancel, and the PLD basis vectors will contain some amount of transit information, leading to possible overfitting as in the case of a saturated aperture. For a dim contaminant star, b il a il , we may write</p><formula xml:id="formula_14">p il k p ik ≈ a il k a ik 1 + ∆ τ i<label>(15)</label></formula><p>where</p><formula xml:id="formula_15">∆ ≡   b il a il − k b ik k a ik  <label>(16)</label></formula><p>is a measure of the difference between the crowding in a given pixel and the crowding in the entire aperture. In general, the larger the value of ∆, the more power PLD will have to fit out the transit signal. This is the case for bright contaminant sources near the edge of the aperture, for which the value of b il /a il varies greatly across the aperture. Interestingly, for contaminant sources colocated with the transiting planet host (as in the case of binary stars or stars that are aligned but unresolved), the quantity b il /a il is constant across the detector and ∆ = 0, leading to a PLD basis set that does not contain transit information. This can also be shown from the exact expression <ref type="bibr">(Equation 14)</ref>. Crowding is therefore only a concern when there is a bright contaminant sufficiently separated from the transiting planet host. In practice, we find that PLD begins to overfit for contaminants that are separated by more than one pixel from the target and are either brighter than or within ∼ 2 magnitudes of the target. It is possible to correct for the effects of crowding if the quantity b il /a il is known, even if just approximately.</p><p>However, this requires careful modeling of the stellar PSF and is beyond the scope of this paper. In our database, we flag sources that may suffer from overfitting due to crowded fields.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3.">Photometric Precision</head><p>The formal photometric noise metric developed by the Kepler team is the Combined Differential Photometric Precision (CDPP) ( <ref type="bibr" target="#b4">Christiansen et al. 2012</ref>), which is computed by the Kepler pipeline on transit-like timescales of 3, 6 and 12 hours. The CDPP evaluated for a given duration is defined so that it is equivalent to the depth of a transit of that duration that would yield a SNR of 1. In this section we adopt a proxy of the 6-hr CDPP that is easier to calculate than the formal metric defined in <ref type="bibr" target="#b4">Christiansen et al. (2012)</ref>. Our approach is very similar to the approaches of <ref type="bibr" target="#b8">Gilliland et al. (2011)</ref>, <ref type="bibr">Vanderburg &amp; Johnson (2014)</ref> and <ref type="bibr" target="#b1">Aigrain et al. (2016)</ref>. In order to prevent correlated stellar noise from inflating the white noise calculation, we apply a 2-day, quadratic Savitsky-Golay <ref type="bibr" target="#b19">(Savitzky &amp; Golay 1964)</ref> high-pass filter to the de-trended flux, clipping outliers at 5σ. We then compute the standard deviation of all contiguous 13-cadence chunks of data, take the median, and divide by √ 13 as in <ref type="bibr">Vanderburg &amp; Johnson (2014)</ref> to obtain the approximate 6-hr photometric precision of the data, which we henceforth refer to as the CDPP. In <ref type="figure" target="#fig_6">Figure 10</ref> we plot the CDPP of our de-trended fluxes for campaign 0-7 stars, excluding saturated targets (stars whose brightest pixel's median flux &gt; 1.6 × 10 5 e/s) and stars in highly crowded apertures (stars with ∆K p &lt; 5 neighbors inside the aperture or brighter neighbors within 2 pixels of the edge of the aperture), since PLD is likely to lead to artificially low CDPP in those cases.</p><p>EVEREST CDPP values are plotted as blue dots. For comparison, in yellow we plot the CDPP calculated for the raw SAP fluxes of all stars observed by the original Kepler mission. EVEREST recovers the raw Kepler CDPP for most K p 13 stars and yields light curves with CDPP within about 1.5 times that of Kepler for 13 K p 15. The sparser clump of stars above the bulk group between K p = 11 and 14 are likely giants, whose short-timescale pulsations are not efficiently captured by the high-pass filter and thus appear to be more noisy; this clump is also present in the Kepler distribution.</p><p>In <ref type="figure" target="#fig_7">Figure 11</ref> we again plot the CDPP as a function of K p , but this time on a logarithmic scale, comparing the EVEREST values (blue dots) to the raw K2 CDPP (red dots) and the approximate 6-hr photon limit (dashed yellow line), which we calculate as</p><formula xml:id="formula_16">CDPP phot = 10 6 √ 21600 × ¯ F (17)</formula><p>where ¯ F is the average SAP flux in e/s at a particular value of K p . The dashed red and solid blue lines indicate the median CDPP in 0.5 magnitude-wide bins in the raw and de-trended light curves, respectively. EVEREST leads to nearly an order-of-magnitude improvement in the CDPP for the brightest targets, approaching the photon limit for K p 13 dwarfs.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.4.">Comparison to Other Pipelines</head><p>In this section we compare the precision of our detrended light curves to that of the K2VARCAT ( <ref type="bibr" target="#b2">Armstrong et al. 2015</ref>), K2SFF <ref type="bibr">(Vanderburg &amp; Johnson 2014), and</ref><ref type="bibr">K2SC (Aigrain et al. 2016</ref>) light curves. Though other pipelines exist (e.g., <ref type="bibr" target="#b13">Lund et al. 2015;</ref><ref type="bibr" target="#b11">Huang et al. 2015;</ref><ref type="bibr" target="#b5">Crossfield et al. 2015</ref>), here we focus on those that are also available for download at the MAST HLSP K2 archive. <ref type="bibr">7</ref> For each of the pipelines, we download all available de-trended light curves and compute the CDPP as 7 https://archive.stsci.edu/k2/hlsp/ described in §4.3. In <ref type="figure" target="#fig_0">Figures 12-15</ref>, we plot a pairwise comparison of the precision achieved for all campaign 0-7 light curves that are available in both our catalog and that of the other pipeline. These plots are based on <ref type="bibr">Fig- ure 10 in Aigrain et al. (2016)</ref>; the plots show the relative 6-hr CDPP difference between our light curves and those produced by the K2VARCAT, K2SFF, and K2SC pipelines as a function of Kepler magnitude. Results for individual light curves are indicated by blue dots, and the median in half magnitude-wide bins is shown as a black line. As before, we trim 5σ outliers and apply a high-pass filter prior to computing the CDPP. We again exclude from the comparison saturated stars and stars in highly crowded apertures. <ref type="figure" target="#fig_0">Figure 12</ref> shows the comparison to the K2VARCAT pipeline. Our de-trended precision is systematically better at all magnitudes shown; on average, we achieve about double the precision (half the CDPP). There are very few cases where K2VARCAT yields lower CDPP values than EVEREST (points above zero). <ref type="figure" target="#fig_9">Figure 13</ref> shows the same plot, but comparing EVEREST to K2SFF. Again, EVEREST yields higher median precision at all magnitudes; EVEREST light curves have ∼ 20% less scatter on average. The gain in precision changes with K p , but also with campaign; this can be seen in <ref type="figure">Figure 14</ref>. Note, in particular, that the EVEREST precision is significantly higher relative to that of K2SFF in campaigns 0-2; in campaign 2, particularly, the average star has half the scatter in the EVEREST light curves. In the more recent campaigns, the precision gain relative to K2SFF is smaller, but EVEREST still yields higher median precision at all magnitudes. In general, EVEREST light curves also have significantly fewer outliers than K2SFF light curves. This is clear from <ref type="figure" target="#fig_3">Figures 16 and 17</ref> in the following section: K2SFF light curves often display a band of outliers above or below the light curve continuum, most likely associated with thruster firings. PLD naturally corrects for these, obviating the need to discard the several hundred thruster firing data points in each campaign.</p><p>Finally, in <ref type="figure" target="#fig_2">Figure 15</ref> we plot the comparison to the PDC version of the K2SC pipeline, whose performance is the best out of the three we consider here. In order to ensure the two datasets are compared on equal footing, we use the systematics-corrected K2SC fluxes rather than the fully whitened fluxes; we obtain these by summing the FLUX and TREND T columns in the dataset. We then apply a Savitsky-Golay filter, as we do to the EVEREST data, to remove the stellar components of the variability. Since campaigns 0-2 are not available in the K2SC catalog, this plot shows the comparison for campaigns 3-5 only. Once again, EVEREST light curves have higher precision than those of K2SC by ∼ 10% for bright stars and ∼ 5% for stars in the range 16 K p 11.</p><p>All plots shown here display a significant amount of scatter. While EVEREST yields the lowest median CDPP in all cases, we recommend comparing light curves from the different pipelines when the highest precision is desired for specific targets. Moreover, at this time EVEREST performs poorly for saturated targets and for those in very crowded fields.  </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.4.1.">Example Light Curves</head><p>In <ref type="figure" target="#fig_3">Figures 16 and 17</ref> we plot our de-trended light curves for two K2 planet candidate hosts, EPIC 201367065 and 205071984. These were chosen specifically to illustrate the advantages of the PLD technique and are, in a sense, best case scenarios. Both stars have K p ≈ 12 and are the only bright sources in their apertures. (There are two faint sources, K p ≈ 17 and K p ≈ 18, at the edge of the aperture of EPIC 205071984, but they are faint enough as to not affect the de-trending.) In each of the figures, we plot the K2SFF light curves at the top (red) and the EVEREST light curves at the bottom (black). To the right, we plot the folded transits of their planet candidates after removing the stellar variability signal with a GP.</p><p>In both cases, the EVEREST precision is a factor of about 2 higher than that of K2SFF: EVEREST yields 30.9 ppm for EPIC 201367065 and 24.0 ppm for EPIC 205071984. This is visible in both the full light curve and in the folded transits, which display significantly less scatter. Note, importantly, that the greater de-trending power of EVEREST does not affect the low-frequency stellar variability, which is present equally in both sets of light curves.</p><p>The corresponding light curves in the K2VARCAT database have CDPP values of 43.1 and 63.4, respectively. At the time of writing, these light curves are not present in the K2SC catalog.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">CONCLUSIONS</head><p>In this paper we introduced EVEREST, a pipeline developed to yield the highest precision light curves for K2 stars. EVEREST builds on the pixel level decorrelation (PLD) technique of <ref type="bibr" target="#b6">Deming et al. (2015)</ref>, extending it to third order in the pixel fluxes and combining it with principal component analysis to yield a set of basis vectors that together capture most of the instrumental variability in the data. Gaussian process (GP) regression is then performed to remove the instrumental systematics while preserving astrophysical signals. In order to prevent overfitting, we developed a method to determine the ideal number of principal components to use in the fit, yielding reliable, high precision de-trended light curves for all K2 campaigns to date. We validated our model by performing transit injection and recovery tests and showed that when transits were properly masked by our iterative sigma-clipping technique, we recovered the correct depths without any bias. When transits were not masked (the case of many low signal-to-noise transits, which are missed by our outlier detection step), PLD de-trending resulted in somewhat shallower transits by 10%. We therefore strongly encourage those making use of our light curves for transiting exoplanet characterization to run EVEREST while explicitly masking these transits. Our code is implemented in Python, is user-friendly, and takes only a few seconds to run for a given target. The same applies to those using our light curves for transiting planet searches. Once features of interest are detected, one should run EVEREST again with those features masked to obtain unbiased estimates of the transit parameters. While the decreased transit depth can in principle preclude the detection of very low signal-to-noise planets in the EVEREST light curves, we find that the increased precision of these light curves relative to other pipelines is sufficient to enable the detection of previously unknown, small transiting planets around K2 host stars ( <ref type="bibr">Kruse et al. 2016, in prep.)</ref>. Since EVEREST preserves stellar signals, these light curves should also greatly aid in stellar variability and asteroseismology studies.</p><p>For stars brighter than K p ≈ 13, we found that EVEREST recovers the photometric precision of the original Kepler mission; for fainter stars, the median precision is within a factor of 2 of that of the original mission. We further compared our de-trended light curves to those produced by the other K2 pipelines available at the MAST HLSP K2 archive. EVEREST light curves have systematically higher precision than K2SFF, K2VARCAT and K2SC for all Kepler magnitudes K p &gt; 11. Currently, EVEREST performs poorly for saturated targets and for those in highly crowded fields. <ref type="figure">Fig. 14</ref>.-A comparison of the EVEREST and K2SFF CDPP for each individual campaign. Note the marked difference between campaigns 3-7 and campaigns 0-2. For campaign 2, in particular, the relative improvement is close to 0.5, corresponding to an average EVEREST precision a factor of 2 higher than K2SFF. <ref type="figure" target="#fig_2">Fig. 15</ref>.-Same as <ref type="figure" target="#fig_0">Figure 12</ref>, but comparing EVEREST to K2SC. To ensure both sets of light curves are on the same footing, the K2SC CDPP is computed from the PDC flux corrected for the instrumental systematics only. As before, a Savitsky-Golay filter is then applied to both sets of light curves. The median relative difference is once again negative everywhere, indicating that EVEREST yields higher precision light curves at all magnitudes.</p><p>Our catalog of de-trended light curves is publicly available at https://archive.stsci.edu/prepds/ everest/ and will be constantly updated for new K2 campaigns. The code used to de-trend the light curves is open source under the MIT license and is available at https://github.com/rodluger/everest, along with user-friendly routines for downloading and interacting with the de-trended light curves. A static release of version 1.0 of the code is also available at http://dx.doi.org/10.5281/zenodo.56577. Since the only inputs to EVEREST are the pixel level light curves, the techniques developed here can be generally applied to light curves produced by any photometry mission, including the upcoming TESS mission ( <ref type="bibr" target="#b18">Ricker et al. 2015</ref>), to remove instrumental noise and enable the detection of small transiting planets. </p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Fig. 2 .</head><label>2</label><figDesc>Fig. 2.-Different de-trending techniques for quarter 4 of KIC 8583696 (KOI 1275), a planet candidate host from the original Kepler mission. The original data are shown in the left column; in the other columns we artificially injected a sinusoidal signal with a period of 25 days and an amplitude comparable to that of the instrumental variability. The top row shows the raw SAP data (black) and the first order PLD model (red); the residuals of the fit are indicated directly below. The third row shows the final residuals after smoothing with a GP to eliminate low-frequency stellar variability. Finally, the bottom row shows these residuals folded on the orbital period of the planet candidate (black), with the 1-hr median indicated in red. Combining PLD with a GP ensures PLD fits out only the instrumental variability without inflating the white noise.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>×</head><label></label><figDesc>Fig. 3.-GP optimization procedure for EPIC 201497682. In the top left panel we plot the raw SAP flux (black) and a ten chunk, first order PLD fit (red); the residuals are shown in the panel below. These are used to compute the power spectrum of the stellar signal (top right), and its autocorrelation function (bottom right, black curve). Different kernels are then fit to the autocorrelation function, and the one with the lowest χ 2 value is chosen for the de-trending step (red curve). The grey envelope about the autocorrelation curve is the ad hoc standard error assumed to compute χ 2 .</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Fig. 5 .</head><label>5</label><figDesc>Fig. 5.-De-trended light curve precision as a function of the number of principal components for EPIC 201497682. The blue dots are the median 6-hr precision (in ppm) of the unmasked sections of the light curve (the training set); the red dots are the median precision in 6-hr chunks that were masked during the detrending step (the validation set). Solid curves indicate our GP fit to the data points. Initially, the scatter decreases in both cases as the number of components is increased. However, above ∼ 50 components, while the scatter in the training set continues to decrease, the scatter in the validation set (where the model is extrapolated) begins to grow. This is the signature of overfitting. We therefore choose 50 principal components for the de-trending, yielding a precision of 55 ppm (versus ∼ 70 ppm for the K2SFF de-trended flux).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Fig. 6 .</head><label>6</label><figDesc>Fig. 6.-Transit injection results. Each panel shows the fraction of transits recovered with a certain depth ratio D/D 0 (recovered depth divided by true depth). Blue histograms correspond to the actual injection and recovery process performed with our pipeline; red histograms correspond to transits injected directly into the detrended light curves and are shown for comparison. The values to the left and right of each histogram are the median D/D 0 for our pipeline and for the control run, respectively. The smaller values at the top indicate the fraction of transits recovered with depths lower and higher than the bounds of the plots. Finally, the two columns distinguish between the default runs (left) and runs where the transits were explicitly masked (right); the three rows correspond to different injected depths: 10 −2 , 10 −3 , and 10 −4 . PLD preserves transit depths if the transits are properly masked; otherwise, a small bias toward smaller depths is introduced.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Fig. 7 .</head><label>7</label><figDesc>Fig. 7.-Primary and secondary eclipses of EPIC 202072563, folded on a period of 2.1237 days. From left to right, the columns show the raw SAP flux, the EVEREST flux, the EVEREST flux obtained when explicitly masking the eclipses, and the K2SFF flux. Masking is critical to preserving the transit depth during de-trending for any pipeline that does not explicitly include a transit or eclipse model.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Fig. 8 .Fig. 9 .</head><label>89</label><figDesc>Fig. 8.-Fractional pixel fluxes p il / k p ik for quarter 3 of Kepler-3, a Kp = 9.2 hot-Jupiter host observed by the original Kepler mission. The panels are arranged according to the positions of the pixels on the detector, and the data is smoothed and folded on the orbital period of Kepler-3b. Saturated pixels are highlighted in red and are labeled with an S; overflow pixels are highlighted in blue and labeled with an O. PLD fails for this system because the transit signal is present in several of the basis vectors.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Fig. 10 .</head><label>10</label><figDesc>Fig. 10.-6-hr photometric precision as a function of Kepler magnitude Kp for all stars observed by Kepler (yellow dots) and for all unsaturated, non-crowded K2 targets in campaigns 0-7 de-trended with EVEREST (blue dots). The median values are indicated for 0.5 magnitude-wide bins with filled circles. Our pipeline recovers the original Kepler precision for stars brighter than Kp ≈ 13.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Fig. 11 .</head><label>11</label><figDesc>Fig. 11.-A comparison of the raw K2 6-hr precision (red dots) and the EVEREST precision (blue dots) as a function of Kp. The lines indicate the median in 0.5 magnitude-wide bins. We also plot the approximate photon limit (dashed yellow line) for reference. EVEREST leads to an order-of-magnitude improvement in the CDPP for the brightest stars.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head>Fig. 12 .</head><label>12</label><figDesc>Fig. 12.-Relative 6-hr CDPP difference between EVEREST and K2VARCAT light curves for campaigns 0-7. Blue dots show differences for individual stars, while the black line indicates the median in 0.5 magnitude-wide bins. Negative values indicate higher precision in the EVEREST light curves; compare to Figure 10 in Aigrain et al. (2016). On average, EVEREST yields light curves with half the scatter for all Kepler magnitudes Kp &gt; 11.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head>Fig. 13 .</head><label>13</label><figDesc>Fig. 13.-Same as Figure 12, but comparing EVEREST to K2SFF. Once again, negative values correspond to higher precision in the EVEREST light curves. Our pipeline yields higher precision light curves for most K2 stars and does better on average for all Kepler magnitudes Kp &gt; 11.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_10"><head>RFig. 16 .Fig. 17 .</head><label>1617</label><figDesc>Fig. 16.-De-trended light curves for the campaign 1 star EPIC 201367065 (K2-3, Crossfield et al. 2015). Top: The de-trended K2SFF flux (left) and the GP-smoothed flux folded on the periods of the planets b, c, and d (right). Bottom: The de-trended EVEREST flux. The 6-hr CDPP is 30.9 ppm for K2SFF and 16.6 ppm for EVEREST, a factor of ∼ 2 improvement.</figDesc></figure>
+
+			<note place="foot" n="5"> http://dan.iel.fm/george/current/</note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">T</forename><surname>Hodgkin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Irwin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Lewis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Roberts</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">447</biblScope>
+			<biblScope unit="page">2880</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Parviainen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Pope</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Ambikasaran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Greengard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Oneil</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">IEEE Transactions on Pattern Analysis and Machine Intelligence</title>
+		<imprint>
+			<biblScope unit="volume">38</biblScope>
+			<biblScope unit="page">252</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J</forename><surname>Armstrong</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Kirk</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">W F</forename><surname>Lam</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Mccormac</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">R</forename><surname>Walker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J A</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">P</forename><surname>Osborn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">L</forename><surname>Pollacco</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Spake</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">579</biblScope>
+			<biblScope unit="page">19</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Borucki</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">736</biblScope>
+			<biblScope unit="page">587</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+	<note>ApJ</note>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Christiansen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Jenkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Caldwell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">J</forename><surname>Burke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Tenenbaum</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Seader</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">E</forename><surname>Thompson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">S</forename><surname>Barclay</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">D</forename><surname>Clarke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">C</forename><surname>Smith</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">C</forename><surname>Stumpe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Twicken</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Van Cleve</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">124</biblScope>
+			<biblScope unit="page">1279</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">J M</forename><surname>Crossfield</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Petigura</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">E</forename><surname>Schlieder</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Howard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">J</forename><surname>Fulton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">M</forename><surname>Aller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">R</forename><surname>Ciardi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Lépine</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Barclay</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>De Pater</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>De Kleer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">V</forename><surname>Quintana</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Christiansen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Schlafly</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Kaltenegger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Crepp</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Henning</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Obermeier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Deacon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">M</forename><surname>Weiss</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">T</forename><surname>Isaacson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">M S</forename><surname>Hansen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">C</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Greene</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">B</forename><surname>Howell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Barman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Mordasini</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">804</biblScope>
+			<biblScope unit="page">10</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Deming</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Knutson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Kammer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">J</forename><surname>Fulton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Ingalls</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Carey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Burrows</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Fortney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Todorov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Cowan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-M</forename><surname>Desert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Fraine</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Langton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Morley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">P</forename><surname>Showman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">805</biblScope>
+			<biblScope unit="page">132</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">T</forename><surname>Montet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Morton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Schölkopf</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">806</biblScope>
+			<biblScope unit="page">215</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">L</forename><surname>Gilliland</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Chaplin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">W</forename><surname>Dunham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">S</forename><surname>Argabright</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Borucki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Basri</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">T</forename><surname>Bryson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">L</forename><surname>Buzasi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Caldwell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><forename type="middle">P</forename><surname>Elsworth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Jenkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">G</forename><surname>Koch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Kolodziejczak</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Miglio</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Van Cleve</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">M</forename><surname>Walkowicz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">F</forename><surname>Welsh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">197</biblScope>
+			<biblScope unit="page">6</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">L</forename><surname>Gilliland</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Jenkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Borucki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">T</forename><surname>Bryson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Caldwell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">D</forename><surname>Clarke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Dotson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Haas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Hall</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Klaus</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Koch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Mccauliff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">V</forename><surname>Quintana</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Twicken</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">E</forename><surname>Van Cleve</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal Letters</title>
+		<imprint>
+			<biblScope unit="volume">713</biblScope>
+			<biblScope unit="page">160</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">B</forename><surname>Howell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Sobeck</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Haas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Still</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Barclay</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Mullally</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Troeltzsch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">T</forename><surname>Bryson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Caldwell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Chaplin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">D</forename><surname>Cochran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Huber</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Marcy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Miglio</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Najita</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Smith</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Twicken</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Fortney</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">126</biblScope>
+			<biblScope unit="page">398</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">X</forename><surname>Huang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Penev</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Hartman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">´ A</forename><surname>Bakos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Bhatti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Domsa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Val-Borro</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">454</biblScope>
+			<biblScope unit="page">4159</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Kruse</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Luger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+	<note>in prep</note>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">N</forename><surname>Lund</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Handberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">R</forename><surname>Davies</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Chaplin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">D</forename><surname>Jones</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">806</biblScope>
+			<biblScope unit="page">30</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Mandel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">580</biblScope>
+			<biblScope unit="page">171</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">T</forename><surname>Montet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Morton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">P</forename><surname>Bowler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Latham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Bieryla</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Mann</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">809</biblScope>
+			<biblScope unit="page">25</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">V</forename><surname>Quintana</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Barclay</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Raymond</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">F</forename><surname>Rowe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Bolmont</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Caldwell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">B</forename><surname>Howell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">R</forename><surname>Kane</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Huber</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Crepp</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Lissauer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">R</forename><surname>Ciardi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Coughlin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">E</forename><surname>Everett</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">E</forename><surname>Henze</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Horch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Isaacson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Ford</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">C</forename><surname>Adams</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Still</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">C</forename><surname>Hunter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Quarles</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Selsis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">344</biblScope>
+			<biblScope unit="page">277</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">E</forename><surname>Rasmussen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">K I</forename><surname>Williams</surname></persName>
+		</author>
+		<title level="m">Gaussian Processes for Machine Learning</title>
+		<imprint>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">R</forename><surname>Ricker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">N</forename><surname>Winn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Vanderspek</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Latham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">´ A</forename><surname>Bakos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Bean</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><forename type="middle">K</forename><surname>Berta-Thompson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">M</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Buchhave</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">R</forename><surname>Butler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P</forename><surname>Butler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Chaplin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Christensen-Dalsgaard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Clampin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Deming</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Doty</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>De Lee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Dressing</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">W</forename><surname>Dunham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Endl</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Fressin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Ge</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Henning</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Holman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Howard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Ida</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Jenkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Jernigan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Kaltenegger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Kawai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Kjeldsen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Laughlin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">M</forename><surname>Levine</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Lissauer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Macqueen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Marcy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">R</forename><surname>Mccullough</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Morton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Narita</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Paegert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Palle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pepe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Pepper</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Quirrenbach</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">A</forename><surname>Rinehart</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Sasselov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Sato</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Seager</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Sozzetti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">G</forename><surname>Stassun</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Sullivan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Szentgyorgyi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Torres</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Udry</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Villasenor</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Astronomical Telescopes, Instruments, and Systems</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page">14003</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Savitzky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J E</forename><surname>Golay</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Analytical Chemistry</title>
+		<imprint>
+			<biblScope unit="volume">36</biblScope>
+			<biblScope unit="page">1627</biblScope>
+			<date type="published" when="1964" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Sinukoff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Howard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">A</forename><surname>Petigura</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">E</forename><surname>Schlieder</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">J M</forename><surname>Crossfield</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">R</forename><surname>Ciardi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">J</forename><surname>Fulton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Isaacson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">M</forename><surname>Aller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Baranec</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">A</forename><surname>Beichman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">M S</forename><surname>Hansen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">A</forename><surname>Knutson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">M</forename><surname>Law</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">C</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Riddle</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Torres</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Kipping</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Fressin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Caldwell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Twicken</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Ballard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">M</forename><surname>Batalha</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">T</forename><surname>Bryson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">R</forename><surname>Ciardi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">E</forename><surname>Henze</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">B</forename><surname>Howell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">T</forename><surname>Isaacson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Jenkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">S</forename><surname>Muirhead</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">R</forename><surname>Newton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">A</forename><surname>Petigura</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Barclay</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Borucki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Crepp</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">E</forename><surname>Everett</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">P</forename><surname>Horch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Howard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Kolbl</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Marcy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Mccauliff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">V</forename><surname>Quintana</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">800</biblScope>
+			<biblScope unit="page">99</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vanderburg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<editor>Vanderburg, A. &amp; Johnson, J. A.</editor>
+		<imprint>
+			<biblScope unit="volume">126</biblScope>
+			<biblScope unit="page">948</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

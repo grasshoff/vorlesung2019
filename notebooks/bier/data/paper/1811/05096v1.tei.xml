@@ -1,0 +1,653 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2019-01-22T13:28+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Treating Wavefront Measurement Error in Estimation of Non-Common Path Aberration for Direct Imaging of Exoplanets</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2018-11-13">13 Nov 2018</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Richard</forename><forename type="middle">A</forename><surname>Frazin</surname></persName>
+							<email>*e-mail:rfrazin@umich.edu</email>
+							<affiliation key="aff0">
+								<orgName type="department">Dept. of Climate and Space Sciences and Engineering</orgName>
+								<orgName type="institution">University of Michigan</orgName>
+								<address>
+									<postCode>48109</postCode>
+									<settlement>Ann Arbor</settlement>
+									<region>MI</region>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Treating Wavefront Measurement Error in Estimation of Non-Common Path Aberration for Direct Imaging of Exoplanets</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2018-11-13">13 Nov 2018</date>
+						</imprint>
+					</monogr>
+					<idno type="DOI">10.1364/ao.XX.XXXXXX</idno>
+					<note type="submission">Compiled November 14, 2018</note>
+					<note>Research Article Journal of the Optical Society of America A 1</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>OCIS codes: 0101080 Adaptive Optics, 0107350 Wavefront Sensing</keywords>
+			</textClass>
+			<abstract>
+				<p>One of the major difficulties limiting ground-based direct imaging of exoplanets with adaptive optics is quasi-static speckles in the science camera (SC) that obscure the planetary image. These speckles are caused by aberrations, called non-common path aberrations (NCPA), that are not corrected in the adaptive optics loop, and all attempts to subtract them in post-processing have been problematic. The method of Frazin (2013) (F13) uses simultaneous millisecond telemetry from wavefront sensor (WFS) and the SC to estimate the both the NCPA and the exoplanet image in a self-consistent manner. Rodack et al. (2018) proposed correcting for the NCPA in real-time while on-sky using the F13 estimation method, and called this procedure the &quot;Real-Time Frazin Algorithm.&quot; The original regression model underlying the F13 method did not account for uncertainty in the WFS measurements, and this cannot be done with standard statistical methodology since these uncertainties manifest themselves in the independent variables (i.e., they cannot be treated as another source of noise in the SC data). Further, simulations show that simply using the noisy wavefront measurements without accounting for their uncertainties leads to estimates of the NCPA with unacceptably large bias. Here, the source of this bias is explained in terms of an &quot;errors in variables&quot; statistical model. Then, the method of F13 is generalized to account for WFS measurement error using a new sequential estimation technique that treats the nonlinear coupling between NCPA, WFS measurements and the error covariance of the WFS measurements. This new technique keeps a running estimate of the NCPA, the exoplanet image and their joint covariance matrix. The sequential implementation of the method should make it computationally efficient enough to be suitable for on-sky correction of the NCPA as well as off-line analysis.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">INTRODUCTION</head><p>In direct imaging of exoplanets from a ground-based telescope , the most promising method for achieving the needed contrast combines high-order adaptive optics (AO), sometimes called "extreme" AO (ExAO), with a stellar coronagraph. A stellar coronagraph is a telescopic imaging system designed to block the light from a star on the optical axis while only having minimal effect on the portion of the image surrounding the star <ref type="bibr" target="#b0">[1]</ref>. In ground-based observing, the efficacy of the coronagraph depends on the quality of the wavefront correction provided by the AO system. Typically, the AO system operates at visible wavelengths, while the science camera in the coronagraph captures images in the near-infrared (IR) at wavelengths of 1.2 µm or longer. Ideally, the phase of the wavefront entering the portion of the optical train containing the coronagraph is uniform (i.e., flat), in which case the starlight suppression is extremely efficient with any modern stellar coronagraph design <ref type="bibr" target="#b1">[2,</ref><ref type="bibr" target="#b2">3]</ref>. But, a combination of atmospheric turbulence and aberrations introduced by the • The method assumes the histogram of the stellar speckle intensity can be described by a modified Rician density <ref type="bibr" target="#b13">[14]</ref>. This cannot be strictly true since the "constant phasor" component isn't constant, rather, it follows the instantaneous value of the Strehl ratio. This effect probably will be detrimental when it comes to estimating the planetary intensity.</p><p>• The SD method is only formulated for the point in the SC that is at the center of the planet's image. Thus, it is valid for the pixel at the center of the planet image under the (safe) assumption that the pixel size is less than λ/D. Thus, the method cannot use the planetary photons that arrive at pixels that are a bit further from the center of the planetary image. In contrast, F13 makes use of all of the information.</p><p>The F13 regression is relatively straightforward when we ignore the error in the measurement of the wavefront by the WFS, however simply ignoring this problem produces unacceptably biased estimates of the NCPA and planetary image. Including this error significantly complicates the estimation problem. Resolving this issue in a principled manner that is efficient enough for on-sky correction of the NCPA and determination of the planetary image is the subject of this article.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">PROBLEM STATEMENT AND OPTICAL MODEL</head><p>Let us focus our attention on the problem of utilizing noisy wavefront information for estimations of the NCPA and the exoplanet image. To get started, let the unknown NCPA that we seek to estimate be represented by the vector x a , which contains the N a NCPA coefficients. These could be coefficients of Zernike modes or any other representation of the aberration. Similarly, the vector x p will contain the N p coefficients describing the planetary image. These coefficients could correspond to a pixel-based description of the planetary image or some other representation such as splines (which would require a smaller number of coefficients than pixels). The total number of coefficients that we need to estimate is N = N a + N p . We will assume that x p is constant in time since treating temporal variation in the planetary image on the time-scale of one or several nights of observing should not be necessary in most cases and is an even more difficult problem. The objective of the R18 paper is to estimate the NCPA and send a correction signal to the deformable mirror (DM) in realtime. Since the small-amplitude NCPAs will not be apparent on the ms time-scales, it may take minutes or more for them to be reliable estimated from the data. To this end, we will assume that their coefficients, x a , are constant in time over T time-steps in the main AO loop. T will also be called the "batch size," which will correspond to the inverse frequency of the NCPA correction loop. The strategy we will adopt here is to assume that x a changes from one batch to the next but is constant within a batch. On the other hand, we need to build up our knowledge of x a over many batches, so what we have learned about x a must be passed from batch to batch. The majority of the discussion will treat the single-batch problem and later I will show how the knowledge x a can be transferred in a straightforward fashion.</p><p>For simplicity, we will assume that the SC and WFS have synchronous exposures of roughly 1 ms in duration, indexed by the time-step t. At time t, the parameters that specify the wavefront entering the WFS are contained in the vector w t ; it is the job of the WFS to estimate w t . For example, w t could contain pixel-bypixel phase values, or it could contain coefficients of Zernike modes the specify the phase. There is no reason that w t cannot contain amplitude information as well. Now, the wavefront entering the coronagraph will be different than the one measured by the WFS due to the NCPA, so, the stellar intensity in the SC at time t will be a function of both w t and x a . On the other hand, I will assume that the NCPA are small enough have no effect on to the planetary image, so that the planetary contribution to the intensity in the SC is independent of the x a . F13 requires an optical model of the coronagraph that predicts the intensity in the SC as a function of w t , x a and x p . While this model is linear x p , it is nonlinear in w t and x a <ref type="bibr" target="#b10">[11]</ref>. Then, the vector of instantaneous SC intensities at time t, represented by the M × 1 vector y t , can be expressed in terms of the full nonlinear model of the coronagraph as:</p><formula xml:id="formula_0">y t = A a (w t , x a ) + A p (w t )x p + n t (1)</formula><p>where A a (w t , x a ) is a M × N a matrix of functions that model stellar component of the SC intensity, A p is planetary optical model, which is represented as a M × N p matrix of functions, and n t represents noise in the SC. At first glance, calculating the models A a and A p is likely to be computationally intensive, involving large Fourier transforms and the like. However, the same method that accelerates pyramid wavefront sensor computations in Ref. <ref type="bibr" target="#b14">[15]</ref> can be applied here. In the method of Ref. <ref type="bibr" target="#b14">[15]</ref>, one pre-computes the electric field in the detector plane that results from set of point-sources in the entrance aperture. Once these fields have been calculated, then electric field in the detector plane that results from any other desired input wavefront can be determined with simple matrix-vector multiplication. Thus, after an initial set of expensive calculations have been performed, the remaining calculations are quite easy and rapid.</p><p>In the statistical inference procedures described below, the following definitions will help to economize notation::</p><formula xml:id="formula_1">x ≡   x a x p   , and<label>(2)</label></formula><formula xml:id="formula_2">A(w t , x) ≡ A a (w t , x a ) + A p (w t )x p .<label>(3)</label></formula><p>Thus, the x vector that contains both the planetary image and the NCPA coefficients, and A(w t , x) combines the stellar and planetary optical models.</p><p>Since we expect the NCPA to be small, linearizing A a with respect x a is a good way to start this analysis. Including the full nonlinearity should not be much more difficult using methods similar to those I applied in Ref. <ref type="bibr" target="#b14">[15]</ref> to the pyramid wavefront sensing problem. In F13, the coronagraph model included 2nd order (quadratic) terms in x a , although there is an important algebra error in accounting for these terms that was pointed out in the later published erratum. As an aside, I point out that treating the nonlinearity via a method similar to one employed in Ref. <ref type="bibr" target="#b14">[15]</ref> is probably a better strategy than dealing with the quadratic terms directly as in F13. Linearizing A a with respect x a yields:</p><formula xml:id="formula_3">A a (w t , x a ) ≈ u(w t ) + A a (w t )x a , where<label>(4)</label></formula><formula xml:id="formula_4">u(w t ) ≡ A a (w t , 0) (5)</formula><p>where A a (w t ) is a M × N a Jacobian matrix:</p><formula xml:id="formula_5">A a (w t ) ≡ ∂A a (w t , x a ) ∂x a 0<label>(6)</label></formula><p>In Eq. (4), u(w t ) is the vector of the stellar component SC intensities predicted by the optical model when the wavefront is given by w t in the absence of NCAP (i.e., x a = 0). One way to interpret Eq. <ref type="formula" target="#formula_3">(4)</ref> is that in the absence of the NCPA and planetary light, with a wavefront specified by w t , u(w t ) would be the prediction that our optical model makes for the SC intensity values. Combining Eq. (4) with Eq.</p><p>(1), we arrive at:</p><formula xml:id="formula_6">y t = u(w t ) + A a (w t )x a + A p (w t )x p + n t<label>(7)</label></formula><p>which accounts for small NCPA and the planetary contribution in the SC. Eq. <ref type="formula" target="#formula_6">(7)</ref> can be written more compactly as:</p><formula xml:id="formula_7">y t = u(w t ) + A(w t )x + n t ,<label>(8)</label></formula><p>where</p><formula xml:id="formula_8">A(w t ) ≡ A a (w t ) A p ] .<label>(9)</label></formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">BAYESIAN TREATMENT OF LINEAR SYSTEMS WITH GAUSSIAN NOISE</head><p>In order to illustrate several elementary concepts in Bayesian regression, I begin with the canonical framework for the linear least-squares regression problem. <ref type="bibr" target="#b15">[16]</ref> Ref. <ref type="bibr" target="#b16">[17]</ref> treated maximum-likelihood estimation in wavefront sensing, and Ref. <ref type="bibr" target="#b17">[18]</ref> provides an excellent review of Bayesian estimation in image processing. The equations in this section are in no way specialized to exoplanet imaging, but the various quantities are defined in a way that is consistent with the rest of the discussion. Let me first introduce convenient notation for the multivariate normal distribution over the random vector variable s, which as M components, centered on s 0 , with M × M (positive definite) covariance matrix C:</p><formula xml:id="formula_9">N s; s 0 , C ≡ 1 (2π) M |C| exp − 1 2 (s − s 0 ) T C −1 (s − s 0 ) ,<label>(10)</label></formula><p>in which T indicates transpose, |C| is the determinant of C, and s 0 and C are taken to be constants.</p><p>The linear regression problem can be stated as:</p><formula xml:id="formula_10">y = Ax + n ,<label>(11)</label></formula><p>where A is an M × N matrix of independent variables, and the vectors y, n and x are M × 1, M × 1 and N × 1, respectively. In Eq. (11), A is assumed to known exactly, y represents measured values (which are known once the measurements have been made), n represents noise in the measurements and is thus unknown, but is assumed to be governed by a zero-mean normal probability density with known M × M covariance matrix C, which must be positive definite. In this linear regression problem, we seek to estimate the "state of the system" (or simply "state") x given the values of A, y and C. The measurement model expresses the probability (before the measurements are made) of measuring the values y assuming that the value of the state is x and is represented formally as the conditional probability density P(y|x):</p><formula xml:id="formula_11">P(y|x) = 1 (2π) M |C| exp − 1 2 (y − Ax) T C −1 (y − Ax) = N (y; Ax, C)<label>(12)</label></formula><p>which is also called the likelihood.</p><p>To get the maximum likelihood (ML) estimate of x, we maximize − ln[P(y|x)] from Eq. (12) with respect to x. It is easy to show this results in:</p><formula xml:id="formula_12">ˆ x ML = (A T C −1 A) −1 A T C −1 y ,<label>(13)</label></formula><p>which is the usual formula for weighted least-squares. Now, if A T C −1 A is singular, then it cannot be inverted andˆxandˆ andˆx ML in Eq. <ref type="formula" target="#formula_2">(13)</ref> does not exist. Even if A T C −1 A is non-singular but has one or more small eigenvalues (making it a poorly conditioned matrix), thenˆxthenˆ thenˆx ML will often be unacceptable due to amplification of noise. In these cases it is necessary to apply some form of regularization. Within a Bayesian context, this is done with so-called prior probability density on the state P(x). Formally, the prior P(x) can be viewed as a marginal of the joint density P(x, y), but in most cases of practical interest the form P(x) is simply chosen for the sake of mathematical convenience not because it actually represents the marginalization of the joint density (which is often not available). For example, a common choice of P(x) is:</p><formula xml:id="formula_13">P(x) = N [x; x 0 , (γR) −1 ] ∝ exp − γ 2 (x − x 0 ) T R(x − x 0 ) ,<label>(14)</label></formula><p>where the vector x 0 is introduced as the mean of the prior, and the normalization is of no concern here. In Eq. <ref type="formula" target="#formula_3">(14)</ref>, the N × N matrix R is called the regularization matrix and γ ≥ 0 is the regularization parameter. Common choices of R include 1 (the identity matrix) and D T D, where D is a finite-difference matrix. These choices enforce smoothness on the solution. Note that it is permissible for these purposes for R to be singular, so long as the matrix (A T C −1 A + γR) is not singular. If R is singular note that P(x) is not a proper probability density (since its integral over x would diverge). Since P(y, x) = P(y|x)P(x), we can combine Eqs. <ref type="formula" target="#formula_1">(12)</ref> and <ref type="formula" target="#formula_3">(14)</ref> to get something formally equivalent to the joint density function:</p><formula xml:id="formula_14">P(y, x) = P(y|x)P(x) ∝ exp − 1 2 (y − Ax) T C −1 (y − Ax) − γ 2 (x − x 0 ) T R(x − x 0 ) .<label>(15)</label></formula><p>The marginal density P(y) can be obtained by integrating Eq. (15) over x for the linear Gaussian model. The posterior density is defined as the conditional density P(x|y), i.e., the probability of the state being x given the measurements y. From a Bayesian point-of-view,2 the posterior density carries all of the available knowledge about x once the measurements y have been collected. Bayes' rule relates the joint density to the conditionals: P(x, y) = P(y|x)P(x) = P(x|y)P(y), so that the posterior density can be expressed as P(x|y) = P(y|x)P(x)/P(y). The maximum a-posteriori (MAP) estimate of x is defined as the value of x that maximizes the posterior probabilty:</p><formula xml:id="formula_15">ˆ x MAP = argmax x P(y|x)P(x) P(y) = argmax x [P(y|x)P(x)] ,<label>(16)</label></formula><p>where the second equality follows because the denominator does not depend on x. Therefore, for the linear Gaussian model, the MAP estimate is found by maximizing the probability in Eq. <ref type="formula" target="#formula_14">(15)</ref> with respect to x. It is easy to show that the result is:</p><formula xml:id="formula_16">ˆ x MAP = (A T C −1 A + γR) −1 A T C −1 y + γRx 0 , (17)</formula><p>where it is assumed that the matrix (A T C −1 A + γR T R) is non-singular, which it will be for any reasonable choice of R. From Eq. <ref type="formula" target="#formula_6">(17)</ref>, one can see that as the regularization parameter γ increases, the solution becomes more regularized (smoother). Let us now consider several expectations using the previous developments. For a fixed state x, the expected value of y, otherwise known as the conditional expectation, written as E (y|x) is defined as:</p><formula xml:id="formula_17">E (y|x) ≡ dy yP(y|x) .<label>(18)</label></formula><p>Using Eq. <ref type="formula" target="#formula_1">(12)</ref> in Eq. <ref type="formula" target="#formula_7">(18)</ref>, it is straightforward to show:</p><formula xml:id="formula_18">E (y|x) = Ax .<label>(19)</label></formula><p>The conditional covariance matrix of y is defined similarly to Eq. <ref type="formula" target="#formula_7">(18)</ref>:</p><formula xml:id="formula_19">E {[y − E (y|x)][y − E (y|x)] T |x} ≡ dy [y − E (y|x)][y − E (y|x)] T P(y|x) (20) = C ,<label>(21)</label></formula><p>where we have first used Eq. <ref type="formula" target="#formula_8">(19)</ref> to replace E (y|x) with Ax and then applied Eq. <ref type="formula" target="#formula_1">(12)</ref> when performing the integration. This rather obvious "result" can be seen as the definition of the covariance matrix C. Below, we will require an expression for E (yy T |x), which, using Eq. <ref type="formula" target="#formula_1">(12)</ref>, is:</p><formula xml:id="formula_20">E (yy T |x) = C + Axx T A T .<label>(22)</label></formula><p>Now using Eqs. <ref type="formula" target="#formula_2">(13)</ref> and <ref type="formula" target="#formula_8">(19)</ref>, we have:</p><formula xml:id="formula_21">E ( ˆ x ML |x) = (A T C −1 A) −1 A T C −1 E (y|x) = x (23)</formula><p>Thus, the ML estimate is unbiased (assuming it exists). The conditional covariance matrix of the ML estimator is defined as:</p><formula xml:id="formula_22">covar( ˆ x ML |x) ≡ E ˆ x ML − E ( ˆ x ML |x) ˆ x ML − E ( ˆ x ML |x) T |x = E ˆ x ML − x ˆ x ML − x T |x = E ( ˆ x MLˆxMLˆ MLˆx T ML |x) − xx T = (A T C −1 A) −1 A T C −1 E (yy T |x)[(A T C −1 A) −1 A T C −1 ] T − xx T = (A T C −1 A) −1 ,<label>(24)</label></formula><p>where we have made use of Eq. <ref type="formula" target="#formula_1">(22)</ref> and the fact that the inverse of a symmetric matrix is symmetric [e.g., (C −1 ) T = C −1 ]. Now, if we calculate the mean and covariance of the MAP estimators with respect to the same conditional density P(y|x) in Eq. (12), we find:</p><formula xml:id="formula_23">E ( ˆ x MAP |x) = (A T C −1 A + γR) −1 A T C −1 Ax + γRx 0<label>(25)</label></formula><p>Since the matrices A T C −1 A and γR are both positive semi-definite, the matrix (A T C −1 A + γR) will have larger eigenvalues than</p><formula xml:id="formula_24">A T C −1 A, so that |E ( ˆ x MAP |x)| ≤ |x| if x 0 = 0.</formula><p>Thus, the MAP estimate is biased even when x 0 = 0. Indeed, this bias is a desired property since the solution is pushed towards being smooth in the way specified by the form of the regularization matrix R. Following similar methodology, we can calculate the variances of the ML and MAP estimators. The covariance matrix of the MAP estimator is approximately given by:</p><formula xml:id="formula_25">covar( ˆ x MAP |x) = (A T C −1 A + γR) −1 (A T C −1 A)(A T C −1 A + γR) −1 (26) ≈ (A T C −1 A + γR) −1 ,<label>(27)</label></formula><p>where we have used the approximation (A T C −1 A + γR) −1 (A T C −1 A) ≈ 1, which is valid if γ is small enough (assuming A T C −1 A is non-singular). If (A T C −1 A) is non-singular, then we have|var( ˆ x MAP )| ≤ |var( ˆ x ML )| due to the positive semi-definiteness of the matrices A T C −1 A and γR.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">ERRORS IN VARIABLES FOR THE CORONAGRAPH SYSTEM</head><p>In Sec. 3 we established a practical and widely used framework for least-squares regression of linear equations, which treats errors in the measurements y in a rather straightforward fashion. The problem becomes much more difficult if we must consider imperfect knowledge of the matrix A. This is called the errors in variables problem, and it continues to be an active field in statistics research <ref type="bibr" target="#b18">[19]</ref>. Wikipedia has some introductory material in the article entitled "Errors-in-variables models." Errors in variables arise in our context due to the fact that we have an imperfect measurement of the phase and amplitude of the wavefront that is seen by the wavefront sensor, which is required as an input to the F13 method.</p><p>To simplify our discussion we will work in the small aberration regime, so that the model is linear in x, as shown in Eq. (8). Let us now concatenate T time-steps together to make a version of Eq. <ref type="formula" target="#formula_7">(8)</ref> that describes the concatenated SC data, which will be represented by the vector y ≡ [y T 0 , · · · , y T T−1 ] T (the transpose operations are required so that the result is a long column vector). Applying the same stacking procedure to A(w t ) and n t in Eq. (8), it becomes:</p><formula xml:id="formula_26">y = u(w) + A(w)x + n ,<label>(28)</label></formula><p>where the time-series of wavefronts is given by w ≡ [w T 0 , · · · , w T T−1 ] T , and similarly for A and n. Clearly, if time-series of wavefronts (w) were known exactly, we could subtract u(w) from both sides of Eq. (28) and apply the the standard ML or MAP estimation procedures described above to make an estimate of x. As things stand, Eq. <ref type="formula" target="#formula_1">(28)</ref> is essentially a measurement model, but now it is conditioned on both w and x. I.e., assuming that the noise (n) is zero-mean and can be approximated by a normal density with covariance matrix C y , the measurement model in Eq. (12) takes the form:</p><formula xml:id="formula_27">P(y|w, x) = 1 (2π) MT |C y | exp − 1 2 y − u(w) − A(w)x T C −1 y y − u(w) − A(w)x .<label>(29)</label></formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A. Naive Estimation</head><p>The most simple way to incorporate the measurement of w from the WFS, which will denote asˆwasˆ asˆw, is to replace w in Eq. <ref type="formula" target="#formula_1">(29)</ref> withˆwwithˆ withˆw, which results in an expression called the pseudo-likelihood:</p><formula xml:id="formula_28">P naive (y|x) = 1 (2π) MT |C y | exp − 1 2 y − u( ˆ w) − A( ˆ w)x T C −1 y y − u( ˆ w) − A( ˆ w)x .<label>(30)</label></formula><p>If we find the value of x that maximizes the pseudo-likelihood in Eq. <ref type="formula" target="#formula_2">(30)</ref>, we arrive at the so-called naive estimate of x:</p><formula xml:id="formula_29">ˆ x ML naive = A T ( ˆ w)C −1 y A( ˆ w) −1 A T ( ˆ w)C −1 y y − u( ˆ w) ,<label>(31)</label></formula><p>which has the same mathematical form as the maximum likelihood estimate in Eq. <ref type="bibr" target="#b12">(13)</ref>. Naive estimation can take advantage of a prior P(x) as in Eq. <ref type="formula" target="#formula_14">(15)</ref> to get a naive MAP estimate: <ref type="formula" target="#formula_2">(31)</ref> is nonlinear inˆwinˆ inˆw and is likely to have significant bias, as is explained in a large body of statistical literature. My simulations and those of A. Rodack confirm this for our problem. In order to gain some mathematical understanding of the origin of this bias, let us represent the error in the wavefront measurement by δw defined as:</p><formula xml:id="formula_30">ˆ x MAP naive = A T ( ˆ w)C −1 y A( ˆ w) + γR T R) −1 A T ( ˆ w)C −1 y y − u( ˆ w) ,<label>(32)</label></formula><note type="other">which is in the same form as Eq. (17). While the naive estimate does correctly account for the noise in y, it does not account for the error inˆwinˆ inˆw. Even ifˆwifˆ ifˆw is an unbiased estimate w and A(w) is linear in w, the naive estimator in Eq.</note><formula xml:id="formula_31">δw ≡ ˆ w − w ,<label>(33)</label></formula><p>where the sign is chosen for later convenience. Similarly, the resulting errors in optical model are given by</p><formula xml:id="formula_32">δA(w) ≡ A( ˆ w) − A(w) and<label>(34)</label></formula><formula xml:id="formula_33">δu(w) ≡ u( ˆ w) − u(w) .<label>(35)</label></formula><p>Using Eqs. <ref type="formula" target="#formula_2">(34)</ref> and <ref type="formula" target="#formula_2">(35)</ref>, Eq. (31) can be written as:</p><formula xml:id="formula_34">ˆ x ML naive = [A T (w) + δA T (w)]C −1 y [A(w) + δA(w)] −1 × [A T (w) + δA T (w)]C −1 y y − u(w) − δu(w) .<label>(36)</label></formula><p>Now, the inverse in Eq. <ref type="formula" target="#formula_2">(36)</ref> can be approximated with a series expansion in matrix powers of δA(w). Clearly, the expression that results from such an expansion will have terms that are 1st, 2nd and higher order in δA(w) and of δu(w). Even if expectations δA(w) and δu(w) with respect to the error statistics ofˆwofˆ ofˆw are zero, the expansion terms of 2nd order and higher will have have non-zero expectations, which are a source of bias in the naive estimate. That said, the optical model itself A(w) is nonlinear in w (see F13), so even the 1st order terms can contribute bias.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>B. Simultaneous Estimation</head><p>In this section I introduce a strategy to alleviate the bias issue inherent in naive estimation. The basic idea is to find expression for the joint likelihood of x and w and maximize this joint likelihood with respect to x and w simultaneously. By maximizing the joint likelihood, the estimate of x is informed by the probability density that governs the estimate of w, so the effects of bias are mitigated. The likelihood of the SC data at time is given by the nonlinear measurement model:</p><formula xml:id="formula_35">P(y t |w t , x) = 1 (2π) M |C y,t | exp − 1 2 y t − A(w t , x) T C −1 y,t y t − A(w t , x)<label>(37)</label></formula><p>where the vector y t is the set of SC intensities values for the the current time t and C y,t is the measurement noise covariance for y t . Let me now introduce the WFS measurements at time t in the form of the vector z t in which z t are the (zero-point subtracted) intensities in the WFS camera at time t. Assuming that these measurements are provided by a pyramid wavefront sensor (PyWFS), we can use a model of the PyWFS optical system as shown in Ref. <ref type="bibr" target="#b14">[15]</ref> to create the nonlinear measurement model:</p><formula xml:id="formula_36">P(z t |w t ) = 1 (2π) L |C z,t | exp − 1 2 [z t − W (w t )] T C −1 z,t [z t − W (w t )] ,<label>(38)</label></formula><p>where the vector of WFS measurement z t has L components with covariance matrix C z,t and W (w t ) is the nonlinear optical system model of the WFS. Ref. <ref type="bibr" target="#b14">[15]</ref> shows how ML and MAP estimation can be applied to both linearized and nonlinear PyWFS measurements in order to get estimates of w t . Assuming the densities in Eqs. <ref type="formula" target="#formula_2">(37)</ref> and <ref type="formula" target="#formula_2">(38)</ref> are statistically independent, they can be combined into a joint likelihood at time t as:</p><formula xml:id="formula_37">P(y t , z t |w t , x) = P(z t |w t )P(y t |w t , x)<label>(39)</label></formula><p>Assuming that the densities at the time-steps are statistically independent, the joint likelihood of over all of the time-steps can be written as:</p><formula xml:id="formula_38">P(z, y|w, x) = P(z|w)P(y|w, x) = T−1 ∏ t=0 P(z t |w t )P(y t |w t , x) ,<label>(40)</label></formula><p>in which the concatenated wavefront camera intensities are given by:</p><formula xml:id="formula_39">z = [z T 0 , · · · , z T T−1 ] T .</formula><p>Similarly to Eq. (15), we can now write the full joint density of z, y, w and x by multiplying the joint likelihood in Eq. <ref type="formula" target="#formula_3">(40)</ref> by the prior densities P(x) and P(w) = P(w 0 ) · · · P(w T−1 ): P(z, y, w, x) = P(x) T−1 ∏ t=0 P(w t )P(z t |w t )P(y t |w t , x) .</p><p>To avoid the biases inherent in naive estimation, we maximize the density in Eq. (41) with respect to x and w t simultaneously, to yield the pair of estimates ( ˆ x, ˆ ˆ w), i.e.,</p><formula xml:id="formula_41">( ˆ x, ˆ ˆ w) = argmax (x,w) P(z, y, w, x) ,<label>(42)</label></formula><p>which is a MAP estimate. Note that the double hat notation ( ˆ ˆ w) is used to distinguish the estimate of w in Eq. (42) fromˆwfromˆ fromˆw, which is the set of estimates of the wavefronts w that may be derived from analysis of the WFS data alone [i.e., Eq. (38)], which are denoted asˆw</p><formula xml:id="formula_42">asˆ asˆw = [ ˆ w T 0 , · · · , ˆ w T T−1 ] T .</formula><p>In principle, performing the optimization problem in Eq. (42) solves our problem, since that solution fully accounts for the uncertainty in the WFS and SC measurements. The key feature that distinguishes simultaneous estimation of x and w via Eq. (42) from naive estimation is the nonlinearity in the A(w t , x) term that couples x and w t , which would require an iterative optimization method such as conjugate gradient or a Newton-type scheme. Note that this nonlinearity will be important even in the limit that x → 0, so as long as the likelihood governing w t in Eq. (38) does not constrainˆwconstrainˆ constrainˆw t enough to make the error terms in the naive estimate in Eq. (36) negligible. Numerically, the various nonlinearities in log of the probability in Eq. (41) should not be too problematic since the pair ( ˆ x naive , ˆ w) should be an excellent initial guess for the optimization. The main problem with maximizing the probability in Eq. <ref type="formula" target="#formula_1">(42)</ref> is that with a one millisecond exposure time (and extreme-AO systems run even more quickly) T ∼ 6 × 10 4 for a 1 minute batch of data, so</p><formula xml:id="formula_43">w = [w T 0 , · · · , w T T−1 ]</formula><p>T is a very large vector indeed. In the next section we will see how sequential estimation should make optimization problem in Eq. (42) computationally tractable.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">SEQUENTIAL ESTIMATION</head><p>Sequential estimation is often used to analyze time-series data due to the computational efficiency of various algorithms, of which Kalman filtering is the most widely known <ref type="bibr" target="#b19">[20]</ref>. I will avoid a standard introduction to Kalman filterning here, except to say that it can be viewed as an extension of MAP estimation to timedependent quantities. There is a large literature on Kalman filtering and related methods, so here I will optimize the discussion to support an approach that I think will best serve purpose of maximizing the probability in Eq. (41) for our problem.</p><p>Let us consider the problem of ingesting the SC data at time-step t. By "ingesting" we mean using the SC measurements at made time-step t to update our knowledge of x. In this case, "knowledge" corresponds to the mean and covariance of the probability density that governs our estimate of it. As in the Kalman filter, our knowledge of x after ingesting the information at t − 1 is used as a prior, i.e.:</p><formula xml:id="formula_44">P x,t (x|ˆxx|ˆ x|ˆx t−1 , C ˆ x,t−1 ) = N x; ˆ x t−1 , C ˆ x,t−1 ,<label>(43)</label></formula><p>wherê x t−1 is the value of the MAP estimate of x from the previous time-step and C ˆ x,t−1 is its covariance matrix, both of which are assumed to be known, so that Eq. (43) is a density over one random (vector) variable x. As in Eq. (41), we will continue to assume P(w t ) is prior distribution of w t , so that we can use Eq. <ref type="formula" target="#formula_2">(43)</ref> to write an expression for a conditional joint probability:</p><formula xml:id="formula_45">P(z t , y t , w t , x|ˆxx|ˆ x|ˆx t−1 , C ˆ x,t−1 ) = P(w t )N x; ˆ x t−1 , C ˆ x,t−1 P(z t |w t )P(y t |w t , x)<label>(44)</label></formula><p>where the final two factors are the likelihoods given in Eqs. <ref type="formula" target="#formula_2">(38)</ref> and <ref type="formula" target="#formula_2">(37)</ref>. Once z t and y t have been measured by the WFS and SC, respectively, Eq. (44) is a probability density over two random vectors w t and x. Then, the sequential analog of Eq. <ref type="formula" target="#formula_1">(42)</ref> is:</p><formula xml:id="formula_46">( ˆ x, ˆ ˆ w t ) = argmax (x,w t ) P(z t , y t , w t , x|ˆxx|ˆ x|ˆx t−1 , C ˆ x,t−1 ) ,<label>(45)</label></formula><p>Eq. <ref type="formula" target="#formula_3">(45)</ref> is in a form that allows fusion of the SC and WFS data to make an optimal estimate of w t . Such fusion estimates of w t are potentially useful when the WFS data alone are insufficiently informative to measure the desired aspects of the wavefront, as happens with the "island effect" and phasing of segmented mirrors <ref type="bibr" target="#b20">[21]</ref>. In addition, when used with no modulation, the pyramid wavefront sensor is a highly nonlinear device <ref type="bibr" target="#b14">[15,</ref><ref type="bibr" target="#b21">22]</ref>, and the combined SC and WFS data would likely help to mitigate this problem. The optimization problem in Eq. <ref type="formula" target="#formula_3">(45)</ref> cannot be avoided if the WFS data alone are not sufficient to make a useful estimate of w t , which is denoted asˆwasˆ asˆw t . However, if we havê w t and its error covariance matrix C ˆ w,t available from analysis of the WFS signal, then in Eq. <ref type="formula" target="#formula_3">(44)</ref>, we can make the replacement:</p><formula xml:id="formula_47">P(w t )P(z t |w t ) → N w t ; ˆ w t , C ˆ w,t .<label>(46)</label></formula><formula xml:id="formula_48">N w t ; ˆ w t , C ˆ w,t</formula><p>is not a function of z t , but contains all of our knowledge about w t after processing the measurements z t . Note that in Eqs. <ref type="formula" target="#formula_3">(44)</ref> and <ref type="formula" target="#formula_3">(46)</ref> P(w t ) is considered to be an uninformative prior used for regularization. Then, instead of Eq. (44), we have:</p><formula xml:id="formula_49">P(y t , w t , x|ˆxx|ˆ x|ˆx t−1 , C ˆ x,t−1 ) = N w t ; ˆ w t , C ˆ w,t N x; ˆ x t−1 , C ˆ x,t−1 P(y t |w t , x) .<label>(47)</label></formula><p>Then, that the pair ( ˆ x, ˆ ˆ w t ) is instead estimated via:</p><formula xml:id="formula_50">( ˆ x, ˆ ˆ w t ) = argmax (x,w t ) P(y t , w t , x|ˆxx|ˆ x|ˆx t−1 , C ˆ x,t−1 ) .<label>(48)</label></formula><p>The advantage of Eq. <ref type="formula" target="#formula_3">(48)</ref> over Eq. <ref type="formula" target="#formula_3">(45)</ref> is that N w t ; ˆ w t , C ˆ w,t will have a much simpler functional form than does P(z t |w t ), leading to an easier (and faster) optimization problem. The optimization problems in either Eq. <ref type="formula" target="#formula_3">(45)</ref> and Eq. (48) require vastly less computation than does Eq. (42) since only a single time-step is being processed instead of the full batch of T time-steps. Even so, the optimization still must confront the A(w t , x) nonlinearity that couples w t and x in Eq. <ref type="formula" target="#formula_2">(37)</ref>, even if the other nonlinearities are not significant. Note that due to the nonlinearities, there are possibilities of arriving at a local minimum that is not the global minimum. Any nonlinear optimization algorithm will be iterative and require a starting guess. A good initial guess for the iterative optimization is the pair (x g , ˆ w t ), wherê w t is some estimate of w t made from WFS data alone. A guess value x g , can be found by using the linearization of the optical model in Eq. <ref type="bibr" target="#b7">(8)</ref> in the measurement model P(y t | ˆ w t , x) from Eq. <ref type="formula" target="#formula_2">(37)</ref>, and maximizing N x; ˆ x t−1 , C ˆ x,t−1 P(y t | ˆ w t , x) over x analytically:</p><formula xml:id="formula_51">ˆ x g = argmax x N x; ˆ x t−1 , C ˆ x,t−1 P(y t | ˆ w t , x) ≈ A( ˆ w t ) T C −1 y,t A( ˆ w t ) + C −1 ˆ x,t−1 −1 × A( ˆ w t ) T C −1 y,t y t − u( ˆ w t ) + C −1 ˆ x,t−1 ˆ x t−1 ,<label>(49)</label></formula><p>which is essentially a naive estimate in the same form as Eq. <ref type="formula" target="#formula_6">(17)</ref>, and where the approximation is due to the linearization from Eq. (8).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A. Finding the Covariance of the Estimate</head><p>So far, we have seen how to efficiently ingest the data at time t, assuming that we have accessˆxaccessˆ accessˆx t−1 and C ˆ x,t−1 . Whilê x t−1 comes directly from either Eq. <ref type="formula" target="#formula_3">(45)</ref> or Eq. (48) at the previous time-step, calculating C ˆ x,t is more challenging, and it requires calculation of an approximate error-covariance matrix of the joint estimate ( ˆ x t , ˆ ˆ w t ). For this, we first need to derive the Fisher information matrix, <ref type="bibr" target="#b15">[16,</ref><ref type="bibr" target="#b16">17]</ref>, the inverse of which establishes a lower bound the variance of any unbiased estimator. I expect that the estimation procedure, i.e. Eq. <ref type="formula" target="#formula_3">(45)</ref> or (48), will be nearly unbiased, but that should be verified with detailed simulation.</p><p>Before calculating the Fisher infomation, we must first decide which probability density model governs the pair (x, w t ), which will be either Eq. <ref type="formula" target="#formula_3">(45)</ref> or Eq. (48). Let f (x, w t ) be the one we choose, i.e.,</p><formula xml:id="formula_52">f (x, w t ) ≡ P(z t , y t , w t , x|ˆxx|ˆ x|ˆx t−1 , C ˆ x,t−1 ) − or − (50) ≡ P(y t , w t , x|ˆxx|ˆ x|ˆx t−1 , C ˆ x,t−1 ) .</formula><p>This compact notation emphasizes that the density f is over the random vector variables x and w t , while the other quantities present in P(z t , y t , w t , x|ˆxx|ˆ x|ˆx t−1 , C ˆ x,t−1 ) or P(y t , w t , x|ˆxx|ˆ x|ˆx t−1 , C ˆ x,t−1 ), given in Eq. <ref type="formula" target="#formula_3">(44)</ref> or <ref type="formula" target="#formula_3">(47)</ref>, are constants.</p><p>In the notation common to many discussions of multivariate estimation theory, the vector to be estimated is represented by the symbol θ. Since we are estimating the two vectors, x and w t , the corresponding θ is given by the concatenation θ = [x T , w T t ] T . and we define f (θ) ≡ f (x, w t ) The Fisher information is then defined by the 2nd derivative matrix:</p><formula xml:id="formula_53">F = −E ∂ 2 ∂θ∂θ ln f (θ) (51) = −E   ∂ 2 ∂x∂x ln f (x, w t ) ∂ 2 ∂x∂w t ln f (x, w t ) ∂ 2 ∂x∂w t ln f (x, w t ) T ∂ 2 ∂w t ∂w t ln f (x, w t )   ,<label>(52)</label></formula><p>which is composed of the smaller Fisher information matrices associated with x, w t as well as the one that mixes x and w t . The expectations are with respect the density f , i.e., formally, the expectation involves integration over the random variables x and w t . While evaluating the expectation of some function of some probability density with respect to that same probability density is counter-intuitive, that is what is required.</p><p>It is instructive to demonstrate computation of the Fisher information. First, we must go to Eq. (50) in order to choose the probability density model. For simplicity, let us take the second option, i.e., f (x, w t ) ≡ P(y t , w t , x|ˆxx|ˆ x|ˆx t−1 , C ˆ x,t−1 ). Using Eq. (47), we find:</p><formula xml:id="formula_54">−2 ln f (x, w t ) = c + [y t − A(w t , x)] T C y,t [y t − A(w t , x)] + ( ˆ x t−1 − x) T C −1 ˆ x,t−1 ( ˆ x t−1 − x) + ( ˆ w t − w t ) T C −1 ˆ w,t ( ˆ w t − w t ) (53)</formula><p>where c is a normalization constant that can be determined from Eq. (47). To proceed further, it is helpful to linearize the function A(w t , x) about the new estimate pair ( ˆ x t , ˆ ˆ w t ) in both x and w t , so that:</p><formula xml:id="formula_55">A(w t , x) ≈ A( ˆ ˆ w t , ˆ x t ) + U(x − ˆ x t ) + V (w t − ˆ ˆ w t )<label>(54)</label></formula><p>where U and V are the Jacobian matrices:</p><formula xml:id="formula_56">U ≡ ∂A(w t , x) ∂xˆˆ ∂xˆ∂xˆˆ w, ˆ x t (55) V ≡ ∂A(w t , x) ∂w t ˆ ˆ w, ˆ x t<label>(56)</label></formula><p>Note that the linearization in Eq. (54) differs from the one in Eq. (8) since we are linearizing about a different point and we are linearizing with respect to both w t and x. Also, the matrices U and V both have M rows (the number of pixels in the SC), but they will probably differ in their number of columns since the vectors w t and x will likely have different lengths. The upper left block of the matrix in Eq. (52) is the (x, x) 2nd derivative matrix. Using the linearization in Eq. (54), it is easy to show that the elements of this block are given by:</p><formula xml:id="formula_57">E −∂ 2 ∂x∂x ln f (x, w t ) ≈ E C −1 ˆ x,t−1 + U T C −1 y,t U , = C −1 ˆ x,t−1 + U T C −1 y,t U , (57)</formula><p>where the approximation is due to the linearization and the final equality follows since the expectation of a constant matrix is itself. The other two blocks in the Fisher information matrix in Eq. (52) can be approximated in a similar manner. With the Fisher information matrix approximated, then we can bound the error covariance matrix of the pair ( ˆ x t , ˆ ˆ w t ) with the Cramer-Rao inequality <ref type="bibr" target="#b15">[16]</ref>:</p><formula xml:id="formula_58">covarˆx covarˆ covarˆx t , ˆ ˆ w t ≥ F −1 . (58)</formula><p>Since this procedure only provides a lower bound on the error covariance of the estimate, numerical simulations will be needed to help determine whether or not this bound is an adequate approximation. If the inverse of the Fisher information matrix is found to be a problematic underestimate of the estimate error covariance, then we will need to some inflation strategy.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>B. Batch Initialization</head><p>So far, we have seen how to proceed from time-step t to t + 1 within a batch, but what about starting a new batch? Since the batch starts with t = 0, we need to initialize the estimation sequence withˆxwithˆ withˆx −1 and the matrix C ˆ x,−1 . The way we initialize these quantities will allow us to carry or discard information from one batch to the next. Recalling that x = [x T a , x T p ] T , the error covariance matrix C ˆ x, t can be partitioned into four blocks as:</p><formula xml:id="formula_59">C ˆ x, t =   C a,a,t C a,p,t C T a,p,t C p,p,t   ,<label>(59)</label></formula><p>which is valid for any time-step t (starting with −1 and ending with T − 1), and where C a,a,t and C p,p,t correspond to the error covariance matrices ofˆxofˆ ofˆx a,t andˆxandˆ andˆx p,t , respectively, and C p,a,t is the cross-covariance matrix. The partition in Eq. (59) provides a guide for the initialization procedure. At the very beginning of observing (i.e., starting the 0th batch) nothing is known about the planetary image or the NCPA, so we can set x −1 = 0 and C ˆ x, −1 to a diagonal matrix with the largest values that numerical stability will allow. The initialization between batches requires more careful consideration so as not to discard what has learned about x p and x a from previous batches. Our knowledge of the planetary image itself is preserved if we simply make the transfer ˆ x p,T−1 → ˆ x p,−1 , and (60)</p><formula xml:id="formula_60">C p,p,T−1 → C p,p,−1 (61)</formula><p>Now, the entire point of the RTFA is to correct for the NCPA after they have been estimated from a batch.</p><p>LetˆxLetˆ Letˆx a,T−1 be the estimate of the NCPA portion ofˆxofˆ ofˆx T−1 from the previous batch, and letˆδxletˆ letˆδx a be the estimated value of the correction applied (since it will not be known exactly) in the loop running the RTFA. Then, ˆ x a,−1 should be initialized to the current best estimate, i.e.,:</p><formula xml:id="formula_61">ˆ x a,T−1 − ˆ δx a → ˆ x a,−1 . (62)</formula><p>The matrices C a,a,t and C a,p,−1 need to be initialized as well. I suggest the initializations:</p><p>C a,a,T−1 + Q a,a → C a,a,−1 , and (63)</p><formula xml:id="formula_62">C a,p,T−1 + Q a,p → C a,p,−1 , (64)</formula><p>where Q a,a Q a,p are an inflation matrices chosen to partially erase the memory of the NCPA estimate from the previous batch. In this way, the estimate of the NCPA can evolve from batch-to-batch with only the desired amount of memory. The simplest choice for Q a,a is a diagonal matrix, but any positive definite matrix is mathematically admissible. If Q a,a is too small, then it will be hard for the estimate of the NCPA to follow the temporal evolution of the true NCPA. On the other hand, if it is too large, then it will be hard to find smaller amplitude NCPA that can only be inferred from multi-batch time-series. The simplest choice for Q a,p is 0, since it is unclear how best to inflate the cross-covariance matrix. Mathematically, Q a,p must be chosen so that the full covariance matrix C ˆ x,−1 is positive definite. Since the sum of two positive definite matrices is another positive definite matrix, C ˆ x,−1 guaranteed to be positive definite if the matrix</p><formula xml:id="formula_63">Q =   Q a,a Q a,p Q T a,p 0   ,<label>(65)</label></formula><p>is positive semi-definite (it cannot be positive definite due to the block of zeros on the diagonal). In summary, the RTFA implemented in batches via sequential estimation, for time-steps indexed by t with t ∈ [0, . . . , T − 1] is: 2. Given y t , ˆ 5. If t &lt; T − 1: Set t → t + 1. Go to Step 2 to process the next time-step.</p><formula xml:id="formula_64">x t−1 , C ˆ x t−1 , ˆ w t , C ˆ w,t , set</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">MODEL EVALUATION</head><p>At the foundation of the method proposed in this article is the optical model of the coronagraph in Eq. (1). There are three aspects to the model that are most critical:</p><p>• the base corongraph model assuming no NCPA, i.e., A a (w t , 0) = u(w t )</p><p>• the parameterization of the NCPA in terms of the vector x a , i.e., "what do these coefficients represent?"</p><p>• how the model treats the NCPA, i.e., A a (w t , x a ) − A a (w t , 0) .</p><p>In contrast, parameterizing the planetary image in terms of the coefficients x p and calculating the planetary image in the SC via the perhaps simplified optical model A p (w t )x a should be relatively straightforward and will not be discussed further. It will undoubtedly be necessary to evaluate the how well these choices represent the optical system. To that end, oncê x k (where k ∈ [0, . . . , T − 1]) andˆˆandˆandˆˆ w t have been estimated, the predicted SC image at time t is given by:</p><formula xml:id="formula_65">y ′ t = A ˆ ˆ w t , ˆ x k ,<label>(66)</label></formula><p>the most useful value of k is probably the final one, i.e., k = T − 1.</p><p>One common way to evaluate model quality is with a goodness-of-fit measured known as the reduced χ 2 metric. Generally speaking, if χ 2 r &gt;&gt; 1 (where χ 2 r is the reduced χ 2 ), the model is considered to be poor. Perhaps the model is not working working due to too few free parameters, but it could be the result of a more fundamental problem. The over-fitting regime corresponds to χ 2 r &lt;&lt; 1, and the model is thought too many free parameters (or the covariance matrix over-estimated). If we are working with the joint density in Eq. (47), the reduced χ 2 will be given by:</p><formula xml:id="formula_66">χ 2 r = 1 T(M + 2N w ) + N T−1 ∑ t=0 (y ′ t − y t ) T C −1 y,t (y ′ t − y t ) + ( ˆ ˆ w t − ˆ w t ) T C −1 ˆ w,t ( ˆ ˆ w t − ˆ w t ) ,<label>(67)</label></formula><p>where N w is the number of components in the w t vector. If we work with Eq. <ref type="formula" target="#formula_3">(44)</ref>  r is the number of degrees of freedom, which is total number of measurements plus the number free parameters. In this case, there are T time-steps and, at each time-step, there are M SC measurements plus N w WFS measurements. In addition, there are N free parameters inˆxinˆ inˆx and N w free parameters inˆˆinˆinˆˆ w t at each time-step. In Eq. (67), one can see that asˆˆasˆasˆˆ w t is tuned to reduce the discrepancy between y ′ t and y t , the value of the first term decreases, but at the expense of increasing the discrepancy betweenˆˆbetweenˆbetweenˆˆ w t andˆwandˆ andˆw t and the value of the second term.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A. Model Improvement</head><p>Assuming that the base coronagraph model A a (w t , 0) is adequate, the main avenue for improving the model is the treatment of the NCPA. Here, we will assume that the optical model operates on the electric field in a pre-coronagraph pupil plane, and then propagates that field through coronagraph and onto the SC, and then calculates the SC intensity from the field at the SC. F13 treats the NCPA as a (perhaps complex-valued) phase screen in the pre-coronagraph pupil plane, but this is an assumption that requires justification. While planar defects on a surface in or near a pupil plane in the optical system can be treated this way, other types of defects cannot. For example, if the light is brought to a focus at a glass surface, surface errors on the glass will essentially be operating on the Fourier transform of the beam. When the beam is later re-collimated these focal-plane defects will act a convolution with some point-spread function (PSF) on the field in the pupil plane. The parameters specifying this type of NCPA would then need to model this effect. Similarly, defects in a plane that is intermediate to a pupil plane and focal plane will have a pupil plane manifestation in the form of a PSF that depends on position in the pupil plane.</p><p>Given the incentive to have a model that is as simple as possible that describes the data, it is useful to have values in the vector x a represent the parameters in a hierarchy of models in order of increasing complexity, so that the complexity and the number of parameters in x a can be increased as needed. I suggest the following hierarchy of NCPA models, all of which operate in the pupil-plane field before applying the coronagraph model:</p><p>• real-valued pupil-plane phase screen</p><p>• complex-valued pupil-plane phase screeen (to model amplitude effects)</p><p>• convolution kernel corresponding to a real-valued phase screen in a focal plane</p><p>• convolution kernel correspond to a complex-valued phase screen in a focal plane (again, to model amplitude effects)</p><p>• Fresnel propagation based model to treat a real-valued phase screen in an intermediate plane</p><p>• Fresnel propagation based model to treat a complex-valued phase screen in an intermediate plane</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.">CONCLUSIONS</head><p>In principle, the real-time Frazin algorithm is the only method that allows estimating the non-common path aberrations and correcting them on-sky while maintaining a running estimate of the exoplanet image. In addition, it is one of only two methods for treating quasi-static speckles that makes use of the telemetry from the WFS. A model-based approach to wavefront sensing, such as proposed in Ref. <ref type="bibr" target="#b14">[15]</ref>, paired with a calibrated computational model of the WFS, is particularly suited to the needs of the F13 algorithm. The principle limitation in the original F13 formulation was that it did not account for error in the measurements made by the WFS, and later simulations showed that this is not acceptable. This article provides an analysis of the issue in terms of an errors-in-variables regression model, and provides a computationally efficient solution suitable for real-time computation that is grounded in statistical principles. One problem that users of the F13 method will confront is how best to represent the NCPA. This article shows how to apply a χ 2 metric to evaluate the model quality in the context of the new sequential processing method presented here. In addition, a hierarchy of NCPA models in order of increasing complexity was proposed in order to help users find the most appropriate model.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>1 .</head><label>1</label><figDesc>If t=0: Initialize the vectorˆxvectorˆ vectorˆx −1 and the covariance matrix C ˆ x,−1 as explained in Sec. 5.B.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head></head><label></label><figDesc>up the non-linear optimization corresponding to the joint proba- bility density function in Eq. (44) or Eq. (47). 3. Maximize the probability in Eq. (44) or Eq. (47) to yield the pair ( ˆ x t , ˆ ˆ w t ) and calculate C ˆ x t−1 via the Fisher information matrix. 4. If t = T − 1: Calculate and implement the NCPA correction, ˆ δx a . Start a new batch by re-initializing: t → 0. Go to step 1.</figDesc></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>ACKNOWLEDGMENTS</head><p>Richard Frazin would like to thank: Len Stefanski for helping me understand errors in variables problems, Johann Gagnon Bartsch for checking the statistical content of this paper, and Alex Rodack and Laurent Jolissaint for commenting on the manuscript. This work has been supported by NSF Award #1600138 to the University of Michigan.</p></div>
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">Ground-based Coronagraphy with High-order Adaptive Optics</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Sivaramakrishnan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">D</forename><surname>Koresko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">B</forename><surname>Makidon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Berkefeld</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Kuchner</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ552</title>
+		<imprint>
+			<biblScope unit="page" from="397" to="408" />
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">High Performance Lyot and PIAA Coronagraphy for Arbitrarily Shaped Telescope Apertures</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Guyon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">M</forename><surname>Hinz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Cady</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Belikov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Martinache</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ780</title>
+		<imprint>
+			<biblScope unit="page">171</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">Numerical modeling of the proposed WFIRST-AFTA coronagraphs and their predicted performances</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Krist</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Nemati</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Mennesson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Astronomical Telescopes, Instruments, and Systems</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page">11003</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<monogr>
+		<title level="m" type="main">The Four-Quadrant Phase Mask Coronagraph. IV. First Light at the Very Large Telescope</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Boccaletti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Riaud</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Baudoz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Baudrand</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Rouan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Gratadour</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Lacombe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A.-M</forename><surname>Lagrange</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2004" />
+			<biblScope unit="volume">116</biblScope>
+			<biblScope unit="page" from="1061" to="1071" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Speckle temporal stability in XAO coronagraphic images. II. Refine model for quasi-static speckle temporal evolution for VLT/SPHERE</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Martinez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Kasper</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Costille</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">F</forename><surname>Sauvage</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Dohlen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Puget</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Beuzit</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A554</title>
+		<imprint>
+			<biblScope unit="page">41</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Isolated nanoinjection photo detectors for highspeed and high-sensitivity single-photon detection</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Fathipour</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><forename type="middle">G</forename><surname>Memis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Jang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Khalid</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">L</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Hassaninia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Gelfand</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Mohseni</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">of Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</title>
+		<imprint>
+			<date type="published" when="2013" />
+			<biblScope unit="volume">8868</biblScope>
+			<biblScope unit="page">3</biblScope>
+		</imprint>
+	</monogr>
+	<note>of Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</note>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Evaluation and optimization of NIR HgCdTe avalanche photodiode arrays for adaptive optics and interferometry</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Finger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Baker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Alvarez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Ives</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Mehrgan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Meyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Stegmeier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Thorne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">J</forename><surname>Weller</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">of Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</title>
+		<imprint>
+			<date type="published" when="2012" />
+			<biblScope unit="volume">8453</biblScope>
+		</imprint>
+	</monogr>
+	<note>of Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</note>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">SAPHIRA detector for infrared wavefront sensing</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Finger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Baker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Alvarez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Ives</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Mehrgan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Meyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Stegmeier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">J</forename><surname>Weller</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">of Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</title>
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="volume">9148</biblScope>
+			<biblScope unit="page">17</biblScope>
+		</imprint>
+	</monogr>
+	<note>of Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</note>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">in Tucson Arizona</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Mazin</surname></persName>
+		</author>
+		<ptr target="http://conference.ipac.caltech.edu/tmtsf2014" />
+	</analytic>
+	<monogr>
+		<title level="m">TMT in the Astronomical Landscape of the 2020s, Thirty Meter Telescope Science Forum</title>
+		<imprint>
+			<date type="published" when="2014-07" />
+			<biblScope unit="page" from="16" to="19" />
+		</imprint>
+	</monogr>
+	<note>MKIDs for TMT</note>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Statistics of intensity in adaptive-optics images and their usefulness for detection and photometry of exoplanets</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Gladysz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Yaitskova</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">C</forename><surname>Christou</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the Optical Society of America A</title>
+		<imprint>
+			<biblScope unit="volume">27</biblScope>
+			<biblScope unit="page" from="260000" to="75" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">Utilization of the Wavefront Sensor and Short-exposure Images for Simultaneous Estimation of Quasi-static Aberration and Exoplanet Intensity</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Frazin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ767</title>
+		<imprint>
+			<biblScope unit="page">21</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">Focal Plane Wavefront Sensing Using Residual Adaptive Optics Speckles</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Codona</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Kenworthy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ767</title>
+		<imprint>
+			<biblScope unit="page">100</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<monogr>
+		<title level="m" type="main">Real-time estimation and correction of quasi-static aberrations in ground-based high contrast imaging systems with high frame-rates</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">T</forename><surname>Rodack</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Males</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Guyon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">A</forename><surname>Mazin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">P</forename><surname>Fitzgerald</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Mawet</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1807.04341</idno>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Goodman</surname></persName>
+		</author>
+		<title level="m">Statistical Optics</title>
+		<imprint>
+			<publisher>John Wiley and Sons, Inc</publisher>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+	<note>2nd Edition</note>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Efficient, nonlinear phase estimation with the nonmodulated pyramid wavefront sensor</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Frazin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the Optical Society of America A</title>
+		<imprint>
+			<biblScope unit="volume">35</biblScope>
+			<biblScope unit="page">594</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">K</forename><surname>Moon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">C</forename><surname>Stirling</surname></persName>
+		</author>
+		<title level="m">Mathematical Methods and Algorithms for Signal Processing</title>
+		<imprint>
+			<publisher>Prentice Hall</publisher>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Maximum-likelihood methods in wavefront sensing: stochastic models and likelihood functions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">H</forename><surname>Barrett</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Dainty</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lara</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Opt. Soc. Am. A</title>
+		<imprint>
+			<biblScope unit="volume">24</biblScope>
+			<biblScope unit="page" from="391" to="414" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Image reconstruction and restoration: overview of common estimation structures and problems</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Demoment</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">IEEE Transactions on Acoustics, Speech, and Signal Processing</title>
+		<imprint>
+			<biblScope unit="volume">37</biblScope>
+			<biblScope unit="page" from="2024" to="2036" />
+			<date type="published" when="1989" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">A</forename><surname>Stefanski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Ruppert</surname></persName>
+		</author>
+		<title level="m">Measurement Error in Nonliner Models</title>
+		<imprint>
+			<publisher>Chapman and Hall</publisher>
+			<date type="published" when="1995" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">D</forename><surname>Anderson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Moore</surname></persName>
+		</author>
+		<title level="m">Optimal Filtering</title>
+		<imprint>
+			<publisher>Dover Publications, Inc</publisher>
+			<date type="published" when="1979" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<monogr>
+		<title level="m" type="main">Sensing and control of segmented mirrors with a pyramid wavefront sensor in the presence of spiders</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Schwartz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-F</forename><surname>Sauvage</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Correia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Petit</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Quiros-Pacheco</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Fusco</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Dohlen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">El</forename><surname>Hadi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Thatte</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Clarke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Paufique</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Vernet</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+	<note>ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Wavefront reconstruction for ELT-sized telescopes with pyramid wavefront sensors</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Hutterer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Shatokhina</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Obereder</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ramlau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series,&quot; , vol. 10703 of Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</title>
+		<imprint>
+			<date type="published" when="2018" />
+			<biblScope unit="page">1070344</biblScope>
+		</imprint>
+	</monogr>
+	<note>10703 of Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

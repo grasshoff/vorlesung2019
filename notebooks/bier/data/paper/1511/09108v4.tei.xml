@@ -1,0 +1,1513 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-04T16:24+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">WAYNE -A SIMULATOR FOR HST WFC3 IR GRISM SPECTROSCOPY</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2017-08-23">August 23, 2017 August 23, 2017</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Varley</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Physics &amp; Astronomy</orgName>
+								<orgName type="institution">University College London</orgName>
+								<address>
+									<addrLine>Gower Street</addrLine>
+									<postCode>WC1E6BT</postCode>
+									<settlement>London</settlement>
+									<country key="GB">United Kingdom</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Tsiaras</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Physics &amp; Astronomy</orgName>
+								<orgName type="institution">University College London</orgName>
+								<address>
+									<addrLine>Gower Street</addrLine>
+									<postCode>WC1E6BT</postCode>
+									<settlement>London</settlement>
+									<country key="GB">United Kingdom</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Karpouzas</surname></persName>
+							<affiliation key="aff1">
+								<orgName type="department" key="dep1">Department of Physics</orgName>
+								<orgName type="department" key="dep2">Section of Astrophysics, Astronomy and Mechanics</orgName>
+								<orgName type="institution">Aristotle University of Thessaloniki</orgName>
+								<address>
+									<postCode>541 24</postCode>
+									<settlement>Thessaloniki</settlement>
+									<country key="GR">Greece</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">WAYNE -A SIMULATOR FOR HST WFC3 IR GRISM SPECTROSCOPY</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2017-08-23">August 23, 2017 August 23, 2017</date>
+						</imprint>
+					</monogr>
+					<note>Draft version Preprint typeset using L A T E X style emulateapj v. 01/23/15 Draft version</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>methods: data analysis -planets and satellites: atmospheres -planets and satellites: individual (HD 209458 b) -techniques: spectroscopic</keywords>
+			</textClass>
+			<abstract>
+				<p>Wayne is an algorithm that simulates Hubble Space Telescope (HST) Wide Field Camera 3 (WFC3) grism spectroscopic frames including sources of noise and systematics. It can simulate both staring and spatial scan modes, and observations such as the transit and the eclipse of an exoplanet. Unlike many other instrument simulators, the focus of Wayne is on creating frames with realistic systematics in order to test the effectiveness of different data analysis methods in a variety of different scenarios. This approach is critical for method validation and optimising observing strategies. In this paper we describe the implementation of Wayne for WFC3 in the near-infrared channel with the G102 and G141 grisms. We compare the simulations to real data, obtained for the exoplanet HD 209458 b to verify the accuracy of the simulation. The software is now available as open source at https: //github.com/ucl-exoplanets/wayne.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">INTRODUCTION</head><p>The Hubble Space Telescope (HST) has been invaluable for exoplanetary science. The STIS spectrograph was first used for time-series photometry of HD 209458 b ( <ref type="bibr" target="#b5">Brown et al. 2001</ref>) and then for the first measurement of an exoplanet atmosphere with transmission spectroscopy ( <ref type="bibr" target="#b6">Charbonneau et al. 2002)</ref>. It has enabled several atomic and ionic detections (e.g. <ref type="bibr" target="#b46">Vidal-Madjar et al. 2003</ref><ref type="bibr" target="#b47">, 2004</ref>) as well as scattering properties (e.g. <ref type="bibr" target="#b37">Sing et al. 2011</ref><ref type="bibr" target="#b38">Sing et al. , 2015</ref>. The ACS and COS instruments have both made measurements of exoplanet atmospheres (e.g <ref type="bibr" target="#b35">Pont et al. 2008;</ref><ref type="bibr" target="#b29">Linsky et al. 2010)</ref>. NICMOS was used to search for molecules in an exoplanet atmosphere (e.g. <ref type="bibr" target="#b42">Swain et al. 2008;</ref><ref type="bibr" target="#b43">Tinetti et al. 2010;</ref><ref type="bibr" target="#b8">Crouzet et al. 2012</ref>) and has directly imaged exoplanets (e.g. <ref type="bibr" target="#b39">Song et al. 2006</ref>). In 2009 the Wide Field Camera 3 (WFC3) instrument was installed and has provided many significant measurements in the near-infrared (IR) channel (e.g. <ref type="bibr" target="#b3">Berta et al. 2012;</ref><ref type="bibr" target="#b41">Swain et al. 2013;</ref><ref type="bibr" target="#b23">Kreidberg et al. 2014b</ref>). Whilst WFC3 has been successfully used, as with any instrument, it presents some unique challenges for data analysis. This is particularly true when used in spatial scan mode for exoplanet transit and eclipse spectroscopy, which is the focus of our paper.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.1.">Staring Mode</head><p>Exoplanet transit spectra were initially observed with HST/WFC3 using the traditional "staring" mode, where the telescope pointing is fixed on the target star (e.g <ref type="bibr" target="#b3">Berta et al. 2012;</ref><ref type="bibr" target="#b41">Swain et al. 2013;</ref><ref type="bibr" target="#b50">Wilkins et al. 2014</ref>). The main systematic found in these data is the "ramp" or "hook" effect which causes a sharp rise in flux before quickly plateauing after each HST buffer dump. The other important effect is a gradual reduction in the level of flux throughout the observation. The analysis by <ref type="bibr" target="#b3">Berta et al. (2012)</ref> found the amplitude of the "hook" r.varley@ucl.ac.uk to be around 0.4% and the visit long slope to be around 0.05%. These are both much larger than the 10 −4 variations expected in the planetary spectrum. In addition, the initial stage of the analysis includes reductions such as flat-fielding and a non-linearity correction which, despite not being expected to cause issues in the analysis, their end-to-end effect and coupling with other noise sources and systematics has not been fully investigated yet.</p><p>Data taken by HST is also non continuous as HST is in a low earth orbit. A typical transit event observed by HST lasts around one to four hours, meaning an observation must span multiple orbits, as a single target is only continuously visible for ∼ 45 minutes. This time includes overheads such as acquiring and re-acquiring the guide star (6 and 5 minutes respectively, <ref type="bibr">Dressel 2016, pg. 209)</ref> and buffer dumps. The buffer is a temporary storage space for images on HST which must be transferred (dumped) to the solid state recorder when full. A buffer dump is required after the instrument has taken a certain number of exposures and takes ∼ 6 minutes (Dressel 2016, pg. 212) during which no new exposures are taken. Buffer dumps are generally required when taking many short exposures (usually one or two dumps per orbit for staring data), and lower the overall efficiency of an observation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.2.">Spatial Scan Mode</head><p>In 2011 (HST Cycle 19) the spatial scan mode was introduced. This mode slews the telescope during an exposure under the control of either the fine-guidance sensors (FGS, for scans speeds below 5 s −1 ) or gyroscope only control (for scan speeds up to 7 .84 s −1 ). The advantages of this mode over staring include the ability to observe targets that would normally saturate the detector and to achieve higher signal-to-noise ratios (S/N), due to reduced overheads (as each individual exposure can last much longer before saturation). These overheads include the reduced number of detector reads and the reduction, or elimination, of mid-orbit buffer dumps. Many observations have been performed in spatial scan mode (e.g <ref type="bibr" target="#b10">Deming et al. 2013;</ref><ref type="bibr">Knutson et al. 2014a,b;</ref><ref type="bibr" target="#b23">Kreidberg et al. 2014b</ref><ref type="bibr" target="#b24">Kreidberg et al. ,a, 2015</ref><ref type="bibr" target="#b32">McCullough et al. 2014;</ref><ref type="bibr" target="#b9">Crouzet et al. 2014;</ref><ref type="bibr" target="#b15">Fraine et al. 2014;</ref><ref type="bibr" target="#b40">Stevenson et al. 2014</ref>) however there are some caveats. In addition to the hook present in staring mode, the use of the FGS to control the scan introduces some jitter, causing a periodic "flicker" in the brightness along the scan direction due to FGS feedback <ref type="bibr" target="#b31">(McCullough &amp; MacKenty 2012</ref>). Finally, in spatial scan mode there are dispersion variations along the scanning direction ( <ref type="bibr" target="#b44">Tsiaras et al. 2016a</ref>), shifts in the x and y position of the spectrum in each exposure <ref type="bibr">(Dem- ing et al. 2013</ref>) and changes in the effective exposure time when scanning in different directions (the upstream / downstream effect, see <ref type="bibr" target="#b31">McCullough &amp; MacKenty 2012;</ref><ref type="bibr" target="#b21">Knutson et al. 2014a;</ref><ref type="bibr" target="#b45">Tsiaras et al. 2016b</ref>).</p><p>Since instrumental systematics are of the order of the planetary signal, and as observations typically consist of a single transit, it is hard to verify beyond any reasonable doubt whether the result obtained is in fact the independent planetary signal, not coupled with systematics or residuals from the analysis. This has led to approaches using machine learning algorithms (e.g. <ref type="bibr" target="#b48">Waldmann et al. 2013;</ref><ref type="bibr" target="#b33">Morello et al. 2014</ref>) which attempt to extract the signal 'unsupervised'.</p><p>In an ideal world we would calibrate our instruments and pipelines with a host of known stable reference stars. In absence of this, we propose here a simulator capable of replicating the measured data, including systematics. Such a tool will help us explore the effects of different instrument systematics and observing techniques on the final scientific result. Moreover, we will be able to understand the coupling between those effects, a study that cannot be carried out based only on real observations, for which the input signal is not known. We can then test the ability of pipelines and reduction methods to recover the planetary signal in different scenarios, which is an important verification step in data analysis. We can, also, validate the stability and reliability of existing data sets, by taking into account the specific configuration that each one has. Finally, such a simulator can be used to explore different possible configurations for future observations and evaluate their effect on the retrieved planetary spectrum.</p><p>To this end, we describe here the implementation of Wayne, a simulator for WFC3 IR spectroscopy in both the G102 and G141 grisms. We implemented many systematics and noise sources present in real data and Wayne is able to simulate both ordinary stellar spectra as well as exoplanet transit spectroscopy, where the planetary and stellar spectra are combined together in a transit event. We demonstrate the accuracy of our simulation by replicating the real observation of HD 209458 b from HST proposal 12181 and process it using the same pipeline described in <ref type="bibr" target="#b44">Tsiaras et al. (2016a)</ref>. We compare the real observation to our simulation providing additional verification of the analysis for that observation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.3.">Other Simulators</head><p>Comparisons are obviously drawn to aXeSim 1 , the STScI grism simulator package for WFC3. aXeSim was designed for general astrophysics whereas Wayne has been conceived for transit and eclipse spectroscopy. The limitations of aXeSim, which are accounted for in Wayne, include spatial scan mode, scan speed variations, dispersion variations, x and y positional shifts, trends such as the "hook" and long term ramp, cosmic rays and the ability to simulate a transit with time. However, Wayne is currently only able to simulate a single spectrum at a time whereas aXeSim can simulate a whole field at once. We also do not attempt to reimplement the functionality of the Hubble Space Telescope Exposure Time Calculator 2 , which is able to approximate the signal to noise of a target. We instead rely on the user to scale the input flux of the star to the correct level using the exposure calculator or otherwise. The software is now available as open source at https://github.com/ucl-exoplanets/wayne.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Wayne</head><p>The simulator imitates real data taken by WFC3 IR grisms through four key steps:</p><p>• Preparing the visit -Calculation of the exposure time of each frame including any gaps during orbits and buffer dumps.</p><p>• Preparing the spectrum -Scaling the flux to the instrument, applying the grism sensitivity, any re-binning and, in the case of transit spectroscopy, combining the stellar and planetary signals.</p><p>• Converting flux into pixels -Calculating where on the detector a specific wavelength falls, simulating the point-spread function and integrating it into pixels.</p><p>• Adding any noise and implementing reductions -Applying the flat field, scan speed variations, detector gain, read noise etc.</p><p>These steps are often overlapping as reductions and systematics need to be applied at different stages of the simulation. A simplified overview of the process used to create a simulation is shown in <ref type="figure" target="#fig_0">Figure 1</ref>.</p><p>There are many sources of noise and trends caused by the telescope and its instruments. Some of these, such as the dark current, flat-field and quantum efficiency have been constrained very well through calibration programs and are used in reduction pipelines like aXe ( <ref type="bibr">Kümmel et al. 2009</ref>). Others, like the variation in scan speed and the hook trend are not yet well understood or calibrated. For the first set we used the state of the art from the literature. For the latter, we conducted our own investigations on real data sets to determine approximate models for these features, and allow their parameters in the simulations to be varied by the user. We plan to investigate these behaviours in the future. The WFC3 detector is read multiple times per exposure in what is known as a non-destructive read or "sample up the ramp". We refer to these as "reads". In order to generate a spatial scan exposure we must combine many staring mode frames together at intervals in time (and therefore position). We use the term "subsample" to refer to these to avoid confusion. The exposure time of a subsample is set in the configuration file of the simulator and is generally 5-30 ms. The exact, i.e computationally optimised, value of this parameter depends on the scan speed.</p><p>In this section we mention certain files such as the 'flatfield cube' which contains the corrections we are using. These are mostly obtained from STScI and we provide the location for each file in the appendix B.</p><p>In this paper we use the transit spectroscopy mode while spatial scanning as an example of Wayne. The G102 and G141 grism implementations are very similar, differing only in the calibration files used. As such, we focus on the G141 grism as it is more commonly used in exoplanet transit spectroscopy.</p><p>2.1. Planning a Visit HST is located in a low earth orbit, completing an orbit of Earth in around 95 minutes. Single targets are typically visible for 50 minutes of each orbit but can be longer depending on their location with respect to HST orbit. Visits comprise of multiple orbits, typically limited to 5 or 6 due to the South Atlantic Anomaly (Gonzaga 2015, pg. 17). The first orbit in a visit exhibits the most severe trends due to spacecraft settling and is therefore normally left out of the analysis. For this reason, we do not attempt to recreate the first orbit effects in our simulations.</p><p>WFC3 IR detector has several different observing modes which set the exposure time and the size of the detector array that is read. These parameters are defined by three variables, the subarray mode (SUB-ARRAY =1024, 512, 256, 128, 64), the sample sequence (SAMPSEQ=RAPID, SPARS5/10/25/50/100/200, STEP25/50/100/200/400), which describes how the non-destructive samples up the ramp are spaced and the number of samples (NSAMP =1 to 15). The exposure time can be obtained for a particular combination from Rose (2015, section 13.3.6). Wayne is able to simulate all permitted modes, we are only limited by the available configuration files and exposure time information given.</p><p>Wayne's visit planner is a function that takes all the information about the visit and calculates the exposure start times, orbit ends and buffer dumps. Specifically it takes input of NSAMP, SUBARRAY, SAMPSEQ, the number of orbits and whether the telescope is scanning. It then outputs the start time of each exposure in each orbit. This involves taking into account target visibility, guide star acquisition or re-acquisition, exposure time, read time, spacecraft manoeuvres and buffer dumps from information given in Dressel (2016, chapter 10). The produced time sequences do not match perfectly real data or the observing schedules from the Hubble Space Telescope Astronomer's Proposal Tool 3 , due to the approximate values given in the handbook. When recreating a real observation, the exposure start times from the real data can be given allowing for a more precise simulation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.1.">Non-dispersed Calibration Image</head><p>For wavelength calibration in the analysis of WFC3 spectroscopic data a non-dispersed (direct) image of the star is taken at the beginning of an exposure. This is used to calculate the x and y reference positions. We output a simple observation for this file consisting of a 2D Gaussian centred on the reference position to simulate the star. This allows the simulation to be analysed by existing pipelines that require this frame. To do this, we need to simulate a transit event. When a planet transits a star it blocks a fraction of the stellar light we receive. As the planet moves across the stellar disc, we observe a light-curve. In order to simulate a transit we need a model of the stellar spectrum (the flux as a function of wavelengths), the planet spectrum (the transit depth as a function of wavelength) and then combine them at time t and wavelength λ. A transit light curve is required for each spectral bin. They are calculated based on the above input signals and the orbital parameters of the planet, using our PyLightcurve 4 package (in prep.) which implements a numerical light curve model. The advantage of this implementation over other models <ref type="bibr" target="#b30">(Mandel &amp; Agol 2002;</ref><ref type="bibr" target="#b16">Giménez 2006;</ref><ref type="bibr" target="#b34">Pál 2008</ref>, e.g.) is flexibility in the use of the non-linear limb darkening law <ref type="bibr" target="#b7">(Claret 2000)</ref>, support for eccentric orbits, and it is written in pure Python (ensuring compatibility with the simulator). An example of the light-curve model for HD 209458 b (described later) is shown in <ref type="figure" target="#fig_1">Figure 2</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.">Flux to Pixels</head><p>The wavelength-dependent flux from the star passes through the grism and is distributed to the detector pixels. This involves scaling the flux by the grism throughput and the quantum efficiency of the detector. Then, by using the wavelength calibration coefficients of the grism we find the centre of the point-spread function (PSF) on the detector and distribute the flux to pixels based on the PSF morphology at that wavelength. We describe each of these steps in more detail below.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.1.">Scaling Flux</head><p>For the simulation we assume the input stellar flux is pre-scaled to the correct value for the WFC3 IR channel. We provide an option to add a scaling factor which can be used to manually adjust the flux to this value. We do not, at present, attempt to implement the functionality of the Hubble Space Telescope Exposure Time Calculator.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.2.">Grism sensitivity</head><p>The sensitivity of the grism was calibrated by <ref type="bibr" target="#b28">Kuntschner et al. (2011a)</ref> for each order of the spectrum. We only consider the first order spectrum in this version of the simulator, as it is the main scientific spectrum. The sensitivity is given in units of cm 2 e − erg and quantifies the conversion of flux to electrons, accounting for both the throughput of the grism and the quantum efficiency of the detector. As shown in <ref type="figure">Figure 3</ref>, the sensitivity of the grism doubles between the G141 wavelength limits 1.1 to 1.7 µm. We use a linear interpolation to scale the sensitivity to the spectral bins.</p><p>The quantum efficiency (QE) of the WFC3 IR detector is less significant than the grism throughput but is still an important effect. The QE was calibrated on-orbit ( <ref type="bibr" target="#b1">Baggett et al. 2010</ref>) and is shown in <ref type="figure">Figure 4</ref>. The QE is largely flat for the G141 grism but has a significant uptrend for the G102 grism. We do not apply a separate QE step in our simulation as it is contained in the grism sensitivity.</p><p>2.3.3. The field-dependent structure of the spectrum When a grism is used, the source is spread out into a spectrum. The line through this spectrum is known as the trace line, while the equation giving the wavelength as a function of distance on the trace line is know as the wavelength solution. According to <ref type="bibr">Kuntschner et al. (2009a,b)</ref> both the trace of the spectrum and the wavelength solution depend on the reference or source position on the detector (field-dependent). This is the central location of the observed star on the detector without the grism and is often obtained from a single non-dispersed (direct) image taken at the beginning of the visit. The source coordinates are indicated as x ref and y ref .  <ref type="figure">Figure 5</ref>. Trace positions of the G102 and G141 grisms given by the field dependent wavelength solution described in the text and a source position of <ref type="formula">(450, 450</ref>).</p><p>Using the field-dependent wavelength solution given by <ref type="bibr">Kuntschner et al. (2009a,b)</ref> we can map each pixel to a wavelength. An example trace for a given source position is given in <ref type="figure">Figure 5</ref>.</p><p>According to this calibration, both the trace of the spectrum and the wavelength solution are linear functions of x ref and y ref . The gradient of this line is described by a 2 nd order polynomial while the offset described by a 1 st order polynomial function of x ref and y ref . The equations describing the trace are:</p><formula xml:id="formula_0">y = m t x + c t (1) c t = a 0 + a 1 x ref + a 2 y ref<label>(2)</label></formula><p>m t = a 0 + a 1 x ref + a 2 y ref + a 3 x 2 ref + a 4 x ref y ref + a 5 y 2 ref (3) Where x and y are the detector positions of the trace and the coefficients a n are defined by <ref type="bibr">Kuntschner et al. (2009a,b)</ref> for both grisms <ref type="table">(Table 6)</ref>.</p><p>The wavelength solution is given by</p><formula xml:id="formula_1">λ = m λ d + c λ (4) c λ = b 0 + b 1 x ref + b 2 y ref (5) m λ = b 0 + b 1 x ref + b 2 y ref + b 3 x 2 ref + b 4 x ref y ref + b 5 y 2 ref (6)</formula><p>where λ is the wavelength, d is the distance between the reference and the required point along the spectrum trace and b n are the coefficients defined by <ref type="bibr">Kuntschner et al. (2009a,b)</ref> for for both grisms ( <ref type="table">Table 7</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.4.">PSF</head><p>The point-spread function (PSF) for the WFC3 IR channel can be modelled as the linear combination of two 2D Normal distributions (N) with different standard deviations (σ):</p><formula xml:id="formula_2">aN 1 (σ 1 ) + (1 − a)N 2 (σ 2 )</formula><p>. The values for the three different parameters are modelled based on the PSF ensquared energy fraction as a function of aperture size and wavelength <ref type="bibr">(Dressel 2016, pg. 144)</ref>.</p><p>The PSF parameters are shown in <ref type="figure">Figure 6</ref> as 3 rd order polynomial functions of wavelength, a dependency that significantly affects the final spectrum (for the coefficients used see  <ref type="figure">Figure 6</ref>. The PSF parameters with wavelength for the WFC3 IR channel. can be found in <ref type="table" target="#tab_2">Table 1</ref>. The difference is due to the diagonal components of the HST PSF, which we do not include. However, the size of the PSF wings is comparable with the real data. The final step is to distribute on the detector the total number of electrons for each wavelength bin, given the centre and the shape of the PSF at this wavelength. We associate to every electron two random numbers drawn from one of the two normal distributions that construct the PSF -a fraction of 1/a of all the electrons belong to N 1 and a fraction of 1/(1-a) belong to N 2 . These random numbers are then added to the centre of the PSF to give the x and y pixel coordinates of all the electrons. To optimize this process, the random number generation is implemented in C, using the Box-Muler method, and is accessed by Python using the Cython compiler (http: //cython.org/). At this point, we have described all the parts needed to form a simple staring mode frame. Using the parameters described in section 3 we have generated a staring mode frame shown in <ref type="figure" target="#fig_3">Figure 7</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4.">Noise and data reductions</head><p>There are many different reductions needed for processing WFC3 data which are fairly well calibrated from on-orbit calibration studies. Noise sources have been quantified in a similar way. We describe here how we implement each of these steps in the simulation. Note that in our figures we show calibrations for the 256 subarray as this is one of the most commonly used for exoplanet transmission spectroscopy with WFC3.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4.1.">Photon Noise</head><p>Photon noise is added by converting the stellar flux rate for each sub-sample into counts using a Poisson distribution before distributing the flux into pixels.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4.2.">Flat field</head><p>For the flat field we use the flat-field cube described in <ref type="bibr">Kuntschner et al. (2011b)</ref>  <ref type="figure">(Figure 8</ref>). The flat field for grism spectroscopy is a 3 rd order polynomial with the coefficients given in the flat field cube. The flat is calculated on a per subsample basis by determining the wavelength of every pixel at the subsample reference position.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4.3.">Sky Background</head><p>The sky background is generated by multiplying the master sky image ( <ref type="bibr">Kümmel et al. 2011)</ref>  <ref type="figure">(Figure 9</ref>), by a factor depending on the target and then sampling each pixel from a Poisson distribution to add noise. We acknowledge the recent source-dependent master sky images by <ref type="bibr" target="#b4">Brammer et al. (2015)</ref> and plan to implement them in a future version.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4.4.">Cosmic Rays (CR)</head><p>Cosmic rays impact the detector at a rate of 11 ± 1.5 s −1 across the full frame <ref type="figure" target="#fig_0">(Dressel 2016, pg 153)</ref>. We add cosmic rays to each sample by scaling the rate by the exposure time and subbarray size and sample a Poisson distribution with this rate to give the number of impacts. We then randomly choose a pixel for the impact to occur and the number of counts between 10-35 kDN to add to that pixel. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4.5.">Gain variations</head><p>The gain is the e − /DN conversion of the amplifier used to read a pixel. This is composed of a constant factor 2.35 and gain variations per quadrant which are specified in the gain calibration file u4m1335mi pfl.fits. We therefore divide the simulation counts by 2.35 and then multiply by the gain variations.  ). Despite this, for completeness we add dark current, using the superdarks ( <ref type="bibr" target="#b13">Dulude et al. 2014</ref>), created by averaging many dark exposures from cycles 17, 18, 19 and 20. They are specific to the subarray and readout mode used, as the dark current scales nonlinearly with time. An example superdark is shown in <ref type="figure" target="#fig_0">Figure 10</ref>. Dark current is added to each sample at the end of the simulation on a per read basis.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4.7.">Non-linearity</head><p>The WFC3 IR detector reaches 5% non-linearity at 70,000 e − or ∼ 28,000 DN with a maximum well depth of 40,000 DN (Hilbert 2008).</p><p>The form of the non-linearity is described by Hilbert (2008) on a per quadrant basis. We note the more precise non-linearity correction per pixel by <ref type="bibr" target="#b18">Hilbert (2014)</ref> but the coefficients to implement this correction were not readily available. The per quadrant version is described by a 3 rd order polynomial with the coefficients c given in the calibration file. The conversion from the non-linear F to the linear case F c is then:</p><formula xml:id="formula_3">F c = (1 + c 1 + c 2 F + c 3 F 2 + c 4 F 3 )F<label>(7)</label></formula><p>For our simulations, we want the reverse, i.e. to convert linear counts to non-linear. To do this, we use the Newton-Raphson numerical method to find the root of the above equation that is closest to the original counts.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4.8.">Count level clipping</head><p>As the non-linearity correction only applies to counts up to the 5% non-linearity limit we clip the maximum values of all pixels to this level (70,000 e − ) and consider them saturated. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4.9.">Bias and bias drifts</head><p>When the detector is reset there is an initial bias level of around 11,000 DN with small differences per quadrant. This bias level gives the look of a raw WFC3 frame before subtracting the zero-read and is nearly fully corrected by subtracting the zero-read (Deustua 2016, pg. 126). For consistency with real data we include this effect by creating an initial bias file from the zero-read of two frames of real data obtained from the STScI MAST Archive 5 . Specifically we use the upper half of the file icdp02b0q raw.fits and lower half of the icdp02b1q raw.fits file (to obtain areas not contaminated by the spectrum). The resulting file is shown in <ref type="figure" target="#fig_0">Figure  11</ref>.</p><p>The bias level drifts during an exposure. The WFC3 IR detector allows correcting for this effect by having a five pixel outer border around the 1014 × 1014 array that is not sensitive to incoming light. These are known as reference pixels and are a proxy to the drifting bias level. By averaging them and subtracting the result from each read we can correct the bias drift. We do not attempt to implement bias drifts in the current simulation, instead we set all the reference pixels to 0 before applying the read noise.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4.10.">Read Noise</head><p>Read noise for the WFC3 IR channel is Gaussian with a standard deviation between 19.8 to 21.9 e − <ref type="bibr" target="#b20">(Hilbert &amp; McCullough 2009</ref>) after subtracting the zero-read. For a single read, we therefore sample a normal distribution for each pixel with standard deviation of 20/ √ 2 = 14.1 e − (6 DN) and apply it non-cumulatively to each sample.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.5.">Generating an Exposure</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.5.1.">Spatial Scanning</head><p>Spatial scanning mode is created by combining multiple staring modes frames together. We generate subsamples at the subsample rate, typically 5-30 ms depending on the scanning speed. The planetary and stellar spectra are combined per subsample so the transit is progressing throughout the scan. Trends such as the scan speed variations are applied on a subsample basis.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.5.2.">Reading the array</head><p>The WFC3 IR detector is read separately in quadrants with each quadrant read towards the centre of the frame. This process takes 0.278 s in total for the 256 subarray meaning that the flux content of the different pixels is not recorded at the same time. For all pixel exposure times to be equal, the zero-read must be subtracted.</p><p>The read time and direction has an impact when scanning due to the up-stream / down-stream effect identified by <ref type="bibr" target="#b31">McCullough &amp; MacKenty (2012)</ref>. This causes a change in exposure time depending on whether the scan is with or against the read direction. We do not simulate this effect at present but plan to include it in a future version as it has a particular effect when a visit is composed of scans in both directions (see <ref type="bibr" target="#b21">Knutson et al. 2014a;</ref><ref type="bibr" target="#b45">Tsiaras et al. 2016b)</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.5.3.">Samples up the ramp</head><p>During an exposure, the detector is read several times, in what are known as 'samples up-the-ramp' which we refer to as reads. We generate each read separately to recreate this data structure. The zero-read is currently implemented as the initial bias described in Section 2.4.9 with read noise.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.5.4.">Output to FITS format</head><p>The simulations output to FITS files in the same format as HST WFC3 data and contain most of the same header information. In addition we include several new header keys giving details about the simulation such as the simulator version, x-shift amount and the planet and star parameters used. A full list is given in table A.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.6.">Systematics</head><p>Data obtained with WFC3 include several systematics that can be measured per exposure over an entire visit. These include the shift in the starting x and y position in each frame (x-shifts and y-shifts), scan speed variations and the 'hook' or 'ramp' effect. Shifts in the reference position (x ref , y ref ) of the spectrum on the detector are seen in real data in both the x and y axis as small shifts in the spectrum position. xshifts typically have a total amplitude of 0.1 to 1 pixel per visit ( <ref type="bibr" target="#b10">Deming et al. 2013;</ref><ref type="bibr" target="#b44">Tsiaras et al. 2016a</ref>) and are approximately linear with time. We implement x-shifts using a function which generates the shift in x ref position for each exposure, by default this is a linear trend. For matching real data the position of x ref can be given on a per frame basis.</p><p>The y-shifts are implemented in the same way as xshifts but are often considered negligible in real data as Our model sine function the total shift is commonly only ∼ 0.1 pixels ( <ref type="bibr" target="#b44">Tsiaras et al. 2016a</ref>). However, there are examples where the shift is higher, i.e. a total of ∼ 1.3 pixels in <ref type="bibr" target="#b45">Tsiaras et al. (2016b)</ref> where y-shifts can not be ignored. In addition to the position shifts from one frame to an other jitter noise is also present in HST observations. Jitter occurs due to the imperfect pointing of the telescope during an observation, and results in an effective increase in the size of the PSF. Jitter noise, across both axis, is included as uncertainty in the reference position (x ref , y ref ) of the spectrum. To match real data sets, the input value of the jitter noise can be derived from the available jit files. For HST, the jitter is typically between 0.003 and 0.005 (0.022 to 0.037 pixels). For the HD 209458 b data set used in section 3 the deviation from a straight line scanning trajectory, which is assumed in Wayne, is ±0.0013 (0.01 pixels). However, these measurements represent time intervals of 3 seconds, corresponding to 0.0013 √ 3 = 0.0023 (0.017 pixels) for intervals of 1 second. In section 3 we used a jitter of 0.02 pixels. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Flux distribution / positioning</head><p>Detector effects included flux-to-electron conversion zero-read random sampling of the PSF read noise wavelength-dependent PSF dark current field-dependent spectrum trace gain conversion field-dependent wavelength solution non-linearity spatial scanning wavelength-dependent flat-field scan speed variations field-dependent sky background position shifts cosmic rays jitter noise not included "blobs" image persistance satellite trails cross talk inter-pixel capacitance charge diffusion non-ideal A/D converters (Section 2.4.9)</p><p>"snowballs" up-stream/down-stream effect (Section 2.5.2)</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.6.2.">Scan speed variations (SSVs)</head><p>If the FGS is used for controlling the scan there is a flicker which appears as a wave-like variation in flux in the direction of the scan, due to FGS feedback <ref type="bibr">(McCul- lough &amp; MacKenty 2012)</ref>.</p><p>We looked at SSVs in the HD 209458 b data set used in section 3. After applying all reductions to the frames we choose a single orbit (orbit 3) and summed the rows of the spectrum to give the total flux per row in the scan direction for each of the 20 frames. Visually these variations appear to be modulated sine waves (see <ref type="figure" target="#fig_0">Fig- ure 12 top)</ref>. We confirmed this behaviour by performing Principle Component Analysis on these 20 summed rows and recovered the first 2 principal components which appear to be 1) the general increase in flux across the rows 2) a sine wave with varying amplitude (see <ref type="figure" target="#fig_0">Figure 12</ref> middle). We fit the second principle component to give an approximate sine model of period=0.7 seconds, standard deviation=1.5 and phase=0 (see <ref type="figure" target="#fig_0">Figure 12 bottom)</ref>. These values are configurable in the simulation to adapt to other data sets.</p><p>The sinusoidal model is applied to the simulation by changing the exposure time of each subsample to that defined by the sine model with mean equal to the subsample time. We note that the real scan speed variations are reasonably complex, appear to modulate and have occasional large 'blips' in the data consisting of a large peak and trough in the flux level. We only give an initial approximation of the effect for this data set here as an in depth analysis is beyond the scope of this paper.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.6.3.">Hook and long term ramp</head><p>There are two more trends often seen in real data which are often combined into a single reduction step. This is the hook effect which appears to reset after each buffer dump and a long term ramp which is a gradual decrease in the level of flux with time across a visit.</p><p>The 'hook' was first described by <ref type="bibr" target="#b3">Berta et al. (2012)</ref> and implemented as a exponential fit by <ref type="bibr" target="#b23">Kreidberg et al. (2014b)</ref>. We adopt the form of <ref type="bibr" target="#b44">Tsiaras et al. (2016a)</ref> ( <ref type="formula" target="#formula_4">Equation 8)</ref> and apply it as a scaling factor to the flux for each subsample.</p><formula xml:id="formula_4">R(t) = (1 − r a (t − t v ))(1 − r b1 e −r b2 (t−to) )<label>(8)</label></formula><p>Where t is time, t v the time when the visit starts, t o the time when the orbit in which the frame belongs starts, r a the slope of the linear long-term 'ramp' and (r b1 , r b2 ) the coefficients of the exponential short-term 'ramp'. The values of these coefficients can be set in the configuration to match a similar observation. <ref type="table" target="#tab_3">Table 2</ref> summarizes the effects related to the spatial scanning technique and the WFC3 IR detector, and here we discuss the effects that are not currently implemented in Wayne.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.7.">Summary of simulated effects</head><p>"Bolobs" -The "blobs" are areas of 10 to 15 pixels that absorb up to 15% of the incoming light at their centers. The behaviour of the "blobs" appears to be datedependent, making their implementation in Wayne more difficult than the offer effects (Dressel 2016, pg. 160).</p><p>Satellite trails -Such trails can appear when satellites cross the observed field of view. Due to their brightness, satellites saturate a number of pixels (approximately 10 to 15), depending on the length of the trail. Saturation can also affect consecutive observations because of image persistence. In the case of exoplanetary observations, the exposure times are short and the satellite trails are more rare.</p><p>Image persistance -Due to image persistence, an exposure of the detector is causing ghost images or afterglows in the consecutive ones <ref type="bibr">(Dressel 2016, pg. 154)</ref>. This effect is, possibly, the cause of the "hook" seen in each HST orbit. Implementing this effect requires the coupling between different exposures, which is, currently, not available in Wayne. 0.0011 0.0011±0.00002 r b2 400 395±12</p><p>Crosstalk -Is the effect when a bright source in one quadrant is causing electronic ghosting in another quadrant, coupled to the first one. In the WFC3/IR channel, the two quadrants on the left side of the detector are coupled, and the the two quadrants on the right side are also coupled. However, this effect is below the background noise for unsaturated sources (Dressel 2016, pg. 66).</p><p>Inter-pixel capacitance (IPC) and charge diffusion (CD) -Both effects cause a fraction of the charge collected by an individual pixel to "leak" into its neighboring pixels and therefore the recorded image to appear smoother. We plan to include both effects in the future, by using appropriate smoothing kernels. IPC is a form of crosstalk and CD is caused during charge transfer through the detector, hence, only the later is wavelength-dependent <ref type="bibr" target="#b19">(Hilbert &amp; McCullough 2011</ref>).</p><p>"Snowballs" -"Snowballs" have the same behavior as the cosmic rays, but they affect about 10 pixels and they contain between 200,000 and 500,000 e − . Because they appear only about once per hour over the entire WFC3 detector, this effect is not common in spatially scanned data sets ( <ref type="bibr" target="#b14">Durbin et al. 2015</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">HD 209458 b: A CASE STUDY</head><p>As an application, we simulate the scanningmode spectroscopic observations of the hot Jupiter HD 209458 b (ID: 12181, PI: Drake Deming). The simulated data set consists of 83 images and each image of 5 up-the-ramp samples with a size of 266 × 266 pixels in the SPARS10 mode. As a result, the total exposure time, maximum signal level and total scanning length are very similar to the real frames (22.32 seconds, 4.8 × 10 4 electrons per pixel and 170 pixels, respectively). Our simulation also includes one non-dispersed (direct) image of the target, at the beginning of the observation, for calibration reasons, similar to the real data set. A raw frame from the simulator and real data is shown in <ref type="figure">Figure 3</ref>.</p><p>For this simulation we use a PHOENIX model <ref type="table">(Al- lard</ref>  The total execution time for a single spatially scanned image is of the order of 37 seconds, but it is highly depended on the hardware. Among the different stages of the simulation, 16% of the time is spent on calculating the flux as a function of wavelength, 68% on randomly distributing the flux into the pixels, 9% on applying the wavelength-dependent flat-field and 7% on all the other processes.  <ref type="bibr">74 192 195 198 201</ref> x frame y frame <ref type="figure" target="#fig_0">Figure 15</ref>. Top: The wavelength-dependent photon positions (coloured points) as the star moves along its scanning trajectory (white line). Bottom: Left and right edges of the spectra where we can verify the similar to the real frame behaviour of the simulated frame.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Reduction-Calibration-Extraction</head><p>We analyse the simulated data set using our specialised pipeline for reduction, calibration and extraction of scanning-mode spectroscopic data ( <ref type="bibr" target="#b44">Tsiaras et al. 2016a</ref>) for a one-to-one comparison with the real data set.</p><p>At first, we apply all the reduction steps in the same way as implemented for a real data set, including: bias drifts correction, zero-read subtraction, non linearity correction, dark current subtraction, gain variations calibration, sky background subtraction and bad pixels/cosmic rays correction.</p><p>Then, the frames are calibrated for position shifts. For the (horizontal) x-shifts, we are making use of the normalised sum across the columns of the frames, while for (vertical) y-shifts we determine the position of the spectrum on the first non-destructive read. The input values that we use match the shifts presented in the real data set and, as it can be seen in <ref type="figure" target="#fig_0">Figure 14</ref>, we are able to retrieve them very accurately. This result ensures that all the effects caused by the position-dependent systematics are properly simulated by Wayne.</p><p>To extract the 1D spectra from the spatially scanned spectra we first calculate the physical position of the star on the full-array detector. We then shift the position of the photons during the scan, and extract the flux for each wavelength bin from an aperture of quadrangular shape ( <ref type="bibr" target="#b44">Tsiaras et al. 2016a</ref>). In <ref type="figure" target="#fig_0">Figure 15</ref> we can see the wavelength-dependent photon positions as calculated for a real and a simulated frame. From the similar structure we can conclude that the field dependent spectrum trace and wavelength solution are correctly implemented during the scanning process.</p><p>We, can therefore compare the 1D spectra, as extracted from a real and a simulated frame <ref type="figure" target="#fig_0">(Figure 16</ref>). The two spectra have the same shape, consistent with each other and the sensitivity curve of the G141 grism. However, the real spectrum is smoother, probably due to a lower number of absorption lines.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">Fitting the white and spectral light-curves</head><p>The last step is to fit the white-light curve for the midtransit point and the 'ramp' coefficients and then use these values to fit the R p /R * for the different wavelength channels. We follow the same two approaches as we did for the real data set, i.e fitting the instrumental systematics function, Equation 8, and the transit model both separately and simultaneously, and keeping inclination, i, and a/R * ratio fixed. The results we obtain <ref type="table" target="#tab_4">(Table  3)</ref> are consistent with each other and in good agreement with the inputs. Also the magnitude of the errors are as expected for the signal-to-noise ratio of this particular target observed by WFC3.</p><p>We then fit the spectral light-curves leaving as free parameters only the normalisation factor and the R p /R * ratio. As explained in <ref type="bibr" target="#b44">Tsiaras et al. (2016a)</ref>, the spectral light-curves include an additional kind of systemat- ics which originates from the low resolution of the spectrum (under-sampling) coupled with the horizontal shifts ( <ref type="bibr" target="#b10">Deming et al. 2013</ref>). Since the simulated data set includes these shifts we have to take these systematics into account. The final results can be seen in <ref type="figure" target="#fig_0">Figure 18</ref>. The spectrum extracted from the simulated data has a mean uncertainty of 38 ppm, slightly better than the real one (40 ppm). The rms of the residuals between the input and the output spectra is also 38 ppm and it is consistent throughout 10 different simulations. Based on these results we can conclude that simulations created by Wayne can reproduce existing data sets in a realistic way.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">CONCLUSION</head><p>We implemented the Wayne algorithm as a Python package capable of simulating Hubble Space Telescope (HST) Wide Field Camera 3 (WFC3) grism spectroscopy, including sources of noise and systematics. From all our diagnostics we conclude that given the configuration of a real data set, Wayne generates a simulated data set with the same behaviour and noise level as the real case. Therefore, it is a powerful tool with which we can validate the stability of existing data sets with certain configuration but also predict the behaviour of future observations in order to decide the best observing strategy for a particular target.  Wayne can then be used to test how different analysis methods work in different scenarios in order to validate data analysis pipelines. We demonstrate in this initial investigation that the method of <ref type="bibr" target="#b44">Tsiaras et al. (2016a)</ref> can accurately recover the independent planet signal for that data set.</p><p>Whilst written primarily for HST WFC3, Wayne was designed to be easily adaptable to new instruments and systematics, making it a powerful and versatile tool to assess analysis techniques on both current and proposed instrument designs on different telescopes.   <ref type="table">Table 6</ref> Coefficients of the field dependent trace for the G102 and G141 grisms as given by <ref type="bibr">Kuntschner et al. (2009a,b)</ref> </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>APPENDIX</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>ADDITIONAL FITS HEADER KEYWORDS USED BY WAYNE</head><formula xml:id="formula_5">a 0 a 1 (X) a 2 (Y ) a 3 (X * Y ) a 4 (X 2 ) a 5 (Y 2 ) G102</formula><p>Ac -3.55018E-1 3.28722E-5 -1.44571E-3 error 7.40459E-2 4.4456E-6 3.653212E-6 G102 Am 1.42852E-2 -7.20713E-6 -2.42542E-6 1.18294E-9</p><p>1.19634E-8 6.17274E-10 error 3.86038E-4 4.21303E-7 3.42753E-7 4.26462E-10 3.51491E-10 3.02759E-10 G141 Ac 1.96882 9.09159E-5 -1.93260E-3 error 8.09111E-2 3.57223E-6 3.12042E-6 G141 Am 1.04275E-2 -7.96978E-6 -2.49607E-6 1.45963E-9</p><p>1.39757E-8 4.8494E-10 error 5.94731E-4 4.34517E-7 3.57986E-7 3.87141E-10 3.29421E-10 3.08712E-10 <ref type="table">Table 7</ref> Coefficients of the field dependent wavelength solution for the G102 and G141 grisms as given by <ref type="bibr">Kuntschner et al. (2009a,b)</ref>   </p><formula xml:id="formula_6">b 0 b 1 (X) b 2 (Y ) b 3 (X * Y ) b 4 (X 2 ) b 5 (Y 2 ) G102</formula></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 .</head><label>1</label><figDesc>Figure 1. Simplified overview of the steps performed by Wayne in generating a visit. Steps are shown where they are applied, while the actual calculation may be performed at a different location for computational optimisation reasons.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 2 .</head><label>2</label><figDesc>Figure 2. The light-curve model of HD 209458 b generated by PyLightcurve using the parameters described in section 3 at 1.2 and 1.4 µm.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 3 .Figure 4 .</head><label>34</label><figDesc>Figure 3. WFC3 G102and G141 grism sensitivity as calculated by Kuntschner et al. (2011a). This step quantifies the conversion from flux to electrons.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 7 .</head><label>7</label><figDesc>Figure 7. Cropped exposure of a simulation of a staring mode frame for HD 209458 b using Wayne with the summed counts of the frame in both axes shown. The figure plots the difference between the last and the first reads of the exposure.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Figure 8 .Figure 9 .</head><label>89</label><figDesc>Figure 8. Flat Field cube from Kuntschner et al. (2011b) for the G141 grism and 256 subarray.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>2. 4 . 6 .Figure 10 .</head><label>4610</label><figDesc>Figure 10. WFC3 IR superdark u4819493i drk.fits for a 256 subarray at NSAMP 5 in SPARS10 mode covering 29.6 s. The frame is scaled between -10 and 5 electrons per pixel. The mean is -1.65, the median is -3.37, the minimum is -14.3, and the maximum is 14000 electrons per pixel. This includes any bad pixels (cold and hot).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>lude et al. 2014</head><label>2014</label><figDesc></figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Figure 11 .</head><label>11</label><figDesc>Figure 11. The initial bias frame for the 256 subarray mode used for the zero-read. The frame is included mostly for consistency with real data as it is removed in zero-read subtraction -the first stage of analysis. The scale has been clipped between 5,000 and 19,000 DN.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head></head><label></label><figDesc>Reference position shifts (x,y)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_10"><head>Figure 12 .</head><label>12</label><figDesc>Figure 12. Measuring scan speed variations from orbit 3 of HD 209458 b. The upper plot shows the first 4 signals, created by summing the rows of each exposure (offset for clarity). The mid plots show the first 2 principle components from a PCA of all 20 signals. The lower plot shows our sine model of the general SSV trend.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_11"><head>Figure 13 .</head><label>13</label><figDesc>Figure 13. Comparison of a real raw frame (ibh726meq raw.fits) of HD 209458 from proposal 12181 (upper) and the Wayne simulation (lower). Both represent the flux difference between the last and the first reads and are cropped to the same limits to highlight the spectrum. The main visual difference is the non-uniform scan speed variations in the real frame. Simulated cosmic rays are random and will differ from the real frame.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_12"><head>Figure 14 .</head><label>14</label><figDesc>Figure 14. Retrieved position shifts (dots) compared to the input values (crosses) and residuals for the two axes.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_13"><head>Figure 16 .</head><label>16</label><figDesc>Figure 16. 1D spectra extracted from a real and a simulated spatially scanned frame, compared with the sensitivity curve of the G141 grism. Although the stellar spectrum used is the closest to HD 209458, we can see that the real spectrum is smoother, probably due to a lower number of absorption lines.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_14"><head>Figure 17 .</head><label>17</label><figDesc>Figure 17. Top: White light-curve, as extracted from the real and the simulated data sets. Bottom: The ratio between the images and the master-sky frame for the real and the simulated data sets.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_15"><head>Figure 18 .</head><label>18</label><figDesc>Figure 18. High resolution input spectrum of HD 209458 b and the extracted data from the simulation. In the bottom panel we can see the residuals, which have a rms of 38 ppm.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" validated="false"><head>Table 8 )</head><label>8</label><figDesc></figDesc><table>. A comparison between the re-
+ported HST values and our simulation at 0.9 and 1.4 µm 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" validated="false"><head>Table 1 HST</head><label>1</label><figDesc></figDesc><table>and Wayne PSF ensquared energy fraction as a function of 
+aperture size (pixels) at 0.9 and 1.4 µm. 
+
+aperture size 
+0.9 µm 
+1.4 µm 
+(pixels) 
+HST Wayne HST Wayne 
+1×1 
+0.398 
+0.391 
+0.314 
+0.278 
+3×3 
+0.802 
+0.839 
+0.706 
+0.775 
+5×5 
+0.858 
+0.857 
+0.830 
+0.811 
+7×7 
+0.894 
+0.875 
+0.855 
+0.832 
+9×9 
+0.917 
+0.896 
+0.888 
+0.859 
+11×11 
+0.934 
+0.916 
+0.905 
+0.886 
+13×13 
+0.946 
+0.935 
+0.917 
+0.909 
+15×15 
+0.955 
+0.952 
+0.931 
+0.931 
+17×17 
+0.962 
+0.966 
+0.942 
+0.949 
+19×19 
+0.966 
+0.976 
+0.949 
+0.965 
+21×21 
+0.969 
+0.985 
+0.956 
+0.975 
+23×23 
+0.971 
+0.991 
+0.961 
+0.984 
+25×25 
+0.973 
+0.995 
+0.965 
+0.990 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" validated="false"><head>Table 2 Summary of simulated effects.</head><label>2</label><figDesc></figDesc><table></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4" validated="true"><head>Table 3 Input values for the HD 209458 system parameters and ramp coefficients (used in Equation 8) compared to fitting results on the white light curve (1.125 − 1.65 µm).</head><label>3</label><figDesc></figDesc><table>parameter 
+input value 
+retrieved values 
+T0 [HJD-2456196] 
+0.28835 
+2456196.28834±0.00002 
+Rp/Rs [mean] 
+-
+0.12077±0.00003 
+Period [days] 
+3.52474859 
+-
+a/R *  
+8.8587 
+-
+i [deg] 
+86.71 
+-
+ra 
+0.005 
+0.005±0.0001 
+r b1 
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_6" validated="false"><head>Table 4 Keywords</head><label>4</label><figDesc>added to the science header of the output FITS files that are not in normal STScI files. Values for the 0001 raw.fits files of the HD 209458 b case study simulation are included as an example.</figDesc><table>Value in 0001 raw.fits 
+Header Keyword from case study 
+Description 
+SIM 
+T 
+used to clearly identify if the file is simulated 
+SIM-VER 
+1.0.0.dev1 
+Wayne version used 
+SIM-TIME 
+36.37 
+time taken to generate exposure (s) 
+X-REF 
+404.4970 
+x reference position of star on frame (full frame) 
+Y-REF 
+457.4293 
+y reference position of star on frame (full frame) 
+SAMPRATE 
+0.02 
+subsample time (s) 
+NSE-MEAN 
+F 
+mean of extra gaussian noise 
+NSE-STD 
+F 
+standard deviation of extra gaussian noise 
+ADD-DRK 
+T 
+dark file added (T/F) 
+ADD-FLAT 
+T 
+flat field added (T/F) 
+ADD-GAIN 
+T 
+gain variations added (T/F) 
+ADD-NLIN 
+T 
+non-linearity effects added (T/F) 
+STAR-NSE 
+T 
+stellar noise Added (T/F) 
+CSMCRATE 
+11 
+rate of cosmic rays (hits per s) 
+SKY-LVL 
+4.63477 
+sky background level (master sky per s) 
+VSTTREND 
+0.9989 
+visit trend scale factor 
+CLIPVALS 
+T 
+pixels clipped to detector range (T/F) 
+RANDSEED 
+0 
+random seed used for the visit 
+V-PY 
+2.7.11 final 
+Python version used 
+V-NP 
+1.11.0 
+NumPy version used 
+V-SP 
+0.16.1 
+SciPy version used 
+V-AP 
+1.1.2 
+Astropy version used 
+V-PD 
+0.18.1 
+Pandas version used 
+MID-TRAN 
+2456196.28835 
+Time of mid transit (HJD) 
+PERIOD 
+3.52474859 
+Orbital period (days) 
+SMA 
+8.8587 
+Semi-major axis (a/Rs) 
+INC 
+86.71 
+Orbital inclination (deg) 
+ECC 
+0.00 
+Orbital eccentricity 
+PERI 
+nan 
+Argument of periastron (deg) 
+LD1 
+0.608402 
+Non-linear limb darkening coefficient 1 
+LD2 
+-0.206180 
+Non-linear limb darkening coefficient 2 
+LD3 
+0.262286 
+Non-linear limb darkening coefficient 3 
+LD4 
+-0.133088 
+Non-linear limb darkening coefficient 4 </table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_7" validated="true"><head>Table 5 The file names and download locations of files that were mentioned in the text.</head><label>5</label><figDesc></figDesc><table>File 
+File name 
+G141 Sensitivity a 
+WFC3.IR.G141.1st.sens.2.fits 
+G141 Master Sky a 
+WFC3.IR.G141.sky.V1.0.fits 
+G141 Flat-field Cube a WFC3.IR.G141.flat.2.fits 
+G102 Sensitivity b 
+WFC3.IR.G102.1st.sens.2.fits 
+G102 Master Sky b 
+WFC3.IR.G102.sky.V1.0.fits 
+G102 Flat-field Cube b WFC3.IR.G102.flat.2.fits 
+Superdarks c 
+u4819490i drk.fits, u481949ri drk.fits, xag19296i drk.fits, xcc20398i drk.fits 
+u4819491i drk.fits, u481949ti drk.fits, xag19297i drk.fits, xcc20399i drk.fits 
+u4819493i drk.fits, u4819501i drk.fits, xag19298i drk.fits, xcc2039ai drk.fits 
+u4819494i drk.fits, x5g1509ki drk.fits, xag19299i drk.fits, xcc2039bi drk.fits 
+u481949ji drk.fits, xag19292i drk.fits, xag1929ai drk.fits, xcc2039ci drk.fits 
+u481949ki drk.fits , xag19293i drk.fits, xcc20394i drk.fits, xcc2039di drk.fits 
+u481949li drk.fits, xag19294i drk.fits, xcc20396i drk.fits, u481949mi drk.fits 
+xag19295i drk.fits, xcc20397i drk.fits 
+Quantum Efficiency 
+wfc3 ir qe 003 syn.fits 
+Non-Linearity c 
+u1k1727mi lin.fits 
+Gain Variations c 
+u4m1335mi pfl.fits 
+Initial Bias d 
+wfc3 ir initial bias 256.fits 
+a http://www.stsci.edu/hst/wfc3/analysis/grism_obs/calibrations/wfc3_g141.html 
+b http://www.stsci.edu/hst/wfc3/analysis/grism_obs/calibrations/wfc3_g102.html 
+c http://www.stsci.edu/hst/observatory/crds/SIfileInfo/WFC3/ 
+d http://www.ucl.ac.uk/exoplanets/wayne/ 
+
+GRISM CALIBRATION COEFFICIENTS 
+
+</table></figure>
+
+			<note place="foot" n="1"> http://axe.stsci.edu/axesim/ 2 http://www.stsci.edu/hst/wfc3/tools/etcs/</note>
+
+			<note place="foot" n="2">.2. Transit Spectroscopy: Combining Signals When used in transit spectroscopy mode, the simulator must combine the planetary and stellar signals together. 3 http://www.stsci.edu/hst/proposing/apt</note>
+
+			<note place="foot" n="5"> https://archive.stsci.edu</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>ACKNOWLEDGMENTS</head><p>We would like to thank Giovanna Tinetti, Ingo Waldmann, Marco Rocchetto and Giuseppe Morello for useful discussions about this project.</p><p>This work has been supported by a UCL IMPACT studentship, STFC (ST/P002153/1) and ERC project 617119 (ExoLights).</p></div>
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Allard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Guillot</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H.-G</forename><surname>Ludwig</surname></persName>
+		</author>
+		<title level="m">IAU Symposium</title>
+		<editor>E. Martín</editor>
+		<imprint>
+			<publisher>Brown Dwarfs</publisher>
+			<date type="published" when="2003" />
+			<biblScope unit="volume">211</biblScope>
+			<biblScope unit="page">325</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">M</forename><surname>Baggett</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Mackenty</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Kimble</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">SPIE</title>
+		<imprint>
+			<biblScope unit="volume">7731</biblScope>
+			<biblScope unit="page">38</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Baraffe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Homeier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Allard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Chabrier</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">577</biblScope>
+			<biblScope unit="page">42</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><forename type="middle">K</forename><surname>Berta</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-M</forename><surname>Désert</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">747</biblScope>
+			<biblScope unit="page">35</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<monogr>
+		<title level="m" type="main">Source-dependent master sky images for the WFC3/IR grisms</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Brammer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ryan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Pirzkal</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+<note type="report_type">Tech. rep</note>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">M</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">L</forename><surname>Gilliland</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">W</forename><surname>Noyes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Burrows</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">552</biblScope>
+			<biblScope unit="page">699</biblScope>
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">M</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">W</forename><surname>Noyes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">L</forename><surname>Gilliland</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">568</biblScope>
+			<biblScope unit="page">377</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Claret</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">363</biblScope>
+			<biblScope unit="page">1081</biblScope>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Crouzet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">R</forename><surname>Mccullough</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Burke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Long</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">761</biblScope>
+			<biblScope unit="page">7</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Crouzet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">R</forename><surname>Mccullough</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Deming</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Madhusudhan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">795</biblScope>
+			<biblScope unit="page">166</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Deming</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Wilkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Mccullough</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">774</biblScope>
+			<biblScope unit="page">95</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<monogr>
+		<title level="m" type="main">WFC3 Data Handbook</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Deustua</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+	<note>Version 3.0 (Baltimore: STScI</note>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<monogr>
+		<title level="m" type="main">Wide Field Camera 3 Instrument Handbook, Version</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Dressel</surname></persName>
+		</author>
+		<idno>8.0</idno>
+		<imprint>
+			<date type="published" when="2016" />
+			<publisher>STScI</publisher>
+			<pubPlace>Baltimore</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Dulude</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Baggett</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Hilbert</surname></persName>
+		</author>
+		<title level="m">New WFC3/IR Dark Calibration Files</title>
+		<imprint>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+<note type="report_type">Tech. rep</note>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Durbin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Bourque</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Baggett</surname></persName>
+		</author>
+		<title level="m">IR &quot;Snowballs&quot;: Long-Term Characterization</title>
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+<note type="report_type">Tech. rep</note>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Fraine</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Deming</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Benneke</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">513</biblScope>
+			<biblScope unit="page">526</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Giménez</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">450</biblScope>
+			<biblScope unit="page">1231</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Gonzaga</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Hubble Space Telescope Primer for Cycle</title>
+		<imprint>
+			<biblScope unit="volume">23</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+	<note>STScI</note>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">Updated non-linearity calibration method for WFC3/IR</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Hilbert</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">WFC3 TV3 Testing: IR Channel Nonlinearity Correction</title>
+		<imprint>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+<note type="report_type">Tech. rep</note>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<monogr>
+		<title level="m" type="main">Interpixel Capacitance in the IR Channel: Measurements Made On Orbit</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Hilbert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Mccullough</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+<note type="report_type">Tech. rep</note>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Hilbert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">R</forename><surname>Mccullough</surname></persName>
+		</author>
+		<title level="m">WFC3 SMOV Program 11420: IR Channel Functional Tests</title>
+		<imprint>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+<note type="report_type">Tech. rep</note>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">A</forename><surname>Knutson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Benneke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Deming</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Homeier</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">505</biblScope>
+			<biblScope unit="page">66</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">A</forename><surname>Knutson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Dragomir</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Kreidberg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">794</biblScope>
+			<biblScope unit="page">155</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Kreidberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Bean</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-M</forename><surname>Désert</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">793</biblScope>
+			<biblScope unit="page">69</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+	<note>ApJL</note>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Kreidberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Line</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Bean</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">814</biblScope>
+			<biblScope unit="page">66</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Kümmel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Kuntschner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Walsh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Bushouse</surname></persName>
+		</author>
+		<title level="m">Master sky images for the WFC3 G102 and G141 grisms</title>
+		<imprint>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+<note type="report_type">Tech. rep</note>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Kümmel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Walsh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Pirzkal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Kuntschner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Pasquali</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">121</biblScope>
+			<biblScope unit="page">59</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<monogr>
+		<title level="m" type="main">WFC3 SMOV proposal 11552: Calibration of the G102 grism</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Kuntschner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Bushouse</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Kümmel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Walsh</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+<note type="report_type">Tech. rep</note>
+	<note>WFC3 SMOV proposal 11552: Calibration of the G141 grism</note>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<monogr>
+		<title level="m" type="main">Revised Flux Calibration of the WFC3 G102 and G141 grisms</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Kuntschner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Kümmel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Walsh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Bushouse</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+<note type="report_type">Tech. rep</note>
+	<note>Revised Flux Calibration of the WFC3 G102 and G141 grisms</note>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Linsky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>France</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">717</biblScope>
+			<biblScope unit="page">1291</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Mandel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJL</title>
+		<imprint>
+			<biblScope unit="volume">580</biblScope>
+			<biblScope unit="page">171</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Mccullough</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Mackenty</surname></persName>
+		</author>
+		<title level="m">Considerations for using Spatial Scans with WFC3</title>
+		<imprint>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+<note type="report_type">Tech. rep</note>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">R</forename><surname>Mccullough</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Crouzet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Deming</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Madhusudhan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">791</biblScope>
+			<biblScope unit="page">55</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Morello</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">P</forename><surname>Waldmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">786</biblScope>
+			<biblScope unit="page">22</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Pál</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">390</biblScope>
+			<biblScope unit="page">281</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pont</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Knutson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">L</forename><surname>Gilliland</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Moutou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">385</biblScope>
+			<biblScope unit="page">109</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Rose</surname></persName>
+		</author>
+		<title level="m">HST Cycle 23 Phase II Proposal Instructions</title>
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+	<note>STScI</note>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">K</forename><surname>Sing</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pont</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">416</biblScope>
+			<biblScope unit="page">1443</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">K</forename><surname>Sing</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">R</forename><surname>Wakeford</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">P</forename><surname>Showman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">446</biblScope>
+			<biblScope unit="page">2428</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Song</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Schneider</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Zuckerman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">652</biblScope>
+			<biblScope unit="page">724</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">B</forename><surname>Stevenson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-M</forename><surname>Désert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Line</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">346</biblScope>
+			<biblScope unit="page">838</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Swain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Deroo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Icarus</title>
+		<imprint>
+			<biblScope unit="volume">225</biblScope>
+			<biblScope unit="page">432</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Swain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Vasisht</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">452</biblScope>
+			<biblScope unit="page">329</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Deroo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Swain</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJL</title>
+		<imprint>
+			<biblScope unit="volume">712</biblScope>
+			<biblScope unit="page">139</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Tsiaras</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">P</forename><surname>Waldmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Rocchetto</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">832</biblScope>
+			<biblScope unit="page">202</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Tsiaras</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Rocchetto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">P</forename><surname>Waldmann</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">820</biblScope>
+			<biblScope unit="page">99</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vidal-Madjar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Lecavelier Des Etangs</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-M</forename><surname>Désert</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">422</biblScope>
+			<biblScope unit="page">143</biblScope>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vidal-Madjar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-M</forename><surname>Désert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Lecavelier Des Etangs</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJL</title>
+		<imprint>
+			<biblScope unit="volume">604</biblScope>
+			<biblScope unit="page">69</biblScope>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">P</forename><surname>Waldmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Deroo</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">766</biblScope>
+			<biblScope unit="page">7</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">P</forename><surname>Waldmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Rocchetto</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">802</biblScope>
+			<biblScope unit="page">107</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">N</forename><surname>Wilkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Deming</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Madhusudhan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">783</biblScope>
+			<biblScope unit="page">113</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

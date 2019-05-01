@@ -1,0 +1,550 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-04T16:20+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Sequential Covariance Calculation for Exoplanet Image Processing</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2015-01-05">5 Jan 2015</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Dmitry</forename><surname>Savransky</surname></persName>
+							<email>ds264@cornell.edu</email>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Sibley School of Mechanical and Aerospace Engineering</orgName>
+								<orgName type="institution" key="instit2">Cornell University</orgName>
+								<address>
+									<postCode>14853</postCode>
+									<settlement>Ithaca</settlement>
+									<region>NY</region>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Sequential Covariance Calculation for Exoplanet Image Processing</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2015-01-05">5 Jan 2015</date>
+						</imprint>
+					</monogr>
+					<note type="submission">Received ; accepted -2 -</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>Subject headings: methods: analytical -methods: numerical -techniques: image processing</keywords>
+			</textClass>
+			<abstract>
+				<p>Direct imaging of exoplanets involves the extraction of very faint signals from highly noisy data sets, with noise that often exhibits significant spatial, spectral and temporal correlations. As a results, a large number of post-processing algorithms have been developed in order to optimally decorrelate the signal from the noise. In this paper, we explore four such closely related algorithms, all of which depend heavily on the calculation of covariances between large data sets of imaging data. We discuss the similarities and differences between these methods, and demonstrate how the use sequential calculation techniques can significantly improve their computational efficiencies.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>In the last twenty years, the existence of exoplanets (planets orbiting stars other than our own sun) has gone from conjecture to established fact. The accelerating rate of exoplanet discovery has generated a wealth of important new knowledge, and is due mainly to the development and maturation of a large number of technologies that drive a variety of planet detection methods. We have now confirmed nearly one thousand exoplanets, with several thousand additional candidates already identified ( <ref type="bibr" target="#b3">Batalha et al. 2013</ref>). The majority of these detections were made indirectly, by searching for the effects of a planet on its target star either via gravitational interaction as in Doppler spectroscopy surveys, or for direct blocking of starlight as in transit photometry.</p><p>While indirect detection methods have proven very successful in discovering exoplanets, they are dependent on collecting multiple orbits of data and are thus biased towards short-period planets. Direct imaging, on the other hand, is biased towards planets on larger orbits, making it highly complementary to the indirect methods. Together, these techniques can significantly advance our understanding of planet formation and evolution at all orbital scales. Additionally, direct imaging provides the most straightforward way of getting planet spectra, which are invaluable to the study of planetary and atmospheric compositions and can serve as proxies for planet mass measurements ( <ref type="bibr" target="#b1">Barman et al. 2011</ref>). For these reasons, there is now a concentrated effort to develop direct exoplanet imaging capability, both for ground based telescopes and for future space observatories. At the same time, there are multiple groups working on the post-processing aspect of planetary imaging, and developing more advanced algorithms for extracting planetary signals from highly noisy backgrounds.</p><p>Giant planets are typically millions of times fainter than their host stars, with the very brightest (and youngest) emitting approximately 10 5 times less light than their parent stars in the infra-red. Earth-like planets reflect one part in 10 billion of light from their host stars. Therefore, we require specially-designed, dedicated instrumentation to directly image planets. This is usually some form of coronagraph and wavefront control system, with many different iterations currently under development. While the instrument is designed to take care of both the diffraction and dynamic range problems that make exoplanet imaging so difficult, the final science images still contain some residual noise at approximately the level of the expected planet signal. This noise comes from a variety of sources, including imperfections in the instrument optics, non-common path errors in instruments with dedicated wavefront sensors, and (especially for ground-based instruments) uncorrected residuals from an adaptive optics (AO) system working to counter the effects of atmospheric turbulence. The different types of noise also have different spatial and temporal distributions -while detector readout noise and shot noise are completely random in space and time, noise from optical aberrations and AO residuals (referred to as speckles) will be correlated on the scale of the planet signal and will often persist through many subsequent images.</p><p>Multiple post-processing schemes have been proposed to improve the odds of extracting a planet signal. In general, all of these attempt to model the point spread function <ref type="bibr">(PSF)</ref> of the instrument, incorporating all static and quasi-static errors, and then subtract this (or decorrelate it) from the science image to reveal the residual planet signal. This template PSF is constructed from data taken by the same instrument, but in which no planet signal is present in the same spatial location. These data sets can either be historical libraries of other targets known not to have companions (or, at least, not to have companions that would appear in the same part of the image as the current target), or images of the same target star but with the planet signal appearing in different parts of the image plane. The latter can be accomplished in a variety of ways-by producing angularly differentiated data by turning off the telescope de-rotator on ground based instruments (or spinning space-based observatories in between exposures) ( <ref type="bibr" target="#b11">Marois et al. 2006</ref>); or by simultaneously imaging in multiple wavelengths, as with an integral field spectrograph ( <ref type="bibr" target="#b14">Racine et al. 1999</ref>); or by imaging in multiple polarizations ( <ref type="bibr" target="#b18">Stam et al. 2004</ref>). All of these techniques produce data sets with spatially correlated noise, and decorrelated signal. Once a data set of this sort has been created, it is possible to model the underlying noise distribution and to generate a PSF template consistent with the data but not containing the planet signal we wish to extract. <ref type="figure">Figure 1</ref> presents a sample data set of this type, showing simulated data for the Gemini Planet Imager ( <ref type="bibr" target="#b10">Macintosh et al. 2012</ref>). The first image shows a single 60 second exposure with high shot and speckle noise. The second image shows the summation of one hour of such images, which reveal the static and quasi-static elements of the noise.</p><p>The third image demonstrates the residuals after PSF subtraction, revealing the three planet signals in the original data set.</p><p>In §2, we present a standardized notation and problem statement and briefly derive some of the most commonly used post-processing techniques, demonstrating the ubiquity of the image-to-image covariance calculation. In §3, we discuss how to most efficiently calculate the covariance and its inverse, using both sequential calculations and deriving a method to account for small changes in the reference image set. We conclude with a sample implementation highlighting the utility of these techniques.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Signal Extraction</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">Problem Statement and Notation</head><p>We assume that we have a set of reference images containing random realizations drawn from some distribution of noise. We also have a target image containing both a noise component drawn from the same distribution, as well as the signal we wish to discover.</p><p>Frequently, the reference and target images are drawn from the same data set, with the target signal appearing in different spatial locations throughout the data. Given this set of reference images and the target image, we wish to construct an estimate that minimizes the distance from the reference set and maximizes the distance from the target image in the spatial location of the planet signal (thereby minimizing the noise). We write our set of n vectorized reference images of dimension p as {r i } n i=1 , where r i ∈ ℜ p , and the (vectorized) target image as t. The ordering of the vectorization is arbitrary, save that it be applied in the same way to each image (i.e., the final vectors can be stacked image columns, or transposed, stacked image rows, or any other consistent method of reforming a 2D image of p elements into a column vector of dimension p). We will use an overbar to represent the vector-mean subtracted value of each vector:</p><formula xml:id="formula_0">¯ t = t − µ(t) ; ¯ r i = r i − µ(r i ) ,<label>(1)</label></formula><p>where</p><formula xml:id="formula_1">µ(x) ( p i=1 (x i ))/p for a p-element vector x with components x 1 , x 2 , . . . x p .</formula><p>We form a n × p matrix R whose rows are the transposed elements of the set {r i }:</p><formula xml:id="formula_2">R = [r 1 , r 2 , . . . , r n ] T ,<label>(2)</label></formula><p>and the analgous row-mean subtracted matrix:</p><formula xml:id="formula_3">¯ R = [¯ r 1 , ¯ r 2 , . . . , ¯ r n ] T .<label>(3)</label></formula><p>Therefore the (image-to-image) sample covariance of the reference set is given by:</p><formula xml:id="formula_4">S 1 p − 1 ¯ R ¯ R T ,<label>(4)</label></formula><p>where S has dimension n × n. The pixel to pixel covariance is thus:</p><formula xml:id="formula_5">S ′ 1 n − 1 ¯ R T ¯ R ,<label>(5)</label></formula><p>and has dimension p × p.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.">Locally Optimal Combination of Images</head><p>One method of solving the stated problem is to generate a least-squares fit to the target image via a linear combination of the reference set. The first implementation of this method for exoplanet imaging was described inLafrenì ere et al. <ref type="formula" target="#formula_2">(2007)</ref> as Locally Optimal</p><p>Combination of Images (LOCI). Written in the formalism of §2.1, this approach requires finding the n-dimensional vector of optimal coefficients, c, such that:</p><formula xml:id="formula_6">c = arg min c t − R T c<label>(6)</label></formula><p>where the norm is typically ℓ 2 .</p><p>The LOCI procedure is analogous to solving the overdetermined linear system:</p><formula xml:id="formula_7">R T c = t .<label>(7)</label></formula><p>As there are typically more pixels than independent images (i.e., p &gt; n), a unique solution will not exist for Equation <ref type="bibr">(7)</ref>. However, when RR T is full rank, the left-pseudo-inverse of R T gives the minimum least-squares error solution:</p><formula xml:id="formula_8">c = (RR T ) −1 Rt ,<label>(8)</label></formula><p>which satisfies Equation (6) for the ℓ 2 norm. The case where RR T is not directly invertible is treated in the next section.</p><p>The estimated signal is the subtraction of the linear combination of references from the target image:</p><formula xml:id="formula_9">ˆ s = t − R T c = (I − R T (RR T ) −1 R)t (9)</formula><p>where I is the identity matrix. It is important to remember that Equation <ref type="formula" target="#formula_8">(8)</ref> is not an exact solution for Equation <ref type="formula" target="#formula_7">(7)</ref>, but rather a solution to Equation (6). If an exact solution existed, this would imply that the signal is in the image of the reference set-that is, a linear combination of the noise-and we would get a zero signal estimate, making this method inappropriate for this task.</p><p>We can also perform the same least-squares fitting to the target image using the zero-mean reference set ( ¯ R) rather than the original reference set (R). All of the steps in</p><p>Equations <ref type="formula" target="#formula_6">(6)</ref>- <ref type="formula">(9)</ref> remain the same, and our signal estimate is now:</p><formula xml:id="formula_10">ˆ s = I − ¯ R T S −1 p − 1 ¯ R ¯ t .<label>(10)</label></formula><p>The signal estimates in Equations <ref type="formula">(9)</ref> and <ref type="formula" target="#formula_0">(10)</ref> are not equal. In particular, Equation <ref type="formula" target="#formula_0">(10)</ref> generates a zero-mean estimate (i.e., µ(ˆ s) = 0) whereas Equation <ref type="formula">(9)</ref> generates a vector with mean proportional to the difference between the sample means of the target and references and the underlying distribution mean. The operator in Equation <ref type="formula" target="#formula_0">(10)</ref> is also approximately mean and norm preserving, meaning that if it is applied to t rather than ¯ t, the resulting signal estimate would have approximately the same mean as the target image, with the variance of the signal estimate for the mean-subtracted target image. From the definition of the covariance, we see that S can be written as:</p><formula xml:id="formula_11">S = 1 p − 1 RR T − pµ R µ T R (11)</formula><p>where µ R is the vector of row means of R:</p><formula xml:id="formula_12">µ R R p 1 p×1 ,<label>(12)</label></formula><p>and 1 p×1 is the p element column vector of ones. By the Sherman-Morrison formula <ref type="bibr" target="#b16">(Sherman &amp; Morrison 1950)</ref>, this means that</p><formula xml:id="formula_13">S −1 = (p − 1) (RR T ) −1 + p (RR T ) −1 µ R µ T R (RR T ) −1 1 − pµ T R (RR T ) −1 µ R ,<label>(13)</label></formula><p>and</p><formula xml:id="formula_14">(RR T ) −1 = 1 p − 1 S −1 − p p − 1 S −1 µ R µ T R S −1 1 + p p−1 µ T R S −1 µ R .<label>(14)</label></formula><p>-9 -</p><p>The second term in Equation <ref type="formula" target="#formula_0">(14)</ref> scales as p/(p − 1) 2 and so goes to zero in the limit as p → ∞. For finite matrix sizes, the difference between S −1 and (p − 1)(RR T ) −1 is a small value proportional to the difference between the calculated sample means and the true means of the underlying distribution from which the references and target are sampled.</p><p>The zero-mean properties of Equation <ref type="formula" target="#formula_0">(10)</ref> make it easier to extract unbiased estimates of the scene, so we will use this form going forward.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.">Covariance Pseudoinverses</head><p>Of course, S is only guaranteed to be positive semi-definite and is therefore not necessarily invertible (S is only positive definite when all rows of R are linearly independent). In these cases we can use pseudoinverses of the covariance to calculate the signal estimates. One option is to use singular value decomposition (SVD) based inversion as in <ref type="bibr" target="#b12">Marois et al. (2010)</ref>, which describes this technique as part of the Speckle-Optimize Subtraction for Imaging Exoplanets (SOSIE) pipeline. Real matrix S can be decomposed as</p><formula xml:id="formula_15">S = UΣV T ,<label>(15)</label></formula><p>where Σ is a positive semi-definite diagonal matrix of singular values and U and V are unitary. Because S is square, all of these matrices will be square and of the same dimensions as S. The pseudoinverse of S can then be expressed as:</p><formula xml:id="formula_16">S + = V Σ + U T ,<label>(16)</label></formula><p>where Σ + is the pseudoinverse of Σ-non-zero entries of Σ are replaced by their reciprocals while zero (or small) values are left as zeros. Assuming that the diagonal of Σ is ordered by decreasing magnitude (these values can always be reordered as the columns of U and V form orthogonal bases for the left and right singular vectors of S), this can be expressed as:</p><formula xml:id="formula_17">Σ + =   I P ×P 0 P ×(n−P ) 0 (n−P )×P 0 (n−P )×(n−P )   Σ −1<label>(17)</label></formula><p>where P is the number of singular values (diagonals of Σ) that are greater than a desired tolerance, ǫ, and where 0 m×n represents an m × n matrix of zeroes and I n×n represents an n × n identity matrix. Equation (10) thus becomes:</p><formula xml:id="formula_18">ˆ s = I − 1 N − 1 ¯ R T V Σ + U T ¯ R ¯ t .<label>(18)</label></formula><p>Alternatively, we can use eigendecomposition, which, in this case, is mathematically equivalent to SVD. S is Hermitian (symmetric in the strictly real case) and therefore is diagonizable as:</p><formula xml:id="formula_19">SΦ = ΦΛ ,<label>(19)</label></formula><p>where Φ is the unitary n × n matrix whose columns are the eigenvectors of S and form an orthonormal basis, and Λ is a diagonal n × n matrix whose entries are the corresponding eigenvalues. We assume that Φ and Λ are ordered such that the eigenvalues decrease from largest to smallest along the diagonal of Λ. Thus,</p><formula xml:id="formula_20">S −1 = ΦΛ −1 Φ T ,<label>(20)</label></formula><p>where the pseudoinverse of Λ may be used in cases of small or zero eigenvalues to find the pseudoinverse of S. This is calculated in the same manner as the pseudoinverse of Σ in Equation (17).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4.">KarhunenLò eve Image Processing</head><p>While the previous section describes viable methods for regularizing the covariance and achieving an inverse calculation, there is another possible approach: Rather than using a pseudoinverse, we can project the target signal onto a subset of an optimally energy compacting basis using the KarhunenLò eve (KL) theorem, as in <ref type="bibr" target="#b17">Soummer et al. (2012)</ref>.</p><p>To do so, we define:</p><formula xml:id="formula_21">Z Φ T ¯ R ,<label>(21)</label></formula><p>where Z is the n × p matrix of KL transform vectors and Φ is the matrix defined by <ref type="bibr">Equation (19)</ref>.</p><p>From our earlier definition of the reference set, we know that the matrix ZZ T will be positive semi-definite in the general case (and positive-definite when all elements of the reference set are linearly independent), and thus has a unique principal square root <ref type="bibr" target="#b6">(Horn &amp; Johnson 2012)</ref>. Using the shorthand B = √ A ⇐⇒ BB = A for the matrix square root, we can write:</p><formula xml:id="formula_22">√ ZZ T = Φ T ¯ R(Φ T ¯ R) T = ( p − 1) √ Φ T SΦ = ( p − 1) √ Λ .<label>(22)</label></formula><p>Defining the diagonal matrix G (where again the pseudo-inverse of Λ can be used in cases of zero eigenvalues of S) as:</p><formula xml:id="formula_23">G 1 √ p − 1 √ Λ −1 ,<label>(23)</label></formula><p>we can write the zero row mean, normalized version of Z as:</p><formula xml:id="formula_24">¯ Z GZ .<label>(24)</label></formula><p>The matrix ¯ Z is our linear transform operator and is a decorrellating, optimally compacting basis for ¯ R ( <ref type="bibr" target="#b15">Rao &amp; Yip 2000)</ref>. In order to drop any zero eigenvalues in the case where the reference set elements are not linearly independent, and to avoid overfitting the target, ¯ Z is truncated to k rows:</p><formula xml:id="formula_25">¯ Z k = I k ¯ Z ,<label>(25)</label></formula><p>where I k is the n × n identity matrix truncated to the first k rows (final dimension k × n):</p><formula xml:id="formula_26">I k = I k×k 0 k×(n−k) .<label>(26)</label></formula><p>To reconstruct the target image t we project it onto ¯ Z k :</p><formula xml:id="formula_27">ˆ t = ¯ Z T k ¯ Z k t ,<label>(27)</label></formula><p>and, as before, recover the signal by subtracting this from the original image:</p><formula xml:id="formula_28">ˆ s = I − ¯ Z T k ¯ Z k ¯ t .<label>(28)</label></formula><p>This is equivalent to:</p><formula xml:id="formula_29">ˆ s = I − 1 p − 1 ¯ R T ΦΛ −1 F Φ T ¯ R ¯ t<label>(29)</label></formula><p>where F is the matrix formed by padding the transpose of I k with n − k zero columns:</p><formula xml:id="formula_30">F =   I k×k 0 k×(n−k) 0 (n−k)×k 0 (n−k)×(n−k)   .<label>(30)</label></formula><p>This procedure has been titled KarhunenLò eve Image Processing (KLIP) ( <ref type="bibr" target="#b17">Soummer et al. 2012</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.5.">Hotelling Observer</head><p>Finally, we have the case of the Hotelling Observer ( <ref type="bibr" target="#b2">Barrett et al. 2006;</ref><ref type="bibr" target="#b4">Caucci et al. 2007</ref>), the optimal linear discriminant whose test statistic is calculated via the inverse of the full data covariance. For a single image set, in our notation, this statistic would be:</p><formula xml:id="formula_31">(S ′ ) −1 ˆ s T t<label>(31)</label></formula><p>where S ′ is the pixel to pixel covariance defined in Equation <ref type="formula" target="#formula_5">(5)</ref>  As the dimensionality of the full data covariance is much larger than that of the image-to-image covariance for typical data sets, a direct inversion may be more difficult, and significantly more data is required for the matrix to be well conditioned ( <ref type="bibr" target="#b9">Lawson et al. 2012</ref>). This has led to multiple proposed decompositions for the data covariance, with some factors estimated via simulated data, and certain simplifying assumptions including exact knowledge of the background and full statistical knowledge of the PSF as in <ref type="bibr" target="#b4">Caucci et al. (2007)</ref>. Implementations of these calculations have been successfully demonstrated on specialized high-performance computing environments ( <ref type="bibr" target="#b5">Caucci et al. 2009</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Sequential and Neighboring Calculations</head><p>All of the techniques described in the previous section make heavy use of the covariance of the reference data set. For the LOCI and KLIP-like algorithms, it is often necessary to calculate hundreds of covariance matrices of reference sets containing many of the same images. This is especially true when using data sets derived from angular or spectral diversity, where the reference set for each individual image is the remainder of the data set, minus a small number of images where the planet signal would occur in the same general location as in the target image. For Hotelling observers and library-based templates we wish to calculate large covariance matrices possibly including all of the images taken by an instrument to date, which can be a very time and memory intensive operation. Finally, when applying region-based implementations of KLIP and LOCI we may wish to make small modifications to the regions used to optimize the processes (see <ref type="bibr" target="#b12">Marois et al. (2010)</ref> and <ref type="bibr" target="#b13">Pueyo et al. (2012)</ref> for detailed discussions on LOCI optimization zones). In each case, we can greatly improve the efficiency of our calculations by replacing batch and redundant processes with sequential ones (see <ref type="bibr" target="#b19">Stengel (1994)</ref> for a general discussion on sequential processing techniques).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Mean and Covariance Update</head><p>As a first step in developing the tools specific to our application, we will outline the sequential calculation methods for finding the sample mean and covariance of a data set.</p><p>Given a set of vectors {x i } n 1 we define the sample mean as</p><formula xml:id="formula_32">µ = 1 n n i=1 x i ,<label>(32)</label></formula><p>and sample covariance as</p><formula xml:id="formula_33">S = 1 n − 1 n i=1 (x i − µ)(x i − µ) T .<label>(33)</label></formula><p>Expanding the summation in Equation <ref type="formula" target="#formula_3">(33)</ref>, we have</p><formula xml:id="formula_34">S = 1 n − 1 n i=1 x i x T i − µx T i − x i µ T + µµ T = 1 n − 1 n i=1 x i x T i − µ n i=1 x T i − n i=1 x i µ T + nµµ T = 1 n − 1 n i=1 x i x T i − µnµ T − nµµ T + nµµ T = 1 n − 1 n i=1 x i x T i − nµµ T ,<label>(34)</label></formula><p>where the penultimate step is due to the definition of the mean from Equation (32). Now, let the mean and covariance at time k be denoted by µ k and S k . Then:</p><formula xml:id="formula_35">(k − 1)µ k−1 = k−1 i=1 x i<label>(35)</label></formula><formula xml:id="formula_36">kµ k = k i=1 x i ,<label>(36)</label></formula><p>so that</p><formula xml:id="formula_37">kµ k − (k − 1)µ k−1 = k i=1 x i − k−1 i=1 x i = x k ⇒<label>(37)</label></formula><formula xml:id="formula_38">µ k = (k − 1)µ k−1 + x k k .<label>(38)</label></formula><p>Similarly,</p><formula xml:id="formula_39">(k − 2)S k−1 = k−1 i=1 x i x T i − (k − 1)µ k−1 µ T k−1<label>(39)</label></formula><formula xml:id="formula_40">(k − 1)S k = k i=1 x i x T i − kµ k µ T k ,<label>(40)</label></formula><formula xml:id="formula_41">so (k − 1)S k − (k − 2)S k−1 = k i=1 x i x T i − k−1 i=1 x i x T i − kµ k µ T k + (k − 1)µ k−1 µ T k−1 .<label>(41)</label></formula><p>Substituting µ k−1 with the expression derived from Equation (38), this becomes</p><formula xml:id="formula_42">(k − 1)S k = (k − 2)S k−1 + x k x T k − kµ k µ T k + (k − 1) kµ k − x k k − 1 kµ T k − x T k k − 1 ⇒ (42) S k = k − 2 k − 1 S k−1 + k (k − 1) 2 (x k − µ k )(x k − µ k ) T .<label>(43)</label></formula><p>Alternatively, from Equation (33), we can write</p><formula xml:id="formula_43">(k − 1)S k = k−1 i=1 (x i − µ k )(x i − µ k ) T + (x k − µ k )(x k − µ k ) T<label>(44)</label></formula><p>so the final term in Equation <ref type="formula" target="#formula_3">(43)</ref> becomes</p><formula xml:id="formula_44">(x k − µ k )(x k − µ k ) T = (k − 1)S k − k−1 i=1 (x i − µ k )(x i − µ k ) T .<label>(45)</label></formula><p>Substituting Equation (38) for µ k , the summation in the above equation becomes</p><formula xml:id="formula_45">k−1 i=1 (x i − µ k )(x i − µ k ) T = k−1 i=1 x i x T i − k − 1 k µ k−1 k−1 i=1 x T i − 1 k x k k−1 i=1 x T i − k − 1 k k−1 i=1 x i µ T k−1 − 1 k k−1 i=1 x i x T k + k−1 i=1 (k − 1) 2 k 2 µ k−1 µ T k−1 + k − 1 k 2 µ k−1 x T k + k − 1 k 2 x k µ T k−1 + 1 k 2 x k x T k = k−1 i=1 x i x T i + k − 1 k 2 − (k − 1) µ k−1 µ T k−1 − k − 1 k 2 µ k−1 x T k + x k µ T k−1 − x k x T k =(k − 2)S k−1 + k − 1 k 2 µ k−1 µ T k−1 − µ k−1 x T k − x k µ T k−1 + x k x T k ,<label>(46)</label></formula><p>where we used Equation <ref type="formula" target="#formula_3">(39)</ref> in the final step. Returning to Equation <ref type="formula" target="#formula_4">(45)</ref>, we can now</p><formula xml:id="formula_46">write (x k −µ k )(x k −µ k ) T = (k−1)S k −(k−2)S k−1 − k − 1 k 2 µ k−1 µ T k−1 − µ k−1 x T k − x k µ T k−1 + x k x T k .<label>(47)</label></formula><p>Substituting this back into Equation (43) yields</p><formula xml:id="formula_47">S k = k − 2 k − 1 S k−1 + 1 k (x k − µ k−1 )(x k − µ k−1 ) T .<label>(48)</label></formula><p>Both versions of the covariance update (Equation <ref type="formula" target="#formula_3">(43)</ref> and Equation <ref type="formula" target="#formula_4">(48)</ref>) may be written as</p><formula xml:id="formula_48">S k = αS k−1 + βv k v T k ,<label>(49)</label></formula><formula xml:id="formula_49">with α β v k k−2 k−1 k (k−1) 2 x k − µ k k−2 k−1 1/k x k − µ k−1</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">Square Root and Inverse Updates</head><p>In several applications in §2 we are interested in the inverse of the covariance more so than the covariance itself. Fortunately, there are known, simple matrix decompositions that allow us to update the inverse covariance directly with new sample vectors, rather than updating the covariance and recalculating the inverse at each step. As in <ref type="bibr" target="#b7">Igel et al. (2006)</ref>, it can be shown that the update of the Cholesky decomposition of the covariance,</p><formula xml:id="formula_50">S = LL T (50)</formula><p>where L is a lower triangular matrix with positive diagonal values, can be written as</p><formula xml:id="formula_51">L k = √ αL k−1 + √ α z k 2 1 + β α z k 2 − 1 v k z T k ,<label>(51)</label></formula><p>where z k is the vector defined implicitly by</p><formula xml:id="formula_52">v k = L k−1 z k<label>(52)</label></formula><p>so that</p><formula xml:id="formula_53">z k 2 = v T k L −T k−1 L −1 k−1 v k ,<label>(53)</label></formula><p>where () −T represents the inverse-transpose. Thus, rather than updating the full covariance, we can update its square root (in the Cholesky sense), which is a potentially more useful quantity. However, this approach still requires that we calculate the inverse of L at each time step, whereas we wish to update the inverse covariance, or some decomposition of it, instead.</p><p>By the Sherman-Morrison formula <ref type="bibr" target="#b16">(Sherman &amp; Morrison 1950</ref>)</p><formula xml:id="formula_54">S −1 k = S −1 k−1 α − S −1 k−1 α I + β α v k v T k S −1 k−1 −1 β α v k v T k S −1 k−1 ,<label>(54)</label></formula><p>where I is the identity matrix. Note that in this formulation, we never need to invert v k v T k itself, avoiding any ill-conditioning problems. However, in numerical applications, it is important to always evaluate v k v T k first, before any other matrix multiplications, so as to guarantee that numerical errors do not corrupt the Hermitian property of the resulting matrix. Substituting</p><formula xml:id="formula_55">S −1 = L −T L −1 ,<label>(55)</label></formula><p>Equation <ref type="formula" target="#formula_4">(54)</ref> becomes</p><formula xml:id="formula_56">L −T k L −1 k = L −T k−1 L −1 k−1 α − L −T k−1 L −1 k−1 α I + β α v k v T k L −T k−1 L −1 k−1 −1 β α v k v T k L −T k−1 L −1 k−1 = L −T k−1 √ α I − β α L −1 k−1 I + β α v k v T k L −T k−1 L −1 k−1 −1 v k v T k L −T k−1 L −1 k−1 √ α .<label>(56)</label></formula><p>Again by the Sherman-Morrison formula, the bracketed term above can be rewritten as</p><formula xml:id="formula_57">I − β α L −1 k−1 I + β α v k v T k L −T k−1 L −1 k−1 −1 v k v T k L −T k−1 = I + β α L −1 k−1 v k v T k L −T k−1 −1 .<label>(57)</label></formula><p>Defining matrix T and its Cholesky decomposition, M, as:</p><formula xml:id="formula_58">T k I + β α L −1 k−1 v k v T k L −T k−1 and T k = M k M T k ,<label>(58)</label></formula><p>Equation <ref type="formula" target="#formula_5">(56)</ref> becomes</p><formula xml:id="formula_59">L −T k L −1 k = L −T k−1 √ α M −T k M −1 k L −1 k−1 √ α ,<label>(59)</label></formula><p>so the update of the inverse Cholesky factor is simply</p><formula xml:id="formula_60">L −1 k = 1 √ α M −1 k L −1 k−1 .<label>(60)</label></formula><p>Note that many of the inverses in the expressions above need not be directly calculated, but can be replaced with the equivalent, specialized LAPACK routines for solving systems of linear equations (Anderson 1999). All terms of the form A −1 B are the solution of the linear system AX = B, and have multiple dedicated solvers, the choice of which depends on the specific form of A and B.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.">Initialization</head><p>In cases where n is smaller than the dimension of x (as in the initial stages of collecting a large data set) , the covariance is not full rank and so the inverse covariance is undefined.</p><p>Furthermore, the covariance in these cases is not guaranteed to be positive definite so that the Cholesky factor will also be undefined. Even if the final number of samples is greater than the size of each sample vector, this condition will persist in the initialization and early updates of the covariance.</p><p>To address this, we can use an indefinite decomposition (closely related to the Cholesky decomposition -see <ref type="bibr" target="#b20">Watkins (2004)</ref> for details), such as</p><formula xml:id="formula_61">S = ΛDΛ T (61)</formula><p>where Λ is again a lower triangular matrix, while D is a diagonal matrix. Then, Equation</p><p>becomes</p><formula xml:id="formula_63">Λ k D k Λ T k = αΛ k−1 D k−1 Λ T k−1 + βΛ k−1 z k z T k Λ T k−1 ,<label>(62)</label></formula><p>where z k is again defined via</p><formula xml:id="formula_64">v k = Λ k−1 z k .<label>(63)</label></formula><p>Therefore, the factors of this decomposition may be updated as</p><formula xml:id="formula_65">Λ k = √ αΛ k−1 M k (64) D k = G k ,<label>(65)</label></formula><p>where</p><formula xml:id="formula_66">M k G k M T k D k−1 + βz k z T k .<label>(66)</label></formula><p>With this definition, the inverse of Λ k can always be found, even when S k is singular. As the update progresses to a point where S k is positive definite, the diagonal elements of D k will all become positive. At this point, we can convert to the Cholesky factor as</p><formula xml:id="formula_67">L = Λ √ D .<label>(67)</label></formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4.">Cross-Covariance</head><p>In several of these applications, we will want to also produce covariances conditioned on some other set of available information not included in the images themselves. For example, we may want to account for atmospheric conditions, or instrument operating conditions, etc. (see <ref type="bibr" target="#b5">Caucci et al. (2009)</ref> for details). This conditioning is provided by the calculation of the cross-covariance, which can also be updated sequentially. Given a second set of vectors {y i } n 1 , the cross-covariance with</p><formula xml:id="formula_68">{x i } n 1 is xy S = 1 n − 1 n i=1 (x i − x µ)(y i − y µ) T<label>(68)</label></formula><p>where x µ and y µ are now the means of the two sets, respectively. As before, it can be shown</p><formula xml:id="formula_69">that xy S = 1 n − 1 n i=1 x i y T i − n x µ y µ T (69) and xy S k = k − 2 k − 1 xy S k−1 + k (k − 1) 2 (x k − x µ k )(y k − y µ k ) T (70)</formula><p>We now have</p><formula xml:id="formula_70">xy S k = α xy S k−1 + βv k w T k ,<label>(71)</label></formula><p>with all values defined as before, and w k = y k − y µ k or y k − y µ k−1 . Again defining the Cholesky factor of xy S as</p><formula xml:id="formula_71">xy S = xy L xy L T ,<label>(72)</label></formula><p>the Cholesky factor updates are now</p><formula xml:id="formula_72">xy L k = √ α xy L k−1 M k (73) xy L −1 k = 1 √ α M −1 k xy L −1 k−1 (74) where I + β α xy L −1 k−1 v k w T k xy L −T k−1 = M k M T k . (75)</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.5.">Neighboring Covariances</head><p>Finally, there is the case of overlapping subsets of vectors for which we wish to calculate covariances. In the cases of KLIP and LOCI, we will frequently wish to update the covariance with one or more new reference images, but also to remove one or more images from the reference set. A concrete illustration of this is the case of applying the algorithm to an angular diversity data set, where the noise in each image remains nearly static, while the planet signal moves about the center of rotation. The reference set for each image in the data set is the subset of images where the planet signal is a minimum angular distance away from its location in the target image. Thus, reference sets will be highly overlapping, with a relatively small number of images added or dropped in each subsequent reference set. This is equivalent to calculating the covariance for a matrix ¯ R with one or more rows </p><formula xml:id="formula_73">0 (i−1)×1 0 (n−i)×1</formula><p>0 ((i−1)×(n−i)</p><formula xml:id="formula_74">I (n−i)×(n−i)   ,<label>(76)</label></formula><p>with 0 m×n representing an m × n matrix of zeroes and I n×n the n × n identity matrix. The associated covariance would then equal:</p><formula xml:id="formula_75">S −i = 1 p − 1 H ¯ R ¯ R T H T ,<label>(77)</label></formula><p>which is simply the removal of the ith row and column from S.</p><p>A less trivial case occurs when we wish to calculate the covariance of ¯ R having added or removed one or more columns -equivalent to adding and subtracting pixel locations in the image. This can be useful when you are working on optimizing zones in LOCI (see In order to describe this situation, we now define two non-intersecting sets of vectors {x i } n 1 and {y i } m 1 with sample means µ x , µ y and sample covariances S x , S y , respectively. Returning to the definition in Equation (32) we see that the total sample mean of the union of the two sets (represented by x ∪ y) is:</p><formula xml:id="formula_76">µ x∪y = 1 n + m nµ x + mµ y .<label>(78)</label></formula><p>Similarly, from Equation (34) we can write:</p><formula xml:id="formula_77">S x = 1 n − 1 n i=1 x i x T i − nµ x µ T x<label>(79)</label></formula><formula xml:id="formula_78">S y = 1 m − 1 m i=1 y i y T i − mµ y µ T y<label>(80)</label></formula><formula xml:id="formula_79">S x∪y = 1 n + m − 1 n i=1 x i x T i + m i=1 y i y T i − (n + m)µ x+y µ T x∪y .<label>(81)</label></formula><p>Substituting the first two equations into the third yields:</p><formula xml:id="formula_80">S x∪y = 1 n + m − 1 (n − 1)S x + (m − 1)S y + nµ x µ T x + mµ y µ T y − 1 n + m nµ x + mµ y nµ x + mµ y T = 1 n + m − 1 (n − 1)S x + (m − 1)S y + nm n + m µ x − µ y µ x − µ y T .<label>(82)</label></formula><p>Rewriting Equation (81) in a slightly different way, and substituting in Equation (78) we get:</p><formula xml:id="formula_81">S y = 1 m − 1 (n + m − 1)S x+y − (n − 1)S x − nµ x µ T x − mµ y µ T y + (n + m)µ x+y µ T x+y = 1 m − 1 (n + m − 1)S x+y − (n − 1)S x − n(n + m) m µ x − µ x∪y µ x − µ x∪y T .<label>(83)</label></formula><p>Equations <ref type="formula" target="#formula_2">(82)</ref> and <ref type="formula" target="#formula_3">(83)</ref> give us the ability to quickly update a covariance by adding and removing elements from the reference set without recalculating the entire covariance matrix, leading a significantly smaller number of operations, especially when the total data set is significantly larger than the number of images added and dropped for each reference set.</p><p>In the case where only one vector is being added and removed at each iteration, we can write a single set of update equations:</p><formula xml:id="formula_82">µ k+1 = µ k + 1 N − 1 [x k−1 − x k ]<label>(84)</label></formula><formula xml:id="formula_83">S k+1 = S k + N − 1 (N − 2) 2 x k−1 − µ k+1 x k−1 − µ k−1 T − (x k − µ k ) (x k − µ k ) T<label>(85)</label></formula><p>where a set of N sample vectors is taken N − 1 at a time, with vector x k dropped and vector x k−1 added at each step. Thus, S k and µ k are always the covariance and mean of the subset {x i } i =k of the sample vector set {x i } N i=1 . <ref type="figure">Figure 2</ref> demonstrates the utility of these equations by comparing the execution time of two programs (running in the same environment), which calculate all of the covariances of subsets of sample vectors drawn from an increasing data set. Note that both axes of this figure use logarithmic scales. The first program, represented by the dashed curve, calculates all covariances from scratch, and has geometrically increasing execution time.</p><p>The second program, represented by the solid curve, uses equations <ref type="formula" target="#formula_2">(82)</ref> and <ref type="formula" target="#formula_3">(83)</ref>   <ref type="figure">Figure 3</ref> plots the maximum differences between covariances calculated by the two codes, which increase with the number of sample vectors, but remain within a factor of 10 of the data type precision.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Conclusions</head><p>We have presented a group of techniques that can significantly improve the efficiency of calculations associated with some of the most frequently employed post-processing techniques for planetary imaging. In particular, the introduction of sequential and neighboring covariance calculations can turn highly intensive calculations into relatively simple processes that can be run on conventional hardware in real time. The increased computational speed has the additional benefit of allowing the user to more freely vary other parameters in the computation, which can be very important for algorithms such as  </p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head></head><label></label><figDesc>(c.f., Caucci et al. (2007) Equations 16-17).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head></head><label></label><figDesc>removed. As demonstrated inLafrenì ere et al. (2007) and elsewhere, removing rows from the ¯ R matrix is equivalent to simply removing rows and columns from the S matrix calculated from the original ¯ R. For example, we can represent the removal of the ith row of ¯ R to form the truncated matrix ¯ R −i as ¯ R −i = H ¯ R, where H is a block diagonal identity matrix with all zeros in the ith column: H   I (i−1)×(i−1) 0 (n−i)×(i−1)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Marois et al.</head><label></label><figDesc>(2010) for discussion) or applying KLIP in varying or overlapping annular regions. It is also applicable to similar optimizations that can be attempted for the Hotelling observer, and can be used together with the sequential calculation of the Hotelling covariance described above.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head></head><label></label><figDesc>Fig. 1.-Left: Simulated 60 second single exposure using the Gemini Planet Imager instrument. The bright spots are astrometric calibration spots generated by the instrument. The bright lobes in the dark region are due to atmospheric turbulence and point along the major wind direction. Center : One hour of simulated data comprised of 60 second exposures, derotated and summed. One planet is clearly visible with a second barely detectable. Right: PSF subtracted, summed version of the data set. An additional planet becomes visible.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Fig. 2 .Fig. 3 .</head><label>23</label><figDesc>Fig. 2.-Normalized execution time of the calculation of the covariance matrices of all subsets of N − 2, 10 pixel, sample vectors from a set of N vectors, averaged over 100 executions. The dashed curve represents the (geometrically increasing) execution time of code which calculates each covariance from scratch, whereas the solid curve represents the (linearly increasing) execution time of code which uses update equations (82) and (83).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" validated="false"><head></head><label></label><figDesc>to update covariances and has strictly linearly increasing execution time. All times are normalized by the minimum execution time of the second program. It is clear that in applications where we must continuously evaluate covariances of closely related data sets, this approach can lead to significant decreases in computation time.</figDesc><table></table></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Anderson</surname></persName>
+		</author>
+		<title level="m">LAPACK Users&apos; Guide</title>
+		<meeting><address><addrLine>Siam</addrLine></address></meeting>
+		<imprint>
+			<date type="published" when="1999" />
+			<biblScope unit="volume">9</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">S</forename><surname>Barman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Macintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Q</forename><forename type="middle">M</forename><surname>Konopacky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marois</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">733</biblScope>
+			<biblScope unit="page">65</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Barrett</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Myers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Devaney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Dainty</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the Optical Society of America. A, Optics, image science, and vision</title>
+		<imprint>
+			<biblScope unit="volume">23</biblScope>
+			<biblScope unit="page">3080</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">M</forename><surname>Batalha</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">F</forename><surname>Rowe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">T</forename><surname>Bryson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal Supplement Series</title>
+		<imprint>
+			<biblScope unit="volume">204</biblScope>
+			<biblScope unit="page">24</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Caucci</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Barrett</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Devaney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Rodríguez</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the Optical Society of America A</title>
+		<imprint>
+			<biblScope unit="volume">24</biblScope>
+			<biblScope unit="page">13</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Caucci</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Barrett</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Rodriguez</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Opt. Express</title>
+		<imprint>
+			<biblScope unit="volume">17</biblScope>
+			<biblScope unit="page">10946</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Horn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">R</forename><surname>Johnson</surname></persName>
+		</author>
+		<title level="m">Matrix analysis</title>
+		<imprint>
+			<publisher>Cambridge university press</publisher>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Igel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Suttorp</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Hansen</surname></persName>
+		</author>
+		<title level="m">Proceedings of the 8th annual conference on Genetic and evolutionary computation</title>
+		<meeting>the 8th annual conference on Genetic and evolutionary computation</meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2006" />
+			<biblScope unit="page" from="453" to="460" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lafrenì Ere</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Doyon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Nadeau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Artigau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical journal</title>
+		<imprint>
+			<biblScope unit="volume">660</biblScope>
+			<biblScope unit="page">770</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">R</forename><surname>Lawson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Frazin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Barrett</surname></persName>
+		</author>
+		<title level="m">SPIE Astronomical Telescopes+ Instrumentation, International Society for Optics and Photonics</title>
+		<imprint>
+			<date type="published" when="2012" />
+			<biblScope unit="page" from="844722" to="844722" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">A</forename><surname>Macintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Anthony</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Atwood</surname></persName>
+		</author>
+		<title level="m">Proc. SPIE</title>
+		<meeting>SPIE</meeting>
+		<imprint>
+			<date type="published" when="2012" />
+			<biblScope unit="volume">8446</biblScope>
+			<biblScope unit="page">84461</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lafreniere</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Doyon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Macintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Nadeau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">641</biblScope>
+			<biblScope unit="page">556</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Macintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Véran</surname></persName>
+		</author>
+		<title level="m">Proc. SPIE</title>
+		<meeting>SPIE</meeting>
+		<imprint>
+			<date type="published" when="2010" />
+			<biblScope unit="volume">7736</biblScope>
+			<biblScope unit="page">77361</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Pueyo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Crepp</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Vasisht</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal Supplement Series</title>
+		<imprint>
+			<biblScope unit="volume">199</biblScope>
+			<biblScope unit="page">6</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Racine</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Walker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Nadeau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Doyon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marois</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Publications of the Astronomical Society of the Pacific</title>
+		<imprint>
+			<biblScope unit="volume">111</biblScope>
+			<biblScope unit="page">587</biblScope>
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<monogr>
+		<title level="m" type="main">The transform and data compression handbook</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">R</forename><surname>Rao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">C</forename><surname>Yip</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2000" />
+			<publisher>CRC press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Sherman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Morrison</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Annals of Mathematical Statistics</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="page">124</biblScope>
+			<date type="published" when="1950" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Soummer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Pueyo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Larkin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal Letters</title>
+		<imprint>
+			<biblScope unit="volume">755</biblScope>
+			<biblScope unit="page">28</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Stam</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Hovenier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Waters</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astronomy and Astrophysics</title>
+		<imprint>
+			<biblScope unit="volume">428</biblScope>
+			<biblScope unit="page">663</biblScope>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">F</forename><surname>Stengel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Optimal control and estimation</title>
+		<imprint>
+			<date type="published" when="1994" />
+			<publisher>Dover Publications</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">S</forename><surname>Watkins</surname></persName>
+		</author>
+		<title level="m">Fundamentals of matrix computations</title>
+		<imprint>
+			<publisher>John Wiley &amp; Sons</publisher>
+			<date type="published" when="2004" />
+			<biblScope unit="volume">64</biblScope>
+		</imprint>
+	</monogr>
+	<note>manuscript was prepared with the AAS L A T E X macros v5.2</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

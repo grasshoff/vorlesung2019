@@ -1,0 +1,1953 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-11T12:26+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">TEA: A CODE FOR CALCULATING THERMOCHEMICAL EQUILIBRIUM ABUNDANCES</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2015-05-24">24 May 2015</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jasmina</forename><surname>Blecic</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Physics</orgName>
+								<orgName type="laboratory">Planetary Sciences Group</orgName>
+								<orgName type="institution">University of Central Florida</orgName>
+								<address>
+									<postCode>32816-2385</postCode>
+									<settlement>Orlando</settlement>
+									<region>FL</region>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Joseph</forename><surname>Harrington</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Physics</orgName>
+								<orgName type="laboratory">Planetary Sciences Group</orgName>
+								<orgName type="institution">University of Central Florida</orgName>
+								<address>
+									<postCode>32816-2385</postCode>
+									<settlement>Orlando</settlement>
+									<region>FL</region>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">Oliver</forename><surname>Bowman</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Physics</orgName>
+								<orgName type="laboratory">Planetary Sciences Group</orgName>
+								<orgName type="institution">University of Central Florida</orgName>
+								<address>
+									<postCode>32816-2385</postCode>
+									<settlement>Orlando</settlement>
+									<region>FL</region>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">TEA: A CODE FOR CALCULATING THERMOCHEMICAL EQUILIBRIUM ABUNDANCES</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2015-05-24">24 May 2015</date>
+						</imprint>
+					</monogr>
+					<note type="submission">Submitted to ApJ Supplement Series.</note>
+					<note>SUBMITTED TO ApJ Supplement Series. Preprint typeset using L A T E X style emulateapj v. 8/13/10</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>Subject headings: astrochemistry -molecular processes -methods: numerical -planets and satellites: atmo- spheres -planets and satellites: composition -planets and satellites: gaseous planets</keywords>
+			</textClass>
+			<abstract>
+				<p>We present an open-source Thermochemical Equilibrium Abundances (TEA) code that calculates the abundances of gaseous molecular species. The code is based on the methodology of White et al. (1958) and Eriksson (1971). It applies Gibbs free-energy minimization using an iterative, Lagrangian optimization scheme. Given elemental abundances, TEA calculates molecular abundances for a particular temperature and pressure or a list of temperature-pressure pairs. We tested the code against the method of Burrows &amp; Sharp (1999), the free thermochemical equilibrium code CEA (Chemical Equilibrium with Applications), and the example given by White et al. (1958). Using their thermodynamic data, TEA reproduces their final abundances, but with higher precision. We also applied the TEA abundance calculations to models of several hot-Jupiter exoplan-ets, producing expected results. TEA is written in Python in a modular format. There is a start guide, a user manual, and a code document in addition to this theory paper. TEA is available under a reproducible-research, open-source license via https://github.com/dzesmin/TEA.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">INTRODUCTION</head><p>There are two methods to calculate chemical equilibrium: using equilibrium constants and reaction rates, i.e., kinetics, or minimizing the free energy of a system <ref type="bibr" target="#b3">(Bahn &amp; Zukoski 1960</ref><ref type="bibr">, Zeleznik &amp; Gordon 1968</ref>.</p><p>The kinetic approach, where the pathway to equilibrium needs to be determined, is applicable for a wide range of temperatures and pressures. However, using kinetics for thermochemical equilibrium calculations can be challenging. Chemical equilibrium can be calculated almost trivially for several reactions present in the system, but as the number of reactions increases, the set of numerous equilibrium constant relations becomes hard to solve simultaneously. To have an accurate kinetic assessment of the system, one must collect a large number of reactions and associate them with the corresponding rates. This is not an issue at lower temperatures, where reaction rates are well known. However, at high temperatures, where thermochemical equilibrium should prevail, one needs to know forward and reverse reactions and corresponding reaction rates, which are less well known.</p><p>The advantage of the free energy minimization method is that each species present in the system can be treated independently without specifying complicated sets of reactions a priori, and therefore, a limited set of equations needs to be solved <ref type="bibr" target="#b59">(Zeleznik &amp; Gordon 1960)</ref>. In addition, the method requires only knowledge of the free energies of the system, which are well known, tabulated, and can be easily interpolated or extrapolated.</p><p>Thermochemical equilibrium calculations have been widely used in chemical engineering to model combustion, shocks, detonations and the behaviour of rockets and compressors (e.g., <ref type="bibr" target="#b39">Miller et al. 1990</ref><ref type="bibr" target="#b4">, Belford &amp; Strehlow 1969</ref>. In astrophysics, they have been used to model the solar nebula, the atmospheres and circumstellar envelopes of cool stars, and the volcanic gases on Jupiter's satellite Io (e.g., <ref type="bibr" target="#b28">Lauretta et al. 1997</ref><ref type="bibr" target="#b31">, Lodders &amp; Fegley 1993</ref>  <ref type="bibr" target="#b60">&amp; Fegley 1998)</ref>. Thermochemistry also governs atmospheric composition in vast variety of giant planets, brown dwarfs, and low-mass dwarf stars <ref type="bibr" target="#b31">(Lodders &amp; Fegley 2002</ref><ref type="bibr" target="#b53">, Visscher et al. 2006</ref><ref type="bibr" target="#b54">, 2010a</ref>, and references therein ).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.1.">Chemical Models of Exoplanets</head><p>To perform a comprehensive study of a planetary atmosphere, aside from thermoequilibrium chemistry, one must consider disequilibrium processes like photochemistry, vertical mixing, horizontal transport, and transport-induced quenching ( <ref type="bibr" target="#b41">Moses et al. 2011</ref><ref type="bibr" target="#b20">, 2013</ref><ref type="bibr" target="#b6">, 2014</ref><ref type="bibr" target="#b6">, 2014</ref><ref type="bibr" target="#b28">, Line et al. 2010</ref><ref type="bibr" target="#b55">, Visscher &amp; Moses 2011</ref>). Today, we have 1D chemical models that integrate thermochemistry, kinetics, vertical mixing, and photochemistry ( <ref type="bibr" target="#b29">Line et al. 2011</ref><ref type="bibr" target="#b56">, Visscher et al. 2010b</ref>). These models have an ability to smoothly transition from the thermochemical-equilibrium regime to transportquenched and photochemical regimes. Specifically, in giant planets, we can distinguish three chemical layers: deep within the planetary atmosphere, the temperatures and pressures are so high that chemical reaction timescales are short, ensuring a chemical equilibrium composition; at lower temperatures and pressures higher in the atmosphere, the timescales for chemical reactions slows down, reaching the vertical transport timescale and smoothing the vertical mixing-ratio profile by producing quenched abundances; high in the atmosphere, the host star's ultraviolet radiation destroys stable molecules, driving photochemical reactions.</p><p>Photochemical models today face several difficulties. They lack high-temperature photochemical data, and the list of reactions and associated rate coefficients are not well defined or are conflicted ( <ref type="bibr" target="#b52">Venot et al. 2012</ref><ref type="bibr" target="#b56">, Visscher et al. 2010b</ref>). In addition, the exoplanet photospheres observed with current instruments are sampled within the region of the atmosphere dominated by vertical mixing and quenching, but not by photochemistry <ref type="bibr" target="#b30">(Line &amp; Yung 2013)</ref>.</p><p>The majority of early hot-Jupiter atmospheric models assumed chemical composition consistent with thermochemical equilibrium (e.g., <ref type="bibr" target="#b7">Burrows et al. 2007</ref><ref type="bibr" target="#b18">, Fortney et al. 2005</ref><ref type="bibr" target="#b36">, Marley et al. 2007</ref><ref type="bibr" target="#b19">, Fortney et al. 2010</ref><ref type="bibr" target="#b8">, Burrows &amp; Sharp 1999</ref><ref type="bibr" target="#b45">, Sharp &amp; Burrows 2007</ref><ref type="bibr" target="#b43">, Rogers et al. 2009</ref>). More recently, a variety of 1D photochemical models has been used to explore the compositions of hot Jupiters ( <ref type="bibr" target="#b41">Moses et al. 2011</ref><ref type="bibr" target="#b58">, Zahnle et al. 2009</ref><ref type="bibr" target="#b28">, Line et al. 2010</ref><ref type="bibr" target="#b27">, Kopparapu et al. 2012</ref><ref type="bibr" target="#b30">, Line &amp; Yung 2013</ref><ref type="bibr" target="#b53">, Visscher et al. 2006</ref><ref type="bibr" target="#b56">, 2010b</ref>. A common conclusion of these studies is that in hot atmospheres (T &gt; 1200 K), disequilibrium effects are so reduced that thermochemical equilibrium prevails.</p><p>Using secondary eclipse observations as the most fruitful technique today to assess atmospheric composition (e.g., <ref type="bibr" target="#b25">Knutson et al. 2009a</ref><ref type="bibr" target="#b31">,b, Machalek et al. 2008</ref><ref type="bibr" target="#b48">, Stevenson et al. 2012</ref><ref type="bibr" target="#b20">, Fraine et al. 2013</ref><ref type="bibr">, Crossfield et al. 2012</ref><ref type="bibr" target="#b50">, Todorov et al. 2012</ref><ref type="bibr" target="#b14">, Désert et al. 2009</ref><ref type="bibr" target="#b12">, Deming et al. 2011</ref><ref type="bibr" target="#b13">, Demory et al. 2007</ref><ref type="bibr" target="#b35">, Madhusudhan &amp; Seager 2009</ref><ref type="bibr" target="#b33">, Madhusudhan et al. 2011a</ref><ref type="bibr">, Blecic et al. 2013</ref><ref type="bibr" target="#b6">, 2014</ref>, <ref type="bibr" target="#b30">Line &amp; Yung (2013)</ref> studied the most spectroscopically active species in the infrared on eight hot planets (GJ436b, WASP-12b, WASP-19b, WASP43b, TrES-2b, TrES-3b, HD 189733b, and HD 149026b), with equilibrium temperatures ranging between 744 K and 2418 K. They chose to evaluate the presence of disequilibrium chemistry at 100 mbar, where most secondary-eclipse observations sample, i.e., where their thermal emission weighting functions usually peak. They find that all of the models are consistent with thermochemical equilibrium within 3σ (the work of <ref type="bibr" target="#b48">Stevenson et al. 2010</ref>, however, questions this conclusion for GJ436b). They also show that for the hottest planets, (T 100mb &gt; 1200 K ), CH 4 , CO, H 2 O, and H 2 should be in thermochemical equilibrium even under a wide range of vertical mixing strengths.</p><p>Thermochemical equilibrium calculations are the starting point for initializing models of any planetary atmosphere. In general, thermochemical equilibrium governs the composition of the deep atmospheres of giant planets and brown dwarfs, however, in cooler atmospheres thermoequilibrium calculations are the necessary baseline for further disequilibrium assessment. They can also provide a first-order approximation for species abundances as a function of pressure, temperature, and metallicity for a variety of atmospheres (e.g., <ref type="bibr" target="#b56">Visscher et al. 2010b</ref><ref type="bibr" target="#b31">, Lodders &amp; Fegley 2002</ref>.</p><p>The Gibbs free energy minimization method for calculating thermochemical equilibrium abundances of complex mixtures was first introduced by <ref type="bibr" target="#b57">White et al. (1958)</ref>. Prior to 1958 all equilibrium calculations were done using equilibrium constants of the governing reactions. <ref type="bibr" target="#b57">White et al. (1958)</ref> were the first to develop a method that makes no distinction among the constituent species and does not need a list of all possible chemical reactions and their rates. Rather, it depends only on the chemical potentials of the species involved. To derive the numerical solution, they apply two computational techniques: a steepest-descent method applied to a quadratic fit and the linear programming method.</p><p>Following their methodology, Eriksson (1971) developed the SOLGAS code that calculates equilibrium composition in systems containing ideal gaseous species and pure condensed phases. Subsequent modification of this code were made by <ref type="bibr" target="#b16">Eriksson &amp; Rosen (1973)</ref>, <ref type="bibr" target="#b15">Eriksson (1975), and</ref><ref type="bibr">Be- smann (1977)</ref>, after which the code was modified for astrophysical applications and called SOLAGASMIX by <ref type="bibr" target="#b46">Sharp &amp; Huebner (1990)</ref>, <ref type="bibr" target="#b42">Petaev &amp; Wood (1998)</ref>, <ref type="bibr" target="#b8">Burrows &amp; Sharp (1999), and</ref><ref type="bibr" target="#b45">Sharp &amp; Burrows (2007)</ref>.</p><p>The Gibbs free energy minimization approach has been used by many authors in the exoplanetary field (e.g., <ref type="bibr">Sea- ger 1999</ref><ref type="bibr" target="#b35">, Madhusudhan &amp; Seager 2009</ref><ref type="bibr" target="#b46">, Sharp &amp; Huebner 1990</ref>. In addition to SOLAGASMIX and other proprietary codes (e.g., CONDOR by <ref type="bibr">Fegley &amp; Lod- ders 1994</ref>, and one analytic method to calculate major gaseous species in planetary atmospheres by <ref type="bibr" target="#b8">Burrows &amp; Sharp (1999)</ref>, just one freesoftware code CEA, (Chemical Equilibrium with Applications, http://www.grc.nasa.gov/WWW/CEAWeb, by <ref type="bibr" target="#b21">Gordon &amp; McBride 1994)</ref>, is available to the exoplanet community.</p><p>In This project consists of three major parts: TEA -this code, a radiative-transfer code that models planetary spectra, and a statistical module that compares theoretical models with observations.</p><p>TEA calculates the equilibrium abundances of gaseous molecular species. Given a single T, P point or a list of T, P pairs (the thermal profile of an atmosphere) and elemental abundances, TEA calculates mole fractions of the desired molecular species. The code is based on the Gibbs free energy minimization calculation of <ref type="bibr" target="#b57">White et al. (1958)</ref> and <ref type="bibr" target="#b15">Eriksson (1971)</ref>. TEA uses 84 elemental species and the thermodynamical data for more then 600 gaseous molecular species available in the provided JANAF (Joint Army Navy Air Force) tables (http://kinetics.nist.gov/janaf/, <ref type="bibr" target="#b9">Chase et al. 1982</ref><ref type="bibr" target="#b9">, Chase 1986</ref>. TEA can adopt any initial elemental abundances. For user convenience a table with solar photospheric elemental abundances from <ref type="bibr" target="#b2">Asplund et al. (2009)</ref> is provided.</p><p>The code is written in Python in an architecturally modular format. It is accompanied by detailed documentation, a start guide, the TEA User Manual (Bowman and Blecic), the TEA Code Description document (Blecic and Bowman), and the TEA Theory document (this paper), so the user can easily modify it. The code is actively maintained and available to the scientific community via the open-source development website GitHub.com (https://github.com/dzesmin/TEA, https://github.com/dzesmin/TEA-Examples). This paper covers an initial work on thermochemical calculations of species in gaseous phases. Implementation of condensates is left for future work.</p><p>In this paper, we discuss the theoretical basis for the method applied in the code. Section 2 explains the Gibbs Free energy minimization method; Section 3 describes the general Lagrangian optimization method and its application in TEA; in Section 4 we introduce the Lambda Correction algorithm for handling negative abundances that follow from the Lagrangian method; Section 5 describes the layout of the TEA code; Section 6 explores chemical equilibrium abundance profiles of several exoplanetary atmospheres; Section 7 compares our code to other methods available, and Section 9 states our conclusions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">GIBBS FREE ENERGY MINIMIZATION METHOD</head><p>Equilibrium abundances can be obtained by using different combinations of thermodynamical state functions: temperature and pressure -(t, p), enthalpy and pressure -(H, p), entropy and pressure -(S, p), temperature and volume -(t, v), internal energy and volume -(U, v), etc. Depending on how the system is described, the condition for equilibrium can be stated in terms of Gibbs free energy, helmholtz energy, or entropy. If a thermodynamic state is defined with temperature and pressure, Gibbs free energy (G) is most easily minimized, since those two states are its natural, dependent variables.</p><p>Gibbs free energy represents a thermodynamic potential that measures the useful work obtainable by the system at a constant temperature and pressure. Thus, the Gibbs free energy minimization method minimizes the total chemical potential of all involved species when the system reaches equilibrium.</p><p>The Gibbs free energy of the system at a certain temperature is the sum of the Gibbs free energies of its constituents:</p><formula xml:id="formula_0">G sys (T ) = n i G i (T ) ,<label>(1)</label></formula><p>where G sys (T ) is the total Gibbs free energy of the system for n chemical species, G i (T ) is the Gibbs free energy of a gas species i, and T is the temperature. The total Gibbs free energy of the system is expressed as the sum of the number of moles x of the species i, x i , and their chemical potentials g i (T ):</p><formula xml:id="formula_1">G sys (T ) = n i x i g i (T ) .<label>(2)</label></formula><p>The chemical potential g i (T ) depends on the chemical potential at the standard state g 0 i (T ) and the activity a i ,</p><formula xml:id="formula_2">g i (T ) = g 0 i (T ) + RT ln a i ,<label>(3)</label></formula><p>where R is the gas constant, R = k B N A , and k B and N A are the Boltzmann constant and Avogadro's number, respectively. Activities for gaseous species, which are treated as ideal, are equal to the partial pressures, and for condensates they equal 1:</p><formula xml:id="formula_3">a i = P i = P x i N , for gases (4) a i = 1 , for condensates,<label>(5)</label></formula><p>where P is the total pressure of the atmosphere, N is the total number of moles of all species involved in the system. Hence, Equation (3) for gaseous species becomes:</p><formula xml:id="formula_4">g i (T ) = g 0 i (T ) + RT ln P i .<label>(6)</label></formula><p>Combining Equation (6) with Equation (2), the Gibbs free energy of the system becomes:</p><formula xml:id="formula_5">G sys (T ) = n i x i g 0 i (T ) + RT ln P i ,<label>(7)</label></formula><p>or,</p><formula xml:id="formula_6">G sys (T ) = n i x i g 0 i (T ) + RT ln P + RT ln x i N ,<label>(8)</label></formula><p>For our purposes, it is more convenient to write Equation (8) in unitless terms:</p><formula xml:id="formula_7">G sys (T ) RT = n i=1 x i g 0 i (T ) RT + lnP + ln x i N .<label>(9)</label></formula><p>Equation <ref type="formula" target="#formula_7">(9)</ref> requires a knowledge of the free energy of each species as a function of temperature. These can be obtained from the JANAF tables (http://kinetics.nist.gov/janaf/, <ref type="bibr" target="#b9">Chase et al. 1982</ref><ref type="bibr" target="#b9">, Chase 1986</ref><ref type="bibr" target="#b8">, Burrows &amp; Sharp 1999</ref>, or easily derived from other tabulated functions.</p><p>To extract free energies, g 0 i (T )/RT , from the JANAF tables, we used the expression given in <ref type="bibr" target="#b15">Eriksson (1971)</ref>, Equation <ref type="formula" target="#formula_1">(2)</ref>:</p><formula xml:id="formula_8">g 0 i (T ) RT = 1/R G 0 i − H 0 298 T + ∆ f H 0 298 RT ,<label>(10)</label></formula><p>where </p><formula xml:id="formula_9">g 0 i (T ) is given in J/mol, R = 8.3144621 J/K/mol, H 0</formula><formula xml:id="formula_10">g 0 i (T ) RT = 1/R G 0 i − H 0 298 T + ∆ f H 0 298 1000 RT ,<label>(11)</label></formula><formula xml:id="formula_11">G 0 i − H 0 298 /T</formula><p>is the fourth term in the JANAF tables and ∆ f H 0 298 is the sixth. The free energy function of a species corresponding to a temperature other than those provided in the JANAF tables is calculated using spline interpolation.</p><p>Alternatively, the free energies can be calculated using the eighth term in the JANAF tables, following Equation (3) from <ref type="bibr" target="#b15">Eriksson (1971)</ref>:</p><formula xml:id="formula_12">g 0 i (T ) RT = − ln (10) log 10 (K f ) ,<label>(12)</label></formula><p>where K f is the equilibrium constant of formation. To determine the equilibrium composition, we need to find a non-negative set of values x i that minimizes Equation <ref type="formula" target="#formula_7">(9)</ref> and satisfies the mass balance constraint:</p><formula xml:id="formula_13">n i=1 a i j x i = b j , ( j = 1, 2, ..., m) ,<label>(13)</label></formula><p>where the stoichiometric coefficient a i j indicates the number of atoms of element j in species i (e.g., for CH 4 the stoichiometric coefficient of C is 1 and the stoichiometric coefficient of H is 4), and b j is the total number of moles of element j originally present in the mixture. We use the reference table containing elemental solar abundances given in Asplund et al. <ref type="formula" target="#formula_1">(2009)</ref>  <ref type="table" target="#tab_3">Table 1</ref> for b values. <ref type="bibr" target="#b2">Asplund et al. (2009)</ref> adopt the customary astronomical scale for logarithmic abundances, where hydrogen is defined as log ǫH = 12.00, and log ǫX = log(N X /N H )+12, where N X and N H are the number densities of element X and H, respectively. Thus, their values are given in dex (decimal exponent) units. We transform these values into elemental fractions by number, i.e., ratio of number densities. We convert each species dex elemental abundance into number density and divide it by the hydrogen number density ( <ref type="bibr" target="#b2">Asplund et al. 2009</ref>, Section 3). The final output are fractional abundances (mole mixing fractions), i.e., the ratio of each species' number of moles to the number of moles in the mixture.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">LAGRANGIAN METHOD OF STEEPEST DESCENT</head><p>To find equilibrium abundances of the desired molecular species at a given temperature and pressure, we need to minimize Equation (9). To do so, we have to apply a technique that minimizes a multi-variate function under constraint. There are many optimization techniques used to find the minima of a function subject to equality constraints (e.g., line search method, Dantzig-simplex method for linear programming, Newton-Raphson method, Hessian-conjugate gradient method, Lagrangian steepest-descent method). The main advantage of the Lagrangian steepest-descent method is that the number of equations to solve scales with the number of different types of atoms present in the mixture, which is usually a much smaller number than the possible number of molecular constituents. This allows the code to be executed much faster than in other methods.</p><p>Gradient descent, also known as steepest descent, is an algorithm for finding a local minimum of a function. At each iteration, the method takes steps towards the minimum, where each step is proportional to the negative gradient of the function at the current point. If a function f (x) is defined and differentiable in the neighborhood of a point a, then f (x) decreases most rapidly in the direction of the negative gradient,</p><formula xml:id="formula_14">−∇ f (a). From this, it follows that if b = a − λ∇ f (a), then f (a) &gt; f (b) if λ is small enough.</formula><p>Starting with a guess x 0 for a local minimum of f , and considering a sequence</p><formula xml:id="formula_15">x 0 , x 1 , x 2 , ... such that x n+1 = x n − λ∇ f (x n ), n ≥ 0, one gets f (x 0 ) ≥ f (x 1 ) ≥ f (x 2 ) ≥..</formula><p>. . This sequence of x n converges to a desired local minimum if the correct λ value is assigned. The value of λ can vary at each iteration. If the function f is convex, the local minimum is also the global minimum.</p><p>Our code implements a more complex version of the method outlined above. The problem consists of some function f (x, y) subject to a constraint g(x, y) = C. In this case, we need both f and g to have continuous first partial derivatives. Thus, we introduce a new variable called the Lagrangian multiplier, π, where:</p><formula xml:id="formula_16">Λ(x, y, λ) = f (x, y) ± π (g (x, y) − C) ,<label>(14)</label></formula><p>which allows us to find where the contour of g(x, y) = C tangentially touches f (x, y) ( <ref type="figure" target="#fig_0">Figure 1</ref>). The point of contact is where their gradients are parallel:</p><formula xml:id="formula_17">∇ xy f (x, y) = −π∇ xy g(x, y) .<label>(15)</label></formula><p>The constant π allows these gradients to have different magnitudes. To find the minimum, we need to calculate all partial derivatives of the function Λ, equate them with zero,</p><formula xml:id="formula_18">∇ x,y,π Λ(x, y, π) = 0 ,<label>(16)</label></formula><p>and follow the same iteration procedure as explained above.</p><p>3.1. Lagrangian Method in TEA To implement this in our code, we followed the methodology derived in <ref type="bibr" target="#b57">White et al. (1958)</ref>. We applied an iterative solution to the energy minimization problem, where the mole numbers of the desired molecular species are recomputed at each step and the new direction of steepest descent is calculated. This produces improved mole number values, which however, could be negative. Thus, two short procedures are required in each iteration cycle: solving a set of simultaneous linear equations for an improved direction of descent (described in this Section) and approximately minimizing a convex function of one variable, λ, to ensure that all improved mole number values are positive (Section 4).</p><p>To calculate the direction of steepest descent (following the methodology derived in Section 3) and initiate the first iteration cycle, we first need to solve the mass balance equation, Equation (13). We start from any positive set of values for the initial mole numbers, y = (y 1 , y 2 , ..., y n ), as our initial guess:</p><formula xml:id="formula_19">n i=1 a i j y i = b j ( j = 1, 2, ..., m) .<label>(17)</label></formula><p>To satisfy the mass balance Equation <ref type="formula" target="#formula_0">(17)</ref>, some y i variables must remain as free parameters. In solving these equations, we leave as many free parameters as we have elements in the system, thus ensuring that the mass balance equation can be solved for any number of input elements and output species the user chooses. We set all other y i to a known, arbitrary number. Initially, the starting values for the known species are set to 0.1 moles, and the mass balance equation is calculated. If that does not produce all positive mole numbers, the code automatically sets known parameters to 10 times smaller and tries again. The initial iteration input is set when all mole numbers are positive, and the mass balance equation is satisfied.</p><p>To follow with the Lagrangian method, we denote two terms in Equation <ref type="formula" target="#formula_7">(9)</ref> as:</p><formula xml:id="formula_20">c i = g 0 i (T ) RT + ln P ,<label>(18)</label></formula><p>where P is the pressure in bar. Using c i , we denote the right side of Equation <ref type="formula" target="#formula_7">(9)</ref> as the variable f i (Y ):</p><formula xml:id="formula_21">f i (Y ) = y i c i + ln y i ¯ y ,<label>(19)</label></formula><p>where Y = (y 1 , y 2 , ..., y n ) and ¯ y is the total initial number of moles. The left side of Equation <ref type="formula" target="#formula_7">(9)</ref>, G sys (T )/RT , we denote as function F(Y ):</p><formula xml:id="formula_22">F(Y ) = n i=1 y i c i + ln y i ¯ y .<label>(20)</label></formula><p>Then, we do a Taylor series expansion of the function F about Y . This yields a quadratic approximation Q(X):</p><formula xml:id="formula_23">Q(X) = F(X) X =Y + i ∂F ∂x i X =Y ∆ i +<label>(21)</label></formula><formula xml:id="formula_24">1 2 i k ∂ 2 F ∂x i ∂x k X =Y ∆ i ∆ k .</formula><p>where ∆ i = x i − y i , and x i are the improved mole numbers. This function is minimized using the Lagrangian principle.</p><p>We now introduce Lagrangian multipliers as π j : </p><formula xml:id="formula_25">G(X) = Q(X) + j π j (− i a i j x i + b j ) ,<label>(22)</label></formula><p>and calculate the first derivatives, ∂G/∂x i , of the new function. We equate them to zero to find the minima, ∂G/∂x i = 0. We solve for x i from Equation <ref type="formula" target="#formula_1">(22)</ref> by combining Equation <ref type="formula" target="#formula_0">(17)</ref> and <ref type="formula" target="#formula_0">(19)</ref> with the fact that ¯ x is the sum of the improved mole numbers, ¯ x = n i=1 x i . The improved number of moles, x i , are given as:</p><formula xml:id="formula_26">x i = − f i (Y ) + ( y i ¯ y ) ¯ x + ( m j=1 π j a i j ) y i ,<label>(23)</label></formula><p>while the Lagrangian multipliers, π j , are expressed as:</p><formula xml:id="formula_27">m j=1 π j n i=1 a i j y i = n i=1 y i g 0 i (T ) RT + ln P + ln y i ¯ y ,<label>(24)</label></formula><p>where j iterates over the m elements and i iterates over the n species. ¯ x and ¯ y are the sums of improved and initial number of moles, respectively. Using Equation <ref type="formula" target="#formula_0">(19)</ref>, we can now rewrite Equation <ref type="formula" target="#formula_1">(24)</ref> as:</p><formula xml:id="formula_28">m j=1 π j b j = n i=1 f i (Y ) .<label>(25)</label></formula><p>If we further denote the constants with:</p><formula xml:id="formula_29">r jk = r k j = n i=1 (a i j a ik ) y i ,<label>(26)</label></formula><p>combining Equations <ref type="formula" target="#formula_1">(23)</ref>, <ref type="formula" target="#formula_1">(25)</ref>, and <ref type="formula" target="#formula_1">(26)</ref>, we get the following system of m + 1 equations that can easily be solved:</p><formula xml:id="formula_30">r 11 π 1 + r 12 π 2 + ... + r 1m π m + b 1 u = n i=1 a i1 f i (Y ) , r 21 π 1 + r 22 π 2 + ... + r 2m π m + b 2 u = n i=1 a i2 f i (Y ) , . , . ,<label>(27) .</label></formula><p>,</p><formula xml:id="formula_31">r m1 π 1 + r m2 π 2 + ... + r mm π m + b m u = n i=1 a im f i (Y ) , b 1 π 1 + b 2 π 2 + ... + b m π m + 0 u = n i=1 f i (Y ) ,</formula><p>where:</p><formula xml:id="formula_32">u = −1 + ¯ x/¯ y .<label>(28)</label></formula><p>The solutions to Equations <ref type="bibr">(27)</ref> and <ref type="formula" target="#formula_1">(28)</ref> will give π j and u, and from them using Equation <ref type="formula" target="#formula_1">(23)</ref> we can calculate the next set of improved mole numbers, i.e., an improved direction of descent, ∆ i = x i − y i .</p><p>4. LAMBDA CORRECTION ALGORITHM Solving a system of linear equations (i.e., performing the Lagrangian calculation) can also lead to negative mole numbers for some species, so a short additional step is needed to eliminate this possibility and guarantee a valid result.</p><p>To do so, the difference between the initial and final values given by the Lagrangian calculation, ∆ i = x i − y i , we will call the total distance for each species. To ensure that all improved mole numbers are positive, we introduce a new value, λ, that defines the fraction of the total distance as λ∆ i (see <ref type="figure" target="#fig_1">Figure 2)</ref>. The computed changes, λ∆ i , are considered to be directional numbers indicating the preferred direction of descent the system moves to. Other than providing all positive mole numbers, we determine the value λ so that the Gibbs energy of the system must decrease, i.e., the minimum point is not passed (see Equation 34).</p><p>At each Lagrangian iteration cycle we start with the initial positive values, y i and we get the next set of improved values x i given as:</p><formula xml:id="formula_33">x i = y i + ∆ i .<label>(29)</label></formula><p>Since we do not want any x i to be negative, the variable λ performs a small correction:</p><formula xml:id="formula_34">x ′ i = y i + λ∆ i .<label>(30)</label></formula><p>λ takes values between 0 and 1, where value of zero implies no step is taken from the iteration's original input, y i , and one implies that the full Lagrangian distance is travelled, ∆ i . We now rewrite Equation (19) using Equation <ref type="formula" target="#formula_2">(30)</ref> as:</p><formula xml:id="formula_35">f i (X ′ ) = x ′ i g 0 i (T ) RT + ln P + ln x ′ i ¯ x ′ ,<label>(31)</label></formula><p>which can be written in the form:</p><formula xml:id="formula_36">f i (λ) = (y i + λ∆ i ) g 0 i (T ) RT + ln P + ln y i + λ∆ i ¯ y + λ ¯ ∆ ,<label>(32)</label></formula><p>where ¯ ∆ = ¯ y − ¯ x. Summing over i, we get a new function, F(λ):</p><formula xml:id="formula_37">F(λ) = i (y i + λ∆ i ) g 0 i (T ) RT + ln P + ln y i + λ∆ i ¯ y + λ ¯ ∆ .<label>(33)</label></formula><p>Thus, to ensure that the new corrected values x ′ i are all positive, the distance travelled will be limited to fractional amounts defined by λ∆ i , using the largest possible value of λ that satisfies the conditions:</p><p>1. The function called the directional derivative is defined and exists:</p><formula xml:id="formula_38">dF(λ) dλ = n i=1 ∆ i g 0 i (T ) RT + ln P + ln y i + λ∆ i ¯ y + λ ¯ ∆ .<label>(34)</label></formula><p>2. The directional derivative does not become positive (the minimum point is not passed).</p><p>Every new iteration starts with a different set of y i , thus changing the convex function F(λ), Equation 33, and producing a new minimum. This yields to a new λ value. λ will be found to approach unity after some number of iterations. Unity in λ indicates the solution is near.</p><p>We repeat the Lagrangian method and the lambda correction until a pre-defined maximum number of iterations is met. The final abundances are given as fractional abundances (mole mixing fractions), i.e., the ratio of each species' mole numbers to the total sum of mole numbers of all species in the mixture.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">CODE STRUCTURE</head><p>The TEA code is written entirely in Python and uses the Python packages NumPy (http://numpy.org/) and (http://www.scipy.org/) along with SymPy, an external linear equation solver (http://sympy.org/).</p><p>The code is divided into two parts: the pre-pipeline that makes the thermochemical data library and stoichiometric tables, and the pipeline that performs abundance calculations. Given elemental abundances, TEA calculates molecular abundances for a particular temperature and pressure or a list of temperature-pressure pairs. Documentation is provided in the TEA User Manual (Bowman and Blecic) and the TEA Code Description (Blecic and Bowman) that accompany the code.     11. lambdacorr.py: Takes non-corrected mole numbers and implements lambda correction to obtain only valid, positive numbers of moles. Output is the corrected mole numbers for each species. 12. iterate.py: Driver program that repeats lagrange.py and lambdacorr.py until a pre-defined maximum number of iterations is met. 13. readconfig.py: Reads TEA configuration file. 14. makeatm.py: Makes pre-atmospheric file for a multiple T, P run. 15. plotTEA.py: Plots TEA output, the atmospheric file with final mole-fraction abundances.</p><p>6. APPLICATION TO HOT-JUPITER ATMOSPHERES In this section, we illustrate several applications of the TEA code. We produced molecular abundances profiles for models of hot-Jupiter planetary atmospheres, given their temperaturepressure profiles.</p><p>The temperature and pressure (T − P) profiles adopted for our thermochemical calculations are shown in We chose elemental-abundance profiles with C/O &gt; 1 and C/O &lt; 1 and three profiles with solar, 10 times solar, and 50 times solar elemental abundances to show the influence of the C/O ratio and metallicity on the chemistry and composition of extrasolar giant planets.</p><p>We adopt <ref type="bibr" target="#b2">Asplund et al. (2009)</ref> photospheric solar abundances as our baseline. To change the elemental abundance profile, set them to a certain C/O ratio, or enhance metallicity, we use our Python routine, makeAbun.py. This routines is the part of the BART project and it is available to the community via Github.com under an open-source licence (https://github.com/joeharr4/BART). For different metallicities, the routine multiples the elemental abundances of all species except for hydrogen and helium, preserving the ratio of major atomic species like C, N, and O.</p><p>We chose to run the models for all plausible, spectroscopically active species in the infrared relevant for hot-Jupiter atmospheres: H 2 , CO, CO 2 , CH 4 , H 2 O, HCN, C 2 H 2 , C 2 H 4 , N 2 , NH 3 , HS, and H 2 S. Our input species are: H, He, C, N, O, S. <ref type="figure" target="#fig_4">Figure 5</ref> shows results for WASP-12b. Each T − P profile is sampled 100 times uniformly in log-pressure space. <ref type="figure">Figure  6</ref> shows the TEA runs for WASP-43b with different metallicities. This T − P profile is sampled 90 times in uniformly log-pressure space.</p><p>As expected, <ref type="figure" target="#fig_4">Figure 5</ref> shows FIG. 6.-Thermochemical equilibrium vertical distributions for different metallicities of WASP-43b assuming the T − P profile in <ref type="figure" target="#fig_3">Figure 4</ref>, right panel (profile given in inset). Three metallicity cases with ζ= 1, 10, and 50 are shown from the top to the bottom. <ref type="bibr" target="#b31">2002</ref><ref type="bibr" target="#b45">, Seager et al. 2005</ref><ref type="bibr" target="#b18">, Fortney et al. 2005</ref><ref type="bibr" target="#b33">, Madhusudhan et al. 2011a</ref><ref type="bibr">,b, Madhusudhan 2012</ref><ref type="bibr" target="#b35">, Madhusudhan &amp; Seager 2011</ref><ref type="bibr" target="#b40">, Moses et al. 2013</ref>). These species are plotted in solid lines, while species with only small influence from the C/O ratio are plotted as dashed lines.</p><p>The results also show, as expected, that CO is a major atmospheric species on hot Jupiters for all C/O ratios and metallicities ( <ref type="figure" target="#fig_4">Figures 5 and 6</ref>), because CO is chemically favored over H 2 O. Other oxygen-bearing molecules like H 2 O and CO 2 are more abundant when C/O&lt;1, while CH 4 , C 2 H 2 , and C 2 H 4 become significant species when C/O&gt;1. Species like N 2 and NH 3 that do not contain carbon or oxygen are much less affected by the C/O ratio.</p><p>H 2 O is abundant in hot-Jupiter atmospheres (e.g., <ref type="bibr">Bur- rows &amp; Sharp 1999</ref><ref type="bibr" target="#b31">, Lodders &amp; Fegley 2002</ref><ref type="bibr">, Hubeny &amp; Bur- rows 2007</ref><ref type="bibr" target="#b45">, Sharp &amp; Burrows 2007</ref>) due to the large solar abundances of oxygen and hydrogen. Even disequilibrium processes like photochemistry cannot deplete its abundance. Photochemical models by <ref type="bibr" target="#b41">Moses et al. (2011)</ref> and <ref type="bibr" target="#b28">Line et al. (2010</ref><ref type="bibr" target="#b29">Line et al. ( , 2011</ref> predict that water will be recycled in hot-Jupiter atmospheres, keeping H 2 O abundances close to thermochemical equilibrium values. A low water abundance seems to occur only in atmospheres with a C/O&gt;1. CO 2 , although present in hot-Jupiter atmospheres and spectroscopically important, is not a major constituent, and it becomes even less abundant when C/O&gt;1. Although photochemistry can greatly enhance the HCN, C 2 H 2 , and C 2 H 4 abundances ( <ref type="bibr" target="#b40">Moses et al. 2013</ref>), we also see that with C/O&gt;1, they are the most abundant constituents.</p><p>In <ref type="figure">Figure 6</ref>, the species strongly influenced by metallicity are again plotted as solid lines. In general, we see, as expected (e.g., <ref type="bibr" target="#b29">Line et al. 2011</ref><ref type="bibr" target="#b31">, Lodders &amp; Fegley 2002</ref>, that the shapes of the vertical distributions are mostly preserved for all metallicities. However, the thermochemical mixing ratio of CO 2 , CO, H 2 O, N 2 , HS, and H 2 S vary by several orders of magnitude over the range of metallicities, while CH 4 and hydrocarbons change very little.</p><p>When the metallicity changes from 1 to 50, the abundance of CO 2 experiences the most dramatic change. It increases by a factor of 1000, confirming it as the best probe of planetary metallicity <ref type="bibr" target="#b31">(Lodders &amp; Fegley 2002</ref><ref type="bibr" target="#b58">, Zahnle et al. 2009</ref>). CO 2 abundance is the quadratic function of metallicity ( <ref type="bibr" target="#b51">Venot et al. 2014</ref>), while CO, H 2 O, HS, H 2 S, and N 2 abundances, for species that either contain one metal atom or are the major reservoirs of carbon and nitrogen, increase linearly with metallicity ( <ref type="bibr" target="#b53">Visscher et al. 2006</ref>). For this metallicity range, the CO, H 2 O, HS, H 2 S, and N 2 abundances change by a factor of 100, while NH 3 , CH 4 , C 2 H 2 , C 2 H 4 , and HCN change by a factor of 10 or less.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.">COMPARISON TO OTHER METHODS</head><p>To test the validity of our code, we performed 4 different tests. We compared the output of TEA with the example from <ref type="bibr" target="#b57">White et al. (1958)</ref> using their thermodynamic data. We also compared the TEA output with the output of our TEBS (Thermochemical Equilibrium by <ref type="bibr">Burrows &amp; Sharp)</ref> code that implements the <ref type="bibr" target="#b8">Burrows &amp; Sharp (1999)</ref> analytical method for calculating the abundances of five major molecular species present in hot-Jupiter atmospheres (CO, CH4, H2O, N2, NH3). As another comparison, we used the free thermochemical equilibrium code CEA (Chemical Equilibrium with Applications, available from NASA Glenn Research Center at http://www.grc.nasa.gov/WWW/CEAWeb/). This code uses the Newton-Raphson descent method within the Lagrange optimization scheme to solve for chemical abundances. Their approach is described by <ref type="bibr" target="#b21">Gordon &amp; McBride (1994)</ref>, <ref type="bibr" target="#b37">McBride &amp; Gordon (1996)</ref>, and <ref type="bibr" target="#b59">Zeleznik &amp; Gordon (1960</ref><ref type="bibr">, 1968</ref>. The thermodynamic data included in the CEA code are partially from the JANAF tables <ref type="bibr" target="#b9">(Chase 1986</ref>) that we used in our TEA code, but also from numerous other sources (e.g., <ref type="bibr" target="#b11">Cox et al. 1982</ref><ref type="bibr" target="#b22">, Gurvich et al. 1989</ref> Mixing Fraction TEBS is an analytic method, while CEA and TEA are numerical methods. We show the major spectroscopically-active species in the infrared that can be produced by all three methods. We run the codes for the same range of temperatures and the pressure of P = 1 bar. Each species in each method is plotted with a different line style, but with the same color. The TEBS final abundances are plotted as dots, CEA as dashed lines, while TEA is plotted as solid lines. Right: Comparison of the TEA results with the results from CEA. CEA and TEA are both numerical methods that use Gibbs free energy minimization method with similar optimization scheme. We show the most plausible and most abundant spectroscopically-active species in the infrared expected to be present in hot-Jupiter atmospheres, that all codes can cover. In the inset plot, we show a detail (zoom-in part), pointing out species lines that do not overlap. The T − P profile used for this run is given in the right panel of <ref type="figure" target="#fig_3">Figure 4</ref>. <ref type="table" target="#tab_9">Tables 2 and 3</ref> list differences between the final abundances for random three T, P points chosen from each run.</p><p>et <ref type="bibr">al. 1993</ref>). Lastly, we derived CEA free energies and used them as input to TEA, to compare the CEA and TEA outputs.</p><p>Our first comparison was done using the example from <ref type="bibr" target="#b57">White et al. (1958)</ref>. We determined the composition of the gaseous species arising from the combustion of a mixture of hydrazine, N 2 H 4 , and oxygen, O 2 , at T = 3500 K and the pressure of 750 psi = 51.034 atm. We used the free-energy functions and b j values (total number of moles of element j originally present in the mixture) from their <ref type="table" target="#tab_3">Table 1</ref>. We reproduced their abundances, <ref type="table" target="#tab_3">Table 1</ref>, with slightly higher precision probably due to our use of double precision.  <ref type="figure" target="#fig_6">Figure 7</ref>, left panel, shows the CEA, TEA, and TEBS runs for the temperatures between 600 and 3000 K, pressure of 1 bar, and solar abundances. The runs were performed with the input and output species that all codes contain (H, C, O, N, H 2 , CO, CH 4 , H 2 O, N 2 , NH 3 ). We also run the comparison just between CEA and TEA, <ref type="figure" target="#fig_6">Figure 7</ref>, right panel, for the WASP-43b model atmosphere that we described in Section 6. We used the pressure and temperature profile shown in <ref type="figure" target="#fig_3">Figure 4</ref>, right panel, and solar elemental abundances. The temperatures and pressures range from 958.48 to 1811.89 K and 1.5×10 -5 to 3.1623×10 1 bar, respectively. We included the same species as in Section 6 with the exclusion of the C 2 H 2 and HS species, because CEA does not carry the thermodynamical parameters for them.</p><p>In the left panel of <ref type="figure" target="#fig_6">Figure 7</ref>, we see that for the most species and temperatures CEA and TEA lines overlap (CEA result is plotted in dashed and TEA in solid lines). However, CH 4 species abundances above T ∼1700 K do not overlap. TEBS colored dots do not overplot either CEA or TEA curves, but follow them closely. This method is derived for only five major molecular species and is based on a few simple analytic expressions.</p><p>In <ref type="figure" target="#fig_6">Figure 7</ref>, right panel, we again see that most species overlap, except HCN and CH 4 . The HCN curves (for CEA and TEA runs) differ for the full temperature range (see the inset <ref type="figure">figure)</ref>, while, as before, CH 4 curve differs slightly only for pressures above ∼0.1 bar and temperatures above ∼1700 K (see <ref type="figure" target="#fig_3">Figure 4</ref> for the T − P profile used for this run).</p><p>The differences seen in <ref type="figure" target="#fig_6">Figure 7</ref> come from the different sources of thermodynamic data used for CEA and TEA (see <ref type="table" target="#tab_9">Tables 2 and 3</ref>). When the CEA thermodynamic data are used as input to TEA, all species final abundances match, see <ref type="figure">Fig- ure</ref> 8. Section 7.1, below, elaborates on this and investigate the difference in free energy input values used for CEA and TEA.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.1.">Comparison of free energy values in CEA and TEA</head><p>The thermodynamic data used for CEA are in the form of polynomial coefficients, and are listed in the termo.inp file provided with the CEA code. The format of this library is explained in Appendix A of <ref type="bibr" target="#b37">McBride &amp; Gordon (1996)</ref> Mixing Fraction   <ref type="bibr" target="#b21">Gordon &amp; McBride (1994)</ref>. Our goal is to plug CEA free energies into TEA and test whether TEA will produce the same final abundances as CEA does.</p><p>As explained in Section 4.2, the thermodynamic functions specific heat, enthalpy, and entropy as function of temperatures are given as:</p><formula xml:id="formula_39">C o p R = a i T qi ,<label>(35)</label></formula><formula xml:id="formula_40">H o RT = C o p dT RT ,<label>(36)</label></formula><formula xml:id="formula_41">S o R = C o p RT dT .<label>(37)</label></formula><p>These functions are given in a form of seven polynomial coef-  <ref type="bibr">28 -34.7231685 -57.3648328 -33.6061366 -43.1392058 -20.3573682 -31.6020990 -30.7285988 2.1878e+01 1810.15 -34.7123566 -57.3086978 -33.6116396 -43.1072342 -20.3950903 -31.6091097 -30</ref> </p><formula xml:id="formula_42">C o p R = a 1 T −2 + a 2 T −1 + a 3 + a 4 T + a 5 T 2 + a 6 T 3 + (38) a 7 T 4 , H o RT = − a 1 T −2 + a 2 T −1 lnT + a 3 + a 4 T 2 + a 5 T 2 3 + (39) a 6 T 3 4 + a 7 T 4 5 + a 8 T , S o R = − a 1 T −2 2 − a 2 T −1 + a 3 lnT + a 4 T + a 5 T 2 2 + (40) a 6 T 3 3 + a 7 T 4 4 + a 9 .</formula><p>To derive free energies in the form that TEA uses them, we rewrite Equation 10 for one species as:</p><formula xml:id="formula_43">g 0 (T ) RT = 1/R G 0 T − H 0 298 T + ∆ f H 0 298 RT ,<label>(41)</label></formula><p>The first term on the right side can be expressed in the following format ( <ref type="bibr" target="#b10">Chase et al. 1974</ref>, Page 3):</p><formula xml:id="formula_44">G 0 T (T ) − H 0 298 T = − S o T + (H o T − H 0 298 ) T .<label>(42)</label></formula><p>Thus, we rewrite Equation 41 as:</p><formula xml:id="formula_45">g 0 (T ) RT = 1/R S o T + (H o T − H 0 298 ) T + ∆ f H 0 298 RT ,<label>(43)</label></formula><formula xml:id="formula_46">g 0 (T ) RT = 1/R S o T + H o T T − H 0 298 T + ∆ f H 0 298 RT ,<label>(44)</label></formula><p>To see Equations 39 and 40 inside Equation 44, we multiply and divide the first and second term on the right with R and get:</p><formula xml:id="formula_47">g 0 (T ) RT = S o T R + H o T RT − H 0 298 RT + ∆ f H 0 298 RT ,<label>(45)</label></formula><p>In the CEA analysis paper, Section 4.1, <ref type="bibr" target="#b21">Gordon &amp; McBride (1994)</ref>  </p><formula xml:id="formula_48">g 0 (T ) RT = S o T R + H o T RT − ∆ f H 0 298 RT + ∆ f H 0 298 RT .<label>(46)</label></formula><p>The last two terms cancel leading to a simple expression for free energies:</p><formula xml:id="formula_49">g 0 (T ) RT = S o T R + H o T RT ,<label>(47)</label></formula><p>The first term on the right side is Equation 40, while the second term is Equation 39; expressions with polynomial coefficients that are given in the CEA thermo.inp file.</p><p>Following the last conclusion, we calculated the free energies for each species of interest and used them as input to TEA. <ref type="figure">Figure 8</ref> shows the comparison between CEA and TEA using CEA free energies. We see that all species overlap. Tables 2 and 3 give the exact values of free energies used and the final abundances for several <ref type="bibr">(T, P)</ref> points that showed the largest differences between CEA and TEA runs in <ref type="figure" target="#fig_6">Figure 7</ref>. It also lists the free energies calculated using JANAF tables and the final abundances produced by TEA using JANAF thermodynamic data.</p><p>As seen in <ref type="figure">Figure 8</ref>, although CEA uses Newton-Raphson and TEA the Lagrangian method of steepest descent, both approaches, using the same inputs (free energies), find the same final abundances. <ref type="table" target="#tab_9">Table 2</ref>, (groups CEA final abundances and TEA final abundances using CEA free energies), shows values identical for most species between the two tests. A few cases show that abundance ratios are inconsistent at the 10 -5 level. <ref type="table" target="#tab_10">Table 3</ref> displays the same trend. The differences in the fifth decimal place may indicate that, somewhere in CEA, a calculation is carried out in 32-bit precision, possibly due to a literal single-precision number in the source code. Python floating literals are in 64-bit precision by default.</p><p>8. REPRODUCIBLE RESEARCH LICENSE Reproducing a lengthy computation, such as that implemented in TEA, can be prohibitively time consuming <ref type="bibr">(Stod- den 2009)</ref>. We have released TEA under an open-source license, but this is not enough, as even the most stringent of those licenses (e.g., the GNU General Public License) does not require disclosure of modifications if the researcher does not distribute the code. So that the process of science can proceed efficiently, there are several terms in our license to ensure reproducibility of all TEA results, including those from derivative codes. A key term requires that any reviewed scientific publication using TEA or a derived code must publish that code, the code output used in the paper (such as data in tables and figures, and data summarized in the text), and all the information used to initialize the code to produce those outputs in a reproducible research compendium (RRC). The RRC must be published with the paper, preferably as an electronic supplement, or else in a permanent, free-of-charge, public internet archive, such as github.com. A permanent link to the archive must be published in the paper, and the archive must never be closed, altered, or charged for. Details and examples of how to do this appear in the license and documents accompanying the code, along with additional discussion. The RRC for this paper, including the TEA package and documentation, is included as an electronic supplement, and is also available via https://github.com/dzesmin/ RRC-BlecicEtal-2015a-ApJS-TEA/.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="9.">CONCLUSIONS</head><p>We have developed an open-source Thermochemical Equilibrium Abundances code for gaseous molecular species. Given elemental abundances and one or more temperaturepressure pairs, TEA produces final mixing fractions using the Gibbs-free-energy minimization method with an iterative Lagrangian optimization scheme.</p><p>We applied the TEA calculations to several hot-Jupiter T − P models, with expected results. The code is tested against the original method developed by <ref type="bibr" target="#b57">White et al. (1958)</ref>, the analytic method developed by <ref type="bibr" target="#b8">Burrows &amp; Sharp (1999)</ref>, and the Newton-Raphson method implemented in the free Chemical Equilibrium with Applications code. Using the free energies listed in <ref type="bibr" target="#b57">White et al. (1958)</ref>, their example, and derived free energies based on the thermodynamic data provided in CEA's thermo.inp file, TEA produces the same final abundances, but with higher precision.</p><p>Currently, TEA is specialized for gaseous species, with the implementation of condensates left for future work. In opacity calculations at low temperatures (below 1000 K), the inclusion of condensates is necessary as it reduces the gas phase contribution to opacity (e.g., <ref type="bibr" target="#b46">Sharp &amp; Huebner 1990</ref><ref type="bibr" target="#b31">, Lodders &amp; Fegley 2002</ref><ref type="bibr" target="#b8">, Burrows &amp; Sharp 1999</ref>).</p><p>The thermochemical equilibrium abundances obtained with TEA can be used in all static atmospheres, atmospheres with vertical transport and temperatures above 1200 K (except when ions are present), and as a starting point in models of gaseous chemical kinetics and abundance retrievals run on spectroscopic data. TEA is currently used to initialize the atmospheric retrial calculations in the open-source BART project (available at https://github.com/joeharr4/BART).</p><p>TEA is written in a modular way using the Python programming language. It is documented (the Start Guide, the User Manual, the Code Document, and this theory paper are provided with the code), actively maintained, and available to the community via the open-source development sites https://github.com/dzesmin/TEA and https://github.com/dzesmin/TEA-Examples.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>FIG. 1 .</head><label>1</label><figDesc>FIG. 1.-Example of the Lagrangian minimization approach. Left: The 3D illustration of the minimization problem. Blue lines indicate starting and ending values of f (x, y) during minimization. An (x, y) pair is found that minimizes f (x, y) (bottom blue line) subject to a constraint g(x, y) = C (red line). Right: Contour map of the left figure. The point where the red line (constraint) tangentially touches a blue contour is the solution. Since d 1 &lt; d 2 , the solution is the minimum of f (x, y).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>FIG. 2 .</head><label>2</label><figDesc>FIG. 2.-Simplified illustration of the lambda correction algorithm. Initial values for one hypothetical Lagrangian iteration cycle, y i , are given in green. These values are all positive and satisfy the mass balance equation, Equation 17. The x i values, given in blue, are the values produced by the Lagrangian calculation. These values can be negative, but they also satisfy the mass balance equation. The x ′ i values, given in red, are produced by choosing the maximum value of lambda that ensures all positive and non-zero x ′ i . These values become the new initial values of y i for the next iteration cycle.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 3 shows the layout of the TEA program's flow. Its modules are: 1 . prepipe.py: Runs the readJANAF.py and makestoich.py modules and provides their common setup. 2 . readJANAF.py:</head><label>312</label><figDesc>Extracts relevant from all avail- able NIST-JANAF Thermochemical Tables and writes ASCII files. 3. makestoich.py: Reads the chemical formula to ob- tain species names and their stoichiometric coefficients from each JANAF file, and elemental solar abundances from an ASCII file based on Asplund et al. (2009)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>FIG. 4 .</head><label>4</label><figDesc>FIG. 4.-The left and middle panels show the O-rich and C-rich temperature and pressure (T − P) profile of WASP-12b from Stevenson et al. (2014a) with C/O = 0.5 and C/O = 1.2 respectively. The right panel shows the T − P profile of WASP-43b from Stevenson et al. (2014b) with solar metallicity.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>FIG. 5 .</head><label>5</label><figDesc>FIG. 5.-Comparison between vertical thermochemical equilibrium distributions for WASP-12b O-rich, left panel, and WASP-12b C-rich, right panel, elemental abundance profile. The inset plots are the T − P profiles shown in Figure 4, left and middle panels.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Figure 4 .</head><label>4</label><figDesc>The left and middle panel show the T − P profiles of WASP-12b from Stevenson et al. (2014a) with the C/O ratio of 0.5 and 1.2, respectively. The right panel shows the thermal profile of WASP-43b from Stevenson et al. (2014b) with solar metal- licity. These profiles are chosen for their relevance to atmo- spheric conditions at secondary eclipses.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>FIG. 7 .</head><label>7</label><figDesc>FIG. 7.-Left: Comparison TEA, CEA and TEBS. TEBS is an analytic method, while CEA and TEA are numerical methods. We show the major spectroscopically-active species in the infrared that can be produced by all three methods. We run the codes for the same range of temperatures and the pressure of P = 1 bar. Each species in each method is plotted with a different line style, but with the same color. The TEBS final abundances are plotted as dots, CEA as dashed lines, while TEA is plotted as solid lines. Right: Comparison of the TEA results with the results from CEA. CEA and TEA are both numerical methods that use Gibbs free energy minimization method with similar optimization scheme. We show the most plausible and most abundant spectroscopically-active species in the infrared expected to be present in hot-Jupiter atmospheres, that all codes can cover. In the inset plot, we show a detail (zoom-in part), pointing out species lines that do not overlap. The T − P profile used for this run is given in the right panel of Figure 4. Tables 2 and 3 list differences between the final abundances for random three T, P points chosen from each run.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head></head><label></label><figDesc>FIG. 8.-Left: Comparison TEA and CEA using CEA thermodynamic data provided in their thermo.inp file. The comparison is done for the same conditions as in Figure 7. Tables 2 and 3 list differences between the final abundances for random three T, P points chosen from each run.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" validated="false"><head></head><label></label><figDesc>, Zolotov jasmina@physics.ucf.edu</figDesc><table></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" validated="false"><head>Table 1 .</head><label>1</label><figDesc>FIG. 3.-Layout of the TEA pre-pipeline and pipeline modules. The modules have one of three roles: scientific calculation, file or data structure support, or execution of the calculation programs over temperature and pressure points in an iterative manner. In addition to the modules shown, TEA has three supporting modules: readconfig.py, makeatm.py, and plotTEA.py. All modules are described in the text.</figDesc><table>The code produces an output file containing species, 
+stoichiometric coefficients, and abundances. 
+4. runsingle.py: Runs TEA for a single T, P pair. 
+5. runatm.py: Runs TEA over a pre-atmosphere file con-
+taining a list of T, P pairs. 
+6. readatm.py: Reads the pre-atmospheric file with mul-
+tiple T, P pairs. 
+7. makeheader.py: Combines the stoichiometric infor-
+mation, Gibbs free energy per species at specific tem-
+peratures, and the user input to create a single file 
+with relevant chemical informations further used by the 
+pipeline. 
+8. balance.py: Uses species and stoichiometric informa-
+tion to establish viable, mass-balanced, initial mole 
+numbers. 
+9. format.py: Auxiliary program that manages in-
+put/output operations in each piece of the pipeline. 
+10. lagrange.py: Uses data from the most recent itera-
+tion's corrected mole numbers and implements the La-
+grangian method for minimization. Produces output 
+with raw, non-corrected mole numbers for each species 
+(values are temporarily allowed to be negative). </table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_7" validated="false"><head>TABLE 1 COMPARISON WHITE ET AL. vs. TEA Species g 0 i (T ) RT</head><label>1</label><figDesc></figDesc><table>White et al. 
+TEA 
+Difference 
+abundances abundances 
+H 
+-10.021 
+0.040668 
+0.04065477 -0.00001323 
+H 2 
+-21.096 
+0.147730 
+0.14771009 -0.00001991 
+H 2 O 
+-37.986 
+0.783153 
+0.78318741 0.00003441 
+N 
+-9.846 
+0.001414 
+0.00141385 -0.00000015 
+N 2 
+-28.653 
+0.485247 
+0.48524791 0.00000091 
+NH 
+-18.918 
+0.000693 
+0.00069312 0.00000012 
+NO 
+-28.032 
+0.027399 
+0.02739720 -0.00000180 
+O 
+-14.640 
+0.017947 
+0.01794123 -0.00000577 
+O 2 
+-30.594 
+0.037314 
+0.03730853 -0.00000547 
+OH 
+-26.111 
+0.096872 
+0.09685710 0.00001490 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_8" validated="false"><head>0 p , with integration constants for enthalpy, H o , and en- tropy, S o , for temperature intervals of 200 to 1000 K, 1000 to</head><label></label><figDesc></figDesc><table>. For 
+each species, the file lists, among other data, the reference 
+sources of the thermodynamic data, the values of the standard 
+enthalpy of formation, ∆ f H 0 
+298 , at the reference temperature 
+of 298.15 K and pressure of 1 bar, and coefficients of specific 
+heat, C 1000 
+1500 
+2000 
+2500 
+3000 
+Temperature [K] 
+
+10 -9 
+
+10 -8 
+
+10 -7 
+
+10 -6 
+
+10 -5 
+
+10 -4 
+
+10 -3 
+
+Mixing Fraction 
+
+H 2 O 
+
+CH 4 
+
+CO 
+
+N 2 
+
+NH 3 
+
+CEA 
+TEA 
+
+10 -23 10 -21 10 -19 10 -17 10 -15 10 -13 10 -11 10 -9 10 -7 10 -5 10 -3 
+Mixing Fraction 
+
+10 -5 
+
+10 -4 
+
+10 -3 
+
+10 -2 
+
+10 -1 
+
+10 0 
+
+10 1 
+
+Pressure [bar] 
+
+H 
+
+CO 
+
+CO 2 
+
+CH 4 
+
+H 2 O 
+HCN 
+C 2 H 4 
+
+N 2 
+
+NH 3 
+
+H 2 S 
+CEA 
+TEA 
+
+10 -8 
+10 -7 
+10 -6 
+10 -5 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_9" validated="true"><head>TABLE 2 DIFFERENCES CEA vs. TEA, FIGURES 7 AND 8, LEFT PANELS</head><label>2</label><figDesc></figDesc><table>Pressure 
+Temp 
+Species 
+(bar) 
+(K) 
+CO 
+CH4 
+H2O 
+N2 
+NH3 
+CEA free energies 
+1.0000e+00 2500.00 -33.80559930 -34.91655970 -40.12912409 -27.71757996 -32.70878374 
+1.0000e+00 2700.00 -33.69182758 -35.33414843 -39.64186320 -27.99507610 -33.05270703 
+1.0000e+00 2900.00 -33.61649725 -35.76252669 -39.25604592 -28.25692510 -33.39666924 
+TEA (JANAF) free energies 
+1.0000e+00 2500.00 -33.80793700 -34.70780992 -40.12426098 -27.72037451 -32.73695542 
+1.0000e+00 2700.00 -33.69214791 -35.08662806 -39.63255004 -27.99496246 -33.08302621 
+1.0000e+00 2900.00 -33.61466712 -35.47533692 -39.24191944 -28.25439783 -33.42896561 
+CEA final abundances 
+1.0000e+00 2500.00 
+5.3129e-04 
+4.2666e-09 
+4.3546e-04 
+6.6686e-05 
+8.2252e-08 
+1.0000e+00 2700.00 
+5.2311e-04 
+1.8387e-09 
+4.2855e-04 
+6.5661e-05 
+6.4332e-08 
+1.0000e+00 2900.00 
+5.0876e-04 
+8.2340e-10 
+4.1586e-04 
+6.3844e-05 
+4.9466e-08 
+TEA final abundances using CEA free energies 
+1.0000e+00 2500.00 
+5.3129e-04 
+4.2665e-09 
+4.3547e-04 
+6.6685e-05 
+8.2251e-08 
+1.0000e+00 2700.00 
+5.2311e-04 
+1.8387e-09 
+4.2856e-04 
+6.5661e-05 
+6.4332e-08 
+1.0000e+00 2900.00 
+5.0876e-04 
+8.2339e-10 
+4.1586e-04 
+6.3844e-05 
+4.9466e-08 
+TEA final abundances using JANAF free energies 
+1.0000e+00 2500.00 
+5.3129e-04 
+3.3976e-09 
+4.3547e-04 
+6.6685e-05 
+8.3987e-08 
+1.0000e+00 2700.00 
+5.2312e-04 
+1.4194e-09 
+4.2856e-04 
+6.5661e-05 
+6.6260e-08 
+1.0000e+00 2900.00 
+5.0878e-04 
+6.1471e-10 
+4.1586e-04 
+6.3845e-05 
+5.1339e-08 
+
+6000 K, and 6000 to 20000 K. 
+The JANAF tables list the reference sources of their ther-
+modynamic parameters in Chase (1986). The data are also 
+available at http://kinetics.nist.gov/janaf/. 
+The difference in thermodynamic parameters between CEA 
+and TEA is noticeable even in their ∆ f H 0 
+298 values. The 
+source of standard enthalpies of formation in CEA for, e.g., 
+HCN and CH 4 is Gurvich (1991), page 226 and 36, re-
+spectively, and their respective values are 133.08 and -74.60 
+kJ/mol. The source of standard enthalpies of formation in 
+the JANAF tables is listed in Chase (1986) on page 600 and 
+615, respectively, and their respective values are 135.14 and 
+-74.873 kJ/mol. 
+TEA uses JANAF tables to calculate the values of free ener-
+gies for each species following Equation 10. To calculate the 
+values of free energies used in CEA, we started from Chap-
+ter 4 in </table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_10" validated="true"><head>TABLE 3 DIFFERENCES CEA vs. TEA, FIGURES 7 AND 8, RIGHT PANELS</head><label>3</label><figDesc></figDesc><table>Pressure 
+Temp 
+Species 
+(bar) 
+(K) 
+CO 
+CO2 
+CH4 
+H2O 
+HCN 
+NH3 
+H2S 
+CEA free energies 
+3.8019e-01 
+1719.64 -34.9307244 -58.4124145 
+-33.595356 
+-43.7404858 -19.8124391 -31.4721776 -30.6054338 
+1.6596e+00 1805.28 -34.7237371 -57.3627896 
+-33.695587 
+-43.1403205 -20.4938031 -31.5886558 -30.7577826 
+2.1878e+01 1810.15 -34.7128505 -57.3065771 
+-33.701803 
+-43.1083097 -20.5310828 -31.5955222 -30.7664570 
+TEA (JANAF) free energies 
+3.8019e-01 
+1719.64 -34.9288052 -58.4130468 -33.5180429 -43.7386156 -19.6678405 -31.4830322 -30.5760402 
+1.6596e+00 1805.</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_11" validated="false"><head>9 ) for enthalpy, H o /RT , and entropy, S o /R:</head><label></label><figDesc></figDesc><table>.7372812 
+CEA final abundances 
+3.8019e-01 
+1719.64 
+4.5960e-04 
+5.8035e-08 
+4.9221e-08 
+3.7681e-04 
+5.6243e-09 
+7.9716e-08 
+2.2498e-05 
+1.6596e+00 1805.28 
+4.5918e-04 
+5.2864e-08 
+4.4665e-07 
+3.7724e-04 
+2.4131e-08 
+2.8864e-07 
+2.2504e-05 
+2.1878e+01 1810.15 
+4.0264e-04 
+5.3052e-08 
+5.6873e-05 
+4.3396e-04 
+2.3851e-07 
+3.7082e-06 
+2.2520e-05 
+TEA final abundances using CEA free energies 
+3.8019e-01 
+1719.64 
+4.5959e-04 
+5.8035e-08 
+4.9219e-08 
+3.7682e-04 
+5.6240e-09 
+7.9714e-08 
+2.2498e-05 
+1.6596e+00 1805.28 
+4.5918e-04 
+5.2865e-08 
+4.4667e-07 
+3.7724e-04 
+2.4131e-08 
+2.8864e-07 
+2.2504e-05 
+2.1878e+01 1810.15 
+4.0263e-04 
+5.3053e-08 
+5.6875e-05 
+4.3396e-04 
+2.3851e-07 
+3.7083e-06 
+2.2519e-05 
+TEA final abundances using JANAF free energies 
+3.8019e-01 
+1719.64 
+4.5959e-04 
+5.8326e-08 
+4.5480e-08 
+3.7681e-04 
+4.8604e-09 
+8.0472e-08 
+2.2497e-05 
+1.6596e+00 1805.28 
+4.5922e-04 
+5.3200e-08 
+4.0512e-07 
+3.7719e-04 
+2.0937e-08 
+2.9102e-07 
+2.2504e-05 
+2.1878e+01 1810.15 
+4.0694e-04 
+5.3429e-08 
+5.2592e-05 
+4.2965e-04 
+2.1124e-07 
+3.7386e-06 
+2.2519e-05 
+
+ficients for specific heat, C o 
+p /R, and two integrations constants 
+(a 8 and a </table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_12" validated="false"><head>state that they have arbitrary assumed H o (298.15) = ∆ f H o (298.15). Adopting this assumption leads to:</head><label></label><figDesc></figDesc><table></table></figure>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Agúndez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Parmentier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Venot</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Hersant</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Selsis</surname></persName>
+		</author>
+		<idno>1403.0121</idno>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">564</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+	<note>ADS</note>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Agúndez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Venot</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Iro</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Selsis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Hersant</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Hébrard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Dobrijevic</surname></persName>
+		</author>
+		<idno>1210.6627</idno>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">548</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+	<note>ADS</note>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Asplund</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Grevesse</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">J</forename><surname>Sauval</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Scott</surname></persName>
+		</author>
+		<idno>0909.0948</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ARA&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">47</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+	<note>ADS</note>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">S</forename><surname>Bahn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">E</forename><surname>Zukoski</surname></persName>
+		</author>
+		<title level="m">Kinetics, Equilibria and Performance of High Temperature Systems: Proceedings of the First Conference</title>
+		<meeting><address><addrLine>Los Angeles California 2</addrLine></address></meeting>
+		<imprint>
+			<publisher>Butterworths</publisher>
+			<date type="published" when="1959" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">L</forename><surname>Belford</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Strehlow</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Annual Review of Physical Chemistry</title>
+		<imprint>
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="page">247</biblScope>
+			<date type="published" when="1969" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">SOLGASMIX-PV, a computer program to calculate equilibrium relationships in complex chemical systems</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">M</forename><surname>Besmann</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Tech. rep</title>
+		<imprint>
+			<date type="published" when="1977" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Blecic</surname></persName>
+		</author>
+		<idno>1111.2363</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">781</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+	<note>ADS</note>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Burrows</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Hubeny</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Budaj</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">A</forename><surname>Knutson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+		<idno>0709.3980</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">668</biblScope>
+			<biblScope unit="page">171</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+	<note>ADS</note>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Burrows</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">M</forename><surname>Sharp</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">512</biblScope>
+			<biblScope unit="page">843</biblScope>
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">W</forename><surname>Chase</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">W</forename><surname>Chase</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Curnutt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Downey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Mcdonald</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">N</forename><surname>Syverud</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">A</forename><surname>Valenzuela</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">JANAF thermochemical tables, ADS</title>
+		<imprint>
+			<date type="published" when="1982" />
+			<biblScope unit="volume">11</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">W</forename><surname>Chase</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Curnutt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Hu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Prophet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Syverud</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Walker</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Physical and Chemical Reference Data</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="page">311</biblScope>
+			<date type="published" when="1974" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Cox</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">D</forename><surname>Wagman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">A. ; I J M</forename><surname>Medvedev</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Barman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">M S</forename><surname>Hansen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Tanaka</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Kodama</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">760</biblScope>
+			<biblScope unit="page">4836</biblScope>
+			<date type="published" when="1982" />
+			<publisher>Hemisphere Publishing Corp</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Deming</surname></persName>
+		</author>
+		<idno>1011.1019</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">726</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+	<note>ADS</note>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B.-O</forename><surname>Demory</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:0707.3809</idno>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">475</biblScope>
+			<date type="published" when="1125" />
+		</imprint>
+	</monogr>
+	<note>ADS</note>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Désert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Lecavelier Des Etangs</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Hébrard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">K</forename><surname>Sing</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Ehrenreich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ferlet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vidal-Madjar</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">699</biblScope>
+			<biblScope unit="page">3405</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+	<note>ADS</note>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Eriksson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Acta Chem.Scand. Eriksson, G</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="page">100</biblScope>
+			<date type="published" when="1971" />
+		</imprint>
+	</monogr>
+	<note>Chemica Scripta</note>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Eriksson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Rosen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Chemica Scripta</title>
+		<imprint>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="page">193</biblScope>
+			<date type="published" when="1973" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Fegley</surname><genName>Jr</genName></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Lodders</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Icarus</title>
+		<imprint>
+			<biblScope unit="volume">110</biblScope>
+			<date type="published" when="1994" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Fortney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Marley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Lodders</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Saumon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Freedman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">627</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Fortney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Shabram</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">P</forename><surname>Showman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Lian</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Freedman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Marley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">K</forename><surname>Lewis</surname></persName>
+		</author>
+		<idno>0912.2350</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">709</biblScope>
+			<date type="published" when="1396" />
+		</imprint>
+	</monogr>
+	<note>ADS</note>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Fraine</surname></persName>
+		</author>
+		<idno>1301.6763</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">765</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+	<note>ADS</note>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<monogr>
+		<title level="m" type="main">Computer Program for Calculation of Complex Chemical Equilibrium Compositions and Applications. I. Analysis, Reference Publication RP-1311, NASA, describes theory and numerical algorithms behind CEA computer program</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Gordon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">J</forename><surname>Mcbride</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1994" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">V</forename><surname>Gurvich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">V</forename><surname>Veyts</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">B</forename><surname>Alcock</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1989" />
+			<publisher>Hemisphere Publishing Corp</publisher>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page">1</biblScope>
+			<pubPlace>New York</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Gurvich</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1991" />
+			<biblScope unit="page" from="721" to="726" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Hubeny</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Burrows</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">669</biblScope>
+			<biblScope unit="page">3922</biblScope>
+			<date type="published" when="1248" />
+		</imprint>
+	</monogr>
+	<note>ADS</note>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">A</forename><surname>Knutson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Burrows</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">T</forename><surname>O&amp;apos;donovan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Mandushev</surname></persName>
+		</author>
+		<idno>ADS, 0810.0021</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">691</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">A</forename><surname>Knutson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">690</biblScope>
+			<biblScope unit="page">1705</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+	<note>ADS</note>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">K</forename><surname>Kopparapu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">F</forename><surname>Kasting</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">J</forename><surname>Zahnle</surname></persName>
+		</author>
+		<idno>1110.2793</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">745</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+	<note>ADS</note>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">S</forename><surname>Lauretta</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Lodders</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Fegley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">;</forename><surname>Jr</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Ads Line</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">C</forename><surname>Liang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><forename type="middle">L</forename><surname>Yung</surname></persName>
+		</author>
+		<idno>1004.4029</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">277</biblScope>
+			<date type="published" when="1997" />
+		</imprint>
+	</monogr>
+	<note>ApJ</note>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Line</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Vasisht</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Angerhausen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><forename type="middle">L</forename><surname>Yung</surname></persName>
+		</author>
+		<idno>1104.3183</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">738</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+	<note>ADS</note>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Line</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><forename type="middle">L</forename><surname>Yung</surname></persName>
+		</author>
+		<idno>1309.6679</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">779</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Lodders</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">;</forename><surname>Fegley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Ads Lodders</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Fegley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">;</forename><surname>Jr</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Ads Machalek</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">R</forename><surname>Mccullough</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">J</forename><surname>Burke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Valenti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Burrows</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Hora</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Meteoritics</title>
+		<imprint>
+			<biblScope unit="volume">155</biblScope>
+			<biblScope unit="page" from="805" to="2418" />
+			<date type="published" when="1427" />
+		</imprint>
+	</monogr>
+	<note>ApJ</note>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Madhusudhan</surname></persName>
+		</author>
+		<idno>1209.2412</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">758</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+	<note>ADS</note>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Madhusudhan</surname></persName>
+		</author>
+		<idno>1012.1603</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">469</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+	<note>ADS</note>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Madhusudhan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Mousis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">V</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">I</forename><surname>Lunine</surname></persName>
+		</author>
+		<idno>1109.3183</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">743</biblScope>
+			<date type="published" when="0191" />
+		</imprint>
+	</monogr>
+	<note>ADS</note>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Madhusudhan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Seager</surname></persName>
+		</author>
+		<idno>1004.5121</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">707</biblScope>
+			<biblScope unit="page">41</biblScope>
+			<date type="published" when="1010" />
+		</imprint>
+	</monogr>
+	<note>ApJ</note>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Marley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Fortney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Hubickyj</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Bodenheimer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Lissauer</surname></persName>
+		</author>
+		<idno>astro-ph/0609739</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">655</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+	<note>ADS</note>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<monogr>
+		<title level="m" type="main">Computer Program for Calculation of Complex Chemical Equilibrium Compositions and Applications. II. User&apos;s Manual and Program Description</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">J</forename><surname>Mcbride</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Gordon</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1996" />
+		</imprint>
+	</monogr>
+	<note>Reference Publication RP-1311-P2, NASA</note>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<monogr>
+		<title level="m" type="main">Coefficients for Calculating Thermodynamic and Transport Properties of Individual Species</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">J</forename><surname>Mcbride</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Gordon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Reno</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1993" />
+		</imprint>
+	</monogr>
+<note type="report_type">Technical Memorandum TM-4513</note>
+	<note>NASA, this describes the pre-1994 7-coefficient fit, which is used in Cantera</note>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Miller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Kee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">K</forename><surname>Westbrook</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Annual Review of Physical Chemistry</title>
+		<imprint>
+			<biblScope unit="volume">41</biblScope>
+			<biblScope unit="page">345</biblScope>
+			<date type="published" when="1990" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">I</forename><surname>Moses</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Madhusudhan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Visscher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Freedman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<date type="published" when="1211" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">I</forename><surname>Moses</surname></persName>
+		</author>
+		<idno>1102.0063</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">737</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+	<note>ADS</note>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">I</forename><surname>Petaev</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Wood</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Meteoritics and Planetary Science</title>
+		<imprint>
+			<biblScope unit="volume">33</biblScope>
+			<date type="published" when="1998" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">C</forename><surname>Rogers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Apai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>López-Morales</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">K</forename><surname>Sing</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Burrows</surname></persName>
+		</author>
+		<idno>0910.1257</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">707</biblScope>
+			<biblScope unit="page">1707</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+	<note>ADS</note>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Seager</surname></persName>
+		</author>
+		<title level="m">Exoplanet Atmospheres:Physical Processes</title>
+		<imprint>
+			<publisher>Princeton University Press</publisher>
+			<date type="published" when="1999" />
+		</imprint>
+		<respStmt>
+			<orgName>Harvard University -</orgName>
+		</respStmt>
+	</monogr>
+<note type="report_type">PhD thesis</note>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Seager</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">J</forename><surname>Richardson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">M S</forename><surname>Hansen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Menou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">Y.-K</forename><surname>Cho</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Deming</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">M</forename><surname>Sharp</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Burrows</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:astro-ph/0607211</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">632</biblScope>
+			<biblScope unit="page">1122</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+	<note>ADS</note>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">M</forename><surname>Sharp</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">F</forename><surname>Huebner</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">72</biblScope>
+			<date type="published" when="1990" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">B</forename><surname>Stevenson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Bean</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Madhusudhan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Harrington</surname></persName>
+		</author>
+		<idno>1406.7567</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">791</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+	<note>ADS</note>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">B</forename><surname>Stevenson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">346</biblScope>
+			<biblScope unit="page">4591</biblScope>
+			<date type="published" when="1010" />
+		</imprint>
+	</monogr>
+	<note>ADS</note>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Stodden</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Computing in Science &amp; Engineering</title>
+		<imprint>
+			<biblScope unit="volume">11</biblScope>
+			<biblScope unit="page">35</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">O</forename><surname>Todorov</surname></persName>
+		</author>
+		<idno>1111.5858</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">746</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+	<note>ADS</note>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Venot</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Agúndez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Selsis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Tessenyi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Iro</surname></persName>
+		</author>
+		<idno>1312.5163</idno>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">562</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+	<note>ADS</note>
+</biblStruct>
+
+<biblStruct xml:id="b52">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Venot</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Hébrard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Agúndez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Dobrijevic</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Selsis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Hersant</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Iro</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Bounaceur</surname></persName>
+		</author>
+		<idno>1208.0560</idno>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">546</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b53">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Visscher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Lodders</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Fegley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Jr</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:astro-ph/0511136</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">648</biblScope>
+			<biblScope unit="page">1181</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+	<note>ADS</note>
+</biblStruct>
+
+<biblStruct xml:id="b54">
+	<analytic>
+		<title/>
+		<idno>1001.3639</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">716</biblScope>
+			<date type="published" when="1060" />
+		</imprint>
+	</monogr>
+	<note>ADS</note>
+</biblStruct>
+
+<biblStruct xml:id="b55">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Visscher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">I</forename><surname>Moses</surname></persName>
+		</author>
+		<idno>1106.3525</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">738</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+	<note>ADS</note>
+</biblStruct>
+
+<biblStruct xml:id="b56">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Visscher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">I</forename><surname>Moses</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">A</forename><surname>Saslow</surname></persName>
+		</author>
+		<idno>1003.6077</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Icarus</title>
+		<imprint>
+			<biblScope unit="volume">209</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+	<note>ADS</note>
+</biblStruct>
+
+<biblStruct xml:id="b57">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">B</forename><surname>White</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">M</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">B</forename><surname>Dantzig</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<imprint>
+			<biblScope unit="volume">28</biblScope>
+			<date type="published" when="1958" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b58">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Zahnle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Marley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Freedman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Lodders</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Fortney</surname></persName>
+		</author>
+		<idno>0903.1663</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">701</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+	<note>ADS</note>
+</biblStruct>
+
+<biblStruct xml:id="b59">
+	<analytic>
+		<title level="a" type="main">An analytical investigation of three general methods for of calculating chemical equilibrium compositions, Technical Note TN-473, NASA -. 1968, Calculation of complex chemical equilibria</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">J</forename><surname>Zeleznik</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Gordon</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Technical Memorandum TM X-52303</title>
+		<imprint>
+			<date type="published" when="1960" />
+		</imprint>
+		<respStmt>
+			<orgName>NASA</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b60">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">Y</forename><surname>Zolotov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Fegley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Icarus</title>
+		<imprint>
+			<biblScope unit="volume">132</biblScope>
+			<date type="published" when="1998" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

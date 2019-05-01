@@ -1,0 +1,1266 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2019-01-22T13:41+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">PlanetPack3: a radial-velocity and transit analysis tool for exoplanets</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2018-09-19">19 Sep 2018</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Roman</forename><forename type="middle">V</forename><surname>Baluev</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Central Astronomical Observatory at Pulkovo of Russian Academy of Sciences</orgName>
+								<address>
+									<addrLine>Pulkovskoje sh. 65/1, Saint Petersburg 196140</addrLine>
+									<country key="RU">Russia</country>
+								</address>
+							</affiliation>
+							<affiliation key="aff1">
+								<orgName type="department">Faculty of Mathematics &amp; Mechanics</orgName>
+								<orgName type="institution">Saint Petersburg State University</orgName>
+								<address>
+									<addrLine>Universitetskij pr. 28</addrLine>
+									<postCode>198504</postCode>
+									<settlement>Petrodvorets</settlement>
+									<region>Saint Petersburg</region>
+									<country key="RU">Russia</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">PlanetPack3: a radial-velocity and transit analysis tool for exoplanets</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2018-09-19">19 Sep 2018</date>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>stars: planetary systems</term>
+					<term>techniques: radial velocities</term>
+					<term>techniques: photometric</term>
+					<term>methods: data analysis</term>
+					<term>methods: statistical</term>
+					<term>surveys</term>
+				</keywords>
+			</textClass>
+			<abstract>
+				<p>PlanetPack, initially released in 2013, is a command-line software aimed to facilitate exoplanets detection, characterization, and basic dynamical N-body simulations. This paper presents the third major release of PlanetPack that incorporates multiple improvements in comparison to the legacy versions. The major ones include: (i) modelling noise by Gaussian processes that in addition to the classic white noise may optionally include multiple components of the red noise, modulated noise, quasiperiodic noise (to be added soon in minor subversions of the 3.x series); (ii) an improved pipeline for TTV analysis of photometric data that includes quadratic limb-darkening model and automatic red-noise detection; (iii) self-consistent joint fitting of photometric + radial velocity data with full access to all the functionality inherited from the legacy PlanetPack; (iv) modelling of the Rossiter-McLaughlin effect for arbitrary eclipser/star radii ratio, and optionally including corrections that take into account average characteristics of a multiline stellar spectrum; (v) speed improvements through multithreading and CPU-optimized BLAS libraries. PlanetPack was written in pure C++ (standard of 2011), and is expected to be run on a wide range of platforms.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>PlanetPack was initially released in 2013 <ref type="bibr" target="#b9">(Baluev, 2013b)</ref>, targeting tasks of exoplanets detection and characterization, based on Doppler radialvelocity (RV) data, and of exoplanetary dynamics. Along its 1.x release series, this software offered the following functionality: (i) RV curve fitting with a fittable RV jitter; (ii) fitting the RV data with red noise (auto-correlated errors); (iii) multi-Keplerian as well as Newtonian N-body RV fits; (iv) advanced maximum-likelihood periodograms; (v) calculation of parametric confidence regions; (vi) constrained fitting; (vii) analytical statistical tests and numerical</p><p>Email address: r.baluev@spbu.ru (Roman V. Baluev) Monte Carlo simulations; (viii) basic tasks of longterm planetary N-body simulation.</p><p>The first major release of PlanetPack and the subsequent 1.x series were capable to deal with only RV data. The second major release introduced a dedicated pipeline that allowed to perform a homogeneous fit of multiple transit lightcurves of the same exoplanet ( , but this pipeline was largerly experimental that time. Moreover, it wasn't yet possible in the 2.x series to analyse photometric and Doppler data together, so this transit fitting pipeline still looked like a standalone foreign module inside the RV analysis software.</p><p>However, the importance of the joint analysis of the RV+transit data is growing. Several obvious reasons for that are listed below.</p><p>1. Transit and Doppler methods are highly complementary, so they provide much more complete description of the planetary system when used together. This includes the determination of the true planetary mass (resolving the inclination i in the famous m sin i issue), information about the 3D structure of the system if the star is transited by multiple planets, estimation of planet density, high-accuracy determination of orbital eccentricities. 1 2. Transit timing variations (TTVs) can provide independent hints of N-body interactions in a planetary system. This method is even capable to detect previously unknown planets <ref type="bibr" target="#b1">(Agol and Fabrycky, 2017)</ref>. However, such an analysis would be much more robust and informative if the planetary orbits are additionally constrained by radial velocities. 3. New physical effects may be revealed for some very close-in planets, owing to the tidal interaction with the host star. We refer here to the case of WASP-12 b that demonstrated apparently decaying orbital period, as derived from transit times ( <ref type="bibr" target="#b27">Maciejewski et al., 2016)</ref>. But physical interpretation of such an effect is not unique: the planet may either spiral down onto the star indeed, or it may udergo a tidal apsidal drift ( <ref type="bibr" target="#b34">Patra et al., 2017)</ref>. Another possible explanation is that transit times are affected by a variable light-travel time delay, owing to an unseen distant companion that induces a longperiod barycentric motion of the star and its transiting planet. The Doppler data are very important in resolving such ambiguities. They may provide narrow constraints on the orbital eccentricity, hence helping to distingush tidal apsidal precession from the true orbit decay. From the other side, Doppler data may easily reveal the unseen companion if it is indeed responsible for the apparent TTV effect, or they can rule out the existence of such a companion. <ref type="bibr">1</ref> The timing of a planetary transit yields a high-accuracy reference phase on the Doppler curve. At this phase, the radial velocity deviation is proportional to ∼ e cos ω. Hence, this combination becomes constrained with a much better accuracy if just a single transit is available in addition to radial velocities.</p><p>4. The Rossiter-McLaughlin effect allows to determine whether the planet orbit is aligned with the stellar equator or not ( <ref type="bibr" target="#b24">Gaudi and Winn, 2007)</ref>. This effect reveals itself only in Doppler data, however its magnitude and shape depends on the stellar limb-darkening law and average characteristics of the stellar spectrum, see e.g. ( . Transit observations would yield estimations of the limb-darkening coefficients that are necessary for accurate modelling of the Rossiter-McLaughlin effect. 5. Simultaneous RV and transit observations of the same star might be useful to detrend activity effects and thus improve the accuracy of the analysis, see e.g. ( <ref type="bibr" target="#b2">Aigrain et al., 2012</ref>).</p><p>After the exoplanetary era started in 1990s thanks to 51 Pegasi discovery <ref type="bibr" target="#b29">(Mayor and Queloz, 1995)</ref>, the number of known exoplanetary candidates has now grown to several thousands (see The Extrasolar Planets Encyclopaedia database maintained by <ref type="bibr" target="#b37">Schneider et al. (2011)</ref>). Before the Kepler space mission (kepler.nasa.gov), ground-based RV surveys clearly overperformed the transit ones, so the Doppler technique provided the main contribution in the detection statistics. Presently, the majority of exoplanetary candidates are owed to the Kepler transit programme, but many of these Kepler detections still remain insufficiently reliable. This highlights once again that both the RV and transit method remain somewhat deficient, if they are used alone.</p><p>A variety of computer software is available to facilitate exoplanets detection and characterization, based on the radial-velocity or transit data, or both ( <ref type="bibr" target="#b30">Meschiari et al., 2009;</ref><ref type="bibr" target="#b20">Eastman et al., 2013;</ref>. Multiple other works focus more on the theory and the associated analysis methods, rather than software implementation <ref type="bibr" target="#b38">(Wright and Howard, 2009;</ref><ref type="bibr" target="#b33">Pál, 2010;</ref><ref type="bibr" target="#b25">Hara et al., 2017)</ref>. See Deeg (2017) for a complete review of over 40 software tools available.</p><p>In this context, the primary goal of PlanetPack is to join the both approaches. The intention is to host a wide set data analysis tools under the same umbrella, so that this toolbox could be used solely alone if necessary, from the beginning to the end of the ex-oplanetary analysis. Simultaneously, those methods are not just the textbook ones: most of them were worked out by us over the past decade. All these algorithms have passed an extensive real-world testing on practical exoplanetary cases. See the references in (Baluev, 2013a) and below.</p><p>In the further sections, we discuss the new PlanetPack functionality introduced in its version 3.0, along with the associated theory. This paper does not say anything about the practical use of PlanetPack, its internal data organization, etc. The necessary Technical Manual is provided in a standalone PDF file downloadable together with the PlanetPack sources.</p><p>PlanetPack source is available for download at the URL http://sourceforge.net/projects/planetpack.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Enhanced noise modelling</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">Some GP noise models typically used in practice</head><p>On their way to the detection of an Earth-twin exoplanet, Doppler programmes faced the need to remove effects of stellar activity from the measurements ( <ref type="bibr" target="#b22">Fischer et al., 2016)</ref>. One popular technique to partially bypass this "activity barrier" is to model the Doppler noise by Gaussian Processes, or GPs ( <ref type="bibr" target="#b36">Rasmussen and Williams, 2006</ref>). This method was adopted in multiple works already, see e.g. <ref type="bibr" target="#b7">(Baluev, 2011</ref><ref type="bibr" target="#b8">(Baluev, , 2013a</ref><ref type="bibr" target="#b21">Feroz and Hobson, 2014;</ref><ref type="bibr" target="#b3">Anglada-Escudé et al., 2014;</ref><ref type="bibr" target="#b35">Rajpaul et al., 2015)</ref>. In a similar way, GPs can be used with photometric data, either to model the red noise in a transit lightcurve ( <ref type="bibr" target="#b13">Barclay et al., 2015)</ref>, or to characterize stellar rotation periods ( <ref type="bibr" target="#b5">Angus et al., 2018)</ref>.</p><p>Presently, GPs can be deemed as one of standard noise modelling techniques in the field of exoplanets detection ( <ref type="bibr" target="#b31">Nelson et al., 2018)</ref>, as well as in the general time-domain astronomy <ref type="bibr" target="#b22">(Foreman-Mackey et al., 2017)</ref>.</p><p>Let the noise N(t) be a centered GP. Then it is solely defined by its covariance function:</p><formula xml:id="formula_0">κ(t 1 , t 2 ) = Cov(N(t 1 ), N(t 2 )) = E (N(t 1 )N(t 2 )) . (1)</formula><p>Based on κ, we can also introduce the variance d(t) and the correlation function ρ(t 1 , t 2 ):</p><formula xml:id="formula_1">d(t) = Var(N(t)) = κ(t, t), ρ(t 1 , t 2 ) = κ(t 1 , t 2 ) √ d(t 1 )d(t 2 ) .</formula><p>(2) Quite often, N(t) is assumed stationary, which imples that its autocorrelation is actually a function of just the time lag ∆t = |t 2 − t 1 |, or κ = κ(∆t). In such a case the power spectrum P(ω) of the random process N(t) can be expressed by means of the WienerKhinchin (WK) theorem via the Fourier transform of the autocorrelation:</p><formula xml:id="formula_2">P(ω) = ˆ κ(ω) = ∞ −∞ κ(t) exp(iωt)dt (3)</formula><p>It is important that P(ω) cannot be negative, by its definition. Hence, the WK theorem can serve as a test of physical admissibility of the correlation model. Assuming some model κ(∆t), we should substitute it to (3), and verify that the resulting P(ω) never turns negative. If this test is failed then the selected κ(∆t) cannot describe any physical random process. Note that the WK theorem itself does not require the random process to be necessarily Gaussian, so this test remains valid even if N(t) has some deviation from strict normality. Now, let us briefly consider several frequent choices of the GP model.</p><p>The first and the most primitive noise model is, of course, the white noise W(t). Its autocorrelation is expressed by the Dirac delta function:</p><formula xml:id="formula_3">Cov(W(t 1 ), W(t 2 )) = δ(t 2 − t 1 ), P(ω) ≡ 1. (4)</formula><p>This definition implies that the variance of Var W(t) is infinite. It is possible to select another normalization by using the Kronecker delta δ tt ′ instead of δ(t − t ′ ), thus making the variance finite, but this would imply another degeneracy, P(ω) ≡ 0. This actually means that the white noise is basically a degenerate mathematical abstraction that does not exist in the real physical world. It can serve only as a very basic approximation of the data.</p><p>A few models were used by <ref type="bibr" target="#b7">Baluev (2011</ref><ref type="bibr" target="#b8">Baluev ( , 2013a</ref>) for the so-called "red", or low-frequency, 3 noise in Doppler data:</p><formula xml:id="formula_4">Cov(R(t 1 ), R(t 2 )) =              exp − |t 2 −t 1 | τ , exp − (t 2 −t 1 ) 2 2τ 2 , 1 1+(t 2 −t 1 ) 2 /τ 2 .<label>(5)</label></formula><p>The second of these models was also suggested by <ref type="bibr" target="#b35">Rajpaul et al. (2015)</ref>, also for the use with Doppler data.</p><p>The covariances (5) imply the following power spectra:</p><formula xml:id="formula_5">P(ω) =            2τ 1+τ 2 ω 2 , √ 2π τ exp − τ 2 ω 2 2 , πτ exp(−τ|ω|).<label>(6)</label></formula><p>All them have an unimodal bell-like shape centered at ω = 0. Now let us start approaching the problem from another direction. Consider the sinusoidal variation:</p><formula xml:id="formula_6">H(t) = a cos ω 0 t + b sin ω 0 t,<label>(7)</label></formula><p>where ω 0 is a fixed frequency, while a and b are independent random quantities obeying standard normal distribution (mean zero, variance unit). Since a and b are random, each value of H(t) is also random. It follows the same standard Gaussian distribution, with zero mean and constant variance d(t) ≡ 1, while any set {H(t k )} is a multivariate Gaussian vector. Therefore, H(t) is a stationary GP. Its covariance function is:</p><formula xml:id="formula_7">Cov(H(t 1 ), H(t 2 )) = cos [ω 0 (t 2 − t 1 )] ,<label>(8)</label></formula><p>and the power spectrum:</p><formula xml:id="formula_8">P(ω) = 1 2 [δ(ω − ω 0 ) + δ(ω + ω 0 )] .<label>(9)</label></formula><p>Simultaneously, each instance of H is just a sinusoid. As such, we can say that (8) represents the covariance function of a sinusoid. And H(t) is often called the "harmonic GP".</p><p>Thanks to the strict periodicity of the covariance (8), each instance of H(t) is a periodic function. Even though we defined H as a random process, by looking at any its single instance it would not be possible to note typical signs of a random variation (a noise). In other words, instances of such a process always look like a deterministic function (though its phase and amplitude depends on the particular instance). This appears because (8) does not decay for large ∆t, so even distant values of H(t) are strictly binded with each other, while the phase of the variation is presereved over time.</p><p>A similar behaviour occurs for any other random process P(t) that has a strictly periodic covariance function κ(∆t), for example for</p><formula xml:id="formula_9">Cov(P(t 1 ), P(t 2 )) = exp − 2 λ 2 sin 2 π P (t 2 − t 1 ) ∝ exp 1 λ 2 cos 2π P (t 2 − t 1 ) ,<label>(10)</label></formula><p>from (Olspert et al., 2017), or for any other Pperiodic κ(∆t). Each instance of such a random process is a strictly periodic variation, though not necessarily sinusoidal. The parameter λ in (10) controls the shape of the resulting periodic variation.</p><p>In general, the power spectrum of such a periodic random process is, by analogy with (9), a sum of multiple delta impulses centered at the discrete frequencies ω n = 2πn/P, where n = ±1, ±2, . . . It is required that all these impulses are positive, or otherwise the selected model κ(∆t) would become nonphysical.</p><p>The natural further step is to construct a mixture of an autocorrelated noise with a decaying κ d (∆t), like one of <ref type="formula" target="#formula_4">(5)</ref>, and of a periodic model κ p (∆t), like (8) or (10). This can be done by constructing the product of the covariances:</p><formula xml:id="formula_10">κ(∆t) = κ d (∆t)κ p (∆t).<label>(11)</label></formula><p>This random process would carry joint signs of a random noise and of a periodic variation, i.e. it is a quasiperiodic GP. The power spectrum of such a quasiperiodic noise represents a convolution of the parent power spectra P d (ω) and P p (ω). This results in a discrete sequence of peaks in P(ω), owed to the periodic part P p , and each such peak has the same bell-like shape (a broadened delta function), which is determined by the noisy part P d .</p><p>One of the most simple choices is to combine the exponential red noise R(t) with the harmonic oscilla-4 tion H(t):</p><formula xml:id="formula_11">κ(∆t) = e −β|∆t| cos ω 0 ∆t,<label>(12)</label></formula><p>which yields the covariance in the form of a decaying sinusoid. It is similar to the ones implemented by Foreman- <ref type="bibr" target="#b22">Mackey et al. (2017)</ref>. However, <ref type="bibr" target="#b35">Rajpaul et al. (2015)</ref> suggested a bit more complicated model, which was based on (10) and on the squared-exponential red noise from <ref type="formula" target="#formula_4">(5)</ref>:</p><formula xml:id="formula_12">κ(∆t) = exp − ∆t 2 2τ 2 − 2 λ 2 sin 2 π∆t P .<label>(13)</label></formula><p>Both the models <ref type="formula" target="#formula_11">(12)</ref> and <ref type="formula" target="#formula_12">(13)</ref> are valid covariance functions that can describe a quasiperiodic random process. Heuristic models of these types represent a good "workhorses" that allow to adequately handle e.g. Doppler or photometric noise appearing due to the stellar activity (e.g. spots), coupled with stellar rotation. The quasiperiodic model by <ref type="bibr" target="#b35">Rajpaul et al. (2015)</ref> is perhaps a bit more general, thanks to an additional tuning parameter λ that affects the non-sinusoidal shape of the quasiperiodic variation. <ref type="bibr">2</ref> Yet another possible direction of generalizing is to consider non-stationary GPs, when the covariance κ(t 1 , t 2 ) cannot be reduced to a single argument. Such an attempt was made in <ref type="bibr" target="#b10">(Baluev, 2015)</ref> to analyse long-term activity variations in 55 Cnc. We used the following model in that work:</p><formula xml:id="formula_13">κ(t 1 , t 2 ) = e −|t 2 −t 1 | cos Ωt 1 + λ 2 cos Ωt 2 + λ 2 = 1 2 e −|t 2 −t 1 | cos Ω t 2 − t 1 2 + cos Ω t 1 + t 2 2 + λ .<label>(14)</label></formula><p>The intention was to construct a mathematical model with a periodic modulational factor that could describe long-term activity variation, and simultaneously keep the formula symmetric with respect to swapping t 1 and t 2 . In particular, the variance for this model varies sinusoidally:</p><formula xml:id="formula_14">d(t) = 1 2 [1 + cos(Ωt + λ)] .<label>(15)</label></formula><p>As we can see, there is a plenty of mathematical GP models that could explain, more or less adequately, some specific noise effects. However, their common concern is that all these models are heuristic and are highly arbitrary. The GP models used in the astronomical practice typically lack physical motivation of their choice. They are often chosen based on either their popularity or just mathematical simplicity. They do not rely on physical models of the star and appear just mathematical toy models instead.</p><p>An exception is the work by Foreman- <ref type="bibr" target="#b22">Mackey et al. (2017)</ref>, where the authors give some explanation of their GP kernels, based on the physical model of a dumped harmonic oscillator (DHO).</p><p>It is still impossible to construct a feasible physically justified model of the stellar noise in Doppler or photometric data. But nevertheless we may try to take into account some very basic and simple principles of physical self-consistency, or at least to investigate how a particular assumption concerning the red noise generating mechanisms may affect our models. Such an attempt is presented in App. Appendix A, where we adopt one such selfconsistent view on the GPs that can probably cover a wider range of models than just the DHO concept. We consider this self-consistent framework as possible basis to construct GP models used in PlanetPack.</p><p>2.2. Elementary GP "bricks" accessible in PlanetPack PlanetPack 3.0 allows to build a multicomponent noise model from multiple "GP primitives". It is assumed that the noise is a sum of statistically independent GP contributions, and each has a simple form of the covariance function κ. Then the cumulative covariance function is plainly a sum of these elementary ones.</p><p>Current version 3.0 of PlanetPack allows to combine the following stationary "GP primitives": the white noise (4), and the three types of the red noise (5).</p><p>Each stationary component, either white or red, can be promoted to a nonstationary version by means 5 of a sinusoidal modulation:</p><formula xml:id="formula_15">κ nonstat (t 1 , t 2 ) = d(min(t 1 , t 2 )) κ stat (∆t), d(t) = D 0 + D m cos(Ωt + λ).<label>(16)</label></formula><p>Such nonstationary GPs can be used to model e.g. long-term stellar activity that may modulate shortterm noise characteristics <ref type="bibr" target="#b10">(Baluev, 2015)</ref>. The formula (16) is a bit different from the nonstationary model <ref type="bibr">(14)</ref>. The new formula is based on the "adiabatic" approximation (A.10) motivated by our self-consistent GP construction method given in the App. Appendix A. The modulation is "adiabatic" in the sense that Ω is assumed much smaller than the red-noise decay parameter β = 1/τ. This corresponds to a relatively slow modulation effect like e.g. the magnetic activity cycle. We note, however, that in this adiabatic case our new model (16) appears close to the old one <ref type="formula" target="#formula_13">(14)</ref>, so the results of the analysis should not change too much. A single white-noise term in the compound model is mandatory, while the rest is an arbitrary combination of autocorrelated terms:</p><formula xml:id="formula_16">κ(t 1 , t 2 ) = κ WN (t 1 , t 2 ) + n k=1 κ RN,k (t 1 , t 2 ).<label>(17)</label></formula><p>Each term in this model is parametrized by its own set of free variables: the magnitude of the jitter σ ⋆ , the red-noise correlation timescale τ (if this is a rednoise term), optionally the three modulation parameters: σ ⋆,mod = √ D m , P mod = 2π/Ω, and λ mod . These parameters can be fitted all independently, or fixed or mutually binded as desired (this option is inherited from the PlanetPack 2.0 constrained fitting mechanism).</p><p>Three types of the white noise model κ WN can be used: the multiplicative, the additive with trucation, and the regularized modification of the additive model. The latter one is now used by default thanks to its high robustness confirmed by practical computations, see <ref type="bibr" target="#b10">(Baluev, 2015;</ref> and the forthcoming work ( <ref type="bibr">Baluev et al., 2018, in prep.</ref>). These noise models are described detailedly in <ref type="bibr" target="#b10">(Baluev, 2015)</ref> and in the PlanetPack Technical manual.</p><p>In the further versions of the 3.x series we plan to add support for quasiperiodic noise models, like (12) and <ref type="formula" target="#formula_12">(13)</ref>, and possibly the phase-shifted version (A.15), after they have enough testing. These GP kernels can be used to model stellar rotation effect.</p><p>The fitting of a GP model is performed using generally the same maximum-likelihood framework as in the 1.x PlanetPack series. Some details of the theory and numeric calculation are given in <ref type="bibr" target="#b8">(Baluev, 2013a)</ref>. The inversion of the N × N data covariance matrix is achieved through the Cholesky decomposition, which is numerically stable and quick relative to other methods (∼ N 3 /6 multiply operations on a dense matrix). To improve the computation speed, the covariance matrix is first made sparse by means of forcing all small correlations (|ρ(∆t)| &lt; ε) to exact zero. This is done in a smooth manner in order to avoid undesired numerical effects that could appear due to artificial discontinuties in ρ(∆t). Then the covariance matrix becomes a symmetric band matrix, i.e. only 2K + 1 central diagonals remain nonzero, where K ≪ N usually. In such a way PlanetPack uses dedicated linear algebra routines that profit from the band matrix structure. Such routines are available in the OpenBLAS library, for instance. The Cholesky decomposition algorithm, which is not present in OpenBLAS, was also programmed to take into account the banded structure of the input matrix, resulting in just O(NK 2 ) arithmetic operations.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Transit fitting with PlanetPack</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">The motivation</head><p>The transit fitting was introduced in PlanetPack 2.x series as an experimental standalone pipeline processing lightcurve data (without radial velocities). This pipeline had a relatively narrow purpuse and was run by just a single PlanetPack command transitfit. Accepting an input set of lightcurves, each with a complete or partial planetary transit, the pipeline derived their transit timing data, for further investigation of possible transit timing variations (TTVs).</p><p>In v. 3.0 we provide a more powerful toolbox for self-consistent fitting of the transit data, with or without radial velocities (see sect. 4). However, the TTVonly fitting pipeline is preserved, as its goal is impor-tant, albeit more narrow. This pipeline is now tested well enough and was improved in several aspects.</p><p>The basics of the transit curve modelling were already presented by , and more details soon appear in the forthcoming update of this paper ( <ref type="bibr">Baluev et al., 2018, in prep</ref>). Here we do not replicate all their formulae. We only highlight the main points and improvements introduced with PlanetPack 3.0.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">The models</head><p>The transit models remained basically the same as in ( . This includes a circular curved orbital motion of the planet (i.e., assuming zero eccentricity) and the quadratic model for the limb-darkening. The model of the magnitude drop itself is mathematically equivalent to the classic one presented by <ref type="bibr" target="#b28">Mandel and Agol (2002)</ref> and to the one by <ref type="bibr" target="#b0">Abubekerov and Gostev (2013)</ref>, although technically we use the formulae by  that put photometric and spectroscopic transits in the same modelling framework.</p><p>Our transit model has 4 kinematic parameters: (i) the mid-time of the transit t c , (ii) the half-duration of the transit t d , defined as 1/2 of the time spent between the first and fourth contacts, (iii) the impact parameter b, measuring the smallest projected separation between the planet and star centers (divided by the star radius), and (iv) the projected planet/star radii ratio r that simultaneously determines the transit depth and the duration of the ingress/egress phases.</p><p>We assume the quadratic limb-darkening model with two coefficients to be determined, A and B. The brightness of a point on the visible stellar disc, observed at a given separation from its center, ρ, is modelled as</p><formula xml:id="formula_17">I(ρ) = 1− A(1−µ)− B(1−µ) 2 , µ = 1 − ρ 2 . (18)</formula><p>Sometimes the model (18) becomes ill-fitted because of poor data quality, and then it can turn nonphysical, owed to bad values of A and B. To avoid this issue, PlanetPack includes internally the following mandatory constraints on these coefficients:</p><formula xml:id="formula_18">A + B ≤ 1, A + 2B ≥ 0, A ≥ 0.<label>(19)</label></formula><p>According to <ref type="bibr" target="#b26">Kipping (2013)</ref>; , these constraints are necessary to have I(ρ) always positive and monotonically decreasing (any "limb brightening" is disallowed). Technically, the constrained fitting honouring (19) is performed in an implicit manner, by using the following trigonometric replacement:</p><formula xml:id="formula_19">A = (1 − cos ϕ) sin 2 θ, B = cos ϕ sin 2 θ. (20)</formula><p>Internally, PlanetPack uses auxiliary variables θ and ϕ as primary fittable parameters. Whatever real values they attain, the resulting values of A and B always satisfy <ref type="bibr">(19)</ref>. From the other side, each point (A, B) in the domain (19) maps to some real-valued (θ, ϕ):</p><formula xml:id="formula_20">sin 2 θ = A + B, cos ϕ = B A + B .<label>(21)</label></formula><p>Note that from (19) it follows that A + B ≥ |B|, meaning that A+B is never negative (though B can become negative). The trigonometric parametrization <ref type="formula" target="#formula_20">(21)</ref> is alternative to the (q 1 , q 2 ) one proposed by <ref type="bibr" target="#b26">Kipping (2013)</ref>: q 1 = sin 4 θ, q 2 = sin 2 ϕ. But the parameters (21) allow us to avoid dealing with boundaries. Every point in the (θ, ϕ) plane corresponds to some meaningful limb-darkening coefficients. The lightcurve model may optionally include a polynomial trend with fittable coefficients. Such a trend is necessary to take into account various drifting effects, e.g. the effect of airmass or other types of systematic variations that appear frequently in the transit data. Each transit lightcurve may have an individual fittable trend with a separate set of trend coefficients (although their polynomial order must be the same). We find that cubic trends represent a good compromise between the model adequacy and its parametric complexity. PlanetPack is currently not capable to detrend the data against the airmass function or other additional indicators, but this might be a work for future development.</p><p>PlanetPack may optionally include a single fittable red-noise noise term with an exponentially decaying correlation function (5). This can be done either for all lightcurves or only for some selected ones. In any case, the red noise in different lightcurves is fitted independently. It is also possible to autodetect red noise in the input photometry (see below). 7</p><p>The fitting of these models is performed by means of the maximum-likelihood approach with a preventive bias correction in the noise jitter. This method remained practically unchanged from PlanetPack 1.0, and is explained in details in <ref type="bibr" target="#b6">(Baluev, 2009</ref><ref type="bibr" target="#b7">(Baluev, , 2011</ref><ref type="bibr" target="#b8">(Baluev, , 2013a</ref>,b).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.">The pipeline</head><p>The transit fitting pipeline include the following steps that invlove a sequential increase of the model complexity:</p><p>1. Perform a preliminary fit constraining the midtimes on a regular grid (linear ephemiris with free time shift and stride); fixing the impact parameter at an intermediary value (b ≃ 1/ √ 2), and fixing the limb darkening coefficients at A = B = 0.25 (or θ = π/4 and ϕ = π/3). 2. Refit after releasing the mid-times and the impact parameter, but still holding the limb darkening coefficients fixed. 3. Refit after releasing the limb darkening coefficients. 4. Refit after a releasing the limb darkening coefficients for the best-quality lightcurves (those with r.m.s. &lt; 0.05 of the transit depth and complete transits).</p><p>This pipeline remains generally the same as used in (  and PlanetPack 2.0. The main changes are in parametric constraints. In the 2.x series the following parameters we mutually binded (across different lightcurves): impact parameter b, transit half-duration t d , the planet/star radii ratio r, and the limb-darkening parameters A and B. Only transit timings were fitted separately, allowing for further analysis of transit timing variation (TTV), but not of possible transit duration variation (TDV), or variations of the apparent transit depth (via r). Also, it was impossible to fit the limb-darkening coefficients separately for lightcurves obtained in different photometric bands. In the new PlanetPack 3.0 these restrictions are not mandatory and can be removed if desired. Most importantly, the limb-darkening coefficients can be fitted separately on the band-by-band basis, i.e. it is possible to bind A and B only between those lightcurves that were obtained in the same (or similar) photometric filter. See Technical manual for the details.</p><p>This PlanetPack functionality allows for an interesting by-product research: investigate an experimental dependence of A and B from the spectral band, and then compare these estimations with theoretic predictions ( <ref type="bibr">Baluev et al., 2018, in prep.)</ref>.</p><p>Already PlanetPack 2.0 allowed to autodetect red noise in the input photometry. In such a case, only those lightcurves would gain a red-noise model term, in which this red noise appeared statistically significant and not ill-fitted. However, this algorithm was very time-consuming, because it "probed" each lightcurve individually, i.e. tried to fit it with and without the red-noise term and then compared the likelihood of these fits. The fitting of the correlated noise is computationally hard in itself (due to inversion of large covariance matrices), especially if such a fit need to be re-run multiple times.</p><p>In v. 3.0 we significantly improved the speed of this computation, by using fast linear algebra libraries (see sect. 5), and by optimizing the order in which the individual lightcurves are probed.</p><p>The main principle of this optimized sequence: process good data last. The motivation is that lowquality data usually do not demonstrate any detectable or robustly-fittable red noise. Therefore, it is reasonable to probe them first, just to quickly ensure that their red noise is ill-fitted, and then continue to fit them with the fast white noise model while probing the red noise in the remaining high-quality data. If instead the high-quality data are processed first, then we likely detect some robust red noise in them, thus slowing all further computation down at the very beginning stage of the analysis.</p><p>To identify transit data of a higher quality, the following "quality characteristic" of a lightcurve is computed:</p><formula xml:id="formula_21">Q lc = Q 2t d , Q = measurements density residuals r.m.s.<label>(22)</label></formula><p>The quantity 1/Q determines the uncertainty offered by a "standard" chunk of the lightcurve of a unit length. The uncertainty of an arbitrary chunk of length t scales as 1/(Q √ t), so Q √ t can be accepted as a rough "quality characteristic" of the chunk, while Q √ 2t d represents the quality characteristic of the in-transit portion of the lighcurve. <ref type="bibr">3</ref> </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4.">The code</head><p>We no longer rely on the code by <ref type="bibr" target="#b0">Abubekerov and Gostev (2013)</ref>. Based on their formalism, we constructed a more general theory that incorporates models of the transit curve and of the Rossiter-McLaughlin effect in the same self-consistent framework ( . PlanetPack 3.0 relies on that more general theory and uses its own computing code. The elliptic functions, required for these computations, are computed using the algorithms developed by Fukushima (2013).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Joint Doppler+transit fits with PlanetPack</head><p>Probably the most useful feature of the new PlanetPack 3.0 is the joint self-consistent fitting of the RV and transit data. In itself such a task is not novel, see e.g. EXOFAST software by <ref type="bibr" target="#b20">Eastman et al. (2013)</ref> and pyaneti by , but in the context of the PlanetPack this means that all dedicated functionaly inherited from the legacy RV-only PlanetPack now becomes available for such mixed fits too. This includes: N-body fitting, complicated noise models discussed above (both for the RV and for the photometry), periodograms, constrained fitting, statistical model comparisons and simulations <ref type="bibr" target="#b9">(Baluev, 2013b)</ref>. The self-consistency is achieved because when performing such a joint fit, PlanetPack builds a 3D model of the entire planetary system, computing the motion of all planets in accordance with either N-body integration or multi-Keplerian formulae. Such an analysis is more accurate than the TTV fitting pipeline discussed above. Using these tools it is possible to solve quite complicated tasks, for example to seek a planet that induced the observed TTV in mid-transit times of the known planet. Thanks to the self-consistency, this can be done in a periodogram-like manner, and avoiding any work with intermediate-stage TTV data. <ref type="bibr">4</ref> PlanetPack 3.0 enables the user to fit the Rossiter-McLaughlin effect using the models presented by . This allows to estimate the stellar rotation parameters v sin i and λ, optionally taking into account the limb-darkening coefficients and/or correction coefficients ν and µ that depend on the average spectrum characteristics ( .</p><p>Finally, in v. 3.0 we added the possibility to fit dissipative orbital effects. This includes the longterm period decay (e.g. due to tidal interaction with the star) and the secular apsidal drift (also can appear in tidal interactions). The need for such models is motivated by the unique case of the planet WASP-12 b that demonstrated clear TTV hints of such non-Keplerian effects ( <ref type="bibr" target="#b27">Maciejewski et al., 2016;</ref><ref type="bibr" target="#b34">Patra et al., 2017)</ref>.</p><p>The period decay is modelled linearly in terms of the planet mean-motion n and quadratically in terms of the orbital mean longitude l:</p><formula xml:id="formula_22">n(t) n 0 = 1 + t − t 0 T d , l(t) = l 0 + n 0 (t − t 0 ) + n 0 2T d (t − t 0 ) 2</formula><p>(23) Formally, in this model the planet would never fall on the star, but in practice we of course consider very slow effect, ˙ n/n 0 ≪ 1, and hence only very short piece of its evolution, relatively to T d . In this case, the apparent orbital period would decrease as</p><formula xml:id="formula_23">P(t) P 0 ≃ 1 − t − t 0 T d ,<label>(24)</label></formula><p>implying that T d has the meaning of the remaining linear lifetime of the planet. This T d serves as a fittable parameter of the model (if this effect is turned on).</p><p>The effect of an apsidal drift is modelled as a linear change of the pericenter argument ω (not to be mixed with the frequency argument ω appearing in sect. 2.2):</p><formula xml:id="formula_24">ω = ω 0 + 2π P ω (t − t 0 )</formula><p>. <ref type="formula" target="#formula_4">(25)</ref> in (A.1):</p><p>Cov(B(t 1 ), B(t 2 )) =</p><formula xml:id="formula_25">t 1 0 t 2 0 Cov(W(t ′ 1 ), W(t ′ 2 ))dt ′ 1 dt ′ 2 = min(t 1 , t 2 ), Var B(t) = t 0 t 0 Cov(W(t ′ 1 ), W(t ′ 2 ))dt ′ 1 dt ′ 2 = t. (A.2)</formula><p>In particular, the variance of B(t) is constantly growing, while the correlation function is expressed as</p><formula xml:id="formula_26">ρ(t 1 , t 2 ) = min √ t 1 /t 2 , √ t 2 /t 1 .</formula><p>It is important that B(t) satisfies certain causality principle: its values only depend on the past values of the parent process W(t).</p><p>Due to the constantly growing variance, B(t) does not suit our needs, however. We need our noise model to be either strictly stationary or at least longterm bounded. The nonstationarity of B(t) appears because the integration in (A.1) has a variable upper limit t. To have more or less constant variance, we must limit the integration to a time segment of a constant length.</p><p>Guided by this observation, we adopted the following weighted-integral model:</p><formula xml:id="formula_27">x(t) = t −∞ w(t − t ′ )n(t ′ )dt ′ , (A.3) w(t) = 0 for t &lt; 0, (A.4) w(t) → 0 for t → +∞, (A.5) n(t) = D(t)W(t). (A.6)</formula><p>This formal definition can be given the following physical understanding. The observable correlated process x(t) is a cumulative sum of infinitesimal independent "kicks", generated by the underlying white-noise "activity" process n(t). Optionally, this activity process may have a time-variable intensity defined by the function D(t). Additionally, there is also a memory (a.k.a. response) function w(t) that defines how much a past "kick" affects the current value of x. The causality restriction settles the requirement <ref type="bibr">(A.4)</ref>, meaning that future values of the activity do not affect the current observable value. Also, the effect of the activity should naturally decay with time, so that only recent "kicks" have a major effect on the observable process.</p><p>It is important that definition (A.3) is selfreplicatable in the sense that by applying this formula once again to the same process, we obtain an integral transformation of the same type, but with different w(t). Therefore, even if there are multiple physical effects that "soften" n(t) sequentially, the final result can be always represented in the simple form <ref type="bibr">(A.3)</ref>. Therefore, our assumption that n(t) is white noise does not reduce the generality of (A.3) as much as it may seem. If n(t) was a red noise instead then this n(t) would likely be generated by a softening mechanism of the same type (A.3), with some parent n 1 (t), which would be "more white" than n(t). In such a case we could join the double integration into one, assuming n 1 (t) be the actual parent process. And so on, until we reach some white "progenitor process" n ∞ (t).</p><p>The most important assumption hidden in (A.3) is that all the softening effects are linear, i.e. they can be represented by a linear integral transform.</p><p>The covariance characteristics of so-defined x(t) are:</p><formula xml:id="formula_28">κ(t 1 , t 2 ) = min(t 1 ,t 2 ) −∞ w(t 1 − t ′ )w(t 2 − t ′ )D(t ′ )dt ′ , d(t) = t −∞ w 2 (t − t ′ )D(t ′ )dt ′ .</formula><p>(A.7)</p><p>In particular, constant intensity D(t) means that the activity process n(t) is stationary, implying the stationary x(t):</p><formula xml:id="formula_29">κ(∆t) = +∞ 0 w(t ′ )w(|∆t| + t ′ )dt ′ , d(t) = +∞ 0 w 2 (t ′ )dt ′ .</formula><p>(A.8) The power spectrum of x(t) is then obtained by the WK theorem:</p><formula xml:id="formula_30">P(ω) = | ˆ w(ω)| 2 . (A.9)</formula><p>By selecting a variable D(t) we may introduce a controllable nonstationarity to both n(t) and x(t).</p><p>For example, in case of an adiabatic nonstationarity, when D(t) varies much slower than w(t), the effect is reduced to a modulation:</p><formula xml:id="formula_31">κ(t 1 , t 2 ) ≃ D(min(t 1 , t 2 )) +∞ 0 w(t ′ )w(|∆t| + t ′ )dt ′ , d(t) ≃ D(t) +∞ 0 w 2 (t ′ )dt ′ . (A.10)</formula><p>The choice of the memory and intensity functions still remains rather arbitrary, and is governed mainly by mathematical simplicity considerations. For example, let us assume an exponential model: <ref type="bibr">.11)</ref> In this case and for constant D(t) ≡ 1 we have</p><formula xml:id="formula_32">w(t) = exp(−t), t ≥ 0. (A</formula><formula xml:id="formula_33">κ(∆t) = 1 2 exp(−|∆t|), d(t) = 1 2 , (A.12)</formula><p>This implies the exponential correlation function already discussed above. Other types of red noise from (5) can be modelled by means of the integral representation (A.3). This can be achieved by taking square root of the corresponding power spectrum (6) and setting the weight function such thatˆwthatˆ thatˆw(ω) = √ P(ω). However, it is important that the resulting w(t) may violate the causality restriction (A.4). For example, for the Gaussian-shaped covariance, κ(t) = exp(−t 2 /2), the natural w(t) is proportional to exp(−t 2 ), which is symmetric with respect to the past and future.</p><p>The requirement of smoothness, that governed <ref type="bibr" target="#b35">Rajpaul et al. (2015)</ref> to select a square-exponential model in (5), does not seem physically necessary, as it might appear incompatible with our causality restriction. Let us compute the derivative of the covariance function κ(∆t) from (A.8) at ∆t = 0:</p><formula xml:id="formula_34">κ ′ (±0) = ± +∞ 0 w(t)w ′ (t)dt = ±w 2 (+0).</formula><p>(A.13)</p><p>It appears that this derivative has different limits for ∆t → +0 and ∆t → −0, so the slope break at ∆t = 0 cannot be avoided in general.</p><p>An exception occures if w(+0) = 0, that is if w(t) decreases to zero smoothly for ∆t → +0. This is possible if the memory function incorporates multiple minor physical effects. In such a way, w(t) represents the convolution of multiple elementary contributions. If all of them have more or less the same magnitude and timescale, the resulting w(t) would have the desired property (smoothly vanishing at zero), and the resulting κ(∆t) would then have a high degree of smoothness. However, if just one or two physical effects dominate over the others then κ(∆t) would become excessively peaky at zero. Then a non-smooth model might provide a better approximation.</p><p>In other words, considering only smooth GP covariances might be an unnecessary and unjustified restriction, even if it looks reasonable on the first view.</p><p>Appendix A.2. Deriving GP primitives from the causality principle Assume a memory function that represents a decaying sinusoid:</p><formula xml:id="formula_35">w(t) = e −βt cos ωt, β &gt; 0, t ≥ 0. (A.14)</formula><p>Physically, ω may refer to the stellar rotation (the sinusoid is a rough approximation of the surface rotation effect in w), and the exponential factor β describes the effect of temporal decay in the surface pattern of spots/flares/etc. Based on <ref type="bibr">(A.14)</ref>, and for the stationary case D(t) ≡ 1, we obtain a GP with the following characteristics:</p><p>κ(∆t) = 1 4β ω 2 + 4β 2 β 2 + ω 2 e −β|∆t| cos(ω|∆t| + φ), First of all, this general model allows to reproduce many of the special heuristic models considered in the previous section. For ω = 0 this GP turns into the exponentially correlated red noise (5) with ρ = exp(−β|∆t|).The values β &lt; 0 are forbidden, but for β → +0 we obtain ρ = cos ω∆t. This corresponds to the harmonic GP <ref type="bibr">(8)</ref>.</p><formula xml:id="formula_36">d(t) =<label>2β</label></formula><p>A very interesting result is that in the general case, when neither ω nor β vanish, we obtained something different from the decaying sinusoid (12). The general expression (A.15) remains similar in shape, but involves a phase shift φ that depends on β and ω. This phase shift appears rather intriguing, and offers us a theoretic possibility to observationally detect it, thus to verify experimentally how adequate is our understanding of the "causality restriction" and of the associated theory. However, possible values of φ are limited by about 20 • (attained for ω/β = √ 2), and the effect of the phase shift in κ is likely model-dependent. So detecting φ from the observed Doppler or photometric noise is definitely a challenge. Now let us consider a sinusoidal variation of the intensity D(t), caused e.g. by the stellar activity cycle:</p><formula xml:id="formula_37">D(t) = D 0 + D m cos(Ωt + λ). (A.16)</formula><p>Assuming this D(t) and the exponential w(t) = exp(−βt), we can obtain the following:</p><formula xml:id="formula_38">κ(t 1 , t 2 ) = 1 2 e −β|t 2 −t 1 | D 0 + D ′ m cos(Ω min(t 1 , t 2 ) + λ ′ ) , d(t) = 1 2 D 0 + D ′ m cos(Ωt + λ ′ ) , D ′ m = D m 1 + Ω 2 4β 2 , λ ′ = λ + arctan Ω 2β . (A.17)</formula><p>This is somewhat different from <ref type="bibr">(14)</ref>. For example, the first formula contains (t 1 + t 2 )/2 instead of min(t 1 , t 2 ) in the second one. Again, in (A.17) a phase shift appears between the observed variation and the underlying activity. However, in the case of small Ω/β, as expected for stellar activity cycles, the difference between these models becomes negligible.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head></head><label></label><figDesc>2 + ω 2 4β(β 2 + ω 2 ) , ρ(∆t) = e −β|∆t| cos(ω|∆t| + φ) cos φ , φ = arctan ωβ 2β 2 + ω 2 , ∆t = |t 2 − t 1 |. (A.15)</figDesc></figure>
+
+			<note place="foot" n="2"> Note that we changed some of the original designations by Rajpaul et al. (2015) to adapt them to our notation system.</note>
+
+			<note place="foot" n="3"> In this rough and indicative characteristic we neglect possible red noise, so even neighbouring measurements are assumed uncorrelated.</note>
+
+			<note place="foot" n="4"> This can be achieved by varying the orbital period of the putative second planet, and optionally other its parameters, via the afit command, and assuming the N-body modelling framework.</note>
+
+			<note place="foot">This stochastic integral yields us a Gaussian random process, as far as it is a linear functional of W, which was Gaussian. The covariance characteristics of B can be obtained by interchanging the mathematical expectation operator in (1) with the integration</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Acknowledgements</head><p>This work was supported by the Russian Foundation for Basic Research grant 17-02-00542 A and by the Presidium of Russian Academy of Sciences programme P-28, subprogramme "The space: investigating fundamental processes and their interrelations".</p><p>We acknowledge that a few of linear algebra algorithms used in PlanetPack represent re-worked versions of the relevant GNU Scientific library subroutines; PlanetPack also relies on the open-source OpenBLAS and GNU readline libraries.</p><p>We thank the anonymous reviewers of the manuscript for their fruitful comments and suggestions.</p></div>
+			</div>
+
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>9</head><p>Here, P ω is the secular period of the apsidal revolution, and it serves as a fittable parameter of the effect. PlanetPack allows to turn both the T d -, P ω -effects on, or just one of them, or use the pure Keplerian model. These effects are not available in N-body fits.</p><p>We recognize that several subtle but in some cases potentially important effects are not yet implemented in the current PlanetPack code, but remain in our plans for future. This includes secondary planetary eclipses, the effect of time shift between the transit and Doppler data, appearing due to the lighttravel delay, <ref type="bibr">5</ref> , simultaneous multiple transits with interplanetary eclipse phenomenta, <ref type="bibr">6</ref> and planet oblateness effect.</p><p>Another direction of future development is to include the analysis of astrometric data, which will become especially important in the near future, after the exoplanetary results from GAIA ( <ref type="bibr" target="#b17">Brown et al., 2016</ref><ref type="bibr" target="#b16">Brown et al., , 2018</ref> are released. Then PlanetPack should gain the ability to perform the self-consistent fits using data of three types: Doppler, photometry, and astrometry. This would enable the most exhaustive orbital characterization of exoplanetary systems.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Improved computation performance via BLAS library and multithreading</head><p>PlanetPack 3.0 is considerably more fast than its legacy versions. This was achieved by (i) multithreading tools of the C++11 language standard and (ii) migrating the most heavy linear algebra to the CPU-optimized OpenBLAS library. The multithreading was utilized in PlanetPack 2.x series already, but the use of OpenBLAS library is a new feature. According to our benchmarks, this allowed to improve the computational speed by the factor of 3 in some cases. The effect is especially noticable when analysing large datasets, N ∼ 10 3 , which is typical for photometry. In such a case most computation time is spend in large matrix-matrix multiplications <ref type="bibr">5</ref> The Doppler information is imprinted when the light is emitted by the stellar surface, but the transit effect appears a few seconds later, when this light is absorbed by the dark planet. <ref type="bibr">6</ref> Currently, PlanetPack allows to fit multiple planets transiting the star, even simultaneously, but it assumes that the cumulative magnitude drop is just the sum of individual planetary contributions, i.e. that planets never eclipse each other.</p><p>(if the noise is white). Also, OpenBLAS allows for some partial multithreading of the linear algebra operations. This is used in PlanetPack whenever the selected analysis algorithm does not allow easy parallelization in itself.</p><p>The use of OpenBLAS is not mandatory. PlanetPack can be compiled without OpenBLAS, if it is not available on a given computer. Then it will rely on its own implementation of the necessary BLAS routines, but this means no profit from highly-optimized libraries. In some future, we consider a possibility to build PlanetPack with any BLAS library chosen by the user. However, many of the available BLAS implementations do not support multithreading, so we currently stopped on OpenBLAS that does. But another interesting choice might be the GPU-based cuBLAS.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">Conclusions and plans for further development</head><p>Since its first release in 2013, PlanetPack functionality grew significantly, owing to bug fixes as well as to new analysis algorithms. An approximate impression of PlanetPack code evolution can be obtained from <ref type="figure">Fig. 1</ref>. As we can see, there was a long pause beween the last 2.x release and the new 3.0 one, but nonetheless there was a remarkable source code expansion between them.</p><p>In the future, it would be useful to add capabilities of dealing with astrometric data, because of the coming era of GAIA astrometry.</p><p>Astrometry is a pretty feasible technique of exoplanets detection, though the ability of GAIA to reliably detect and characterize long-period (P 10 yr) exoplanets currently looks possibly doubtful, because of the relatively 5-year duration of the mission. Contrary to space missions, ground-based programmes (Doppler or transit ones) are able to accumulate data over much longer terms. Nonetheless, we consider the inclusion of astrometric data analysis as a necessary condition for the next major release of PlanetPack.</p><p>Among more minor and technical things, the following might deserve implementation in PlanetPack: 1. Quasiperiodic noise like <ref type="formula">(13)</ref> or similar, first on the todo list.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Reducing stellar Doppler noise based</head><p>on its correlation with activity indicators <ref type="bibr" target="#b4">(Anglada-Escudé and Tuomi, 2012;</ref><ref type="bibr" target="#b3">Anglada-Escudé et al., 2014)</ref>, and using similar detrending approach for photometric data (against e.g. airmass). 3. Fitting of secondary planetary eclipses. 4. Improving speed from GPU computing, in particular by using the CUDA BLAS libraries in addition to CPU-based OpenBLAS.</p><p>Statistical methods implemented in PlanetPack rely on the frequentist treatment and maximumlikelihood fitting with a preventive bias reduction in noise parameters. The relevant theory was presented mainly in <ref type="bibr" target="#b6">(Baluev, 2009</ref><ref type="bibr" target="#b8">(Baluev, , 2013a</ref>.</p><p>PlanetPack is a free and open-source software. We do not set any limitation on its use or on the use of its source code, except for providing a proper reference to the present paper and (Baluev, 2013b).</p><p>Appendix A. A self-consistent framework to build Gaussian processes models</p><p>Appendix A.1. GP noise and the causality Now, let us start from noticing that a correlated Gaussian noise process can be obtained by integrating the white Gaussian noise. For example, the Wiener process (a classic model of the Brownian motion) can be defined by integrating the standard Gaussian white noise W(t):</p><p>(A.1)</p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">A universal approach to the calculation of the transit light curves</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">K</forename><surname>Abubekerov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">Y</forename><surname>Gostev</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">432</biblScope>
+			<biblScope unit="page" from="2216" to="2223" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<monogr>
+		<title level="m" type="main">Transit-timing and duration variations for the discovery and characterization of exoplanets</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">C</forename><surname>Fabrycky</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2017" />
+			<publisher>Deeg and Belmonte</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">A simple method to estimate radial velocity variations due to stellar activity using photometry</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pont</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Zucker</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">419</biblScope>
+			<biblScope unit="page" from="3147" to="3158" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Anglada-Escudé</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Arriagada</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Tuomi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Zechmeister</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">S</forename><surname>Jenkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">O S</forename><surname>Dreizler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Gerlach</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">J</forename><surname>Marvin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Reiners</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">V</forename><surname>Jeffers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P</forename><surname>Butler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">S</forename><surname>Vogt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">J</forename><surname>Amado</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Rodríguez-López</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><forename type="middle">M</forename><surname>Berdiñas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Morin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Crane</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">A</forename><surname>Shectman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">B</forename><surname>Thompson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Díaz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Rivera</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">F</forename><surname>Sarmiento</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">R A</forename><surname>Jones</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">443</biblScope>
+			<biblScope unit="page" from="89" to="93" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+	<note>Two planets around kapteyn&apos;s star: a cold and a temperate super-Earth orbiting the nearest halo red-dwarf</note>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">A planetary system with gas giants and super-earths around the nearby M dwarf GJ 676A. Optimizing data analysis techniques for the detection of multi-planetary systems</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Anglada-Escudé</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Tuomi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">548</biblScope>
+			<biblScope unit="page">58</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Inferring probabilistic stellar rotation periods using gaussian processes</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Angus</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Morton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Rajpaul</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">474</biblScope>
+			<biblScope unit="page" from="2094" to="2108" />
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Accounting for velocity jitter in planet search surveys</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">V</forename><surname>Baluev</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">393</biblScope>
+			<biblScope unit="page" from="969" to="978" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">Orbital structure of the GJ876 planetary system, based on the latest Keck and HARPS radial velocity data</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">V</forename><surname>Baluev</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Celest. Mech. Dyn. Astron</title>
+		<imprint>
+			<biblScope unit="volume">111</biblScope>
+			<biblScope unit="page" from="235" to="266" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<monogr>
+		<title level="m" type="main">The impact of red noise in radial velocity planet searches: only three planets orbiting GJ581? MN-RAS 429</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">V</forename><surname>Baluev</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2013" />
+			<biblScope unit="page" from="2052" to="2068" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">PlanetPack: a radial-velocity time-series analysis tool facilitating exoplanets detection, characterization, and dynamical simulations</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">V</forename><surname>Baluev</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astronomy &amp; Computing</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page" from="18" to="26" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">Enhanced models for stellar Doppler noise reveal hints of a 13-year activity cycle of 55 Cancri</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">V</forename><surname>Baluev</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">446</biblScope>
+			<biblScope unit="page" from="1493" to="1511" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">Analytic models of the Rossiter-McLaughlin effect for arbitrary eclipser/star size ratios and arbitrary multiline stellar spectra</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">V</forename><surname>Baluev</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">S</forename><surname>Shaidulin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">454</biblScope>
+			<biblScope unit="page" from="4379" to="4399" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">Benchmarking the power of amateur observatories for TTV exoplanets detection</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">V</forename><surname>Baluev</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">N</forename><surname>Sokov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">S</forename><surname>Shaidulin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">A</forename><surname>Sokova</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">R A</forename><surname>Jones</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Tuomi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Anglada-Escudé</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Benni</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">A</forename><surname>Colazo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">E</forename><surname>Schneiter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">S V</forename><surname>Angelo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">Y</forename><surname>Burdanov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Fernández-Lajús</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">¨</forename><forename type="middle">O</forename><surname>Bas¸türkbas¸türk</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">P</forename><surname>Hentunen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Shadick</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">450</biblScope>
+			<biblScope unit="page" from="3101" to="3113" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">Radial velocity observations and light curve noise modeling confirm that kepler-91b is a giant planet orbiting a giant star</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Barclay</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Endl</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Huber</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">D</forename><surname>Cochran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">J</forename><surname>Macqueen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">F</forename><surname>Rowe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">V</forename><surname>Quintana</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">800</biblScope>
+			<biblScope unit="page">46</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<monogr>
+		<title level="m" type="main">Exotrending: Fast and easyto-use light curve detrending software for exoplanets. Astrophys. source code lib</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Barragán</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Gandolfi</surname></persName>
+		</author>
+		<idno>1706.001</idno>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">pyaneti: Multi-planet radial velocity and transit fitting</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Barragán</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Gandolfi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Antoniciello</surname></persName>
+		</author>
+		<idno>1706.003</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Astrophys. source code lib</title>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<monogr>
+		<title level="m" type="main">Gaia Data Release 2. Summary of the contents and survey properties</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G A</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vallenari</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Prusti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">H J</forename><surname>De Bruijne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Babusiaux</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">A L</forename><surname>Bailer-Jones</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv.org:1804.09365</idno>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Gaia Data Release 1. Summary of the astrometric, photometric, and survey properties</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G A</forename><surname>Brown</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">595</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<monogr>
+		<title level="m" type="main">Tools for transit and radial velocity modelling and analysis</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">J</forename><surname>Deeg</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2017" />
+			<publisher>Deeg and Belmonte</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<monogr>
+		<title level="m" type="main">Handbook of Exoplanets</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">J</forename><surname>Deeg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Belmonte</surname></persName>
+		</author>
+		<editor>J.A.</editor>
+		<imprint>
+			<date type="published" when="2017" />
+			<publisher>Springer</publisher>
+			<pubPlace>Cham</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">EXOFAST: A fast exoplanetary fitting suite in IDL</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Eastman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">S</forename><surname>Gaudi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">125</biblScope>
+			<biblScope unit="page" from="83" to="112" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<monogr>
+		<title level="m" type="main">Bayesian analysis of radial velocity data of GJ667C with correlated noise: evidence for only two planets</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Feroz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">P</forename><surname>Hobson</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="volume">437</biblScope>
+			<biblScope unit="page" from="3540" to="3549" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">State of the field: Extreme precision radial velocities</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Fischer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Anglada-Escude</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Arriagada</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">V</forename><surname>Baluev</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Bean</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Bouchy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">A</forename><surname>Buchhave</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Carroll</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Chakraborty</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Crepp</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">I</forename><surname>Dawson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">A</forename><surname>Diddams</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Dumusque</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Eastman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Endl</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Figueira</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Ford</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Fournier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>F˝ Urész</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">S</forename><surname>Gaudi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">C</forename><surname>Gregory</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Grundahl</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">P</forename><surname>Hatzes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Hébrard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Herrero</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Howard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Jorden</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">A</forename><surname>Jurgenson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Latham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Laughlin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">J</forename><surname>Loredo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Lovis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Mahadevan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">M</forename><surname>Mccracken</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pepe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Perez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">F</forename><surname>Phillips</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">P</forename><surname>Plavchan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Prato</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Quirrenbach</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Reiners</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Robertson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">C</forename><surname>Santos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Sawyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Segransan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Sozzetti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Steinmetz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Szentgyorgyi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Udry</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Valenti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">X</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Wittenmyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Wright</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Ambikasaran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Angus</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">128</biblScope>
+			<biblScope unit="page">220</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+	<note>AJ</note>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">Fast computation of a general complete elliptic integral of third kind by half and double argument transformations</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Fukushima</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Comput. &amp; Applied Math</title>
+		<imprint>
+			<biblScope unit="volume">253</biblScope>
+			<biblScope unit="page" from="142" to="157" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Prospects for the characterization and confirmation of transiting exoplanets via the Rossiter-McLaughlin effect</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">S</forename><surname>Gaudi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">N</forename><surname>Winn</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">655</biblScope>
+			<biblScope unit="page" from="550" to="563" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">Radial velocity data analysis with compressed sensing techniques</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">C</forename><surname>Hara</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Boué</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Laskar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">C</forename><surname>Correia</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">464</biblScope>
+			<biblScope unit="page" from="1220" to="1246" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">Efficient, uninformative sampling of limb darkening coefficients for two-parameter laws</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Kipping</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MN-RAS</title>
+		<imprint>
+			<biblScope unit="volume">435</biblScope>
+			<biblScope unit="page" from="2152" to="2160" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">Departure from the constant-period ephemeris for the transiting exoplanet WASP-12</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Maciejewski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Dimitrov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Fernández</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Sota</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Nowak</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Ohlert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Nikolov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Bukowiecki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">C</forename><surname>Hinse</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Pall&amp;apos;e</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Tingley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Kjurkchieva</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">U</forename><surname>Lee</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">588</biblScope>
+			<biblScope unit="page">6</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">Analytic light curves for planetary transit searches</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Mandel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">580</biblScope>
+			<biblScope unit="page" from="171" to="175" />
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title level="a" type="main">A Jupiter-mass companion to a solar-type star</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Mayor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Queloz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">378</biblScope>
+			<biblScope unit="page" from="355" to="359" />
+			<date type="published" when="1995" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title level="a" type="main">Systemic: A testbed for characterizing the detection of extrasolar planets. I. The Systemic Console package</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Meschiari</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">S</forename><surname>Wolf</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Rivera</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Laughlin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Vogt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Butler</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">121</biblScope>
+			<biblScope unit="page" from="1016" to="1027" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<monogr>
+		<title level="m" type="main">Quantifying the evidence for a planet in radial velocity data</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">E</forename><surname>Nelson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Ford</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Buchner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Cloutier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">F</forename><surname>Díaz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Faria</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">.</forename><forename type="middle">P</forename><surname>Rajpaul</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">M</forename><surname>Rukdee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename></persName>
+		</author>
+		<idno>arXiv.org eprint, 1806.04683</idno>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<monogr>
+		<title level="m" type="main">Estimating activity cycles with probabilistic methods II. The Mount Wilson Ca H&amp;K data</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Olspert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Lehtinen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Käpylä</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Pelt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Grigorievskiy</surname></persName>
+		</author>
+		<idno>arXiv.org preprint, 1712.08240</idno>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">Analysis of radial velocity variations in multiple planetary systems</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Pál</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">409</biblScope>
+			<biblScope unit="page" from="975" to="984" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title level="a" type="main">The apparently decaying orbit of WASP-12b</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">C</forename><surname>Patra</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">N</forename><surname>Winn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Holman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Deming</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Dai</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">154</biblScope>
+			<biblScope unit="page">4</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title level="a" type="main">A Gaussian process framework for modelling stellar activity signals in radial velocity data</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Rajpaul</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Osborne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Reece</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Roberts</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">452</biblScope>
+			<biblScope unit="page" from="2269" to="2291" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<monogr>
+		<title level="m" type="main">Gaussian Processes for Machine Learning</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">E</forename><surname>Rasmussen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">K I</forename><surname>Williams</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2006" />
+			<publisher>The MIT Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title level="a" type="main">Defining and cataloging exoplanets: the exoplanet.eu database</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Schneider</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Dedieu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">L</forename><surname>Sidaner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Savalle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Zolotukhin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">532</biblScope>
+			<biblScope unit="page">79</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title level="a" type="main">Efficient fitting of multiplanet Keplerian models to radial velocity and astrometry data</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Wright</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Howard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApjS</title>
+		<imprint>
+			<biblScope unit="volume">182</biblScope>
+			<biblScope unit="page" from="205" to="215" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

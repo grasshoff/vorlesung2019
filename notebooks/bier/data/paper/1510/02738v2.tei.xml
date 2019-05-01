@@ -1,0 +1,819 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-04T16:24+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">ExoData: A Python package to handle large exoplanet catalogue data</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2016-05-29">29 May 2016</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ryan</forename><surname>Varley</surname></persName>
+							<email>r.varley@ucl.ac.uk</email>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Physics &amp; Astronomy</orgName>
+								<orgName type="institution">University College London</orgName>
+								<address>
+									<addrLine>132 Hampstead Road</addrLine>
+									<postCode>NW1 2PS</postCode>
+									<settlement>London</settlement>
+									<country key="GB">United Kingdom</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">ExoData: A Python package to handle large exoplanet catalogue data</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2016-05-29">29 May 2016</date>
+						</imprint>
+					</monogr>
+					<note type="submission">Preprint submitted to Computer Physics Communications August 12, 2018</note>
+					<note>Manuscript Title: ExoData: A Python package to handle large exoplanet catalogue data Authors: Ryan Varley Program Title: ExoData Journal Reference: Catalogue identifier: Licensing provisions: GPL 3.0</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>Exoplanets</term>
+					<term>Catalogues</term>
+					<term>Interface PROGRAM SUMMARY Computer: Any Operating system: Any RAM: less than 200MB Keywords: Exoplanets Catalogues Interface Classification: 17 Stars and Stellar Systems External routines/libraries: numpy</term>
+					<term>quantities</term>
+					<term>matplotlib</term>
+					<term>requests</term>
+					<term>astropy</term>
+					<term>seaborn</term>
+				</keywords>
+			</textClass>
+			<abstract>
+				<p>Exoplanet science often involves using the system parameters of real exoplanets for tasks such as simulations, fitting routines, and target selection for proposals. Several exoplanet catalogues are already well established but often lack a version history and code friendly interfaces. Software that bridges the barrier between the catalogues and code enables users to improve the specific repeatability of results by facilitating the retrieval of exact system parameters used in an articles results along with unifying the equations and software used. As exoplanet science moves towards large data, gone are the days where researchers can recall the current population from memory. An interface able to query the population now becomes invaluable for target selection and population analysis. ExoData is a Python interface and exploratory analysis tool for the Open Exoplanet Catalogue. It allows the loading of exoplanet systems into Python as objects (Planet, Star, Binary etc) from which common orbital and system equations can be calculated and measured parameters retrieved. This allows researchers to use tested code of the common equations they require (with units) and provides a large science input catalogue of planets for easy plotting and use in research. Advanced querying of targets are possible using the database and Python programming language. ExoData is also able to parse spectral types and fill in missing parameters according to programmable specifications and equations. Examples of use cases are integration of equations into data reduction pipelines, selecting planets for observing proposals and as an input catalogue to large scale simulation and analysis of planets. ExoData is a Python package available freely on GitHub 1. It is open source and community contributions are encouraged. The package can be easily installed using pip install exodata, detailed setup information is provided within.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>The field of exoplanets is rapidly expanding with current population now in the thousands and new measurements published increasingly frequently. A catalogue of Exoplanets is necessary to keep track of these systems and their parameters, ideally being open and editable by all with a version history to enable researchers to reproduce results using the exact same values. This is especially important in large scale simulations and other work on multiple targets where a catalogue version may be more easily given over individual values and sources.</p><p>A second obstacle lies in the interface between the catalogue and the code. Such an interface can add value in its ability to calculate values using published equations, easily generate plots, estimate parameters, while keeping the catalogue up to date. It can also take into account all the fringe cases which can trip up a standard loading code (such as certain missing values and planets without a host star). The ability to replicate the catalogue is further enhanced through quoting both a catalogue and interface version. The exact parameters used for every target in the catalogue can then be easily obtained including any calculated parameters and estimations by ExoData. This tool then allows instant access to the exact parameters used in a paper.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.1.">Open Exoplanet Catalogue</head><p>The Open Exoplanet Catalogue <ref type="bibr">(OEC, Rein, 2012</ref>) is an open-source, version controlled catalogue of exoplanets and their system parameters. It is hierarchical, preserving the format of the system (including binary star layouts). OEC uses git for version control and the catalogue exists as a series of XML files (one per system). This format makes OEC much more diverse than most other exoplanet catalogues by letting users create their own 'forks' of the catalogue where they can make their own changes and adaptations whilst still able to receive updates from the original. The advantages of version control include being able to see the exact changes made to each version, easily roll back the catalogue to any previous state and report the exact version of the catalogue your using to other researchers (using the commit SHA-1 <ref type="bibr">2</ref> ).</p><p>The open nature of the catalogue means that anyone can download the full database and history of the catalogue, contribute their own changes and set up their own branched versions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Exoplanet Background Theory</head><p>An exoplanet is a planet that orbits a star other than the Sun. We can describe a simple exoplanet system with a planet orbiting a star with a stellar radius of R stellar mass of M planetary radius R p , planetary mass M p and semi-major axis of the orbit a.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">Describing the star</head><p>The stellar luminosity L is given by the Stefan-Boltzmann equation applied to the surface area of a sphere, L = 4πR 2 σT 4</p><p>(1)</p><p>where σ is the Stefan-Boltzmann constant. Stellar temperature can be estimated using the stellar mass-radius relation described in <ref type="bibr" target="#b0">Cox (2000)</ref>:</p><formula xml:id="formula_0">R = kM x<label>(2)</label></formula><p>where k and x are constants for each stellar sequence. We can also describe stellar temperature using the main sequence relationship</p><formula xml:id="formula_1">T = 5800 × M 0.65 .<label>(3)</label></formula><p>The stars luminosity distance d (with negligible extinction) is given by rearranging the absolute magnitude relation</p><formula xml:id="formula_2">m − M = 5 log 10 d − 5 (4)</formula><p>where m is the apparent magnitude and M is the absolute magnitude. Whilst m is easily measured and commonly known M is often undefined. We can estimate M for a star using an absolute magnitude lookup table 3 based on spectral type. In cases where we do not have a measured stellar magnitude in the band required but do have a measured value for another band we can use the conversion factors given in table A5 of <ref type="bibr" target="#b2">Kenyon and Hartmann (1995)</ref> to convert between magnitudes based on the stellar spectral type.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.">Describing the planet</head><p>We can infer the period of the orbit P using Kepler's third law</p><formula xml:id="formula_3">P = 4π 2 a 3 G M + M p<label>(5)</label></formula><p>2 In git versions each commit (snapshot) of the code has a SHA-1 hash of the source which is functionally unique and is used to reference that version of the code.</p><p>3 http://xoomer.virgilio.it/hrtrace/Sk.htm_SK3 from Schmidt- <ref type="bibr">Kaler (1982)</ref> 3 where G is the gravitational constant. We can rewrite this in terms of the semi-major axis given the stellar mass and period. Note that the M p term is often excluded as M M p .</p><formula xml:id="formula_4">a = P 2 GM * 4 * π 2 1/3 (6)</formula><p>The semi-major axis can additionally be inferred from the temperature of the planet T p and host star T given an albedo for the planet A p and a greenhouse constant ( <ref type="bibr" target="#b5">Tessenyi et al., 2012</ref>):</p><formula xml:id="formula_5">a = 1 − A p R 2 T T p 2 .<label>(7)</label></formula><p>The mean planetary effective temperature can be expressed by evaluating the radiation in and out of the planet with a greenhouse effect contribution using a rearranged version of Eqn. 7</p><formula xml:id="formula_6">T pl = T        (1 − A) R 2a        1/2 .<label>(8)</label></formula><p>From Newton's law of Gravitation we can calculate the surface gravity of the planet</p><formula xml:id="formula_7">g = GM R 2 p .<label>(9)</label></formula><p>This can be expressed as log g, the base 10 log of g in CGS units.</p><p>If the mass of a planet is unknown, according to mass-radius relationships of known exoplanets (e.g. <ref type="bibr" target="#b1">Grasset et al. (2009)</ref>) the mass can be crudely estimated for a given planetary radius by assuming the density of the planetary class it is likely to be in. For this purpose we infer super-Earths as Earth density, and Jupiter and Neptune like planets with their respective densities. Assumed values are described later in <ref type="table" target="#tab_4">Table 2</ref> but are easily programmable (see assumptions module section 4.4).</p><p>The scale height H is the increase in altitude for which the atmospheric pressure decreases by a factor of e.</p><formula xml:id="formula_8">H = kT p µg (10)</formula><p>where µ is the mean molecular weight of the planetary atmosphere and g is the planetary surface gravity.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.">Transiting Exoplanets</head><p>An exoplanet transits if it can be observed passing in front of its host star. During a transit the planet occults light from the star with the change in flux at mid transit known as the transit depth. The transit depth can be estimated as the square of the ratio of the planetary radius to the stellar radius (however, it is possible for a planet to graze the limb creating a partial transit).</p><p>The impact factor b is the projected distance between the planet and star centres during mid transit and it is described as <ref type="bibr" target="#b4">(Seager and Mallen-Ornelas, 2003)</ref>:</p><formula xml:id="formula_9">b ≡ a R * cos i.<label>(11)</label></formula><p>If the orbit is circular, we can calculate the duration of the transit T 14 from first to last contact using Eqn. 3 from (Seager and Mallen-Ornelas, 2003):</p><formula xml:id="formula_10">T 14 = P π arcsin        R a (1 + k) 2 + b 2 sin a        (12)</formula><p>where k is</p><formula xml:id="formula_11">R p R s</formula><p>. If the planet has an eccentric orbit where the exact solution is more complex we adopt the approximation described by <ref type="bibr" target="#b3">Kipping (2011)</ref>:</p><formula xml:id="formula_12">T 14 = P π 2 c √ 1 − e 2 arcsin             1 − a 2 R 2 c cos 2 i a R c sin i             (13)</formula><p>where a R = (a/R ) and c is the planet-star separation at the moment of mid-transit in units of stellar radii</p><formula xml:id="formula_13">P,T ( f p ) = 1 − e 2 P 1 + e P sin(ω) (14)</formula><p>where ω is the argument of pericentre and b P,T is the adjusted impact parameter described by</p><formula xml:id="formula_14">b P,T = (a P /R ) P,T cos i.<label>(15)</label></formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Installation</head><p>ExoData is a Python package tested on Python versions 2.7, 3.4 and 3.5. The easiest way to get the package is through the Python packaging tool pip,</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>pip install exodata</head><p>Alternatively the source code can be downloaded from https://github.com/ryanvarley/ exodata. The package can then be installed by the following from the command line in the package directory.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>python setup.py install</head><p>The package has a test suite which can be used to verify the package is working as expected. To run the tests use python setup.py test You can choose to use the package without downloading your own copy of the catalogue, instead choosing to automatically fetch the latest version each time. If you want to use your own version you will need to download a version of the Open Exoplanet Catalogue (OEC) <ref type="bibr">4</ref> to your machine. The easiest way to do this and keep the catalogue up to date is through git. Move to the folder you want to store the catalogue in and then where databaseLocation should be the full path to the systems folder in the OEC directory or any other folder that contains OEC style XML files you want to use.</p><p>To update the catalogue move to the folder where you downloaded the catalogue and type git pull origin master</p><p>When using ExoData in publications you should give the commit SHA-1 of the OEC version used and the ExoData version number. This document was created with the Open Exoplanet Catalogue (dc8c08a4ba0c64dd039e96c801d12f17c82a7ff3, 1st May 2016) using ExoData Version 2.1.5.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Dependencies</head><p>The following dependencies are required to run ExoData. They are installed automatically by setuptools if required when following the above installation procedure.</p><p>• numpy</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>• matplotlib</head><p>• quantities (Product Quantities)</p><p>• requests</p><p>• seaborn</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Usage</head><p>ExoData is split into a series of modules dealing with the exoplanet database, equations, plots and units (see <ref type="table" target="#tab_1">Table 1</ref> for a list with descriptions).</p><p>The code contains 5 main objects types, the database which holds all objects and provides functionality (such as searching) and the astronomical objects (Systems, Binaries, Stars and Planets). Moons and other types can be easily added when needed.</p><p>Like the Open Exoplanet Catalogue (OEC), the full structure of a system is preserved. Planets are children of the star (or binary) they orbit, stars are grouped in binaries where present and binaries can exist within a binary. This offers a significant structural advantage over most linear formats.</p><p>Note that the examples that follow in this paper display the raw output from the console which means most numbers are displayed showing 11 decimal places which include any floating point errors and so should not be taken as the true uncertainty in the measurement. Each object has a flag object attached which lets you know which assumptions have been made such as 'calculated temperature'. Plots</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Module</head><p>Plot functions for common plot types that can be used to to easily display data from the catalogue. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">As a catalogue interface</head><p>The database is initialised by providing the OECDatabase object with the catalogue location on your machine. The exocat variable now contains the initialised database which can be accessed in several ways. There are lists for each type of object (i.e. exocat.planets, exocat.stars etc), a dictionary for each object (i.e. exocat.planetDict) and a list of transiting planets (exocat.transitingPlanets).</p><p>You can retrieve a particular planet either by searching or giving the exact name. We can then traverse the hierarchy for the planet. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>.176) * M_s</head><p>The returned values are Product Quantities objects that act like floats or more precisely a single value numpy array but with a few extra features such as unit rescaling and dimensionality checking (see section 4.2 </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>. Querying the Database</head><p>Querying can be performed on object list in the form of Python for loops or list comprehensions. ExoData will return numpy.nan if a value is absent to avoid breaking loops and comparisons with exodata.MissingValue exceptions. MissingValue Exceptions will still be recorded in the logfile and so can be examined if needed. An example of such a query is returning the planets discovered using the radial velocity method. You can use this same method to get a list of every planets radius. Note that some values will return as numpy.nan, we can filter these in the initial query so a normal numpy.mean will work.  For complicated queries a Python for loop may be clearer. Here we show all planets with a radius between 1.5 and 1.7 Jupiter radii that were discovered by the transit method and have an orbital eccentricity greater than 0.1. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.">Units</head><p>In exodata, all equations use and require units. This means values can easily be rescaled and all equations are dimensionally checked. Units are provided through the product quantities package 5 which provides all the standard units and constants provided by the National Institute of Standards and Technology (NIST). Some astronomical units (see table C.9 for the list of values and sources) are added through the internal exodata.astroquantities module which imports all Product Quantities units for ease of use. We can then import the units from both modules using:</p><p>&gt;&gt;&gt; import exodata.astroquantites as aq Product Quantities adds units to numbers as a special numpy array type. A unit is added to a value by multiplying the values by the unit i.e.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>&gt;&gt;&gt; planetRadius = 10 * aq.R_j</head><p>Product Quantities provides several methods for dealing with values with a unit. Rescaling can be done using the .rescale method e.g. to rescale solar mass to units of Earth's mass. Units can be converted to their unit-less counterparts (i.e for passing to code without unit support) by wrapping them in a float() or np.array() argument. You should always remove units with a rescale to ensure the value is in the unit you expect.</p><p>&gt;&gt;&gt; value = 100 * pq.cm &gt;&gt;&gt; print float(x.rescale(pq.m)) 1.0</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3.">Equations</head><p>The equations module implements the equations described in section 2 as Python classes. The classes take input of every variable bar one and will output the variable left out. They therefore implement all permutations of the equation with respect to the variables.</p><p>As an example we choose the equation Kepler's Third Law (Eqn. 5), a full list of implemented equation classes and the equation they draw from are given in Appendix A. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.4.">Assumptions</head><p>The assumptions module handles how non universally defined parameters are set along with how some missing values may be filled. This include how planets are categorised (i.e. superEarth) and allows researchers to use their own definitions for these planet classes along with adding new classes.</p><p>By default ExoData sets these to commonly assumed values.  molecular weight and density where required. For the mass limits we use the classification boundaries adopted by <ref type="bibr" target="#b6">(Tinetti et al., 2013</ref>). Assumptions are implemented to make it easy to change these limits and also add more by editing the assumptions dictionary located at exodata.assumptions.planetAssumptions.</p><p>This dictionary has the keys 'masstype', 'radiusType' and 'tempType' which define how a planet is classified. Each key is a list of rules defining a separate type of planet in the format (upperlimit, name). For example we have defined the following for 'massType'</p><p>[(10 * aq.M_e, "Super-Earth"), (20 * aq.M_e, "Neptune"), (float("inf"), "Jupiter")]</p><p>Setting the last rule to infinity defines the last rule having no upper limit. The first rule is assumed to have no lower limit. The rules should be listed in descending order of magnitude and can be added to, modified or removed as necessary.</p><p>The dictionary also has keys defining certain value assumptions based upon the classifications set previously. These are 'mu', 'albedo' and 'density'. These are fed into the planet classes and can be used in calculations if needed. Instead of containing a list they contain a dictionary which takes a classification 'name' defined previously and provides a value for that class. Both the 'mu' and 'density' keys are defined by mass and radius types, for example: {"Super-Earth": 18 * aq.atomic_mass_unit, "Neptune" : 2.3 * aq.atomic_mass_unit, "Jupiter" : 2 * aq.atomic_mass_unit}</p><p>Again these values can be changed and modified as needed and new rules added for any new classes added to the previous set of rules.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.5.">Flags</head><p>When a catalogue value is missing it is calculated or estimated using an appropriate equation in exodata.equations if possible. While this is in many cases desirable some assumptions are more accurate than others and it is useful to know when a parameter has been filled. To this end we raise a flag in an object if a certain actions have occurred. The list of flags and the functions that raise them is shown in <ref type="table" target="#tab_6">Table 3</ref>.</p><p>For example when we ask for the semi-major axis of a planet (planet.a) and a value is not recorded in the catalogue the interface will attempt to calculate it using Kepler's Third Law. If it is successful the value will be returned and the flag 'Calculated SMA' will be raised. A list of If instead you want only raw catalogue values with no attempt at filling in missing values you can turn off this behaviour using by setting params.estimateMissingValues=False.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.6.">Plotting with ExoData</head><p>ExoData includes some graphing functions for easily displaying catalogue data. The main types of plots available are parameter against parameter and the number of planets per parameter bin. The general format is setting up the plot class with a list of objects to plot and then calling a plot function of the type you want with any other visual arguments. The plot style can be changed using standard matplotlib styles. In our examples we used the 'whitegrid' style by the Seaborn module <ref type="bibr">6</ref> . In order for plots to be visible in the command line you may need to import matplotlib 7 and use the plt.show() after calling a plot function.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.6.1.">Number of planets by discovery method</head><p>This plots the number of planets discovered by each type of discovery method per year as a stacked bar chart. The format is exodata.plots.DiscoveryMethodByYear(planet_list, methods_to_plot ).plot(method_labels)</p><p>where planet list is a list of planet objects to plot, methods to plot is the discovery methods to include (in OEC syntax) and method labels are the labels to use in the legend for each discovery method. We can create a plot of the radial velocity and transit discovery methods with the following (shown in <ref type="figure" target="#fig_8">Fig. 1)</ref>.</p><p>exodata.plots.DiscoveryMethodByYear( exocat.planets, methods_to_plot=("RV", "transit", "Other") ).plot( method_labels=("Radial Velocity", "Transit Method", "Other"))</p><p>By specifying 'Other' as a discovery method ExoData will group all methods not specified into this category on the plot. <ref type="figure" target="#fig_8">Figure 1</ref>: Example plot that can be generated with DiscoveryMethodByYear in the ExoData plotting module. See text for description.</p><p>1 9 9 2 1 9 9 3 1 9 9 4 1 9 9 5 1 9 9 6 1 9 9 7 1 9 9 8 <ref type="formula" target="#formula_0">1 9 9 9  2 0 0 0  2 0 0 1  2 0 0 2  2 0 0 3  2 0 0 4  2 0 0 5  2 0 0 6 2 0 0 7 2 0 0 8 2 0 0 9 2 0 1 0 2 0 1 1 2 0 1 2 2 0 1 3 2 0 1 4 2 0 1 5 2 0 1</ref>  where list of objects is a list of planets, stars or binaries you want to be plotted and the x and y parameters refer to the string of the parameter you want. For example, to plot planet mass against radius <ref type="figure" target="#fig_9">(Fig. 2a)</ref> exodata.plots.GeneralPlotter( exocat.planets, "R", "M", yaxislog=True).plot() plt.xlim(-0.1, 2.1) where R would retrieve the planetary radius (planet.R) and M the planetary mass. Extra options are available to change the plot including log scale, changing the unit used (conversion is performed on the fly), marker colour and size and using parameters from a related object such as the parent star. Some more examples are shown in <ref type="figure" target="#fig_9">Fig. 2</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.6.3.">Number of planets per parameter bin</head><p>These plots take input of the object list, the parameter to plot and the bin limits to produce a histogram-like plot or pie chart. The format is exodata.plots.DataPerParameterBin( list_of_objects, parameter, bin_limit ).plotBarChart(*plot_arguments)</p><p>Less than / greater than limits can be made by setting the first or last limit to float('-inf') or float('inf') i.e. the following generates <ref type="figure" target="#fig_10">Fig. 3A</ref>. You can alternatively plot bar charts by typing .plotPieChart() instead of .plotBarChart() (see <ref type="figure" target="#fig_10">Fig. 3B</ref>). </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Conclusion</head><p>ExoData provides a rounded tool for researchers wishing to use parameters of an exoplanet or exoplanetary system in code. Uses of the module include querying the exoplanet database for targets for observing proposals, running planets through a simulator and easy access to the catalogue for population statistics.</p><p>By using a version controlled catalogue like the Open Exoplanet Catalogue and the ExoData interface researchers can more easily verify published results by easily obtaining the exact same planet and system parameters used by quoting both the catalogue and interface version. This is different from most catalogues which only show the latest version of which many unknown values may have changed. The interface builds upon the catalogue by making it easier to access parameters, calculate values and query the database.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">Acknowledgements</head><p>This work is supported by a UCL IMPACT studentship and STFC grant code ST/P000282/1. Appendix B. List of methods provided per object in the astroclasses module</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Appendix A. List of equations</head><p>The following tables <ref type="table" target="#tab_8">(Table B.</ref>5 to B.8) list the methods (functions) and attributes (variables) accessible from each object. Note that objects are nested and so while the planet object has a 'ra' method this is actually passed to the system object.  </p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head></head><label></label><figDesc>git clone https://github.com/OpenExoplanetCatalogue/open_exoplanet_catalogue.git You can then 'import exodata' in Python and setup the catalogue. import exodata databaseLocation = "/open-exoplanet-catalogue/systems/" exocat = exodata.OECDatabase(databaseLocation)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>#</head><label></label><figDesc>Either using your own catalogue version databaseLocation = "/open_exoplanet_catalogue/systems/" exocat = exodata.OECDatabase(databaseLocation) # OR downloading the latest version each time exocat = exodata.load_db_from_url()</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head></head><label></label><figDesc>&gt;&gt;&gt; kepler10b = exocat.planetDict["Kepler-10 b"] &gt;&gt;&gt; kepler10b.parent Star("Kepler-10") &gt;&gt;&gt; kepler10 = kepler10b.star &gt;&gt;&gt; kepler10.planets Planet("Kepler-10 b"), Planet("Kepler-10 c")] &gt;&gt;&gt; kepler10b.system System("Kepler-10") 4.1.1. Retrieving Values With an object selected we can query information from the database. &gt;&gt;&gt; gj1214b = exocat.planetDict["Gliese 1214 b"] &gt;&gt;&gt; print gj1214b.R # planetary radius array(0.2525) * R_j &gt;&gt;&gt; print gj1214b.a # orbit semi-major axis array(0.01488) * au &gt;&gt;&gt; print gj1214b.star.M # stellar mass of host star array(0</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head></head><label></label><figDesc>&gt;&gt;&gt; detected_by_rv = [planet for planet in exocat.planets if planet.discoveryMethod =="RV"] &gt;&gt;&gt; print len(detected_by_rv) # number of planets detected by RV 658 &gt;&gt;&gt; print detected_by_rv[:2] # first 2 planets detected by RV (alphabetical) [Planet("11 Com b"), Planet("11 UMi b")]</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head></head><label></label><figDesc>&gt;&gt;&gt; import numpy as np &gt;&gt;&gt; radius_list = [planet.R for planet in exocat.planets if planet.R is not np.nan] &gt;&gt;&gt; print np.mean(radius_list) 0.454992066547 More advanced queries with additional if clauses can be used to filter the results further. For example, to display all planets with a planetary radius between 1.83 and 1.9 Jupiter radii.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>&gt;&gt;&gt; print [planet for planet in exocat.planets if planet.</head><label></label><figDesc>R is not np.nan and 1.83*aq.R_j &lt; planet.R &lt; 1.9*aq.R_j] [Planet("KELT-8 b"), Planet("TrES-4 A b")]</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head></head><label></label><figDesc>&gt;&gt;&gt; planet_list = [] &gt;&gt;&gt; for planet in exocat.planets: if 1.5*aq.R_j &lt; planet.R &lt; 1.7*aq.R_j: if planet.discoveryMethod == "transit": if planet.e &gt; 0.1: # eccentric planet_list.append(planet) &gt;&gt;&gt; print planet_list [Planet("HATS-3 b"), Planet("Kepler-447 b"), Planet("WASP-90 b")]</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head>&gt;&gt;&gt; print ( 1 .</head><label>1</label><figDesc>99e+30 * aq.kg).rescale(aq.M_e) array(333211.10011570295) * M_e</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: Example plots that can be generated with GeneralPlotter in the ExoData plotting module. See text for descriptions.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_10"><head>Figure 3 :</head><label>3</label><figDesc>Figure 3: Example plots that can be generated with DataPerParameterBin in the ExoData plotting module. See text for description.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" validated="false"><head>Table 1 :</head><label>1</label><figDesc>Table showing the modules available in ExoData and what they are used for.</figDesc><table></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" validated="false"><head></head><label></label><figDesc>The function is called KeplersThirdLaw and taking the values for GJ 1214 b we can calculate the period.</figDesc><table>&gt;&gt;&gt; from exodata.equations import KeplersThirdLaw 
+&gt;&gt;&gt; KeplersThirdLaw(a=0.01488*aq.au, M_s=0.176*aq.M_s).P 
+array(1.579696141940911) * d 
+
+Similarly, given the other two values we can calculate the missing one. 
+
+&gt;&gt;&gt; KeplersThirdLaw(a=0.015*aq.au, P=1.58*aq.d).M_s 
+array(0.18022315673929146) * M_s 
+
+&gt;&gt;&gt; KeplersThirdLaw(M_s=0.176*aq.M_s, P=1.58*aq.d).a 
+array(0.01488190807285067) * au 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4" validated="false"><head>Table 2 shows</head><label>2</label><figDesc>how a planet is classified as being a Jupiter, Neptune or super-Earth along with the assumptions of mean</figDesc><table>Jupiter Neptune Super-Earth 
+Mass (M ⊕ ) 
+&gt; 20 
+&gt; 10 
+&lt; 10 
+Radius (R ⊕ ) 
+&gt; 6 
+&gt; 4 
+&lt; 1.8 
+Density (g/cm 3 ) 
+1.3 
+1.6 
+4 
+Mean Molecular Weight (a.m.u) 2.0 
+2.3 
+18 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_5" validated="false"><head>Table 2 :</head><label>2</label><figDesc>Default assumptions of planet values per classification. We use the mass to classify a planet first, if the mass is missing we then use the radius. Densities are Jupiter, Neptune and Earth densities. All these values can be changed in the program (see text).</figDesc><table></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_6" validated="false"><head>Table 3 :</head><label>3</label><figDesc>List of flags and the functions that raise them when a parameter is missing and is calculated or estimated instead.flags that have been raised in an object can be seen by looking at the flags object of planet or star class (i.e planet.flags).</figDesc><table>Flag 
+Calculated using 
+Estimated Mass 
+estimateDistance() 
+Calculated SMA 
+calcSMA() 
+Fake 
+Any planet that is in the 'Fake Planets' list in the xml files 
+Estimated Distance 
+estimateDistance() 
+Estimated magV 
+magV (V magnitude) 
+Calculated Period 
+calcPeriod() 
+Calculated Temperature calcTemperature() 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_7" validated="false"><head>6</head><label>6</label><figDesc></figDesc><table>Year 
+
+0 
+
+200 
+
+400 
+
+600 
+
+800 
+
+1000 
+
+Number of planets 
+
+4 
+1 1 6 1 5 11 20 13 30 25 29 34 30 64 66 81 
+
+120 
+189 
+126 138 
+
+928 
+
+192 
+
+11 
+
+Radial Velocity 
+Transit Method 
+Other 
+
+4.6.2. Plotting a parameter against another 
+This type of plot takes a measured or calculated parameter of the planet, star, binary or system 
+and displays it against another. The format is 
+
+exodata.plots.GeneralPlotter(list_of_objects, 
+x_param, y_param).plot(*plot_arguments) 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_8" validated="false"><head>Table A .4: List of equations in the equations module</head><label>A</label><figDesc></figDesc><table>Function name 
+Function Arguments 
+Description 
+ScaleHeight 
+T eff, mu, g, H 
+Eqn. 10 
+MeanPlanetTemp 
+A, T s, R s, a, epsilon, T p 
+Eqn. 7 
+StellarLuminosity 
+R, T, L 
+Eqn. 1 
+KeplersThirdLaw 
+a, M s, P, M p 
+Eqn. 5 
+SurfaceGravity 
+M, R, g 
+Eqn. 9 
+Logg 
+M, R, logg 
+base 10 log of SurfaceGrav-
+ity 
+TransitDepth 
+R s, R p, depth 
+square of the ratio of the 
+planetary radius to the stel-
+lar radius 
+Density 
+M, R, Density 
+Density = Mass/Volume 
+TransitDuration 
+P, a, Rp, Rs, i, e, w 
+Eqn. 13 
+ImpactParameter 
+a, R s, i, b 
+Eqn. 11 
+transitDurationCircular 
+P, R s, R p, a, i 
+Eqn. 12 
+estimateStellarTemperature M s 
+Eqn. 3 
+estimateStellarRadius 
+M s 
+Eqn. 2 
+estimateDistance 
+m, M, Av 
+Eqn. 4 
+estimateAbsoluteMagnitude spectralType 
+Eqn. 4 </table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_9" validated="false"><head>Table B .5: List of System methods and attributes</head><label>B</label><figDesc></figDesc><table>Name 
+Description 
+Method / Attribute 
+Right Ascension 
+.ra 
+Declination 
+.dec 
+Distance 
+To the system (parsecs) 
+.d 
+Child Stars and Binaries List of stars and binaries within the system .stars 
+Epoch 
+Epoch for the orbital elements (BJD) 
+.epoch 
+Name 
+Name of the system 
+.name 
+Child objects 
+All objects that are children of the system, 
+i.e. stars and/or binaries 
+
+.children 
+
+Flags 
+Flags object (see section 4.5) 
+.flags 
+Parameters 
+Dictionary holding all parameters loaded 
+from the Open Exoplanet Catalogue 
+
+.params Table B.6: List of Binary methods and attributes 
+
+Name 
+Description 
+Method / Attribute 
+Right Ascension 
+.ra 
+Declination 
+.dec 
+Distance 
+To the system (parsecs) 
+.d 
+Name 
+Name of the binary 
+.name 
+Child objects 
+All objects that are children of the binary, 
+i.e. stars, binaries and planets 
+
+.children 
+
+Parent object 
+Object above this one, i.e a system or a bi-
+nary 
+
+.parent 
+
+Flags 
+Flags object (see section 4.5) 
+.flags 
+Parameters 
+Dictionary holding all parameters loaded 
+from the Open Exoplanet Catalogue 
+
+.params 
+
+System 
+The system this object is in 
+.system 
+Child Stars and Binaries List of stars and binaries within the Binary 
+(list) 
+
+.stars 
+
+Inclination 
+Orbital inclination 
+.i 
+Eccentricity 
+Orbital eccentricity 
+.e 
+Period 
+Orbital period 
+.P 
+Semi-Major Axis 
+Orbital semi-major axis 
+.a 
+Separation 
+The projected separation from one compo-
+nent to the other 
+
+.separation 
+
+Transit Time 
+Time of the mid-point of a transit (BJD) 
+.transittime 
+Periastron 
+Longitude of periastron (degree) 
+.periastron 
+Longitude 
+Mean longitude at a given Epoch (degree) .longitude 
+Ascending node 
+Longitude of the ascending node (degree) 
+.ascendingnode 
+U Magnitude 
+.magU 
+B Magnitude 
+.magB 
+H Magnitude 
+.magH 
+I Magnitude 
+.magI 
+J Magnitude 
+.magJ 
+K Magnitude 
+.magK 
+V Magnitude 
+.magV 
+L Magnitude 
+.magL 
+M Magnitude 
+.magM 
+N Magnitude 
+.magN Table B.7: List of Star methods and attributes 
+
+Name 
+Description 
+Method / Attribute 
+Right Ascension 
+.ra 
+Declination 
+.dec 
+Distance 
+To the system (parsecs) 
+.d 
+Name 
+Name of the star 
+.name 
+Child objects 
+All objects that are children of the star, i.e 
+planets 
+
+.children 
+
+Parent object 
+Object above this one, i.e a system or a bi-
+nary 
+
+.parent 
+
+Flags 
+Flags object (see section 4.5) 
+.flags 
+Parameters 
+Dictionary holding all parameters loaded 
+from the Open Exoplanet Catalogue 
+
+.params 
+
+System 
+The system this object is in 
+.system 
+Child Planets 
+List of orbiting planets 
+.stars 
+Radius 
+.R 
+Mass 
+.M 
+Temperature 
+Temperature of the star in the catalogue. If 
+absent calculates using .calcTemperature() 
+and sets 'Calculated Temperature' flag. 
+
+.T 
+
+Age 
+Age of the planet (Gyr) 
+.age 
+Calculate Temperature 
+Uses 
+equa-
+tions.estimateStellarTemperature 
+
+.calcTemperature() 
+
+Calculate Surface Gravity 
+Uses equations.SurfaceGravity 
+.calcSurfaceGravity() 
+Calculate log(g) 
+Uses equations.Logg 
+.calcLogg() 
+Metalicity 
+.Z 
+U Magnitude 
+.magU 
+B Magnitude 
+.magB 
+H Magnitude 
+.magH 
+I Magnitude 
+.magI 
+J Magnitude 
+.magJ 
+K Magnitude 
+.magK 
+V Magnitude 
+.magV 
+L Magnitude 
+.magL 
+M Magnitude 
+.magM 
+N Magnitude 
+.magN 
+Spectral Type 
+.spectralType 
+Calculate Density 
+Uses equations.Density to estimate density 
+from mass and radius 
+
+.calcDensity() 
+
+Calculate Luminosity 
+Uses equations.StellarLuminosity to esti-
+mate stellar luminosity from R and T 
+
+.calcLuminosity() 
+
+Estimate Absolute Magnitude 
+Uses 
+equa-
+tions.estimateAbsoluteMagnitude 
+and 
+the spectral type to estimate the stars 
+absolute magnitude 
+
+.estimateAbsoluteMagnitude() 
+
+Estimate Distance 
+Uses equations.estimateDistance to esti-
+mate the distance from Earth to the star 
+from the absolute magnitude and V mag-
+nitude 
+
+.estimateDistance() 
+
+20 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_10" validated="false"><head>Table B .8: List of Planet methods and attributes</head><label>B</label><figDesc></figDesc><table>Name 
+Description 
+Method / Attribute 
+Right Ascension 
+.ra 
+Declination 
+.dec 
+Distance 
+To the system (parsecs) 
+.d 
+Name 
+Name of the planet 
+.name 
+Parent object 
+Object above this one, i.e binary or star 
+.parent 
+Flags 
+Flags object (see section 4.5) 
+.flags 
+Parent Star 
+Host star of the planet (if present) 
+.star 
+Parameters 
+Dictionary holding all parameters loaded 
+from the Open Exoplanet Catalogue 
+
+.params 
+
+System 
+The system this object is in 
+.system 
+Radius 
+.R 
+Mass 
+.M 
+Inclination 
+Orbital Inclination 
+.i 
+Eccentricity 
+.e 
+Period 
+Orbital Period 
+.P 
+Semi-Major Axis 
+Semi-Major Axis 
+.a 
+Seperation 
+The projected separation of planet from its 
+host 
+
+.seperation 
+
+Age 
+Age of the planet (Gyr) 
+.age 
+Transit Time 
+Time of mid-point of a transit (BJD) 
+.transittime 
+Periastron 
+Longitude of periastron (degree) 
+.periastron 
+Longitude 
+Mean longitude at a given Epoch (degree) .longitude 
+Ascending node 
+Longitude of the ascending node (degree) 
+.ascendingnode 
+Discovery Method 
+.discoveryMethod 
+Discovery Year 
+.discoveryYear 
+Description 
+Open Exoplanet Catalogue description of 
+this planet 
+
+.description 
+
+Temperature 
+Temperature of the star in the catalogue. If 
+absent calculates using .calcTemperature() 
+and sets 'Calculated Temperature' flag. 
+
+.T 
+
+Calculate Temperature 
+Uses equations.MeanPlanetTemp 
+.calcTemperature() 
+Calculate Surface Gravity 
+Uses equations.SurfaceGravity 
+.calcSurfaceGravity() 
+Calculate log(g) 
+Uses equations.logg 
+.calcLogg() 
+Calculate Density 
+Uses equations.Density 
+.calcDensity() 
+Calculate Period 
+Uses equations.calcPeriod 
+.calcPeriod() 
+Calculate Semi-Major axis 
+uses equations.KeplersThirdLaw 
+.calcSMA() 
+Calculate Semi-Major axis from 
+Planet temperature 
+
+Uses equations.MeanPlanetTemp 
+.calcSMAfromT() 
+
+Transiting Planet? 
+Returns true if the planet transits 
+.isTransiting 
+Transit Duration 
+Uses equations.TransitDuration or transit-
+DurationCircular if circular=True 
+
+.calcTransitDuration() 
+
+Transit Depth 
+Uses equations.TransitDepth 
+.calcTransitDepth() 
+Planet Type 
+The type of planet (ie super-Earth) as 
+defined in assumptions. Uses assump-
+tions.planetType which prioritises mass 
+type 
+
+.type() </table></figure>
+
+			<note place="foot" n="4"> https://github.com/OpenExoplanetCatalogue/open_exoplanet_catalogue</note>
+
+			<note place="foot" n="5"> See http://pythonhosted.org/quantities/.</note>
+
+			<note place="foot" n="6"> See http://stanford.edu/ ~ mwaskom/software/seaborn/ for more information 7 import matplotlib.pyplot as plt</note>
+		</body>
+		<back>
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Appendix C. List of additional units</head></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<monogr>
+		<title level="m" type="main">Allen&apos;s astrophysical quantities</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">N</forename><surname>Cox</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2000" />
+			<publisher>Springer</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">Study of the Accuracy of Mass-Radius Relationships for Silicate-Rich and Ice-Rich Planets Up To 100 Earth Masses</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Grasset</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Schneider</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Sotin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">693</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="722" to="733" />
+			<date type="published" when="2009-03" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">Pre-Main-Sequence Evolution in the Taurus-Auriga Molecular Cloud</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Kenyon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Hartmann</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal Supplement Series</title>
+		<imprint>
+			<biblScope unit="volume">101</biblScope>
+			<biblScope unit="page">117</biblScope>
+			<date type="published" when="1995-11" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">A proposal for community driven and decentralized astronomical databases and the Open Exoplanet Catalogue</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Kipping</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="page">6</biblScope>
+			<date type="published" when="2011-05" />
+		</imprint>
+	</monogr>
+<note type="report_type">PhD Thesis</note>
+	<note>The Transits of Extrasolar Planets with Moons</note>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">A Unique Solution of Planet and Star Parameters from an Extrasolar Planet Transit Light Curve</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Seager</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Mallen-Ornelas</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">585</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="1038" to="1055" />
+			<date type="published" when="2003-03" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Characterizing the atmospheres of transiting planets with a dedicated space telescope</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Tessenyi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Ollivier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Beaulieu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">C</forename><surname>Du Foresto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Encrenaz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Micela</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Swinyard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Ribas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Aylward</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Swain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Sozzetti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Vasisht</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Deroo</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">746</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">45</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Spectroscopy of planetary atmospheres in our Galaxy</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Encrenaz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Coustenis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A Rev</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="page">63</biblScope>
+			<date type="published" when="2013-10" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

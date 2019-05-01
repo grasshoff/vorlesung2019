@@ -1,0 +1,862 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-11T13:17+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">A MACHINE LEARNING TECHNIQUE TO IDENTIFY TRANSIT SHAPED SIGNALS</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2015-09-02">September 2, 2015 September 2, 2015</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Susan</forename><forename type="middle">E</forename><surname>Thompson</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Fergal</forename><surname>Mullally</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jeff</forename><surname>Coughlin</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jessie</forename><forename type="middle">L</forename><surname>Christiansen</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Christopher</forename><forename type="middle">E</forename><surname>Henze</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Michael</forename><forename type="middle">R</forename><surname>Haas</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Christopher</forename><forename type="middle">J</forename><surname>Burke</surname></persName>
+						</author>
+						<title level="a" type="main">A MACHINE LEARNING TECHNIQUE TO IDENTIFY TRANSIT SHAPED SIGNALS</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2015-09-02">September 2, 2015 September 2, 2015</date>
+						</imprint>
+					</monogr>
+					<note>Draft version Preprint typeset using L A T E X style emulateapj v. 5/2/11 Draft version</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<abstract>
+				<p>We describe a new metric that uses machine learning to determine if a periodic signal found in a photometric time series appears to be shaped like the signature of a transiting exoplanet. This metric uses dimensionality reduction and k-nearest neighbors to determine whether a given signal is sufficiently similar to known transits in the same data set. This metric is being used by the Kepler Robovetter to determine which signals should be part of the Q1-Q17 DR24 catalog of planetary candidates. The Kepler Mission reports roughly 20,000 potential transiting signals with each run of its pipeline, yet only a few thousand appear sufficiently transit shaped to be part of the catalog. The other signals tend to be variable stars and instrumental noise. With this metric we are able to remove more than 90% of the non-transiting signals while retaining more than 99% of the known planet candidates. When tested with injected transits, less than 1% are lost. This metric will enable the Kepler mission and future missions looking for transiting planets to rapidly and consistently find the best planetary candidates for follow-up and cataloging.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">INTRODUCTION</head><p>As the size and complexity of astronomical data increases, the analysis of these data sets will need to become increasingly automated. When searching for transiting exoplanets, the first step is to test whether the light curve contains a train of transits. Many search algorithms exist to find these periodic events in a timeseries of data ( <ref type="bibr" target="#b19">Jenkins et al. 2010b;</ref><ref type="bibr" target="#b4">Berta et al. 2012;</ref><ref type="bibr" target="#b22">Kovács et al. 2002;</ref><ref type="bibr" target="#b12">Defa¨yDefa¨y et al. 2001)</ref>, but the task of selecting which of those truly look transit-like is commonly performed by eye. Exoplanet surveys, such as CoRoT, <ref type="bibr">Kepler, TESS and PLATO (Auvergne et al. 2009;</ref><ref type="bibr" target="#b21">Koch et al. 2010;</ref><ref type="bibr" target="#b28">Ricker et al. 2014;</ref><ref type="bibr" target="#b27">Rauer et al. 2014</ref>), have found, or will find, more signals in their data than can easily be examined consistently by a small team of people. While one solution is to enlist citizen scientists such as the planet-hunters ( <ref type="bibr" target="#b34">Wang et al. 2013</ref>), another solution is to develop more sophisticated metrics to cull-out those detections that do not look like transits.</p><p>Here we discuss and implement a machine-learning technique to determine whether a signal looks like a transit. This problem can be formulated as a dimensionality reduction and clustering problem. The light curves contain thousands of points that are used to describe the shape of the feature. However, only a few dimensions are needed to describe whether the signal has the steep ingress and egress of a transit, as well as a flat profile outside of the transit event. The trick is to characterize the light curves such that a dimensionality reduction routine clusters signals that look like transits in a region of parameter space separate from those that do not look <ref type="bibr">1</ref>  like transits.</p><p>Similar work was done by <ref type="bibr" target="#b24">Matijevič et al. (2012)</ref> to characterize the eclipsing binaries in the Kepler timeseries data. Eclipsing binary stars range from detached, with discrete transit-like dips, to over-contact binaries, that continually vary. <ref type="bibr" target="#b24">Matijevič et al. (2012)</ref> used an algorithm known as Local Linear Embedding <ref type="bibr">(LLE, Roweis &amp; Saul 2000)</ref> to reduce the number of dimensions of the folded light curves of the reported binary stars down to one dimension. The class of binary star was now mapped onto a continuum of values with detached binaries on one end and over-contact binaries on the other.</p><p>The problem we solve in this paper is somewhat different because we attempt to separate transit-like events, i.e. periodic v-or u-shaped variations in the light curve, from all other periodic events found by the Kepler pipeline ( <ref type="bibr">Jenkins et al. 2010a,b;</ref><ref type="bibr" target="#b35">Wu et al. 2010</ref>). The Kepler search for transiting planets <ref type="bibr" target="#b19">(Jenkins et al. 2010b</ref>) returns transit-like signals as well as other periodic variations. The most common type of false alarm is sinusoidal variations likely caused by spots, pulsations, tidal binaries or contact binaries. But the search also returns erratic signals likely due to instrumental effects, or events that contain no obvious signal at all.</p><p>While these signals were removed by hand in previous Kepler planet candidate catalogs ( <ref type="bibr">Borucki et al. 2011a,b;</ref><ref type="bibr" target="#b3">Batalha et al. 2013;</ref><ref type="bibr" target="#b7">Burke et al. 2014;</ref><ref type="bibr" target="#b29">Rowe et al. 2015;</ref><ref type="bibr" target="#b26">Mullally et al. 2015</ref>), the Data Release 24 (DR24) Kepler Objects of Interest (KOI) catalog will determine whether a signal is a planetary candidate using an entirely algorithmic approach using a set of algorithms called the Robovetter ( <ref type="bibr">Coughlin et al. 2016 in prep)</ref>. The reason for this is driven by the desire to measure accurate planetary occurrence rates ( <ref type="bibr" target="#b7">Burke et al. 2015;</ref><ref type="bibr" target="#b13">Dressing &amp; Charbonneau 2015;</ref><ref type="bibr" target="#b2">Batalha 2014</ref>). In order to measure the sensitivity of the pipeline to finding planets, the entire search must be done repeatedly on both real and injected signals, demanding automation.</p><p>The basic philosophy of the Kepler Robovetter is that it uses various metrics to decide if a signal in the data 1) is not transit-like (in shape or significance), 2) has a significant secondary event (an indication that it is an eclipsing binary), or 3) shows evidence of being due to a background eclipsing binary. To improve the ability of the Robovetter to evaluate the first item, we create a metric that tests whether the shape of the transit is similar to known transiting events.</p><p>We describe here a metric that uses the Locality Preserving Projections (LPP, <ref type="bibr" target="#b15">He &amp; Niyogi 2004</ref>) dimensionality reduction and k-nearest neighbors to accomplish this task. While we describe the method as it specifically applies to the Kepler data, the same technique could easily be adapted to run on the result of any high duty-cycle transit search. In §2 we describe the Kepler data and the signals found by the pipeline. In §3 we describe how we characterize our data, determine a training set, and calculate the LPP transit metric for the Q1-Q17 DR24 KOI catalog. We further evaluate the performance by injecting transits in §3.6. Finally, in §4 we discuss the performance of the technique on the Kepler data.  <ref type="bibr" target="#b33">Thompson et al. 2014</ref>). The Kepler pipeline reduces the data, creates light curves, and searches these light curves for periodic signals that may be consistent with a transit. These signals are known as Threshold Crossing Events (TCEs) and are available at the NASA Exoplanet Science Institute (NExScI) archive <ref type="bibr">5 (Akeson et al. 2013</ref>). As part of DR24, 20,367 TCEs were discovered by the Kepler pipeline ( <ref type="bibr" target="#b31">Seader et al. 2015</ref>).</p><p>The Transit Planet Search (TPS) component of the Kepler pipeline performs the search for the transit signals. It does this by whitening the data and searching for significant detections at a large range of periods and using 14 different transit durations. See <ref type="bibr" target="#b31">Seader et al. (2015)</ref> and references therein for more information on how TPS searches for transit signals. Once a signal is found, it is sent to the Data Validation (DV) module of the Kepler pipeline where it is fit with a transit model and the in-transit points are removed. The same search algorithm is run on the gapped light curve until no more signals are found. In this way, up to 10 TCEs, can be found at different ephemerides on the same Kepler target. All of the TCEs and the metrics calculated by these two pipeline modules are available at NExScI.</p><p>The technique we describe here only relies on a few of the values calculated by TPS and DV. We use the period, epoch and duration of the TCE as reported by DV, which is established by fitting the transit model of <ref type="bibr" target="#b23">Mandel &amp; Agol (2002)</ref> to the signal. To find the TCE, TPS calculates a Multiple-Event Statistic (MES), which gives a measure of the significance of the detected TCE 6 ( <ref type="bibr" target="#b19">Jenkins et al. 2010b</ref>). TPS only searches down to a 5 http://exoplanetarchive.ipac.caltech.edu/ 6 MES is a measure of how correlated the data are to a sequence MES value of 7.1 7 ; typically these TCEs appear only marginally above the noise. Sometimes DV fails to fit the signal, in these cases we revert to the original period and epoch found by TPS and use the pulse duration that was being used when the signal was originally found. The MES is available regardless of whether the transit model converged.</p><p>From these TCEs the Kepler project creates a catalog of planet candidates and astrophysical false alarms (e.g. binary stars and background binary stars), known as the KOI catalog. For every catalog published to date <ref type="bibr">(Mul- lally et al. 2015;</ref><ref type="bibr" target="#b29">Rowe et al. 2015;</ref><ref type="bibr" target="#b7">Burke et al. 2014;</ref><ref type="bibr" target="#b3">Batalha et al. 2013;</ref><ref type="bibr" target="#b5">Borucki et al. 2011a</ref>), all TCEs were examined by a team of astronomers to determine if the data associated with each TCE could potentially be due to a transiting planet (a process known as vetting). Starting with the Q1-Q17 DR24 KOI catalog, this activity is being done by what is being called the "Robovetter" ( <ref type="bibr">Coughlin et al. 2016 in prep;</ref><ref type="bibr" target="#b26">Mullally et al. 2015</ref> submitted,S); all tests to determine whether a TCE is a planet candidate will be made by a computer algorithm. This is not an entirely new concept; in previous catalogs some of the tests performed on the transit-like TCEs, specifically to determine whether a transit event occurs on the star in question, were performed by the "Centroid Robovetter" (Mullally et al. 2015 submitted), also <ref type="bibr" target="#b25">McCauliff et al. (2015)</ref> implemented a machine learning approach to evaluate the Kepler TCEs. For the DR24 KOI catalog that same philosophy of using metrics and logic is being applied to evaluating the transit shape and whether the transit has a significant secondary eclipse (an indication that it is an eclipsing binary star). The metric we have implemented here focuses on the first question, "Does this TCE look transit-like?".</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">CALCULATING THE LPP TRANSIT METRIC</head><p>In this section we describe the procedure used to calculate the metric for the DR24 KOI catalog. To summarize, we start with detrended light curves for each TCE. We then fold and bin each light curve into N points. These N points act as the initial number of dimensions that describe each TCE. Using a high signal-to-noise subset of these binned TCEs, we create a map from the initial N dimensions down to a smaller n dimensions using the LPP dimensionality reduction algorithm <ref type="bibr" target="#b15">(He &amp; Niyogi 2004</ref>). That map is applied to all TCEs. Then, to find the area of this reduced dimensionality space where the transits lie, we create a labeled data set of known transitlike TCEs. For each TCE, we measure the average Euclidean distance to the k nearest transit-like TCEs. This average is the value of the LPP transit metric for the TCE. Each of these steps are discussed in more detail below and the final values for the DR24 TCEs are given in <ref type="table" target="#tab_2">Table 1.</ref> of evenly spaced transit pulses, normalized by the strength of the noise.</p><p>7 A MES limit of 7.1 ensures only one false alarm due to white noise during the duration of the Kepler mission ( <ref type="bibr" target="#b17">Jenkins et al. 2002</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Detrending the Light Curves</head><p>The Kepler vetting activity uses two different detrending algorithms to evaluate each TCE. Primarily it uses the harmonic-removed, median detrender calculated by the DV portion of the Kepler pipeline ( <ref type="bibr" target="#b35">Wu et al. 2010)</ref>. In this case a harmonic series of the largest sine-waves are fit and removed, and then a median detrender is applied with the time scale selected by considering the duration of the signal. We refer to this detrender as the DV-median detrender. The alternate detrender is a non-parametric penalized least-squared (LS) method from Garcia (2010) which includes only the out-of-transit points when computing the filter. Because the in-transit points are not used when detrending, this detrender has the effect of making most signals look more like transits. We refer to this detrender as the penalized-LS detrender. In previous versions of the KOI catalog, members of the team would consider the folded and binned light curve produced by both the DV-median detrender and the penalized-LS detrender to determine if the signal looked sufficiently like a transit. More information about these detrenders and how they have been used to vet planet candidates can be found in Mullally et al. <ref type="formula">(2015)</ref> and <ref type="bibr" target="#b29">Rowe et al. (2015)</ref>. After detrending the median value of the light curve is set to zero and the variations are given as fractional changes in the observed brightness.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">Feature Extraction</head><p>In order for our metric to examine the shape of each possible transit found in the data, we start by folding the time series and centering the event at a phase of 0.5. We then need to extract, or encode, the shape of this light curve into the same number of data points for all TCEs. To use the dimensionality reduction technique we describe below, all TCEs must start with the same number of dimensions, i.e. data points. Fitting would be an option, as done in <ref type="bibr" target="#b24">Matijevič et al. (2012)</ref>. However, since we are trying to separate non-transit from transiting phenomena, it is not clear what sort of function would easily account for all the different types of variability found among the TCEs as well as a transit shape.</p><p>Instead we bin the folded light curve. The number of bins that optimally describes a light curve depends on the time scale of the interesting phenomena. Most transits look like a rapid dip in the brightness of the star; the transit takes place for a relatively short amount of time compared to the full orbit. For instance, a typical duration for an object in a 20 day orbit is around 10 hours, covering only 2% of the light curve. An Earth transiting a Sun takes ≈12 hours; a mere 0.14% of the light curve would be in transit. However, short-period, over-contact eclipsing binaries, stellar spots, and some short-period transiting planets can be fit with a duration lasting upward of 20% of the folded light curve. Since it is the shape of the detected dip in the light curve that we are interested in, and not the duration, we choose our bins in such a way that all transits span approximately the same number of binned points. This is done by using the period and transit duration when picking the range of phases to bin. Also, for the relatively short duration transits, this method has the effect of increasing the importance of the in-transit phases when deciding if the event is transit-like.</p><p>However, those signals that confuse transit detectors will similarly fool this metric unless we also consider the light curve at phases away from the transit. For instance variable stars can look like a broad transit except when you also consider the variability at phases outside of the purported transit event. So, we also include bins at phases away from the transits, and include enough to be able to detect large variability at low harmonics of the detected period.</p><p>Finally, in order to encourage our algorithm to discriminate based on the shape of the light curve, and not the amplitude of the signal, we normalize all our depths to negative one, based on the lowest binned value during the transit.</p><p>To summarize, in order to prepare the input matrix to the LPP dimensionality algorithm we did the following. We started with detrended data, we fold on the TCE period, and then choose approximately one third of our binned points to cover the phases that lie 5 transit durations on either side of the reported event. The other two-thirds of our binned points are evenly spaced across phases that do not include those near 0, 0.5 and 1. For the exact way the bins were chosen for the Kepler TCEs, see §3.5. By not binning points near a phase of 0 we remove the effect of significant secondaries on a number of TCEs with little impact on the measurement of the out-of-transit light curve shape. Consequentially, those TCEs with significant secondaries will still look like transits. The Kepler Robovetter has other metrics in place to remove TCEs with significant secondaries. We sort all of the binned values by phase and normalize all of the binned points such that the smallest measured binned value in the in-transit bins has a value of negative one.</p><p>We show some examples of binned light curves with transits, using the DV-median detrender, in <ref type="figure" target="#fig_0">Figure 1</ref> and non-transiting binned light curves in <ref type="figure" target="#fig_1">Figure 2</ref>. Notice that for long-duration, short-period TCEs, the two sets of binned points overlap in phase. For both figures the input to the dimensionality algorithm is shown on the right; the phases are sorted and the depth is normalized. As a result of this binning procedure, the general shape of the transit is preserved but information about the depth and duration of the transit have been removed.</p><p>To give an idea of how much the detrenders can disagree on the shape of a TCE, we show in <ref type="figure">Figure 3</ref> the binned points for the same TCEs with the different detrenders. In the first four panels, we specifically pick cases where the detrenders disagree so much that it significantly changes the outcome of the LPP transit metric's value. In these cases the light curve is extremely variable; how much of that variability is removed by the detrender will drastically change the appearance of the light curve, especially when it is folded and binned.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.">Dimensionality Reduction</head><p>Because we are trying to reduce the complex information of a binned light curve down to the simple question of whether it looks like a transit or not, we considered the power of dimensionality reduction. While many of these routines which attempt to maintain the most diverse dimensions in a data set could work for our purposes, we  <ref type="bibr" target="#b15">&amp; Niyogi 2004</ref>) as implemented by the matlab Toolbox of Dimensionality Reduction 9 (van der <ref type="bibr">Maaten et al. 2009</ref>). One advantage of LPP over nonlinear algorithms, such as Local Linear Embedding, is that the mapping is unambiguously defined everywhere in the higher dimensionality space; and so LPP can be precisely evaluated on injected signals, even though it was trained on only the original sample.</p><note type="other">settled on Locality Preserving Projections (LPP) / 8 (He</note><p>LPP is similar to the most commonly used linear dimensionality reduction algorithm, Principle Component Analysis (PCA). While PCA attempts to maximize the variance of the data in each dimension, LPP attempts to preserve the local neighborhoods, as measured by a Euclidean k-nearest-neighbors, when reducing the dimensions. In this way LPP has the advantages of being less sensitive to outliers than PCA and also has the ability to map highly nonlinear manifolds as can be done by nonlinear techniques. For more information on precisely how this algorithm works see Section A and <ref type="bibr" target="#b15">He &amp; Niyogi (2004)</ref>. While the linearity and locality aspects of LPP are useful in the problem we are trying to solve, ultimately we chose this particular dimensionality reduction algorithm because it did a good job of preserving the transit-shape information in binned light curves.</p><p>The LPP algorithm takes our N binned points for a sample of the TCEs, and maps them to a lower number of dimensions, n, attempting to preserve those elements of the set that are adjacent to each other, as defined by using k-nearest neighbors. Once our TCEs are represented by the lower number of dimensions we calculate the distance to an integer number, k, of nearest known transits from the labeled data set described below. We use matlab's knnsearch algorithm using a Euclidean distance (in matlab this is performed using a Minkowski distance with an exponent set to 2). The mean of these k distances is what we report as the LPP transit metric. For ease, we use the symbol T LPP to represent the LPP transit metric. If the TCE is as close to the known transits as the known transits are to each other, the TCE is deemed to be transit-like.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4.">Creating a Labeled Data Set</head><p>The key to the success of this metric is having a good set of known transit-like signals for training. In this case we create a labeled data set from those TCEs previously found and vetted by the Kepler Project ( <ref type="bibr" target="#b3">Batalha et al. 2013;</ref><ref type="bibr" target="#b7">Burke et al. 2014;</ref><ref type="bibr" target="#b29">Rowe et al. 2015;</ref><ref type="bibr" target="#b26">Mullally et al. 2015</ref>). Those TCEs whose ephemeris matched those of known KOIs in the cumulative table at the NExScI archive (except for those marked with the 'not-transitlike' flag) became the sample of known transiting objects. Note, KOIs that have dispositions of false positive due to being a centroid offset or because of an ephemeris match are also included as transit-like objects in our labeled data set.</p><p>For testing purposes, we also federated the TCE sample with those TCEs from earlier catalogs (specifically Q1-Q16 and Q1-Q12) that previously failed to become a KOI. These objects were all evaluated by individuals and deemed either to look not-transit-like or were too low signal-to-noise to be made into a KOI. Those non-KOI objects that matched the ephemeris of our Q1-Q17 TCE list were labeled as not-transit like.</p><p>We separately track two groups within the transit-like population. First, we track those objects that are known to be planetary candidates in the cumulative KOI table at NExScI. These make a very high fidelity population of objects known to have a transit shape. Second, we track those objects with a known secondary eclipse, and likely to be eclipsing binaries by using the false positive flag available at NExScI. The intent is to keep the eclipsing binaries at this stage in the vetting because many of them look sufficiently like transiting planets. Other metrics are used by the Kepler Robovetter to remove these from the planet candidate sample. So, those objects with known significant secondaries are counted as transit-like.</p><p>In total we label 5678 TCEs as transit-like, of which 3738 are planetary candidates, 633 have a significant secondary, and 1307 are other known false positives, and we label 1039 as not-transit-like. The entire transit-like population is important because that is what defines the parameter space that should contain transit-like TCEs. Note, we set aside 10% of the transit-like set for testing purposes and did not use them to train our metric. Table 1 provides the labels given to each TCE for training and testing purposes.</p><p>There are a few small issues with creating the labeled data set in this way. Some of the low signal-to-noise objects from previous TCE catalogs will now be legitimate transit-like signals because more transits are available and because of improvements to the pipeline that remove known noise sources. As a result, we might not expect all of the not-transit-like TCEs to fail our metric. Also, the false positive flags available at the archive were not universally set for every vetted KOI. The largest impact of this is that a very small population of not-transit-like KOIs are masquerading as transit-like objects (likely less than 1% of the transit-like objects). Also, some known binaries may not be included in the significant secondary set. These are issues we keep in mind when using the labeled data set for training and testing our metric.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.5.">Evaluating the Q1-Q17 DR24 TCEs</head><p>We apply the above technique to calculate T LPP for every Q1-Q17 DR24 TCE and give the values in <ref type="table" target="#tab_2">Table 1</ref>. While there are several tune-able parameters in creating the LPP transit metric (e.g. k, N , n, phase span of the in transit bins, etc.), we discovered that changing these parameters does not drastically change the outcome. The values chosen for these parameters were determined empirically by trying to remove the most known non-transit like signals while keeping the most transit like signals.</p><p>For this implementation, which is being used by the DR24 Kepler Robovetter ( <ref type="bibr" target="#b11">Coughlin et al. 2016</ref> in prep), we started with N = 141 binned data points, 51 intransit and 90 out-of-transit. This was chosen so that the spacing of the out-of-transit bins is 0.01 in phase and the spacing of the in-transit bins is 0.2 times the duration in phase. The out-of-transit bins were evenly spaced across the phases 0.03-0.47 and 0.53-0.97. For most TCEs, this results in the bin spacing of the intransit bins being smaller than the bin spacing of the out-of-transit bins. We then used LPP to reduce the dimensions of the data set to n = 20, where the TCE locality was determined by a k-nearest neighbor test with k= 15. We used all TCEs with a MES&gt; 8 to create the mapping to the lower dimension, thereby removing those signals that were likely dominated by noise. For every TCE we reduce the dimensionality with this mapping and measure the distance to the k = 15 closest known transits. We provide the T LPP values for both detrenders in <ref type="table" target="#tab_2">Table 1</ref>.</p><p>While 20 dimensions are hard to display simultaneously, we can show the final metric and how it performed on the labeled TCEs. <ref type="figure">Figure 4</ref> shows the histogram of log 10 (T LPP ) calculated for the labeled data set. There is significant separation in those objects that are known planet candidates from those that appear not-transitlike for the DV-median detrended data. One way to naively pick a value that could act as a cutoff line between transit-like and not-transit-like would be three times the standard deviation of T LPP for the known transit-like distribution. For the DV-median detrender this line would be T LPP = 0.003001 (log 10 (T LPP )= −2.52). If this line is chosen, T LPP rejects 0.3% of the candidates, 4.4% of those with significant secondaries, and 91.2% of the nottransit-like objects. For the test set, the metric fails &lt;0.1% and 6.7% of the candidate and binary-like sets, respectively. For the unlabeled data set, using this cutoff rejects 75.1% of the TCEs.</p><p>We show the same histograms for the light curves detrended by the penalized-LS in <ref type="figure">Figure 4</ref>. Notice the much poorer separation between the candidates and nottransit-like data sets. This detrender preserves the location of the known transit when detrending and as a result many variable star signals look like transits. If we draw the same three sigma line based on the distribution of known transit-like events (T LPP = 0.00344, log 10 (T LPP )= −2.463), we reject only 51.7% of the known not-transitlike TCEs while preserving &gt;99.9% of the transit-like and 98.6% of the binary TCEs. We get almost identical values for the test set. As a result, the penalized-LS T LPP value should only be used to supplement the results of the DV-median T LPP value, especially if the goal is to remove the most false signals from the catalog.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.5.1.">Code Availability</head><p>The matlab code, as it was run to produce the LPP transit metric for the Q1-Q17 DR24 TCE list and the transit injection run, is available on SourceForge at http://sourceforge.net/projects/lpptransitlikemetric. It includes the code to bin the light curves and create the transit metric from the training set.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.6.">Transit Injection</head><p>As a second test of the LPP transit metric, we apply it to transits that are injected into the light curves. This pixel-level transit injection is performed in order to understand what transit signals are not found by the Kepler pipeline, a necessary step to calculate the occurrence rate of planets ( <ref type="bibr" target="#b9">Christiansen et al. 2013</ref>). The transits were injected into all 17 quarters of data, but not with the expected distribution of the detected planets. Instead, they were injected with longer periods and at lower MES to carefully probe the parameter space where the Kepler pipeline is less likely to find planets. See <ref type="bibr" target="#b9">Christiansen et al. (2013)</ref> for more information on transit injection for the Kepler pipeline. We used a 17 quarter transit injection run to test our metric. It produced 11,326 injected TCEs and used the same procedures as that discussed in Christiansen (2015) and <ref type="bibr" target="#b9">Christiansen et al. (2013)</ref>, but this is not the final transit injection run being used to calculate the average detection probability or test the Robovetter ( <ref type="bibr">Christiansen et al. 2015 submitted;</ref><ref type="bibr">Cough- lin et al. 2016 in prep)</ref>. This preliminary run was sufficient for our purposes of showing how well the metric preserves known transiting phenomena.</p><p>We use the procedure above to calculate T LPP for the injected transits using both detrenders. As stated before, we can easily apply our previous map (created from the original real TCEs) to the injected TCEs. Similarly when we apply the k-nearest neighbors, we are measuring the distance to the original set of known transit-like TCEs, not to the injected TCEs. In <ref type="figure" target="#fig_2">Figure 5</ref>, we show a histogram of the LPP transit metric for the 11,326 injected transits for both sets of detrended light curves. Notice that in general the lower MES transits have larger values for T LPP , meaning they are less well-separated from the non-transiting phenomena. This indicates that users of this metric may want to use a pass/fail threshold value that is dependent on MES in order to eliminate a larger fraction of the higher MES not-transit-like events without removing more border-line, low-MES events.</p><p>Using the same value established above to indicate the line between transit-like and not-transit-like, we reject 94, or 0.8%, of the injected transits for the DV-detrender and 23, or 0.2%, of the injected transits for the penalized-LS detrending. This is a slightly higher, though entirely acceptable, rate of failure for this metric when compared to the training set statistics given in Section 3.5.</p><p>When inspecting those injected transits incorrectly classified by the DV-median metric as not-transit-like, we see that they are predominantly of low MES; 2% of injected TCEs with recovered MES&lt;10 fail the metric. Since low MES objects are predominantly transits of small radii, this introduces a very slight bias toward incorrectly classifying the signals of some of the smallest planets. This is not true for the penalized-LS detrender, where the minimal tail is distributed more evenly across MES. Some of the higher MES injections that fail the metric are caused by injections onto highly variable stars and the detrenders did not preserve the shape of the transit.</p><p>Also, there is no trend between the fraction of rejected signals as a function of period, even as the threshold is relaxed. A larger investigation of the detection efficiency across various parameters using the entire Robovetter is available in the DR24 KOI catalog paper ( <ref type="bibr" target="#b11">Coughlin et al. 2016</ref> in prep) and with the detection efficiency products available at NExScI (Coughlin 2015).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">DISCUSSION</head><p>The LPP transits metric is being used by the DR24 Kepler Robovetter ( <ref type="bibr">Coughlin et al. 2016 in prep)</ref> to decide whether a TCE is a planetary candidate. The Robovetter is responsible for choosing a pass/fail threshold. In the past these catalogs have erred on the side of keeping questionable transits at the expense of retaining more false alarms. Even when this metric is implemented with a single, conservative value, as demonstrated above, it Note. -The TCE period and duration are given for reference, see the NExScI TCE table for full precision of these values. The labels given to the data for training and testing can be interpreted with the following key, see §3.4: TL -transit-like, Ccandidate, SS -significant secondary, NOT -not-transit-like, UNK -unknown. <ref type="table" target="#tab_2">Table  1</ref> is published in its entirety in the electronic edition of the Astrophysical Journal. A portion is shown here for guidance regarding its form and content.</p><p>eliminates a large fraction of not-transit-like TCEs. Primarily, it does a good job of removing the short-period, long-duration TCEs that look like sine-waves, not transits. The final results from the Kepler Robovetter and how it uses all of its metrics, including this one, will be available at NExScI.</p><p>Another automated transit finding technique is known as the Autovetter ( <ref type="bibr" target="#b25">McCauliff et al. 2015;</ref><ref type="bibr" target="#b20">Jenkins et al. 2014</ref>). The Autovetter uses a random forest, machinelearning technique to decide which TCEs are planetary candidates. For the Q1-Q17 DR24 TCE autovetter catalog ( <ref type="bibr" target="#b7">Catanzarite et al. 2015</ref>), the inputs now include the DV-median LPP transit metric. In this case, the random forest uses a training set (which is created in a manner very similar to how we created our training set) to learn how important T LPP is when deciding on whether a TCE is a transiting event. The full results of the Autovetter's vetting will be found in the TCE table at NExScI for Q1-Q17 DR24. For this run, the LPP transit metric is ranked as the second most important metric for making its decisions ( <ref type="bibr" target="#b7">Catanzarite et al. 2015</ref>).</p><p>While there are several ways that we can change the value of T LPP for each TCE, by far the most important is how the data is prepared before applying the LPP dimensionality reduction. The number of chosen nearest neighbors and the number of reduced dimensions are relatively inconsequential in comparison to how the data is binned and how the data is detrended. This is exemplified in the performance for two different detrenders; the DV-median detrender does a far better job of preserving the differences between the transit-like and nottransit-like light curves. However, there are times when the penalized-LS detrending is more accurate.</p><p>For example, one known issue with using this metric occurs for transits found on variable stars, especially if that variability is near to a harmonic of the period of the transit. These can be classified as not-transit-like because the detrending significantly distorts the signal. Note, this effect could similarly fool the astronomers who did the manual vetting in previous catalogs. This is the reason two different detrendings were made available for the vetting activity. In those cases where the harmonic removal step of the DV-median detrender removed or distorted the transit, usually the penalized-LS would preserve it. One way to improve our results would be to add some intelligence to the Kepler Robovetter to help it pick the more accurate detrender.</p><p>There are several populations of binary systems that are known to have higher failure rates with this metric. Eclipsing binaries with large eccentricities and a large secondary eclipse get flagged as not-transit-like because of the large deviation from a flat continuum at out-oftransit phases. Also eclipsing binaries make-up a smaller portion of the transit-like training set, and thus, it is more difficult for the deeper binaries to have 15 nearby neighbors. This problem could be mitigated by using the Kepler Eclisping Binary Catalog to add binaries to the transit-like training set ( <ref type="bibr" target="#b32">Slawson et al. 2011;</ref><ref type="bibr">Prša et al. 2011</ref>). Finally, the Heartbeat stars, a class of dynamically distorted binary systems ( <ref type="bibr" target="#b33">Thompson et al. 2012</ref>), are classified as transit-like at times because the signal can include a large, discrete negative deviation in the brightness. However, Heartbeat stars are rare (&lt; 160 are known in the Kepler field) and most known Heartbeat stars do not create TCEs (&lt;10% in Q1-Q17 DR24).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">CONCLUSIONS</head><p>We present a new metric to discriminate between signals found by the Kepler Pipeline that look like transits and those that do not. By folding and binning the light curve and applying machine learning techniques that rely on our knowledge about what a transit signal looks like in the Kepler data, we calculate the LPP transit metric. This metric is able to remove over 90% of the known nottransit-like TCEs while preserving over 99% of the known planet candidates and over 99% of injected transit signals. As currently implemented, this metric will prevent hundreds of not-transit-like events from populating the Q1-Q17 DR24 KOI table at the expense of losing only a few real transiting events. The Robovetter has additional metrics that will weed out some of the remaining signals, improving the reliability of the final catalog.</p><p>This LPP transit metric makes its decisions on TCEs consistently, reliably and rapidly, a large improvement over the manual activity performed by teams of astronomers in the past. Because Kepler plans to calculate planetary occurrence rates, it is necessary to have an estimate of the planet catalog's completeness and re- <ref type="figure">Figure 3</ref>. The binned points for the same TCEs as seen by the two different detrenders. The DV-median detrender is on the left and the penalized-LS detrender is on the right. The first four panels show TCEs where the detrenders disagree and the last case is an example where they agree. The log 10 (T LPP ) value is given on the plot below the KIC number. Typically, a value larger than -2.5 indicates a non-transit like shape. <ref type="figure">Figure 4</ref>. A Histogram of the LPP transit metric for the labeled data set using the DV median (left) and penalized-LS (right) detrenders. A three sigma line discussed in the text is shown in black to help guide the eye. Note, the transit-like population has been split into candidates and significant secondaries to show the slightly higher failure rate among binaries. A Histogram of the LPP transit metric for the injected transits using the DV-median (left) and penalized-LS (right) detrenders. The histogram was calculated and stacked for different ranges of measured MES. Using the cutoff established by the real TCEs of log(T LPP )=-2.5, only a fraction of a percent of injected TCEs would be lost.</p><p>liability. Using metrics like these, the Robovetter can quickly create a new catalog after any improvement to the pipeline, and also can run on injected signals. The latter makes it possible to more easily calculate the sensitivity of the pipeline across planet type for occurrence rate calculations.</p><p>Such a metric can easily be extended to work with current missions such as K2 ( <ref type="bibr" target="#b16">Howell et al. 2014;</ref><ref type="bibr" target="#b13">Foreman- Mackey et al. 2015</ref>), and future exoplanet missions such as the Transiting Exoplanet Survey Satellite mission (TESS, <ref type="bibr" target="#b28">Ricker et al. 2014</ref>) and the Planetary Transits and Oscillations of Stars mission (PLATO, <ref type="bibr" target="#b27">Rauer et al. 2014</ref>) to quickly identify the best transiting planets. Metrics that can quickly and consistently evaluate potential signals in the data are even more important for these future missions because the data volume is even larger than Kepler and rapid vetting of the detected signals will enable immediate follow-up observations of the best planet candidates.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 .</head><label>1</label><figDesc>Figure 1. Left: The folded light curves for five example TCEs (black) along with the binning in units of parts per thousand. Those binned points that span 5 times the transit duration are shown with magenta triangles and those that cover all but the in-transit points are shown with cyan circles. Right: The normalized binned points sent to the LPP algorithm. This method of preparing the data has the effect of making all transit have the same depth and similar widths. Because the width of the in-transit bins can be much smaller, the binned points on the right can appear much noisier near the transit.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 2 .</head><label>2</label><figDesc>Figure 2. Left: The folded light curves of TCEs that are likely not transiting planets (black) in units of parts per thousand. Both groups of binning are shown, those that span 5 times the transit duration are shown with magenta triangles, and those that cover all but the in-transit points are shown with cyan circles. Right: The normalized binned points sent to the LPP algorithm.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 5 .</head><label>5</label><figDesc>Figure 5. A Histogram of the LPP transit metric for the injected transits using the DV-median (left) and penalized-LS (right) detrenders. The histogram was calculated and stacked for different ranges of measured MES. Using the cutoff established by the real TCEs of log(T LPP )=-2.5, only a fraction of a percent of injected TCEs would be lost.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" validated="false"><head></head><label></label><figDesc>2. THE Kepler DATA The Kepler spacecraft has collected 17 quarters of time series data. Each quarter is approximately 90 days and the cadence of the observations is approximately 29.4 minutes. As a result Kepler has obtained as many as 70,000 brightness measurements of over 160,000 stars listed in the Kepler Input Catalog (KIC, Brown et al. 2011) spanning 4 years (</figDesc><table></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" validated="true"><head>Table 1 LPP Transit Metric for DR24 TCEs</head><label>1</label><figDesc></figDesc><table>TCE 
+Period 
+Duration 
+MES 
+T LPP 
+T LPP 
+Label 
+(KIC-num) 
+(days) 
+(hrs) 
+DV-median penalized-LS 
+
+000757450-01 
+8.88492 
+2.08 
+524.0 
+0.000237 
+0.000041 TL-C 
+000892667-01 
+2.26211 
+7.51 
+8.0 
+0.004608 
+0.001884 UNK 
+000892772-01 
+5.09260 
+3.40 
+15.6 
+0.001337 
+0.001081 TL 
+001026032-01 
+8.46044 
+4.80 3888.7 
+0.000466 
+0.000083 UNK 
+001026032-02 
+4.23022 
+4.61 1439.8 
+0.000303 
+0.000039 UNK 
+001292087-02 
+1.09524 
+2.12 
+9.3 
+0.002109 
+0.004084 NOT 
+001432214-01 161.78830 
+5.30 
+839.4 
+0.000235 
+0.000038 TL-SS 
+001432214-02 161.77788 
+7.60 
+11.4 
+0.001103 
+0.001194 UNK 
+001434660-02 
+0.52850 
+1.04 
+15.3 
+0.009662 
+0.005679 NOT 
+
+</table></figure>
+
+			<note place="foot" n="8"> http://papers.nips.cc/paper/2359-locality-preservingprojections.pdf 9 http://lvdmaaten.github.io/drtoolbox</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+			</div>
+
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>LOCALITY PRESERVING PROJECTIONS: A SUMMARY OF THE ALGORITHM</head><p>Here we summarize the basic logic of how LPP calculates its transformation matrix. For a more mathematically complete description of the LPP algorithm consult <ref type="bibr" target="#b15">He &amp; Niyogi (2004)</ref>.</p><p>The idea of LPP is to map a data vector x i (i.e. a folded, binned light curve) with N dimensions to y i with n reduced dimensions, i.e. y i = A T x i , where A T is an n x N transformation matrix. A is a matrix of eigenvectors calculated by minimizing the distance between reduced dimension vectors, y, only if they were near each other in the higher dimensions.</p><p>LPP considers only the nearest neighbors in its calculations by constructing a symmetric weighting matrix, W ij , that has a value of one when two data points are connected and zero otherwise. Data vectors i and j are considered connected to each other if i is among the k nearest neighbors of j or if j is among the k nearest neighbors of i. In this way the number of connections for any one vector must be at least k, but can be larger when other vectors also consider i a nearest neighbor. Using this weighting matrix, the function that is minimized when choosing the eigenvectors, is as follows:</p><p>Here, i and j run over the full number of data vectors (i.e. binned TCE light curves) in the data set. Because W ij only contains 1's when two x vectors are adjacent, this function will be large when similar looking binned light curves are mapped far from each other. But non-neighboring vectors do not factor into the minimization. Thus, when LPP minimizes the above equation to find the transformation matrix, it preserves the local structure of the data. The eigenvectors with the smallest eigenvalues (A) are used as the transformation matrix to map x i to y i . This transformation matrix may then be applied to any vector in the higher dimensions to reduce its dimensions. In comparison, PCA maximizes the variance in the mapped data using the function:</p><p>Because LPP only considers local distances, outliers will not weigh as heavily into the calculation and thus LPP can be more robust to outliers than PCA. Also, because it tries to keep similar data vectors together, it can have better discriminating power than PCA, especially when the data vectors cluster into distinct groups in the higher dimensionality space.</p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">L</forename><surname>Akeson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">125</biblScope>
+			<biblScope unit="page">989</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Auvergne</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">506</biblScope>
+			<biblScope unit="page">411</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">M</forename><surname>Batalha</surname></persName>
+		</author>
+		<title level="m">Proceedings of the National Academy of Science</title>
+		<meeting>the National Academy of Science</meeting>
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="volume">111</biblScope>
+			<biblScope unit="page">12647</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">M</forename><surname>Batalha</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">204</biblScope>
+			<biblScope unit="page">24</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><forename type="middle">K</forename><surname>Berta</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Irwin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">J</forename><surname>Burke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">E</forename><surname>Falco</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">144</biblScope>
+			<biblScope unit="page">145</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Borucki</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">728</biblScope>
+			<biblScope unit="page">19</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+	<note>ApJ</note>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">M</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Latham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">E</forename><surname>Everett</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">A</forename><surname>Esquerdo</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">142</biblScope>
+			<biblScope unit="page">112</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">J</forename><surname>Burke</surname></persName>
+		</author>
+		<idno>KSCI-19091-001</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">210</biblScope>
+			<biblScope unit="page">19</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+	<note>ApJ</note>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Christiansen</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2015" />
+			<biblScope unit="page" from="19094" to="19095" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Christiansen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">D</forename><surname>Clarke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">J</forename><surname>Burke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">E</forename><surname>Thompson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ Christiansen</title>
+		<imprint>
+			<biblScope unit="volume">207</biblScope>
+			<biblScope unit="page">35</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+	<note>ApJS</note>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Coughlin</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2015" />
+			<biblScope unit="page" from="19096" to="19097" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Coughlin</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+	<note>in prep</note>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Defa¨ydefa¨y</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Deleuil</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Barge</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">365</biblScope>
+			<biblScope unit="page">330</biblScope>
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">D</forename><surname>Dressing</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">T</forename><surname>Montet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Morton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Schölkopf</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Garcia</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Computational Statistics and Data Analysis</title>
+		<imprint>
+			<biblScope unit="volume">54</biblScope>
+			<biblScope unit="page">1167</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>He</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Niyogi</surname></persName>
+		</author>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="2004" />
+			<biblScope unit="volume">16</biblScope>
+			<biblScope unit="page">37</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">B</forename><surname>Howell</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">126</biblScope>
+			<biblScope unit="page">398</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Jenkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Caldwell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Borucki</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">564</biblScope>
+			<biblScope unit="page">495</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Jenkins</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">713</biblScope>
+			<biblScope unit="page">87</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Jenkins</surname></persName>
+		</author>
+		<title level="m">Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</title>
+		<imprint>
+			<date type="published" when="2010" />
+			<biblScope unit="volume">7740</biblScope>
+			<biblScope unit="page">0</biblScope>
+		</imprint>
+	</monogr>
+	<note>Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</note>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Jenkins</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">IAU Symposium</title>
+		<editor>N. Haghighipour</editor>
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="volume">293</biblScope>
+			<biblScope unit="page" from="94" to="99" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">G</forename><surname>Koch</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">713</biblScope>
+			<biblScope unit="page">79</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Kovács</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Zucker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Mazeh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">391</biblScope>
+			<biblScope unit="page">369</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Mandel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">580</biblScope>
+			<biblScope unit="page">171</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Matijevič</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Prša</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Orosz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">F</forename><surname>Welsh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Bloemen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Barclay</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">143</biblScope>
+			<biblScope unit="page">123</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Mccauliff</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">806</biblScope>
+			<biblScope unit="issue">6</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Mullally</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Shah</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ Mullally</title>
+		<imprint>
+			<biblScope unit="volume">217</biblScope>
+			<biblScope unit="page">83</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+	<note>AJ</note>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Rauer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Experimental Astronomy</title>
+		<imprint>
+			<biblScope unit="volume">38</biblScope>
+			<biblScope unit="page">249</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">R</forename><surname>Ricker</surname></persName>
+		</author>
+		<title level="m">Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</title>
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="volume">9143</biblScope>
+			<biblScope unit="page">20</biblScope>
+		</imprint>
+	</monogr>
+	<note>Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</note>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">F</forename><surname>Rowe</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">217</biblScope>
+			<biblScope unit="page">16</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">T</forename><surname>Roweis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">K</forename><surname>Saul</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">290</biblScope>
+			<biblScope unit="page">2323</biblScope>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Seader</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">217</biblScope>
+			<biblScope unit="page">18</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">W</forename><surname>Slawson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">142</biblScope>
+			<biblScope unit="page">160</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">KSCI-19064-002 van der Maaten</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">E</forename><surname>Thompson</surname></persName>
+		</author>
+		<idno>TiCC-TR 2009-005</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">753</biblScope>
+			<biblScope unit="page">86</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+		<respStmt>
+			<orgName>Tilburg University Technical</orgName>
+		</respStmt>
+	</monogr>
+<note type="report_type">Report</note>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Wang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">776</biblScope>
+			<biblScope unit="page">10</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Wu</surname></persName>
+		</author>
+		<title level="m">Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</title>
+		<imprint>
+			<date type="published" when="2010" />
+			<biblScope unit="volume">7740</biblScope>
+			<biblScope unit="page">19</biblScope>
+		</imprint>
+	</monogr>
+	<note>Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</note>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title/>
+	</analytic>
+	<monogr>
+		<title level="j">APPENDIX</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

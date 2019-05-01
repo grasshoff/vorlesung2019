@@ -1,0 +1,1050 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-04T16:23+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">batman: BAsic Transit Model cAlculatioN in Python</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2015-08-19">19 Aug 2015</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Laura</forename><surname>Kreidberg</surname></persName>
+							<email>laura.kreidberg@uchicago.edu</email>
+						</author>
+						<title level="a" type="main">batman: BAsic Transit Model cAlculatioN in Python</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2015-08-19">19 Aug 2015</date>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>Subject headings: methods: data analysis -methods: numerical</keywords>
+			</textClass>
+			<abstract>
+				<p>I introduce batman, a Python package for modeling exoplanet transit and eclipse light curves. The batman package supports calculation of light curves for any radially symmetric stellar limb darkening law, using a new integration algorithm for models that cannot be quickly calculated analytically. The code uses C extension modules to speed up model calculation and is parallelized with OpenMP. For a typical light curve with 100 data points in transit, batman can calculate one million quadratic limb-darkened models in 30 seconds with a single 1.7 GHz Intel Core i5 processor. The same calculation takes seven minutes using the four-parameter nonlinear limb darkening model (computed to 1 ppm accuracy). Maximum truncation error for integrated models is an input parameter that can be set as low as 0.001 ppm, ensuring that the community is prepared for the precise transit light curves we anticipate measuring with up-coming facilities. The batman package is open source and publicly available at https://github.com/lkreidberg/batman.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>The transit technique has revolutionized the study of exoplanetary systems. Thanks largely to the Kepler mission, thousands of planets have been discovered with this method ( <ref type="bibr" target="#b35">Rowe et al. 2015</ref>). These discoveries have yielded transformative constraints on planet occurrence rates over a wide range of planet sizes, orbital periods, and host star properties ( <ref type="bibr" target="#b1">Borucki et al. 2011;</ref><ref type="bibr" target="#b46">Youdin 2011;</ref><ref type="bibr" target="#b18">Howard et al. 2012;</ref><ref type="bibr" target="#b15">Fressin et al. 2013;</ref><ref type="bibr" target="#b9">Dong &amp; Zhu 2013;</ref><ref type="bibr" target="#b30">Morton &amp; Swift 2014</ref>). They have also enabled the first estimates of the occurrence of habitable planets <ref type="bibr" target="#b45">(Traub 2012;</ref><ref type="bibr" target="#b10">Dressing &amp; Charbonneau 2013;</ref><ref type="bibr" target="#b33">Petigura et al. 2013;</ref><ref type="bibr" target="#b25">Kopparapu 2013;</ref><ref type="bibr" target="#b13">Foreman-Mackey et al. 2014;</ref><ref type="bibr">Dressing &amp; Charbonneau 2015)</ref>. Transit light curves can even reveal planets' atmospheric temperature structure and composition (e.g. <ref type="bibr" target="#b38">Seager &amp; Sasselov 2000;</ref><ref type="bibr" target="#b3">Charbonneau et al. 2002;</ref><ref type="bibr" target="#b28">Lecavelier Des Etangs et al. 2008;</ref><ref type="bibr" target="#b39">Sing et al. 2011;</ref><ref type="bibr" target="#b7">Deming et al. 2013;</ref><ref type="bibr" target="#b22">Knutson et al. 2014a;</ref><ref type="bibr" target="#b14">Fraine et al. 2014;</ref><ref type="bibr" target="#b27">Kreidberg et al. 2015)</ref>. A number of current and planned observational facilities -including K2, TESS, CHEOPS, JWST, and PLATO -will measure precise transit light curves for thousands of exoplanets that will further advance our understanding of planet formation, evolution, and habitability.</p><p>Light curve models are a fundamental tool for transiting exoplanet science, but they are not trivial to compute quickly and accurately. Accurate calculation is challenging because the model must account for the planet's size and position on the sky, as well as stellar limb darkening, which causes the apparent brightness of the stellar disk to decrease from center to edge. The stellar intensity profile can be fit with several functional forms, including a linear limb darkening law <ref type="bibr" target="#b36">(Schwarzschild &amp; Villiger 1906)</ref>, quadratic (Kopal 1950), square-root <ref type="bibr" target="#b8">(Diaz-Cordoves &amp; Gimenez 1992)</ref>, logarithmic <ref type="bibr" target="#b21">(Klinglesmith &amp; Sobieski 1970)</ref>, exponential <ref type="bibr" target="#b5">(Claret &amp; Hauschildt 2003)</ref>, and four-parameter nonlinear <ref type="bibr" target="#b4">(Claret 2000)</ref>. For some of these profiles, model transit light curves can be calculated analytically <ref type="bibr" target="#b29">(Mandel &amp; Agol 2002;</ref><ref type="bibr" target="#b17">Giménez 2006;</ref><ref type="bibr" target="#b0">Abubekerov &amp; Gostev 2013)</ref>. Other profiles do not have analytic solutions, and models must be calculated by numeric integration of the stellar intensity over the disk of the planet. In addition, speed is an important consideration because a large number of models must typically be calculated to make a robust estimation of transit parameters and their uncertainties.</p><p>A number of codes are available to calculate transit light curves. <ref type="bibr" target="#b29">Mandel &amp; Agol (2002)</ref> provide Fortran and IDL routines to compute models for quadratic and nonlinear limb darkening laws. The software packages TAP ( <ref type="bibr" target="#b16">Gazak et al. 2012</ref>) and EXOFAST ( <ref type="bibr" target="#b12">Eastman et al. 2013</ref>) include IDL implementations of the <ref type="bibr" target="#b29">Mandel &amp; Agol (2002)</ref> algorithm for quadratic limb darkening. JKTEBOP calculates models in Fortran for a broad range of limb darkening laws ( <ref type="bibr" target="#b40">Southworth et al. 2004</ref>). <ref type="bibr" target="#b20">Kjurkchieva et al. (2013)</ref> introduce the pure Python code TAC-maker, which performs numeric integration for arbitrary limb darkening profiles. There are also routines available to model simultaneous transits by one or more bodies <ref type="bibr" target="#b19">(Kipping 2011;</ref><ref type="bibr" target="#b31">Pál 2012</ref>). Most recently, Parviainen (2015) released the Python package PyTransit, which implements analytic models from <ref type="bibr" target="#b29">Mandel &amp; Agol (2002)</ref> and <ref type="bibr" target="#b17">Giménez (2006)</ref>.</p><p>In this paper, I introduce the open source Python package batman. This package is based on code that was used to model high-precision light curves obtained for atmosphere characterization ( <ref type="bibr" target="#b26">Kreidberg et al. 2014a</ref><ref type="bibr">Kreidberg et al. ,b, 2015</ref><ref type="bibr">Stevenson et al. 2014a,b,c,d</ref>). The batman package enables fast computation of transit light curves for any radially symmetric limb darkening law, and currently supports uniform, linear, quadratic, logarithmic, exponential, and nonlinear limb darkening. Light curves for the first three of these are calculated analytically based on the formalism from <ref type="bibr" target="#b29">Mandel &amp; Agol (2002)</ref>. Models for the remaining cases are computed with an efficient new integration scheme, described in § 2. The package also supports secondary eclipse modeling. I discuss batman's features and performance in § 3 and conclude in § 4.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Algorithm</head><p>To calculate the fraction δ of stellar flux blocked by a transiting planet, one must integrate the sky-projected intensity of the star (I) over the area obscured by the disk of the planet (S):</p><formula xml:id="formula_0">δ = S IdS (1)</formula><p>where I is normalized such that the integrated intensity over the stellar disk is unity. This expression is valid for any general stellar surface brightness map; however, it is slow to evaluate numerically because the differential area elements must be small ( 10 −6 ) in order to achieve better than one part per million (ppm) accuracy.</p><p>On the other hand, if the stellar intensity profile is radially symmetric, the twodimensional calculation in Equation 1 can be reduced to one dimension and sped up greatly with the following algorithm:</p><formula xml:id="formula_1">δ = n i=1 I x i + x i−1 2 [A(x i , r p , d) − A(x i−1 , r p , d)] (2)</formula><p>where x is the normalized radial coordinate 0 &lt; x &lt; 1, I(x) is the 1D stellar intensity profile, r p is the planetary radius (in units of stellar radii), d is the separation of centers between the star and the planet (in stellar radii), and A(x, r p , d) is the area of intersection between two circles of radii x and r p , separated by a distance d. The sum is carried out over the range</p><formula xml:id="formula_2">x 0 = MAX(d − r p , 0) to x n = MIN(d + r p , 1).</formula><p>The intersecting area is given by:</p><formula xml:id="formula_3">A(x, r p , d) =        x 2 cos −1 u + r 2 p cos −1 v − 0.5 √ w, r p − d &lt; x &lt; r p + d πx 2 , x ≤ r p − d πr 2 p x ≥ r p + d<label>(3)</label></formula><p>where</p><formula xml:id="formula_4">u = (d 2 + x 2 − r 2 p )/(2dx) (4) v = (d 2 + r 2 p − x 2 )/(2dr p ) (5) w = (−d + x + r p )(d + x − r p )(d − x + r p )(d + x + r p ).<label>(6)</label></formula><p>See <ref type="figure" target="#fig_0">Figure 1</ref> for a schematic illustrating the geometry of the integration. The advantage of this integration scheme is that the only error introduced is due to approximating the stellar intensity as constant over the differential area element ∆A = A(</p><formula xml:id="formula_5">x i , r p , d) − A(x i−1 , r p , d).</formula><p>Computation of ∆A is expensive, but it needs to be calculated relatively few times (&lt;&lt; 10 6 for sub-ppm accuracy). This makes the integration faster than a scheme with a simpler area element (e.g., ∆A = ∆x∆y), that requires a much smaller step size to achieve the same accuracy.</p><p>The integration can be further optimized by using a nonuniform step size. Typical stellar intensity profiles have larger gradients near the limb of the star than at the center (e.g. Claret 2000), so smaller steps are required at larger x values to achieve the same accuracy. I adopt the following step-size scaling:</p><formula xml:id="formula_6">x i − x i−1 = f cos −1 (x i−1 )</formula><p>where f is a constant scale factor. This prescription is fast to compute and well-behaved at the limits x = 0 and x = 1.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">The batman package</head><p>The Python package batman implements the algorithm described in § 2 and several analytic models to calculate transit light curves.</p><p>batman is an open source project and is being developed on GitHub.</p><p>Full documentation is available at https://github.com/lkreidberg/batman. I summarize the main capabilities of the package here.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Limb Darkening Models</head><p>batman supports calculation of exoplanet transit light curves for uniform, linear, quadratic, square-root, logarithmic, exponential, and four-parameter nonlinear stellar in- partially visible) has a radius of 1 and is centered in the plane of the sky at (x, y) = (0, 0). The planet (smaller black circle) is separated from the center of the stellar disk by a distance d (marked by the solid black line). The star is partitioned into concentric circles (dotted lines) in order to calculate the integral over the planet disk. A single integration element ∆A is shaded in orange. The integration step size illustrated here is larger than for a typical calculation for visual clarity. Note that because the stellar intensity profile is radially symmetric, the coordinate system can be chosen such that the planet lies on the x-axis, as shown.</p><p>tensity profiles:</p><formula xml:id="formula_7">I(µ) = I 0 (uniform)<label>(7)</label></formula><formula xml:id="formula_8">I(µ) = I 0 [1 − c 1 (1 − µ)] (linear)<label>(8)</label></formula><formula xml:id="formula_9">I(µ) = I 0 [1 − c 1 (1 − µ) − c 2 (1 − µ) 2 ] (quadratic)<label>(9)</label></formula><formula xml:id="formula_10">I(µ) = I 0 [1 − c 1 (1 − µ) − c 2 (1 − √ µ)] (square-root) (10) I(µ) = I 0 [1 − c 1 (1 − µ) − c 2 µ ln µ] (logarithmic) (11) I(µ) = I 0 [1 − c 1 (1 − µ) − c 2 /(1 − exp µ)] (exponential) (12) I(µ) = I 0 [1 − c 1 (1 − µ 1/2 ) − c 2 (1 − µ) − c 3 (1 − µ 3/2 ) − c 4 (1 − µ 2 )] (nonlinear)<label>(13)</label></formula><p>where µ = √ 1 − x 2 and c 1 , ..., c n are limb darkening coefficients. The batman source distribution also includes a template for the creation of a custom profile for any radially symmetric function.</p><p>The square-root, logarithmic, exponential, nonlinear, and custom models are computed with the numeric integration scheme from § 2. The uniform, linear, and quadratic models are calculated analytically, with code based on the Fortran routines occultquad.f and occultuniform.f provided by <ref type="bibr" target="#b29">Mandel &amp; Agol (2002)</ref>. For the analytic models, I follow <ref type="bibr" target="#b12">Eastman et al. (2013)</ref> and use the algorithm from <ref type="bibr" target="#b2">Bulirsch (1965)</ref> to improve calculation speed and accuracy for elliptic integrals of the third kind.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">Secondary Eclipse Model</head><p>batman can also model secondary eclipses. Eclipse light curves are generated with</p><formula xml:id="formula_11">f = 1 + f p (1 − α)</formula><p>where f is normalized flux, f p is the planet-to-star flux ratio, and α is the fraction of the planet disk that is occulted by the star. The model is normalized such that the stellar flux is unity. For a separation d, the occultation fraction α(d) = α t (d)/r 2 p , where 1 − α t (d) is the transit light curve with uniform limb darkening. Note that this model assumes the planet flux is constant for all orbital phases.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.">Utilities</head><p>batman includes a utility function to calculate the separation of centers d between the star and the planet based on orbital parameters of the system. The input parameters are the planet semi-major axis a, inclination i, eccentricity e, longitude of periastron ω, period P , and time of inferior conjunction t 0 . The separation of centers is given by:</p><formula xml:id="formula_12">d = a(1 − e 2 ) 1 + e cos f 1 − sin 2 (ω + f ) sin 2 i</formula><p>where f is the true anomaly. The true anomaly is calculated with the algorithm provided by Murray &amp; Correia in Chapter 1 of Seager (2010). For circular orbits, we adopt the convention f = π/2.</p><p>batman provides utilities to calculate the time of periastron, time of inferior conjunction, and the secondary eclipse time from the other transit parameters, using the method described in §3.1 of <ref type="bibr" target="#b12">Eastman et al. (2013)</ref>. Note however that batman does not correct for the effects of light travel time.</p><p>An additional utility is light curve supersampling, which allows the user to calculate the average value of the light curve over a specified number of evenly spaced points during an exposure.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4.">Accuracy</head><p>Recent transit observations have yielded signal-to-noise greater than 1000 per exposure (e.g. <ref type="bibr" target="#b26">Kreidberg et al. 2014b;</ref><ref type="bibr" target="#b23">Knutson et al. 2014b</ref>). Accurate transit light curve calculation is essential for modeling such high precision measurements and will be increasingly important for data obtained with next-generation facilities. batman therefore enables the user to specify the maximum allowable truncation error for numeric integration. <ref type="figure" target="#fig_1">Figure 2</ref> shows an example transit light curve and its truncation error.</p><p>To ensure that the truncation error is below the specified threshold, the integration step size is tuned during model initialization. Truncation error is measured relative to a model calculated with a very small step size (f = 5 × 10 −4 ). For typical limb darkening profiles, this method is reliable for truncation errors down to ∼ 10 −3 ppm. However, tuning the step size is a slow operation because it requires computing several light curve models (∼ 10). As an alternative, methods are available to set the step size directly and calculate the corresponding truncation error.</p><p>I tested the accuracy of the analytic model for quadratic limb darkening by comparing it to a numerically integrated model with an error tolerance of 0.001 ppm. The analytic model is accurate to 0.03 ppm for a test case with r p = 0.1, (c 1 , c 2 ) = (0.1, 0.3), sampled at 10 6 evenly spaced points over the interval 0 &lt; d &lt; 1. The accuracy is somewhat worse than machine epsilon because of error tolerance in the computation of special functions.</p><p>I also tested the accuracy of the widely-used <ref type="bibr" target="#b29">Mandel &amp; Agol (2002)</ref> code that uses Numerical Recipes functions to calculate elliptic integrals ( <ref type="bibr" target="#b34">Press et al. 1992</ref>). The accuracy was better than 0.005 ppm for most input values; however, for the case r p − d &lt; ǫ, the error in the light curve exceeded 2 ppm. By contrast, the Bulirsch (1965) algorithm for elliptic integrals is well-behaved for this case and also faster.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.5.">Performance</head><p>Computationally intensive sections of code (including all of the transit model calculation) are written as C extension modules with the Python/C API, which improves the performance by a factor of 30 over a pure Python implementation for quadratic limb darkening. batman also includes the option to parallelize at the C level with OpenMP, which further speeds up the calculation. The number of processors is specified by the user. batman will raise an exception if the user attempts to parallelize a calculation on a system where OpenMP is not supported.</p><p>I tested batman's performance over a range of typical use cases with a 1.7 GHz Intel Core i5 processor. In <ref type="figure">Figure 3</ref>, I show the truncation error versus execution time for a single transit light curve calculation using a nonlinear intensity profile, compared to the execution time for a quadratic model computed analytically. The test case consists of 100 points evenly sampled in time during the planet's transit. I used physical parameters for the transiting planet GJ 1214b ( <ref type="bibr" target="#b26">Kreidberg et al. 2014b</ref>). The stellar intensity profile is the same for the nonlinear and quadratic models: the nonlinear limb darkening coefficients are (0.0, 0.7, 0.0, −0.3) and the quadratic coefficients are (0.1, 0.3). Decreasing the truncation error by a factor of 10 increases the computation time by a factor of three.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.6.">Comparison with Analytic Models for Nonlinear Limb Darkening</head><p>I explored using an analytic model to calculate transit light curves for the four-parameter nonlinear limb darkening profile. The analytic solution for nonlinear limb darkening was presented in <ref type="bibr" target="#b29">Mandel &amp; Agol (2002)</ref>, but it is not used in any published software packages. The original code provided by <ref type="bibr" target="#b29">Mandel &amp; Agol (2002)</ref> uses a numeric integration scheme that is 20 times slower than the algorithm presented in § 2 (for an error tolerance of 1 ppm). (2004) provide a Fortran library for computing Appell F1. I used this library to implement the analytic model for nonlinear limb darkening. However, the returned Appell F1 values are not accurate for all input parameters, based on a comparison with Mathematica and the pure Python library mpmath. Even for cases where F1 is correct, the computation is over an order of magnitude slower than numeric integration (for an error tolerance of 0.1 ppm). I concluded that integration is a faster and easier solution than analytic models for the four-parameter nonlinear limb darkening law.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Summary</head><p>I introduced a new algorithm for computing transit light curves for any radially symmetric stellar limb darkening law. I also described the open-source Python package batman, a versatile code to generate model transit and eclipse light curves. Uniform, linear, quadratic, logarithmic, exponential, and four-parameter nonlinear limb darkening laws are currently supported. batman uses C extension modules to compute light curves and is parallelized with OpenMP to optimize performance. Light curves can be calculated with accuracy better than 0.001 ppm, ensuring that the community is prepared to model the extraordinarily precise data we anticipate from upcoming facilities. batman is available at https://github.com/lkreidberg/batman and is also hosted on the Python Package Index under the name batman-package.</p><p>I thank Jacob Bean, Kevin Stevenson, Eric Agol, Ethan Kruse, Geert Jan Talens, Thomas Beatty, Brett Morris, and Karl Fogel for their support in developing batman. I also thank contributors to SciPy, Matplotlib, and the Python Programming Language for software and services. I am grateful for helpful suggestions from the referee, Jason Eastman, that improved the code and the manuscript. Support for this work was provided by a grant from the National Science Foundation through a Graduate Research Fellowship to the author.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Fig. 1 .</head><label>1</label><figDesc>Fig. 1.-Schematic illustration of the integration scheme. The star (large black circle; partially visible) has a radius of 1 and is centered in the plane of the sky at (x, y) = (0, 0). The planet (smaller black circle) is separated from the center of the stellar disk by a distance d (marked by the solid black line). The star is partitioned into concentric circles (dotted lines) in order to calculate the integral over the planet disk. A single integration element ∆A is shaded in orange. The integration step size illustrated here is larger than for a typical calculation for visual clarity. Note that because the stellar intensity profile is radially symmetric, the coordinate system can be chosen such that the planet lies on the x-axis, as shown.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Fig. 2 .</head><label>2</label><figDesc>Fig. 2.-An example transit light curve for a nonlinear stellar intensity profile (top panel) and truncation error for the calculation (bottom panel). The error tolerance parameter was set to 1.0 ppm. The truncation error increases with distance from the center of the star up to around ±0.2 hours from the time of mid-transit, because the stellar intensity gradient is larger at larger radii. The error decreases again during ingress and egress as the planet eclipses a smaller fraction of the stellar disk.</figDesc></figure>
+
+			<note place="foot" n="1"> Department of Astronomy and Astrophysics, University of Chicago, 5640 S. Ellis Ave, Chicago, IL 60637, USA 2 National Science Foundation Graduate Research Fellow</note>
+
+			<note place="foot">This preprint was prepared with the AAS L A T E X macros v5.2.</note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">K</forename><surname>Abubekerov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">Y</forename><surname>Gostev</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">432</biblScope>
+			<biblScope unit="page">2216</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Borucki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">G</forename><surname>Koch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Basri</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">736</biblScope>
+			<biblScope unit="page">19</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Bulirsch</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Numerische Mathematik</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="page">353</biblScope>
+			<date type="published" when="1965" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">M</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">W</forename><surname>Noyes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">L</forename><surname>Gilliland</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">568</biblScope>
+			<biblScope unit="page">377</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Claret</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">363</biblScope>
+			<biblScope unit="page">1081</biblScope>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Claret</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">H</forename><surname>Hauschildt</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">412</biblScope>
+			<biblScope unit="page">241</biblScope>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">D</forename><surname>Colavecchia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Gasaneo</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Computer Physics Communications</title>
+		<imprint>
+			<biblScope unit="volume">157</biblScope>
+			<biblScope unit="page">32</biblScope>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Deming</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Wilkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Mccullough</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">774</biblScope>
+			<biblScope unit="page">95</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Diaz-Cordoves</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gimenez</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">259</biblScope>
+			<biblScope unit="page">227</biblScope>
+			<date type="published" when="1992" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Dong</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Zhu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">778</biblScope>
+			<biblScope unit="page">53</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">D</forename><surname>Dressing</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">767</biblScope>
+			<biblScope unit="page">95</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">807</biblScope>
+			<biblScope unit="page">45</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Eastman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">S</forename><surname>Gaudi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">125</biblScope>
+			<biblScope unit="page">83</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Morton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">795</biblScope>
+			<biblScope unit="page">64</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Fraine</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Deming</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Benneke</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">513</biblScope>
+			<biblScope unit="page">526</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Fressin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Torres</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">766</biblScope>
+			<biblScope unit="page">81</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">Z</forename><surname>Gazak</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tonry</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Advances in Astronomy</title>
+		<imprint>
+			<biblScope unit="page">30</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Giménez</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">450</biblScope>
+			<biblScope unit="page">1231</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Howard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Marcy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">T</forename><surname>Bryson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">201</biblScope>
+			<biblScope unit="page">15</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Kipping</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">416</biblScope>
+			<biblScope unit="page">689</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Kjurkchieva</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Dimitrov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vladev</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Yotov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">431</biblScope>
+			<biblScope unit="page">3654</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Klinglesmith</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Sobieski</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">75</biblScope>
+			<biblScope unit="page">175</biblScope>
+			<date type="published" when="1970" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">A</forename><surname>Knutson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Benneke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Deming</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Homeier</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">505</biblScope>
+			<biblScope unit="page">66</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">A</forename><surname>Knutson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Dragomir</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Kreidberg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">794</biblScope>
+			<biblScope unit="page">155</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<monogr>
+		<title level="m" type="main">Harvard College Observatory Circular</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Kopal</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1950" />
+			<biblScope unit="volume">454</biblScope>
+			<biblScope unit="page">1</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">K</forename><surname>Kopparapu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">767</biblScope>
+			<biblScope unit="page">8</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Kreidberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Bean</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-M</forename><surname>Désert</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">793</biblScope>
+			<biblScope unit="page">69</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+	<note>ApJ</note>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Kreidberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Line</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Bean</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1504.05586</idno>
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+<note type="report_type">ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Lecavelier Des Etangs</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pont</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vidal-Madjar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Sing</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">481</biblScope>
+			<biblScope unit="page">83</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Mandel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">580</biblScope>
+			<biblScope unit="page">171</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Morton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Swift</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">791</biblScope>
+			<biblScope unit="page">10</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Pál</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">420</biblScope>
+			<biblScope unit="page">1630</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Parviainen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">450</biblScope>
+			<biblScope unit="page">3233</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">A</forename><surname>Petigura</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Howard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Marcy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings of the National Academy of Science</title>
+		<imprint>
+			<biblScope unit="volume">110</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<monogr>
+		<title level="m" type="main">Numerical recipes in FORTRAN. The art of scientific computing</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">H</forename><surname>Press</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">A</forename><surname>Teukolsky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">T</forename><surname>Vetterling</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">P</forename><surname>Flannery</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1992" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">F</forename><surname>Rowe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Coughlin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Antoci</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">217</biblScope>
+			<biblScope unit="page">16</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Schwarzschild</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Villiger</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">23</biblScope>
+			<biblScope unit="page">284</biblScope>
+			<date type="published" when="1906" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Seager</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Seager</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">D</forename><surname>Sasselov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">537</biblScope>
+			<biblScope unit="page">916</biblScope>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">K</forename><surname>Sing</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pont</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">416</biblScope>
+			<biblScope unit="page">1443</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Southworth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">F L</forename><surname>Maxted</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Smalley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">351</biblScope>
+			<biblScope unit="page">1277</biblScope>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">B</forename><surname>Stevenson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Bean</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Fabrycky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Kreidberg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">796</biblScope>
+			<biblScope unit="page">32</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">B</forename><surname>Stevenson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Bean</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Madhusudhan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Harrington</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1406.7567</idno>
+		<imprint>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+<note type="report_type">ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">B</forename><surname>Stevenson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Bean</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Seifahrt</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">147</biblScope>
+			<biblScope unit="page">161</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">B</forename><surname>Stevenson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-M</forename><surname>Désert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Line</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">346</biblScope>
+			<biblScope unit="page">838</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">A</forename><surname>Traub</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">745</biblScope>
+			<biblScope unit="page">20</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">N</forename><surname>Youdin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">742</biblScope>
+			<biblScope unit="page">38</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

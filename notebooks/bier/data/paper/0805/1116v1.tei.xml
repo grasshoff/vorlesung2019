@@ -1,0 +1,714 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-04T16:03+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">An Algorithm For Photometric Identification Of Transiting Circumbinary Planets</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2002">2002</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Ofir</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">School of Physics and Astronomy, Raymond and Beverly Sackler Faculty of Exact Sciences</orgName>
+								<orgName type="institution">Tel Aviv University</orgName>
+								<address>
+									<settlement>Tel Aviv</settlement>
+									<country key="IL">Israel</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">An Algorithm For Photometric Identification Of Transiting Circumbinary Planets</title>
+					</analytic>
+					<monogr>
+						<title level="j" type="main">Mon. Not. R. Astron. Soc</title>
+						<imprint>
+							<biblScope unit="volume">000</biblScope>
+							<biblScope unit="page" from="1" to="8"/>
+							<date type="published" when="2002">2002</date>
+						</imprint>
+					</monogr>
+					<note type="submission">Printed 8 November 2018 Submitted...</note>
+					<note>(MN L A T E X style file v2.2)</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>methods: data analysis binaries: eclipsing planetary systems occulta- tions -binaries : close</keywords>
+			</textClass>
+			<abstract>
+				<p>Transiting planets manifest themselves by a periodic dimming of their host star by a fixed amount. On the other hand, light curves of transiting circumbinary (CB) planets are expected to be neither periodic nor to have a single depth while in transit. These propertied make the popular transit finding algorithm BLS almost ineffective so a modified version of BLS for the identification of CB planets was developed-CB-BLS. We show that using this algorithm it is possible to find CB planets in the residuals of light curves of eclipsing binaries that have noise levels of 1% and more-quality that is routinely achieved by current ground-based transit surveys. Previous searches for CB planets using variation of eclipse times minima of CM Dra and elsewhere are more closely related to radial velocity than to transit searches and so are quite distinct from CB-BLS. Detecting CB planets is expected to have significant impact on our understanding of exoplanets in general, and exoplanet formation in particular. Using CB-BLS will allow to easily harness the massive ground-and space-based photometric surveys in operation to look for these hard-to-find objects.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">INTRODUCTION</head><p>Since a large fraction, and maybe even most, stars form in multiple systems [e.g., <ref type="bibr" target="#b9">Duquennoy &amp; Mayor 1991]</ref>, one may wish to investigate to relations between stellar-and sub-stellar multiplicities. Indeed, already 27 of the known exoplanets are known to revolve around one component of a wide binary 1 (the so called S-type orbit), and several works [e.g., <ref type="bibr" target="#b16">Mugrauer, Neuhäuser &amp; Mazeh (2007)</ref> and references therein] have already investigated this relation.</p><p>On the other end of the binary separation scale are binaries with periods of a few days, and sometimes shorter than a day. These short-period binaries are compact enough to allow for a theoretical planet to have a stable orbit outside and around both components (P-type orbit) -hereafter circumbinary (CB) planet. These objects are relatively unstudied, and the most serious attempt so far to detect CB planets was the TEP project <ref type="bibr" target="#b4">[Deeg et al. 1998</ref><ref type="bibr" target="#b6">, 2008</ref> which was focused mainly on CM Drabut none was found.</p><p>Typical planetary transit discovery light curves have very low signal/noise ratios so positive detections so far were ⋆ E-mail: avivofir@wise.tau.ac.il 1 As of Feb. 2008, from The Extrasolar Planets Encyclopaedia at http://exoplanet.eu/ only obtained by co-adding multiple events by folding the light curve on the correct period. In this paper we will describe a method for the detection transiting CB planets in the light curve residuals of eclipsing binaries (EBs) -in much the same sense that the BLS algorithm <ref type="bibr">[Kovács, Zucker &amp; Mazeh (2002) -hereafter KZM]</ref> is used to find planets in the light curves of single stars.</p><p>This paper is organised as follows: in section 2 we will briefly review the current literature about CB planets. In section 3 we will list the special difficulties one faces when trying to identify transiting CB planets, and give an algorithm that solves most of them. In section 4 we will present tests of an initial implementation of the algorithm on simulated data. Finally, in section 5 we will discuss some of the implication the proposed algorithm.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">SHORT LITERATURE REVIEW</head><p>To our knowledge, so far there have been three announcements of the possible detection of a CB planet -albeit none of which is transiting (in chronological order):</p><p>• Bennett et al. (1999) claimed the detection of a CB planet via microlensing, but <ref type="bibr" target="#b0">Albrow et al. (2000)</ref> later found that the light curve can be explained by a binary star where the binary orbital motion had been resolved by the motion of the caustics.</p><p>• <ref type="bibr" target="#b5">Deeg et al. (2000</ref><ref type="bibr" target="#b6">Deeg et al. ( , 2008</ref> claimed that they were able to detected non-linear changes in the observed -calculated (O-C) eclipse times of M dwarf eclipsing binary CM Dra. They then fitted two models to the data -both including a planetary mass third body orbiting CM Dra. We note that both of these fits critically depend on data from a single epoch and are invalid without it.</p><p>• <ref type="bibr" target="#b3">Correia et al. (2005)</ref> had detected radial velocity (RV) variation of HD 202206 consistent with a three-body system. At m sini = 17.4MJup the inner "planet" is heavy enough to border the planet -brown dwarf (BD) regime. Thus, if sini is significantly less than unity, the outer planet may be considered as a CB planet around a stellar-BD binary, but probably not a CB planet orbiting two main sequence stars.</p><p>From the theoretical side, as early as 1994 <ref type="bibr" target="#b2">Bonnell &amp; Bate (1994)</ref> pointed out that the binary interaction with its (natal) circumbinary disc promotes the disc's fragmentation and the creation of additional companions. They also found that the additional companions will, at least initially, have a nearly coplanar orbit with the original binary.</p><p>Holman &amp; Wiegert (1999) had found that CB planets can have stable orbits in all binary configurations (i.e., at different mass ratios q and orbital eccentricities e) starting at some critical distance acrit and farther out. Their simulations showed that acrit may be as low as 2 (in binary semi-major axis units) for near-circular binaries, and they also found that some configurations may be stable interior to acrit due to resonances. Closeness of CB planets to the host binary is an observationally desired attribute since such planets may complete multiple orbits in the typical survey time span of one observing season.</p><p>CB planets are expected to from in CB discs, and indeed several CB discs were already observed [e.g., <ref type="bibr" target="#b8">Duchêne et al. (2004)</ref>, <ref type="bibr" target="#b15">Monin et al.(2007)</ref>]. In turn, several theoretical works had investigated the migration and evolution of planets embedded in CB discs (e.g., <ref type="bibr">Pierens &amp; Nelson 2007, Quintana &amp; Lissauer 2007 and</ref><ref type="bibr">references therein)</ref>. These authors too found that CB planets can grow and have stable orbits close to the host binary.</p><p>To summarise: simulations show that CB planets can form and survive for long periods even rather close to their host binary, and are more likely to be coplanar with their host binary. This, in turn, gives us some optimism as for the prospects of having transiting planets around EBs.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">IDENTIFYING TRANSITING CB PLANETS</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">The Problems And The Solutions -General View</head><p>Transiting planets manifest themselves by a periodic dimming of their host star. The efficient and popular BLS algorithm <ref type="bibr">[KZM]</ref> relies on that periodicity, together with a simple 2-level model of a (low signal/noise) light curve. However, light curves of transiting CB planets are neither periodic nor do they have a single depth while in transit, from the following reasons (see <ref type="figure">Fig. 1</ref>  <ref type="figure">Figure 1</ref>. panel a: A gallery of 20 consecutive transit events of a system identical to the Default system (see §4.2) but continuously sampled. Events are numbered at the left of each sub-panel. Note the highly variable durations and depths: all are purely geometrical effects (no limb darkening). The (red) dashed vertical lines are uniformly spaced between the 1st and 20th transit to show relative shifts of the times of transit. Panel b: The last four transits from panel (a) after regularisation (see §3.3).</p><p>of dimming of the stellar flux while in transit, since this amount depends on the surface brightness of the hidden part of the binary components relative to the instantaneous total binary flux. Furthermore, the two stars repeatedly eclipse each other (changing the instantaneous total flux) and may be tidally distorted and/or have different surface brightness.</p><p>(ii) Temporal characteristics: The transit signal is not periodic since each time the planet transit one member of the binary -that star is at a different position along the binary orbit, or it may transits the other member altogether. Moreover, transit durations are highly non-uniform: the motion of the binary members -and not of the planet -largely determines the duration of the transits since they can move either in a parallel or anti-parallel to the planet's own motion (enabling very long and very short transits, respectively).</p><p>In short, the solutions for the photometric characteristics are: 1) regularising the depths of all transits, and 2) allowing for different effective temperatures of the binary components. The solution for the temporal characteristics is to abandon the view that transits are a function of time: One must recall that transits (and eclipses) are not temporal phenomena, but rather geometrical phenomena -the alignment of celestial bodies.</p><p>We remind that in the BLS algorithm, for each test frequency one searches for the phases of the beginning and end of the transit signal in the folded light curve. For CB planets the search is not in time or phase, but rather in orbital parameters space: for a given planetary (and binary) orbit the projected distances between the planet and each of the stars is known, and occurrence of a transit is exactly true or false at each point in time (ignoring planetary ingress/egress). One can then, similarly to BLS, fit a discrete-valued function to the data -where all the in-transit and out-of-transit points are already separated (see <ref type="figure">Fig. 2</ref>). The output is a multi-dimensional "periodogram" -where each value corre- Phase A B C <ref type="figure">Figure 2</ref>. Fitting orbital models to the planet allows to "fold" the light curve in projected distance from the members of the binary (labeled as d1, d2). We plot (panel A, also zoomed-in on panel B) such a folding of the Default light curve (see text) with very low white noise of only 0.01% to aid visibility. The regularised light curve is plotted against min(d1,d2) as derived from one model (only the half of the points where the planet is in front of the stars are shown). Evidently, In-transit points are well-separated from out-of-transit points. The different surface brightness and sizes of the stars mean different depths and distances where transits begin to occurs, respectively. For comparison, a simple phase-folding of the same data is given in panel C showing that in-and out oftransit points are not well separated, significantly reducing the detectability of the signal. Note that for this plot we use only the minimum projected distance -but in CB-BLS more conditions sort out exactly which component is being transited.</p><p>sponds to the best fit not only in orbital period, but also all other tested orbital elements.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Preparing The Light Curves</head><p>We assume that the all light curves were already searched for periodic variables, but one should take grate care preparing these light curves when trying to identify such a small signal under an already varying background.</p><p>(i) All transit searches nowadays use some kind of detrending (such as Syerem <ref type="bibr" target="#b22">[Tamuz, Mazeh, &amp; Zucker 2005]</ref> or TFA <ref type="bibr" target="#b13">[Kovács, Bakos &amp; Noyes 2005]</ref>) in order to reduce the scatter and systematics of the light curves. However, these algorithms expect that all light curves are made of only Gaussian noise + systematics, so the strong EB signal will cause the light curve to be very poorly corrected. Therefore the detrending procedure must be applied on the residuals around some model or smoothed 2 light curve iteratively -each time detrending better and generating a better model/smooth. This procedure can have a very significant impact on the quality of the light curve.</p><p>(ii) Once final light curves are obtained, we assume that the binary is accurately solved, probably with the WD code <ref type="bibr" target="#b27">[Wilson &amp; Devinney 1971</ref><ref type="bibr" target="#b25">, Wilson 1979</ref><ref type="bibr" target="#b26">, 1990</ref> or one of its derivatives, giving: P b , T0, e, ω, i and R1,2 for binary orbital period, time of priastron passage (or time of primary eclipse for circular orbits), eccentricity, inclination and stellar radii (as a fraction of the binary semi-major axis), respectively.</p><p>(iii) Close binaries are not spherical in shape. CB-BLS will perform better (see §3.3 step (v)) if this is accounted for by pre-calculating the sky-projected shape of the components at each binary phase in the data.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">CB-BLS</head><p>The algorithm we propose, which we dub CB-BLS has the following steps:</p><p>(i) The binary model and the data light curve are normalised so that the maximum model flux is exactly 1. The model is then subtracted from the data light curve giving the residual light curve, and for brevity we shall hereafter call that residual light curve just light curve. We will search for a transiting CB planet in this light curve.</p><p>(ii) Regularise the depths: to create a well-defined depth for the transit regardless of the binary eclipses or ellipsoidal variation we multiply the light curve (and the associated errors) with the model at all times, which means that all depths are now well defined as the amount of blocked flux relative to the maximum binary flux. For example, a Jupiterlike CB planet around a binary made of two sun-like stars would create a 0.5% transit at full binary flux, but a 1% transit against full binary eclipse ∼ P b /4 later. After regularisation all transits would be 0.5%, regardless of binary phase (See <ref type="figure">Fig. 1 panel (b)</ref>).</p><p>(iii) Not having spectroscopic information, we assume a binary mass ratio q = m2/(m1 + m2). For each tested q one can now derive the sky-projected relative positions of each component, or specifically: the X and Z position of each component in binary semi-major axis units at each moment of the time series. The coordinates system is set up so that the origin is at the centre of mass, the Y axis is towards the observer, and the YZ plane contains the binary orbital angular momentum vector. A condition for the correct binary mass ratio sampling can be constructed: ∆q will be such that between two adjacent q values the binary members will change their projected position by no more than one mean stellar radius. Since the length unit is defined as the binary semi major axis then ∆q = mean(R)/(1+e) where e is the binary eccentricity. We remind that q can be very well constrained from independent sources (spectroscopy) and may need not be searched at all.</p><p>(iv) For each stellar mass ratio we assume a certain planetary orbit. In the simplest case of a circular CB planet with orbit exactly co-planar with the binary orbit, one needs to assume f p, ϕ0 and a for planetary orbital frequency, orbital phase at the first data point and planetary semi-major axis (in binary semi-major axis units) respectively. Although it appears that a can be computed from Kepler's laws by a = (Pp/P b ) 2/3 (where Pp = 1/fp), effects of binary-planet interaction cause the effective gravity at the planet, and so the semi-major axis, to be slightly different. One therefore needs to search for a better fitting a in a small range around Kepler's laws value. In addition, ϕ0 also has a natural scale which can be set similarly to the q condition: ∆ϕ0 is set so the planet's position will change by less than one mean stellar radius between adjacent ϕ0, or: ∆ϕ0 = mean(R)/(2πa). In practice, one specifies a as multiples of Kepler's laws value (probably within a small range around unity), and the desired phase resolution as a multiple of above ∆ϕ0.</p><p>While eccentric binary orbits are already accounted for in the current implementation of CB-BLS, Eccentric planetary orbits are not accounted for in the current implementation. Eccentricity is expected to have limited impact since the part of the orbit were transits are possible is fairly small and so the effects of eccentricity will be usually small. The entire search space is then 1+(orbital model) dimensional, or between 4 and 7 dimensional, as long as the low-mass planet approximation in maintained. We note that the original BLS is a 3-dimensional search.</p><p>(v) At each combination of q and planetary orbit one can compute the projected position of all components, and so determine for each data point whether the planet was transiting either the primary or the secondary binary components. One can then compute the CB-BLS statistic -which is a generalized version of the BLS statistic to a two-box BLS (see below). The best-fitting planetary system will be a peak in that "periodogram" hyperspace, and the exact location of the peak can be found by nonlinear minimisation.</p><p>Since the binary components may have different surface brightness the amount of flux blocked by the planet will depend on the binary component being transited. We therefore need to generalize the BLS statistic from a twolevel function to a three-level discrete function, namely: H (out of transit) L1 (transit of the primary) and L2 (transit of the secondary). For clarity, we use symbols similar (but not identical) to those in KZM. Let us denote the light curve of N data points by {xn}, n = 1 . . . N , and their respective zero-mean and normally distributed errors {sn}. The noise is accounted for by assigning weights</p><formula xml:id="formula_0">wm = s −2 m [ N n=1</formula><p>s −2 n ] −1 . It is further assumed that {wnxn} have zero arithmetic average. As explained above, we know exactly which points are in transit in each of the test orbits: {xi} are all points in transits of the primary star, {xj } are all points in transits of the secondary star, and {x k } are all points out of transit. As in KZM, we sum of all weighted squared deviations</p><formula xml:id="formula_1">D = i wi(xi−L1) 2 + j wj(xj −L2) 2 + k w k (x k −H) 2 (1)</formula><p>Minimizing D gives simple arithmetic weights as the best value for each of the levels L1, L2 and H : L1 = s1/r1, L2 = s2/r2 and H = −(s <ref type="bibr">1</ref>  </p><formula xml:id="formula_2">D = N n=1 wnx 2 n − (s1 + s2) 2 1 − (r1 + r2) + s 2 1 r1 + s 2 2 r2<label>(2)</label></formula><p>Minimizing D does not depend on the first term of the right hand side of eq. 2, so the CB-BLS statistics is: Note that the CB-BLS was created just at the correct sampling limit, meaning that a denser sampling or applying a nonlinear search as described in §3.3 step (vi) will somewhat increase the CB-BLS signal. On the other hand, the BLS signal is already oversampled because of the binning employed.</p><formula xml:id="formula_3">CB − BLS = (s1 + s2) 2 1 − (r1 + r2) + s 2 1 r1 + s 2 2 r2 (3)</formula><p>Its maximum corresponds to the best-fit planetary orbital model. One example of a CB-BLS periodogram compared to a BLS periodogram is shown in <ref type="figure" target="#fig_2">Fig. 3</ref>. It is evident that CB-BLS found the correct frequency with high significance, while BLS did not.</p><p>We note that the algorithm will work well even if the third body is a luminous star and not a (dark) planet since this information is already encoded in the binary model as "third-light". We also note that in the current implementation of CB-BLS the CB planet is assumed to be a test mass that does not influence the binary, while exactly this influence is the basis of both eclipse timing and RV. This simplification is a source of noise for CB-BLS.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">TESTS ON SIMULATED DATA</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Simulated Data Generation</head><p>We integrated the 3D motion of 3 point bodies under mutual gravitational interaction for ∼ 150d, and generated simulated light curve for that period (more below). The uniform time steps (50s) were far smaller than the typical exposure time of photometric surveys and continuous so only every eighth simulated point was used to simulate a 400s duty cycle. Next we removed all points meeting modulu(JD) &lt; 0.8 − sin(πJD/150)/8, (where JD is the simulated time in days) simulating the lengthening and shortening of nights during the 150d observing season. All the light curves below are therefore almost 9000 data points long. The light curves are generated from the 3D positions using the Mandel and Agol (2002) formalism, so their main limitation is that the stars are assumed spherical. This spherical model will probably be only approximately true for such short-period binaries since they are better described with Roche-lobe geometry. Still, this approximation is well suited for the current implementation of the algorithm since at the analysis stage (when it is determined for each point whether it is in transit or not) it is assumed that the stellar radii are constant. Therefore, the simulated data and the analysis method match in the sense explained in §3.2 step (iii) and §3.3 step (v)). For real data, while preparing the data one can calculate the different projected shapes of the binary components at each binary phase -and thus follow the algorithm (step (v)): at each data point one will still be able to determine whether the planet is transiting one of the binary components or not. In the end, pure Gaussian noise was added to the data.</p><p>Since good modeling of EBs is not the topic of this paper, we use the same procedure that generated the data light curve to generate the binary model with exactly the same input values -only with the transit signal excluded from the output. In essence this the perfect model -and modeling errors will indeed be a limitation to CB-BLS (see also discussion on §5). We also choose not to simulate limb darkening (although the Mandel and Agol formalism allows for limb darkening) since later, at the analysis stage, these effects should be anyway modelled-out by the binary model and will not add new information on the accuracy of the proposed algorithm. On the other hand, purely geometrical transits allow fewer distracting effects when introducing a new algorithm as in this paper. For a graphical illustration of the effects of limb darkening see <ref type="figure">Fig. 1</ref> of <ref type="bibr" target="#b4">Deeg et al. (1998)</ref>. Finally, using the Mandel and Agol formalism prevented us from computing accurately the geometrically complex case of the planet partially transiting both stars simultaneously (see <ref type="figure" target="#fig_3">fig. 4, panel (a)</ref>). Being quite rare, this configuration was simply avoided in the simulations.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Tests</head><p>We simulated several systems varying different system parameters in order to explore the properties of CB-BLS. We tabulate the datasets used in this paper in table 1, and use the dataset names mentioned there in the following text. Each system was realised 50 times with random white noise, and unless specified otherwise, the results below are the median result of 50 similar realisations. The Default System is the "easiest" since it is very close to the circular, coplaner model this implementation of CB-BLS searches for. The Default System is a binary made from two equal total luminosity stars -a primary with mass of 1.1M⊙, and radius of 1.1R⊙ and a secondary with Mass and radius of 0.9M⊙, 0.9R⊙ (i.e., the latter has higher surface brightness). The system centre of mass is at the origin. The binary orbit is circular with period P b = 1.23456d. The Default CB planet has mass of 0.001M⊙and radius of 0.1R⊙, and a period of Pp = 7.89012d. The photometric signals are therefore ∼ 0.4% and ∼ 0.6% deep for the transit of the primary and secondary components, respectively. Pp specifies both the distance and velocity of the planet at T = 0: at that instant a point-mass at the origin with the combined mass of the binary would induce a circular planetary motion with period Pp. All three object are on the X axis at initialization, and the planet is on the positive X side and moving towards the observer, so the initial planetary orbital phase ϕ0 ≈ 0.75. Note that the planet does not move in a circular orbit since it is pulled by two moving bodies.</p><p>Most of the tests below are two dimensional searches on fp and ϕ0, where the mass ratio is set on it's correct value of q = 0.45, and the semi major axis factor is at the default value of a = 1 (for more details on the dependence of CB-BLS on q, a, and ϕ0 see §4.4). We did not try to look for the absolute maximum using non-linear searches.</p><p>Search grid density: since in-transit points are only a few percent of the planetary orbit the density of points in the ∆fp axis has to be smaller than a few percent of the Nyquist resolution (∼ 1/span), so we set ∆f = 1/span/100 where span is the time span of the data, ∼ 150d in the simulations. For the semi-major axis factor a any significant deviation from unity has a physical meaning so a first guess of a = 1 may not be bad at all. We note that a ranges of 0.95 to 1.07 can be derived for several systems simulated by <ref type="bibr" target="#b11">Holman &amp; Wiegert (1999)</ref> (last three columns of their table 4).</p><p>The last step is to straighten the periodogram (remove the typical long-periods rise). We iteratively fit a low-order polynomial and clip to 2σ, which finds the "backbone" of the periodogram. The resultant polynomial is subtracted from the periodogram, and the result is divided by the σ of the last iteration, effectively making the periodogram values equivalent to the signal detection efficiency metric SDE from KZM. This procedure allows direct comparison between different period-searching algorithms.</p><p>The tests begin with measuring the binary period P b (using AoV <ref type="bibr" target="#b21">[Schwarzenberg-Czerny 1989]</ref>) and T 0 (weighted average of the times during one eclipse weighted by the depth). We then use the model values for the orbital elements and R1,2 to complete the CB-BLS inputs about the binary. The frequency range searched for is between fp = 0.02 (to allow 3 full periods within the time span) and fp = 0.2. The latter is ∼ 4 times the binary period, which translates to ∼ 2.5 times the binary semi-major axis -close to the acrit for a stable orbit for a CB planet <ref type="bibr" target="#b11">(Holman &amp; Wiegert 1999</ref>). We measure the performance of CB-BLS and BLS by a correctness statistic: the fraction of realisations that had the highest peak of their periodogram within a small region around the correct value.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.1">Changing S/N</head><p>Systems 1a through 1t are the Default System with added white noise with amplitude of σ = 0.1% . . . 2% respectively. <ref type="figure" target="#fig_4">Fig. 5</ref> shows the correctness as a function of the amplitude of the added white noise. Clearly, BLS finds the correct frequency only for the very highest quality light curves -with correct identification falling below 50% already at noise levels of ∼ 0.8%, while CB-BLS maintains that performance though noise levels of ∼ 1.6% or more (to be compared with the ∼ 0.4% and ∼ 0.6% transits). Since in a typical survey there are many more targets with mediocre quality than there are with the highest, millimag-precision targets -the impact on the possible CB planet yield is significant.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.2">Changing Pp</head><p>Systems 2a through 2f are based on the Default System with 1% added white noise, but with different planetary periods such that for System 2a Pp = 9.89012d, and each subsequent System Pp is longer by 2 days. These systems, together with System 1j (which has the same noise level and the a 7.89012d period) -are plotted in <ref type="figure" target="#fig_5">Fig. 6</ref>. The main effect of the increased period is the reduction of the total number of in-transit points, making the signal detection more difficult. Still, CB-BLS is superior to BLS and maintains a ∼ 50% correct detection ratio all the way to Pp ≈ 20d.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.3">Changing i</head><p>Systems 3a through 3h are based on the Default Systems with 1% added white noise, only with different inclinations  <ref type="figure">1j, 2a, .</ref> . . , 2f, we plot the correctness statistic vs. planetary period. The reason for the reduced performance of both BLS and CB-BLS at the Pp = 13.89012d is that this period happens to have a particularly bad window function with less than 1/3 of the in-transit points relative to the Default system.  of the planetary orbit between 90 • and 88 • (while transits no longer occur at ∼ 87.5 • and ∼ 87 • for the smaller and larger binary components, respectively). The binary star is still exactly edge-on in these systems. <ref type="figure" target="#fig_7">Fig. 7</ref> depicts the correctness for these systems and one can see that CB-BLS almost always find the correct period even when the fitted model becomes increasingly inaccurate with decreasing inclination. On the other hand, BLS never finds more than half of the systems.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3">Short Comparison with algorithm by the TEP network</head><p>The anonymous referee correctly pointed out that a comparison with the transit detection algorithm used by the TEP project [ <ref type="bibr" target="#b7">Doyle et al. (2000)</ref> -hereafter the TEP algorithm] is needed. Since a thorough comparison with the TEP algorithm is beyond the scope of this paper, we only list a few points in lieu:</p><p>• Both algorithms assume for each test orbit a planet in a circular, edge-on and coplanar orbit with the binary.</p><p>• In the TEP algorithm transit events are fitted individually on each night's data, which is reliable only for relatively strong transit signals -a limitation not present in CB-BLS.</p><p>• The TEP algorithm require multiple fits -as many fits as there are transit events in each test orbit -and these will add noise to the detection statistic. CB-BLS requires only a single fit for each test orbit.</p><p>• In the TEP algorithm each test orbit is used to produce a model light curve which is then matched to the data. This requires additional modeling (e.g. planetary radius, limb darkening, etc.) -again adding noise to detection statistic. In CB-BLS no further modeling is required, and the depth(s) are analytically found from the data.</p><p>• In-transit data points carry far more information about the planet than out-of-transit points. However, the TEP algorithm can't handle the longest transits if there are not enough out-of-transit points in a given night (e.g., see events 2,7,9,14 and 19 on <ref type="figure">fig. 1</ref>). Since these events contain numerous data points and are in part also deeper than other in-transit points, the TEP algorithm therefore gives up on a very valuable portion of the in-transit points. This limitation is not present in CB-BLS. It should be noted, however, that the TEP algorithm was adapted to process a fairly inhomogeneous data set originating from several different telescopes, and with strong extinction effects due to the red colour of their target star (CM Dra) relative to all available comparison stars.</p><p>To summarise, the TEP algorithm can be applied to the detection of transiting planets around single stars, and it was already rigorously compared to other such algorithms <ref type="bibr" target="#b23">[Tingley (2003a, and</ref><ref type="bibr">especially 2003b)]</ref> and was found to be inferior to BLS. Since CB-BLS and BLS have very similar statistical properties, we believe the TEP algorithm will be inferior to CB-BLS when applied to CB planets.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.4">Other Results and Notes</head><p>We observed the following properties and results of CB-BLS:</p><p>• To show the behaviour of the CB-BLS statistic along the other axes: q, a and ϕ0, we used one realization of the Default System with 1% added white noise. CB-BLS produces a very sharp peak on the ϕ0 axis, and the global maximum indeed corresponds to the correct ϕ0, q and a with good precision (see <ref type="figure" target="#fig_8">Fig. 8</ref>). Note that no error analysis was carried out and the quoted uncertainties are only a very rough estimate.</p><p>• CB-BLS takes about 10 times longer to execute (for every value of q) than BLS. While BLS can be implemented with a computational shortcut (binning in phase) that shortcut is useless for CB-BLS since the analysis is performed in time, not phase. Therefore, binning the light curve in time is indeed possible, but it will cause correlated noise to have increased effect on CB-BLS, and it may cause high dilution of some of the shorter transit events.</p><p>• Since some of the transits of a CB planet are be extremely long we noticed that in the Default System intransit points make up 3.5% of the data points (Including ingress and egress). Note that this fraction is almost twice as high as the corresponding fraction for a planet around a single star with the same period -alleviating the difficulty of finding planets with longer periods.</p><p>• As illustrated on the left panel of <ref type="figure" target="#fig_8">Fig. 8</ref>, the CB-PER statistic is somewhat convoluted on small scales, but the main structures are relatively apparent on large scales. This means that while caution will be needed, sampling CB-BLS on larger scales first (the resolutions recommended and used in this paper) to find the region(s) of promising maxima, and then zooming-in on these regions seems like a good way to perform a more efficient search.</p><p>We list below a few notes and expectations about CB-BLS:</p><p>• CB planets generate signals in a wide range of durations and depths, possibly reducing effects of red noise <ref type="bibr" target="#b18">[Pont, Zucker &amp; Queloz 2006]</ref> and so false detection rates.</p><p>• By looking at eclipse time variation one may deduce information similar to RV measurements. In principle, such a signal will allow to obtain all the information available in photometery and RV from the same single light curve. One important consequence of the above is the ability to reduce the false-positives fraction of the final candidates list: while CB planets can produce only very small eclipse time variation signal, systems with heavier sub-stellar or low-mass stellar tertiaries may produce much larger signal, and so may be identified as such already from the initial light curve. We comment that such detected systems, with three massive objects in very tight configuration, are interesting systems in their own right. We note that light time effect was not included in the current implementation of CB-BLS and a different analysis tool will be needed for that task.</p><p>• An important source of difficulty for transit surveys is the presence of a number of transit-mimicking phenomena, causing the candidate list to be contaminated by a large fraction of false positives. We believe that CB-BLS will have a lower yield of false positives than searches on single stars from two reasons: firstly, the model we fit is very specific and will probably not fit systems that are not truly threebodied. Secondly, some of the mimicking systems may be identified as such already from the discovery data thanks to light time effects (see above). However, one should remember the TEP project's warning  that when a large number of test orbits are fitted to the data there is a nonvanishing probability that even good candidates may be consequences of random sequences of transit-like noise features.</p><p>• Spectroscopic confirmation of a candidate transiting CB planet is expected to be relatively expensive in telescope time since one should follow the system long enough to allow the three orbits to be disentangled. The lower false positives fraction will allow this high cost to be tolerable.</p><p>• Following up on CB planet may be particularly interesting since these systems have orbital evolution on relatively short time scales (a few 100s of days [e.g., <ref type="bibr" target="#b20">Schneider 1994]</ref>), and they produce not one but four distinct RossiterMcLaughlin effects [e.g., <ref type="bibr" target="#b10">Gaudi &amp; Winn 2007]</ref>: whenever star 1 occult star 2 and vice verse, and whenever the planet transits either one of the stars.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">DISCUSSION</head><p>We have presented a modified version of the popular BLS algorithm tailored for the detection of circumbinary planets. We have shown that it is superior to BLS for this task, and that using this algorithm it is possible to find CB planets in the residuals of EBs that have noise levels that are routinely achieved by current ground-based transit surveys.</p><p>The algorithm is based on fitting planetary orbits to the data and then applying the CB-BLS statistic. Although more general in principle, we have shown that the simplest edge-on, coplanar and circular model is rather effective as an identification tool (i.e., vs. characterisation). We have shown that CB-BLS maintains high correct identification rate even when the noise level increases, or the planetary period increases, or when the planetary orbital inclination is no longer edge-on.</p><p>On the limitations side, the simple fact that the transits need to be discerned against the background of two stars can not be changed. Another possible limitation is EB modeling: since CB planets are found in the residuals of EB light curves, the modeling must be of very high quality to allow the detection of the added weak signal.</p><p>Detecting CB planets will have significant impact on the field of extrasolar planets studies as it will expand the possible environments for planet formation significantly. Issues such as migration, stability and planet-disc interaction will have to be further investigated in the context of close binaries. Moreover, since the objects in question are short-period binary stars, detecting such planets may have repercussion on the much more established field of close binary stars (for the closest of which the formation process still not well understood even without the added complexity of planets).</p><p>If orbital near-coplanarity is common, then EBs are already pre-selected to be near edge-on. This means that, keeping all things equal, the specific "value" of an EB for the planet hunter is much higher that of a single star. Thus, if one needs to select targets (e.g., the Kepler and CoRoT space missions) and one aims to find as many planets as possible -one may wish to monitor as many EBs as possible.</p><p>So far, no wide-scale searches for transiting CB planets were conducted. We believe the null result of the TEP project is partly due to the fact that it preceded many important advances in the field of transiting exoplanets (the Sysrem, TFA and BLS algorithms to name a few). Later, the same data was used to look for variation of eclipse times minima of CM Dra <ref type="bibr" target="#b5">[Deeg et al. 2000</ref><ref type="bibr" target="#b6">[Deeg et al. , 2008</ref>. Since in this technique one observes accelerations along the line of sight, it is much more closely related to radial velocity than to transit searches and so is quite distinct from transit searches.</p><p>In recent years the rate of transiting planets detection increased dramatically because of the experience gained in doing high relative precision wide-field photometeric surveys. Using CB-BLS will allow to easily harness these massive ground-and space-based surveys to look for transiting circumbinary planets.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>ACKNOWLEDGMENTS</head><p>I thank the anonymous referee for the constructive comments that improve the paper. I Acknowledge support from Tsevi Mazeh during earlier stages of work in this field. I Acknowledge using the freely available 3 N-body integrator by Howard E. Motteler.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head></head><label></label><figDesc>+s 2 ) 1−(r 1 +r 2 ) Where s1 = i xiwi, s2 = j xjwj , r1 = i wi and r2 = j wj. Substituting into eq. 1 gives</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 3 .</head><label>3</label><figDesc>Figure 3. An example of the periodograms of CB-BLS (top) and BLS (bottom) for one realisation of System 1j (the Default System with 1% added white noise). The CB-BLS peridogram was generated as described in §4.2. The CB-BLS periodogram has no significant aliasing since the model fitted is not periodic. Note that the CB-BLS was created just at the correct sampling limit, meaning that a denser sampling or applying a nonlinear search as described in §3.3 step (vi) will somewhat increase the CB-BLS signal. On the other hand, the BLS signal is already oversampled because of the binning employed.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 4 .</head><label>4</label><figDesc>Figure 4. Geometrically complex relative positions where it is difficult to account for the contribution of the transit of the occulted star. Panel a) Part of the planet's disc transits both stars, and the rest is not transiting either star; we avoided this rare position. Panel b) All the planet's disc transits both stars: in the uniform-disc simulations this case is treated well, but the treatment is only approximated if limb darkening is included</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Figure 5 .</head><label>5</label><figDesc>Figure 5. For 50 realizations of each of Systems 1a, . . . , 1t, and for a small region around the correct frequency (0.129 &lt; fp &lt; 0.131), we plot The correctness vs. the amplitude of added white noise for CB-BLS (solid, blue) and BLS (red, dashed).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Figure 6 .</head><label>6</label><figDesc>Figure 6. For 50 realizations of each of Systems 1j, 2a, . . . , 2f, we plot the correctness statistic vs. planetary period. The reason for the reduced performance of both BLS and CB-BLS at the Pp = 13.89012d is that this period happens to have a particularly bad window function with less than 1/3 of the in-transit points relative to the Default system.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Figure 7 .</head><label>7</label><figDesc>Figure 7. For 50 realizations of each of Systems 1j, 3a, . . . , 3h, we plot the correctness statistic vs. planetary orbital inclination. Note that edge-on is to the left.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head>Figure 8 .</head><label>8</label><figDesc>Figure 8. Left panel: contours of CB-BLS in the mass ratio -semi major axis plane. The peak is at q = 0.48 +1 −11 and a = 1.07 +0.04 −0.15 (where the error ranges are at 90% the peak level) while the correct values are 0.45 and 0.99, respectively. The nine contours are linearly spaced, so the error ranges are approximately at the boldfaced contour. For illustrative purposes both parameters were sampled at a high resolution of 0.01. Right panel: a cut of CB-BLS in the ϕ 0 axis and thought the global maximum. The peak is at the correct value 0.75.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" validated="true"><head>Table 1 . Simulated systems</head><label>1</label><figDesc></figDesc><table>System Name 
+Noise [10 −3 ] 
+Pp [d] 
+i [deg] 
+
+Default 
+0 
+7.89012 
+90 
+1a, . . . , 1t 
+1,2,...20 
+7.89012 
+90 
+2a, . . . , 2f 
+10 
+[9 . . . ,19].89012 
+90 
+3a, . . . , 3h 
+10 
+7.89012 
+89.75, 89.5, ..., 88 
+
+</table></figure>
+
+			<note place="foot" n="2"> We have good experience with the Savitzky-Golay smoothing as implemented in the MATLAB procedure smooth: using it with a large window (5% − 10% of the phase) and polynomial degree of 3 or 4 usually give excellent results.</note>
+
+			<note place="foot" n="3"> http://www.csee.umbc.edu/∼motteler/teaching/courses/parallel prog/01a/nbody</note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D</forename><surname>Albrow</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">534</biblScope>
+			<biblScope unit="page">894</biblScope>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">P</forename><surname>Bennett</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">402</biblScope>
+			<biblScope unit="page">57</biblScope>
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">A</forename><surname>Bonnell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Bate</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">269</biblScope>
+			<biblScope unit="page">45</biblScope>
+			<date type="published" when="1994" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">C M</forename><surname>Correia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Udry</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Mayor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Laskar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Naef</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pepe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Queloz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">C</forename><surname>Santos</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">440</biblScope>
+			<biblScope unit="page">751</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">J</forename><surname>Deeg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">338</biblScope>
+			<biblScope unit="page">479</biblScope>
+			<date type="published" when="1998" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">J</forename><surname>Deeg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">R</forename><surname>Doyle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">P</forename><surname>Kozhevnikov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">E</forename><surname>Blue</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">L</forename><surname>Martín</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Schneider</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">358</biblScope>
+			<biblScope unit="page">5</biblScope>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">J</forename><surname>Deeg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Ocaña</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">P</forename><surname>Kozhevnikov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">T</forename><surname>O&amp;apos;donovan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">R</forename><surname>Doyle</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">480</biblScope>
+			<biblScope unit="page">563</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">R</forename><surname>Doyle</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">535</biblScope>
+			<biblScope unit="page">338</biblScope>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Duchêne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Mccabe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">M</forename><surname>Ghez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">A</forename><surname>Macintosh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">606</biblScope>
+			<biblScope unit="page">969</biblScope>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Duquennoy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Mayor</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">248</biblScope>
+			<biblScope unit="page">485</biblScope>
+			<date type="published" when="1991" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">S</forename><surname>Gaudi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">N</forename><surname>Winn</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">655</biblScope>
+			<biblScope unit="page">550</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Holman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">A</forename><surname>Wiegert</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">117</biblScope>
+			<biblScope unit="page">621</biblScope>
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Kovács</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Zucker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Mazeh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">391</biblScope>
+			<biblScope unit="page">369</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Kovács</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Bakos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">W</forename><surname>Noyes</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">356</biblScope>
+			<biblScope unit="page">557</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Mandel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJL</title>
+		<imprint>
+			<biblScope unit="volume">580</biblScope>
+			<biblScope unit="page">171</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-L</forename><surname>Monin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">J</forename><surname>Clarke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Prato</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Mccabe</surname></persName>
+		</author>
+		<title level="m">Protostars and Planets V</title>
+		<imprint>
+			<date type="published" when="2007" />
+			<biblScope unit="page">395</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Mugrauer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Neuhäuser</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Mazeh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">469</biblScope>
+			<biblScope unit="page">755</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Pierens</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P</forename><surname>Nelson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">472</biblScope>
+			<biblScope unit="page">993</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pont</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Zucker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Queloz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">373</biblScope>
+			<biblScope unit="page">231</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">V</forename><surname>Quintana</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Lissauer</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:0705.3444</idno>
+		<imprint>
+			<date type="published" when="2007" />
+			<biblScope unit="page">705</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Schneider</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">P&amp;SS</title>
+		<imprint>
+			<biblScope unit="volume">42</biblScope>
+			<biblScope unit="page">539</biblScope>
+			<date type="published" when="1994" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Schwarzenberg-Czerny</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">241</biblScope>
+			<biblScope unit="page">153</biblScope>
+			<date type="published" when="1989" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Tamuz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Mazeh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Zucker</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">356</biblScope>
+			<biblScope unit="page">1466</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Tingley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">403</biblScope>
+			<biblScope unit="page">329</biblScope>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Tingley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">408</biblScope>
+			<biblScope unit="page">5</biblScope>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">E</forename><surname>Wilson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">234</biblScope>
+			<biblScope unit="page">1054</biblScope>
+			<date type="published" when="1979" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">E</forename><surname>Wilson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">356</biblScope>
+			<biblScope unit="page">613</biblScope>
+			<date type="published" when="1990" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">E</forename><surname>Wilson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Devinney</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">166</biblScope>
+			<biblScope unit="page">605</biblScope>
+			<date type="published" when="1971" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

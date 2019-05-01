@@ -1,0 +1,720 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2019-01-22T13:41+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">TSARDI: a Machine Learning data rejection algorithm for transiting exoplanet light curves</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2002-09">2002. September 2018</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Mislis</forename><forename type="middle">D</forename><surname>1⋆</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Qatar Environment and Energy Research Institute (QEERI)</orgName>
+								<orgName type="institution" key="instit2">Hamad Bin Khalifa University (HBKU)</orgName>
+								<address>
+									<postBox>P.O. Box 5825</postBox>
+									<settlement>Doha</settlement>
+									<country>Qatar Foundation, Qatar</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Pyrzas</forename><forename type="middle">S</forename></persName>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Qatar Environment and Energy Research Institute (QEERI)</orgName>
+								<orgName type="institution" key="instit2">Hamad Bin Khalifa University (HBKU)</orgName>
+								<address>
+									<postBox>P.O. Box 5825</postBox>
+									<settlement>Doha</settlement>
+									<country>Qatar Foundation, Qatar</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Alsubai</forename><forename type="middle">K A</forename></persName>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Qatar Environment and Energy Research Institute (QEERI)</orgName>
+								<orgName type="institution" key="instit2">Hamad Bin Khalifa University (HBKU)</orgName>
+								<address>
+									<postBox>P.O. Box 5825</postBox>
+									<settlement>Doha</settlement>
+									<country>Qatar Foundation, Qatar</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">TSARDI: a Machine Learning data rejection algorithm for transiting exoplanet light curves</title>
+					</analytic>
+					<monogr>
+						<title level="j" type="main">Mon. Not. R. Astron. Soc</title>
+						<imprint>
+							<biblScope unit="volume">000</biblScope>
+							<biblScope unit="page" from="1" to="7"/>
+							<date type="published" when="2002-09">2002. September 2018</date>
+						</imprint>
+					</monogr>
+					<note type="submission">Accepted ??. Received ??; in original form ??</note>
+					<note>(MN L A T E X style file v2.2)</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>Extrasolar planets -transits -survey -algorithm</keywords>
+			</textClass>
+			<abstract>
+				<p>We present TSARDI, an efficient rejection algorithm designed to improve the transit detection efficiency in data collected by large scale surveys. TSARDI is based on the Machine Learning clustering algorithm DBSCAN, and its purpose is to serve as a robust and adaptable filter aiming to identify unwanted noise points left over from data detrending processes. TSARDI is an unsupervised method, which can treat each light curve individually; there is no need of previous knowledge of any other field light curves. We conduct a simulated transit search by injecting planets on real data obtained by the QES project and show that TSARDI leads to an overall transit detection efficiency increase of ∼11%, compared to results obtained from the same sample, but using a standard sigma-clip algorithm. For the brighter end of our sample (host star magnitude &lt; 12), TSARDI achieves a detection efficiency of ∼80% of injected planets. While our algorithm has been developed primarily for the field of exoplanets, it is easily adaptable and extendable for use in any time series.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">INTRODUCTION</head><p>Large-scale, ground-based surveys for transiting extrasolar planets (e.g. HAT: <ref type="bibr" target="#b6">Bakos et al. 2004</ref>; TreS: <ref type="bibr" target="#b0">Alonso et al. 2004</ref>; SuperWASP: <ref type="bibr" target="#b22">Pollaco et al. 2006;</ref><ref type="bibr">KELT: Pepper et al. 2007;</ref><ref type="bibr">QES: Alsubai et al. 2013</ref>) have been the steady work-horses of the field during the last 15 years. Almost since the beginning of these endeavours, it became readily apparent that the data collected were severely affected by systematics, i.e. unwanted flux variations introduced by fixed, ordered trends, such as airmass and seeing variations, colour-dependent extinction, object merging etc.</p><p>The answer to the problem came with the development of detrending algorithms, with TFA ( <ref type="bibr" target="#b12">Kovács et al. 2005</ref>) and SysRem ( <ref type="bibr" target="#b25">Tamuz et al. 2005</ref>) being among the most well-known. While both these two, as well as other similar detrending algorithms (e.g. <ref type="bibr" target="#b15">Mislis et al. 2010;</ref><ref type="bibr" target="#b18">Ofir et al. 2010;</ref><ref type="bibr" target="#b24">Still et al. 2012;</ref><ref type="bibr" target="#b17">Mislis et al. 2017</ref>), can effectively remove (or at least minimise) the effects of major trends, they are not necessarily designed to tackle more subtle data irregularities that remain after detrending. Such irregularities can arise from infrequent and/or aperiodic events, e.g. the presence of cirrus, variations in atmospheric transparency and the presence of dust, variations in the sky background etc.</p><p>By design, large-scale surveys carry out long campaigns, observing their fields for a given time-period (mainly defined by the field's visibility in the sky) and returning to them when next visible;</p><p>⋆ E-mail:dmislis@qf.org.qa as such, field observations can span years, with considerable time gaps inbetween. Additionally, it is not uncommon for surveys to combine observations from different stations in a multi-longitude mode of observing. The longer a campaign lasts and the more data from different years and/or places are combined, the more susceptible light curves become to the irregular variations described above.</p><p>The net effect of these variations is mainly two-fold: (i) randomly distributed nights with higher RMS than the majority and (ii) in the absence of global flux calibration, nights with a mean flux level distinctly different from the overall light curve mean. While individually (i.e. from a single night) the effect on the overall light curve is most likely negligible, it can quickly escalate with additional nights and conceivably reach the 1% level of a typical transit; the end-result, when phase-folding the data to look for periodic transit signals, is a "puffed up" light curve, i.e. a light curve with an RMS higher than it should have, which can prove detrimental in identifying transit signals.</p><p>In recent years, Machine Learning (ML) algorithms have started becoming popular in a variety of research topics in Astrophysics, with the field of exoplanets prominent among them (e.g. <ref type="bibr" target="#b26">Torniainen et al. 2008;</ref><ref type="bibr" target="#b8">Carrasco et al. 2014;</ref><ref type="bibr" target="#b13">Masci et al. 2014;</ref><ref type="bibr" target="#b2">Armstrong et al. 2016;</ref><ref type="bibr" target="#b14">McCauliff et al. 2015;</ref><ref type="bibr" target="#b16">Mislis et al. 2016;</ref><ref type="bibr" target="#b3">Armstrong et al. 2017</ref><ref type="bibr" target="#b4">Armstrong et al. , 2018</ref>. In this paper, we make use of ML, and develop a filtering algorithm, designed to tackle data irregularities that remain after the detrending process.</p><p>We present the TSARDI (TimeSeries Analysis for Residual Data Irregularities) algorithm; our approach is generally based on the class identification methodology, i.e. the goal is to group the data points of a light curve into meaningful subclasses. To achieve this, we use the clustering algorithm DBSCAN (Density-Based Spatial Clustering of Applications with Noise), originally developed by <ref type="bibr" target="#b10">Ester et al. (1996)</ref>, as a more efficient and more effective way of discovering clusters of arbitrary shape, compared to other clustering algorithms (e.g. CLARANS and k-means/k-medoid partitioning algorithms). DBSCAN has been used by the K2 mission in order to optimize the photometric aperture size ( <ref type="bibr" target="#b7">Barros et al. 2016</ref>) and by <ref type="bibr">ASTErIsM (Tramacere et al. 2016</ref>) for galaxy detection and shape classification, but has otherwise attracted little attention in astronomical applications.</p><p>In Section 2 we describe the algorithm; Section 3 illustrates the effect of the algorithm on detrended light curves and describes the results of our simulated transit search; and Section 4 contains some concluding remarks.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">THE ALGORITHM</head><p>In what follows, we will first give a brief overview of the DBSCAN algorithm and summarise the necessary definitions; interested readers are referred to <ref type="bibr" target="#b10">Ester et al. (1996)</ref> for the complete, in-depth analysis. Subsequently, we will give a detailed description of TSARDI. We note here that TSARDI was built upon the DBSCAN routines as implemented in Python's scikit-learn package 1 (Pedregosa 2011).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">DBSCAN</head><p>The main function of DBSCAN is to take a sample of points S (in this case, a light curve) and organise all points in S into clusters, C. To achieve this, DBSCAN defines (i) a distance function 2 , dist(p, q), between points p, q ∈ S ; (ii) an upper-limit/maximum value for the distance function, denoted as Eps; and (iii) a minimum number of points MinPts. We can now proceed to the following definitions:</p><p>The Eps-neighbourhood of a point p, N Eps (p), is given by N Eps (p) = {q ∈ S | dist(p, q) Eps} A point p is directly density-reachable from another point q, if the following two conditions are met: (1) p ∈ N Eps (q) and (2) |N Eps (q)| MinPts. In this case, i.e. when |N Eps (q)| MinPts, q is called a core-point.</p><p>If there is a chain of points p 1 = q, . . . , p n = p such that p i+1 is directly density-reachable from p i , then p is density-reachable from q.</p><p>For three points p, q, w, if both p and q are density-reachable from w, then p and q are density-connected.</p><p>With the above definitions, we can define a cluster C as a nonempty subset of S , satisfying the conditions: (I) if p ∈ C and q is density-reachable from p, then q ∈ C; and (II) ∀p, q ∈ C: p is density-connected to q. Finally, we note that points which do not belong to any cluster, are considered noise points.</p><p>An overview of these definitions is visualised in <ref type="figure" target="#fig_0">Figure 1</ref>. The Eps-neighbourhood of each point is shown as a circle with radius Eps (shown as a dashed line), while MinPts = 3. All red points are core points, because |N Eps (q)| MinPts. Point C1 is directly density-reachable from point C2, because it belongs to the Epsneighbourhood of C2 and C2 is a core point; the opposite is also true, i.e. point C2 is directly density-reachable from point C1. This pair-wise relation is indicated by the bidirectional arrow. Point P1 is directly density-reachable from point C1; however the opposite is not true. This is indicated by the single arrow. Point P1 is densityreachable from point C2 (because C2 → C1 → P1). Points P1 and P2 are density-connected, as they are both density reachable from e.g. C2. All red points together with points P1 and P2 belong to the same cluster. Finally, point N does not belong to the cluster and is considered a noise point. It is obvious that the classification of a set into one, or more, clusters and (most importantly) the identification of those points that do not belong to any cluster, depends heavily upon the choice of the values for Eps and MinPts.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">TSARDI</head><p>The TSARDI algorithm consists of two major parts: (1) the corealgorithm part and (2) the external-shell part. A detailed account of both parts follows.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.1">The core-algorithm part</head><p>The core-algorithm part is based on four distinct, but chain-linked steps. Each step implements DBSCAN with step-unique distance function and values for Eps and MinPts. At each step, the target is to classify the input light curve points into one or more clusters and identify the noise points. These noise points are subsequently eliminated, and the resulting "filtered" light curve is used as input for the next step.</p><p>In what follows, we assume that our light curve consists of N pairs of time-and-flux values, P i = (t i , f i ) with i = 1, . . . , N and spans a total of K nights of observation.</p><formula xml:id="formula_0">STEP 1: The first distance function, d f 1 , is the absolute flux differ- ence between two consecutive points, that is d f 1 ( j) = abs( f j+1 − f j ) for j = 1, . . . , N − 1.</formula><p>Here, the light curve is treated as one "whole", i.e. a continuous timeseries, and "consecutive" is used in an ordinal sense, so that the first point of one night is consecutive to the last point of the previous night. As E ps 1 , we set the median value of all calculated d f 1 ( j) times a multiplication factor m f I , that is</p><formula xml:id="formula_1">E ps 1 = m f I × d f 1 ( j)</formula><p>; the function of m f I will become obvious in Sec. 2.2.2 and 2.2.3. N/100 is set as MinPts <ref type="bibr">1</ref> . <ref type="figure" target="#fig_1">Figure 2</ref> visualises the first step.</p><p>STEP 2: We now split the light curve into its constituent nights; for each night, we calculate its mean flux value ¯ f k , with k = 1, 2, . . . , K. The second distance function, d f 2 , is the absolute difference of mean fluxes between two consecutive nights 3 , that is d f 2 (m) = abs( ¯ f m+1 − ¯ f m ) for m = 1, . . . , K − 1. As before, E ps 2 is set as the median value of all calculated d f 2 (m) values times another multiplication factor m f N , so E ps 2 = m f N × d f 2 (m). As MinPts 2 we set K/5. <ref type="figure" target="#fig_2">Figure 3</ref> visualises the second step.</p><p>STEP 3: This step is almost identical to the previous, only this time we calculate the standard deviation of the flux values of a given night, σ k . The distance function, d f 3 , is the absolute difference of standard deviations between two consecutive nights; E ps 3 is taken to be the median value of all d f 3 (m) times m f N , i.e. the same multiplication factor as in Step 2; and MinPts 3 is again K/5. <ref type="figure" target="#fig_3">Figure 4</ref> visualises the third step.</p><p>STEP 4: The fourth, and final, step is similar to Step 1, in that it uses the absolute flux difference between two consecutive points, but in this case, the light curve is once more split into its constituent nights (as in <ref type="bibr">Steps 2 &amp; 3)</ref>. For a given night k, with n points, we calculate d f k 4 ( j) = abs( f j+1 − f j ) where j = 1, . . . , n − 1. Both the Eps and MinPts values are set on a per night basis, as the median of the corresponding d f k 4 ( j) values times m f I (the multiplication factor of Step 1), and as n/5, respectively. <ref type="figure">Figure 5</ref> visualises the fourth step. <ref type="bibr">3</ref> Here, again, "consecutive" is used in an ordinal sense.  Step 2, but this time based on the standard deviation of a given night. Notice how the number of nights has decreased, after discarding some nights in the previous step.</p><p>In <ref type="figure">Figure 6</ref> we plot both the original light curve of this example, as well as the resulting TSARDI-filtered light curve; in terms of numbers of points, the original and the final light curve consist of 4,367 and 3,636 respectively, i.e. the filtered light curve retains ∼83% of the original number of points.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.2">Large signals and over-rejection</head><p>A common caveat of clipping/rejection algorithms is the possibility of rejecting valid points (i.e. true signal) that are found far away from the majority of points in a light curve, as is the case in (deeply) eclipsing binaries and even "large planetary"-sized bodies (e.g. a brown dwarf transiting a late-K or an M-dwarf star).</p><p>For a straightforward implementation of the core-algorithm part of TSARDI with rigid Eps values in each Step (in other words, without the multiplication factors m f I and m f N ) there is a high probability of in-transit points being classified as noise points and rejected from the final light curve, as illustrated in <ref type="figure">Figure 7</ref>. While this could serve as a fast way to reliably remove large signals from a light curve and re-search the residuals for additional periodic signals, it could also have adverse effects on a survey looking for transiting candidates.</p><p>Dealing with the issue of large signals requires an assumption and a caveat. The assumption (in our opion, quite justified) is that any sufficiently large signal (of the order of 3% and more) will be readily detectable with transit-detection algorithms, such as the BLS algorithm ( <ref type="bibr" target="#b11">Kovács et al. 2002)</ref>, on the detrended light curve itself, without the need for any additional clipping or filtering. The caveat is that the presence of a large signal is, of course, not known beforehand, so that a transit-detection algorithm needs to run first.</p><p>In TSARDI, we implement a safeguard against over-rejection by setting a strict lower limit for the percentage of points in the fi- nal light curve compared to the original number of points, that is, NPT S LI M = N fin /N org . Depending on the tentative depth returned by the transit-detection algorithm, NPT S LI M is set to 82% for signals up to 2%; 95% for signals up to 5%; and 98% for signals larger than 5%. The NPT S LI M is also the reason for the presence of the multiplication factors m f I and m f N first mentioned in Sec. 2.2.1, as they allow for easy adjustment of the E ps value at each Step of the core algorithm, depending on the current rejection rate compared to NPT S LI M. Varying the (m f I , m f N ) values allows TSARDI to retain deep signals, as indicated in <ref type="figure">Figure 8</ref>.</p><p>The interaction between all components is governed by the external-shell part of TSARDI, detailed below.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.3">The external-shell part</head><p>The external-shell part serves as a wrapper for the core-algorithm part. At its centre, it hosts a double loop designed to run consecutive iterations of the core-algorithm part, while safeguarding against over-rejection. The external-shell (and by extension, TSARDI itself) runs in the following fashion:</p><p>• Two sets of values are defined for the multiplication factors m f I and m f N ; both sets range from 1 to 5, but with steps of 1 and 0.1 for m f I and m f N respectively.</p><p>• BLS is run on the detrended light curve, and NPT S LI M is set according to the result.</p><p>• A first loop begins for each m f I value.</p><p>• A second loop begins for each m f N value.</p><p>• For the given pair of (m f I , m f N ) values, the core algorithm runs on the detrended light curve.</p><p>• The percentage of remaining points (PRP) in the output light curve is recorded and compared against NPT S LI M.</p><p>• If PRP NPT S LI M both loops break, otherwise the algorithm continues with the next pair of (m f I , m f N ) values.</p><p>If the loops reach their end (i.e. PRP &lt; NPT S LI M for every pair of (m f I , m f N ) values), then the maximum recorded value of PRP is compared to NPT S LI M. If the difference is less than 0.5%, TSARDI is re-run with that pair of (m f I , m f N ) values giving max (PRP); else, the detrended light curve remains untouched.</p><p>Finally, we should note that we have settled on these specific choices for the values of different variables, such as the range and step of m f I and m f N , the values for NPTSLIM and the Stepunique values of MinPTs, for consistently yielding the best results based on extensive tests carried out on data by the Qatar Exoplanet Survey (QES, <ref type="bibr" target="#b5">Alsubai et al. 2013</ref>). Some adjustment might be required to these parameters and/or the Steps themselves when applying TSARDI to different sets of data; for example, splitting the light curve into night segments isn't really applicable on continuous space-based data sets (but, perhaps, splitting into some form of segments is).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">RESULTS</head><p>To assess the performance of the algorithm, we selected a field from the QES, observed with one of the 400 mm lenses (f/2.8, FOV 5.24 o × 5.24 o ). This particular data set was collected over a period of two years, from Jan. 2013 to Jan. 2015, and consists of ∼4 500 points, with an exposure time of 60 sec. The data were reduced with the QES pipeline, described in detail in <ref type="bibr" target="#b5">Alsubai et al. (2013)</ref>.</p><p>We limited the sample by imposing a cut on stellar magnitude of V &lt; 14, resulting in 2022 stars. Following a similar procedure to the one described in <ref type="bibr" target="#b9">Collier et al. (2007)</ref>, for each star, we used the available V and K magnitudes, together with theoretical (and/or empirical) colour-temperature, temperature-radius and mass-radius relations to obtain a first estimate of the stellar masses and radii.</p><p>Subsequently, we injected a simulated transit signal of an R P = 1.0 R J planet, generated using the Pál (2008) model, in all the raw light curves of the sample. We did this for two different orbital periods P 1 = 2.37217 d and P 2 = 4.12669 d. The transit ephemeris was chosen so that an adequate number of transits  would be sampled in the given data set, to ensure a large number of detections for statistical purposes.</p><p>Subsequently, we detrended the light curves using the DOHA algorithm ( <ref type="bibr" target="#b17">Mislis et al. 2017</ref>) and processed them further with TSARDI; we will refer to these light curves as the detrend &amp; TSARDI, DT group. We also created a "control" group, the DC group, by processing the detrended light curves with a more general sigma-clip algorithm, rejecting (i) points that were more than 8σ from the overall light curve mean; (ii) points that were more than 8σ from individual nightly means; and (iii) nights whose standard deviation was more than 5σ from the average standard deviation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Overall RMS improvement</head><p>The first test illustrating the efficiency of our algorithm is a straightforward comparison of the light curve RMS between the DC and DT groups. In the top panel of <ref type="figure" target="#fig_7">Figure 9</ref> we plot a typical RMS diagram for both groups. The overall RMS improvement is obvious, indicating that our algorithm not only clips obvious outliers (the scattered points in the upper left diagonal), but also that the additional steps of filtering out nights with comparatively high RMS can indeed improve the overall RMS of the main locus. This RMS improvement becomes more evident in the lower panel of <ref type="figure" target="#fig_7">Fig. 9</ref>, where we plot the RMS of the DC group versus that of the DT group.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Transit detection efficiency</head><p>The major test for our algorithm was to investigate whether it can indeed (positively) affect the transit detection efficiency. For that, each light curve was subjected to the BLS algorithm ( <ref type="bibr" target="#b11">Kovács et al. 2002)</ref>; this was done for both the DC and the DT groups. As "successful recovery", we consider the identification of the input planet period as the dominant peak in the BLS periodogram. The results for P 1 = 2.37217 d are shown in <ref type="figure" target="#fig_0">Figure 10</ref>.</p><p>In the top panel of <ref type="figure" target="#fig_0">Fig. 10</ref> we plot a histogram of the entire stellar sample in bins of 0.5 mag, together with the successful BLS detections in both the DC and the DT groups. It is clear that the DT detections are more than the DC ones, in every bin. To quantify the improvement, we plot the detection efficiency in each magnitude bin in the lower panel of <ref type="figure" target="#fig_0">Fig. 10</ref>, where the numbers correspond to the actual percentage difference between the two groups in each bin.</p><p>In terms of absolute numbers, out of the possible 2022 planets, the DC group had a 45.3% overall success rate (916 planets) versus a 56.5% rate for the DT group (1142 planets). There were 22 unique detections for the DC group, and 248 unique detections for the DT group, resulting in a very favourable 11:1 ratio for the latter. Selecting the subsample of the moderately bright end (V &lt; 12.0), out of the maximum 329 planets, the DC group had a success rate of 73.3% (241 planets), while the DT group had a success rate of 81.5% (268 planets). For the fainter end (V &gt; 12.0), where the RMS improvement with TSARDI becomes readily obvious (see again <ref type="figure" target="#fig_7">Fig. 9</ref>), out of the maximum 1693 planets, the DC group had a success rate of 39.9% (675 planets), while the DT group successfully identified more than half the planets, with a 51.6% success rate (874 planets).</p><p>For a more detailed look into the workings of the algorithm, we plot in <ref type="figure" target="#fig_0">Figure 11</ref> the expected transit depth D (based on our initial estimate of R * ) versus RMS for both the DC and the DT groups, differentiating between successful and unsuccessful detections. We also plot the D = RMS and D = 2 * RMS lines. It is evident that the majority of unsuccessful detections have small depth (D &lt; 1%) and large RMS (RMS &gt; 2 * D); most of these stars have V &gt; 13.0 and the photometric accuracy of the survey itself becomes the dominant factor. Notice again the improvement in light curve RMS and how much "tighter" the RMS of the DT group becomes.</p><p>To further illustrate the difference between the more "generic" sigma-clip algorithm and TSARDI, we one again plot in <ref type="figure" target="#fig_0">Figure 12</ref> the expected transit depth D versus the light curve RMS, but this time, only for the 248 unique TSARDI detections. The ability of TSARDI to improve the overall RMS and pick up small signals (the majority of unique detections have transit depths less than 1%) is evident. DT group <ref type="figure" target="#fig_0">Figure 12</ref>. Same as <ref type="figure" target="#fig_0">Fig. 11</ref>, but collecting only the unique TSARDI detections. Note again the RMS improvement, and that the majority of these systems have transit depths smaller than 1%.</p><p>The results for the ssecond orbital period, P 2 = 4.12669 d, are very similar, both qualitatively and quantitatively. The DC group had an overall success rate of 40.9% versus 51.9% for the DT group; for the moderately bright subsample, the success rates were 71.7% versus 77.5% for the DC and DT groups respectively; and finally the unique detection ratio was 9:1 in favour of the DT group (252 versus 29 planets).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">CONCLUSIONS</head><p>We have developed TSARDI, a time-series analysis algorithm aiming to identify and remove residual data irregularities that remain in light curves, even after a detrending process. TSARDI is built on the clustering algorithm DBSCAN, and uses the latter's densitybased notion, via an appropriately selected set of distance functions, to find outlying noise points; in our implementation, these noise points can be both "traditional" individual-point outliers, as well as individual nights that are distinct and differ significantly from the majority of nights in a long-term light curve.</p><p>Based on the results of a search for (simulated) transits on a real data set, we demonstrate that TSARDI can lead to a substantial improvement of the transit detection efficiency; compared to light curves filtered with a straightforward sigma-clip algorithm, TSARDI-processed light curves showed an overall increase of ∼10% in the number of detections. Taking into account the accuracy of the data used, and limiting the sample in terms of host star magnitude (m &lt; 12), leads to a detection rate of 80% after using TSARDI.</p><p>TSARDI was conceived and tailor-built to deal with light curves from ground-based, large-scale surveys of transiting exoplanets. However, due to the flexibility of DBSCAN's density-based clustering, and with appropriate choices for the key algorithm parameters, it can be easily adapted and extended to essentially any time series.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 .</head><label>1</label><figDesc>Figure 1. A schematic representation of the DBSCAN definitions. See text for details.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 2 .</head><label>2</label><figDesc>Figure 2. STEP 1 of our algorithm: the single "good points" cluster (smaller, green dots) and the noise points (larger, red dots), identified while treating the light curve as a whole, based on the median absolute flux difference between two consecutive points.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 3 .</head><label>3</label><figDesc>Figure 3. STEP 2 of our algorithm: the single "good points" cluster (smaller, green dots) and the noise points (larger, red dots), identified after binning the light curve per night, based on the mean flux value of a given night.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 4 .</head><label>4</label><figDesc>Figure 4. STEP 3 of our algorithm: similar to Step 2, but this time based on the standard deviation of a given night. Notice how the number of nights has decreased, after discarding some nights in the previous step.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Figure 5 .Figure 6 .</head><label>56</label><figDesc>Figure 5. STEP 4 of our algorithm: four representative examples of the output are shown. In this step, each night is treated as a "mini-light curve", and the identification of good points and noise points is based on the median absolute flux difference between two consecutive points.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Figure 7 .Figure 8 .</head><label>78</label><figDesc>Figure 7. An example transit of a 2 R J object with an orbital period of 4.126 d, yielding a depth of 0.132. On the left-hand side panel, the detrended light curve. Running the core-algorithm part of TSARDI in a straightforward fashion, i.e. with m f I = m f N = 1 (effectively without multiplication factors) results in the in-transit points being classified as noise points and, therefore, rejected.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Figure 9 .</head><label>9</label><figDesc>Figure 9. Top panel: RMS diagram for the DC (red) and the DT (blue) groups; see text for definition of the groups. Bottom panel: DC RMS versus DT RMS. In both panels, the overall RMS improvement is obvious, particularly for magnitudes below 12.0.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head>Figure 10 .</head><label>10</label><figDesc>Figure 10. Top panel: Histogram of successful detections for the DC (red) and the DT (blue) groups per magnitude bin of the entire sample (white); Bottom panel: Transit detection efficiency per bin. The numbers above the DT points indicate the difference in efficiency from the corresponding DC points.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head>Figure 11 .</head><label>11</label><figDesc>Figure 11. Transit depth versus RMS for the DC (left panel) and the DT (right panel) groups; successful and unsuccessful detections in both groups are plotted as green and red points, respectively. To aid the eye, we also plot the D = RMS and D = 2 * RMS lines. The vast majority of planets not detected have D &lt; 1% and RMS &gt; 2 * D, and correspond to the fainter end (V &gt; 13.0) of the stars in our sample.</figDesc></figure>
+
+			<note place="foot" n="1"> http://scikit-learn.org 2 This can be any appropriate function of a given problem.</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>ACKNOWLEDGMENTS</head><p>We thank the anonymous referee for insightful comments and suggestions, which improved not only the original manuscript, but the algorithm itself as well. This publication was made possible by NPRP grant ♯ X-019-1-006 from the Qatar National Research Fund (a member of Qatar Foundation). The statements made herein are solely the responsibility of the author.</p></div>
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Alonso</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">613</biblScope>
+			<biblScope unit="page">153</biblScope>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J</forename><surname>Armstrong</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">P</forename><surname>Osborn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J A</forename><surname>Brown</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MN-RAS</title>
+		<imprint>
+			<biblScope unit="volume">444</biblScope>
+			<biblScope unit="page">1873</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J</forename><surname>Armstrong</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Kirk</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">W F</forename><surname>Lam</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">456</biblScope>
+			<biblScope unit="page">2260</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J</forename><surname>Armstrong</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Pollacco</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Santerne</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">465</biblScope>
+			<biblScope unit="page">2634</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J</forename><surname>Armstrong</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+	<note>in-press</note>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Alsubai</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Acta Astron</title>
+		<imprint>
+			<biblScope unit="volume">63</biblScope>
+			<biblScope unit="page">465</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Bakos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">W</forename><surname>Noyes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Kovács</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">Z</forename><surname>Stanek</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">D</forename><surname>Sasselov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Domsa</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">116</biblScope>
+			<biblScope unit="page">266</biblScope>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">C C</forename><surname>Barros</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Demangeon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Deleuil</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">594</biblScope>
+			<biblScope unit="page">100</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Carrasco</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Brunner</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">442</biblScope>
+			<biblScope unit="page">3380</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Collier</forename><surname>Cameron</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">380</biblScope>
+			<biblScope unit="page">1230</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Ester</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">P</forename><surname>Kriegel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Sander</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Xu</surname></persName>
+		</author>
+		<title level="m">KDD&apos;96 Proceedings of the Second International Conference on Knowledge Discovery and Data Mining</title>
+		<imprint>
+			<publisher>AAAI Press</publisher>
+			<date type="published" when="1996" />
+			<biblScope unit="page" from="226" to="231" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Kovács</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Zucker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Mazeh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">391</biblScope>
+			<biblScope unit="page">369</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Kovács</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Bakos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Noyes</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">356</biblScope>
+			<biblScope unit="page">557</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">J</forename><surname>Masci</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">I</forename><surname>Hoffman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">J</forename><surname>Grillmair</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">148</biblScope>
+			<biblScope unit="page">21</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Mccauliff</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">806</biblScope>
+			<biblScope unit="page">6</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Mislis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">H M M</forename><surname>Schmitt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Carone</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">522</biblScope>
+			<biblScope unit="page">86</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Mislis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Bachelet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">A</forename><surname>Alsubai</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">455</biblScope>
+			<biblScope unit="page">626</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Mislis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Pyrzas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">A</forename><surname>Alsubai</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">465</biblScope>
+			<biblScope unit="page">3759</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Ofir</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Alonso</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Bonomo</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">404</biblScope>
+			<biblScope unit="page">99</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Pál</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">390</biblScope>
+			<biblScope unit="page">281</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Scikit-Learn ;</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Machine Learning in Python, Pedregosa</title>
+		<imprint>
+			<date type="published" when="2011" />
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="page" from="2825" to="2830" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Pepper</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Siverd</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">G</forename><surname>Beatty</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">773</biblScope>
+			<biblScope unit="page">64</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">L</forename><surname>Pollaco</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">118</biblScope>
+			<biblScope unit="page">1407</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">J</forename><surname>Shallue</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vanderburg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">155</biblScope>
+			<biblScope unit="page">94</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M &amp;amp;</forename><surname>Still</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Barclay</surname></persName>
+		</author>
+		<idno>ascl.soft08004S</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Astrophysics Source Code Library</title>
+		<imprint>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Tamuz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Mazeh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Zucker</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">356</biblScope>
+			<biblScope unit="page">1466</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Torniainen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Tornikoski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Turunen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">482</biblScope>
+			<biblScope unit="page">483</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Tramacere</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Paraficz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Dubath</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">463</biblScope>
+			<biblScope unit="page">2939</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

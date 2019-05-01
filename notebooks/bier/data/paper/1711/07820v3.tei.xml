@@ -1,0 +1,722 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-11T13:19+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Statistical detection of patterns in unidimensional distributions by continuous wavelet transforms</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2018-04-27">27 Apr 2018</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Roman</forename><forename type="middle">V</forename><surname>Baluev</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Central Astronomical Observatory at Pulkovo</orgName>
+								<orgName type="institution">Russian Academy of Sciences</orgName>
+								<address>
+									<addrLine>Pulkovskoje sh. 65/1, Saint Petersburg 196140</addrLine>
+									<country key="RU">Russia</country>
+								</address>
+							</affiliation>
+							<affiliation key="aff1">
+								<orgName type="department">Faculty of Mathematics and Mechanics</orgName>
+								<orgName type="institution">Saint Petersburg State University</orgName>
+								<address>
+									<addrLine>Universitetskij pr. 28</addrLine>
+									<postCode>198504</postCode>
+									<settlement>Petrodvorets</settlement>
+									<region>Saint Petersburg</region>
+									<country key="RU">Russia</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Statistical detection of patterns in unidimensional distributions by continuous wavelet transforms</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2018-04-27">27 Apr 2018</date>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>methods: data analysis</term>
+					<term>methods: statistical</term>
+					<term>astronomical data bases: miscellaneous</term>
+					<term>planetary systems</term>
+					<term>stars: statistics</term>
+					<term>galaxies: statistics</term>
+				</keywords>
+			</textClass>
+			<abstract>
+				<p>Objective detection of specific patterns in statistical distributions, like groupings or gaps or abrupt transitions between different subsets, is a task with a rich range of applications in astronomy: Milky Way stellar population analysis, investigations of the exoplanets diversity, Solar System minor bodies statistics, extragalactic studies, etc. We adapt the powerful technique of the wavelet transforms to this generalized task, making a strong emphasis on the assessment of the patterns detection significance. Among other things, our method also involves optimal minimum-noise wavelets and minimum-noise reconstruction of the distribution density function. Based on this development, we construct a self-closed algorithmic pipeline aimed to process statistical samples. It is currently applicable to single-dimensional distributions only, but it is flexible enough to undergo further generalizations and development.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>Nowdays, the wavelet analysis technique is frequently used in various fields of astronomy. It proved a powerful tool in the time-series analysis, in particular to trace the time evolution of quasi-periodic variations <ref type="bibr" target="#b11">(Foster, 1996;</ref><ref type="bibr" target="#b24">Vityazev, 2001</ref>). So far, the timeseries analysis remains the major application domain of the wavelet transform, and most of the wavelet methodology and results are tied to this field. However, there are other branches where this technique appeared promising, in particular in the analysis of statistical distributions. In multiple astronomical applications we deal with statistical samples and distributions of various objects. For example, the last 20 years brought up a rich diversity of exoplanetary systems, and investigating their distributions gives a Email address: r.baluev@spbu.ru <ref type="bibr">(Roman V. Baluev)</ref> tremendous amount of information about the process of planet formation, their migration and dynamical evolution <ref type="bibr" target="#b9">(Cumming, 2010)</ref>. Other possible applications include the analysis of Milky Way stellar population that becomes more important with the emerging GAIA data ( <ref type="bibr" target="#b7">Brown et al., 2016)</ref>, and the statistical analysis of minor bodies distributions in Solar System.</p><p>We emphasize that we formulate our goal here as 'patterns detection' rather than 'density estimation'. The latter would literally mean to estimate the probability density function (p.d.f.) of a sample, but instead we aim to detect easily-interpretable structures and shapes in this p.d.f., like e.g. clusters of objects, or paucities, or quick gradients. Such inhomogeneties often carry hidden knowledge about physical processes that objects of the sample underwent. In such a way, our task becomes related to data mining techniques and cluster analysis.</p><p>First attempts to apply the wavelet transform technique to reveal clumps in stellar distributions date back to 1990s <ref type="bibr" target="#b8">(Chereul et al., 1998;</ref><ref type="bibr" target="#b23">Skuljan et al., 1999)</ref>, and <ref type="bibr" target="#b20">Romeo et al. (2003</ref><ref type="bibr" target="#b21">Romeo et al. ( , 2004</ref> suggested the use of wavelets for denoising results of N-body simulations. Nowdays, wavelet transforms are quite routinely used to analyse CMB data from WMAP ( <ref type="bibr" target="#b19">McEwen et al., 2004</ref><ref type="bibr" target="#b18">McEwen et al., , 2017</ref>. The very idea of 'wavelets for statistics' is not novel too <ref type="bibr" target="#b10">(Fadda et al., 1998;</ref><ref type="bibr" target="#b0">Abramovich et al., 2000</ref>).</p><p>When applied to these tasks, wavelets allow to objectivize the terms like the 'detail' or 'structural pattern' in a distribution, and easily formalize the task of 'patterns detection'. However, there are several crucial issues in this technique that either remain unresolved or solutions available in the literature look unsatisfactory and sometimes even flawed. In particular, the following matters raise questions.</p><p>1. Applying discrete wavelet transforms <ref type="bibr">(DWTs)</ref> in this task seems unnatural. A major argument in favour of the DWT in 1990s might be to improve the computing performance. Nowdays, cumputing capabilities do not limit the practical use of continuous wavelet transforms (CWTs). Besides, the CWT mathematics is easier in many aspects. 2. Most if not all authors perform preliminary binning of the sample, or another kind of smoothing, before they apply a wavelet transform. It is an unnecessary and possibly even harmful step. Small-scale structures are averaged out by the binning, and wavelets cannot 'see' them after that. 3. There is a big issue with correct determination of the statistical significance at the noise thresholding stage (discussed below). 4. It was not verified, whether the classic and typically used wavelets are indeed suitable in this task. Perhaps a systematic search is necessary, among wavelets of different shape and utilizing some objective criteria of optimality.</p><p>A crucial problem of any statistical analysis is how to justify the statistical signifiance of the results. Determination of the statistical significance was always recognized as an important issue in this task. Unfortunately, approaches developed for the wavelet analysis of time series are not applicable for distribution analysis. Nonetheless, several schemes are available in the literature of how to do significance testing of the wavelet coefficients derived from a statistical sample (e.g. <ref type="bibr" target="#b23">Skuljan et al., 1999;</ref><ref type="bibr" target="#b10">Fadda et al., 1998)</ref>. But all these works share one common flaw: they define the significance of an individual wavelet coefficient, but test in turn multiple coefficients at once. In practice it leads to a dramatic increase of the false detections rate above the predicted level.</p><p>Consider that we perform N t independent significance tests on the same sample, and every individual test is tuned to have a small enough false alarms probability (or p-value) β. The total number of false alarms is then ∼ βN t , and it may become impredictably large because of large N t . Let N d be the number of significant ('detected') wavelet coefficients that passed the test. Then the fraction of false alarms among the detected coefficients is β rel ∼ βN t /N d . Usually β rel ≫ β, so the relative fraction of false alarms becomes much larger than the requested 'false alarm probability', paradoxically compromising the latter term. In other words, the false alarm probability is in fact misapplied in this task. In practice it may easily appear that the majority of the wavelet coefficients that formally passed their individual significance tests, appear in turn just noisy fluctuations.</p><p>In applications, the attention is paid to every detected detail of the distribution. Each false-detected wavelet coefficients trails a false 'pattern' in the recovered distribution. We guess that a researcher would expect that all structures that were claimed significant by the analysis algorithm, are significant indeed. So our intention is to narrow the 'false detection' term from 'an individual wavelet coefficient was wrongly claimed significant' to a more stringent 'at least one of many wavelet coefficients was wrongly claimed significant'. This triggers an effect generally similar to the one known as the 'bandwidth penaly' in the periodogram analysis of time series <ref type="bibr" target="#b14">(Horne and Baliunas, 1986;</ref><ref type="bibr" target="#b22">Schwarzenberg-Czerny, 1998;</ref><ref type="bibr" target="#b3">Baluev, 2008)</ref>.</p><p>In addition to what said above, only Monte Carlo simulations can currently be used to calculate the necessary p-values when testing the CWT significance. But numerical simulations are obviously in-efficient, because they are very CPU-expensive and lack the generality. Some basic initial work on this problem was made in ( <ref type="bibr" target="#b6">Baluyev, 2005)</ref>. In this paper we treat analytically the above-mentioned issues, and present the entire analysis pipeline.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Overview of the paper</head><p>In the literature there is a deficit of research dedicated to the task stated above, and there is a diversity of lesser sub-problems yet to be solved. Although many useful partial results are available, the very formalism of this task is still under construction, so there is no complete and self-consistent theory that we could use here 'as is'. Below we consider the following issues:</p><p>1. adaptation of the CWT technique to statistical samples and distributions (Sect. 3); 2. characterization of the noise that appears in the wavelet transform and construction of the signal detection criterion (Sect. 4); 3. control of the non-Gaussian noise in the CWT that appears due to the small-number statistics and limits applicability of the entire technique (Sect. 4); 4. search of optimal wavelets that improve the efficiency of the analysis (Sect. 5); 5. optimal reconstruction of the distribution function itself from its CWT after noise thresholding (Sect. 6); 6. numerical simulations and tests aimed to verify our theoretic results and constructions, demonstrate the main issues of the technique, and determine limits of its practical applicability (Sect. 7).</p><p>Finally, in Sect. 8 we provide a brief summary of our wavelet analysis algorithm.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Wavelet transforms</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Basic definitions and formulae</head><p>We adopt the classic definition of the CWT from ( <ref type="bibr" target="#b12">Grossman and Morlet, 1984)</ref> with only a minor modification in scaling:</p><formula xml:id="formula_0">Y(a, b) = +∞ −∞ f (x)ψ x − b a dx.<label>(1)</label></formula><p>Here, f (x) is an input function of the CWT. In this paper, it is meant to be a p.d.f. The kernel ψ(t) is meant to be a wavelet. The latter term does not have a stable and strict definition, but at least ψ must be well localized together with its Forier transformˆψtransformˆ transformˆψ. Classic definitions also contain normalization factors in (1), typically 1/ √ a, which we discard here. The integral transform (1) is similar to a convolution, but contains two parameters: the scale a and the shift b. Contrary to the usual convolution, the CWT is easily invertible. Multiple inversion formulae are available, in particular based on ( <ref type="bibr" target="#b16">Liu et al., 2015</ref>) we can write:</p><formula xml:id="formula_1">f (x) = 1 C ψγ +∞ −∞ +∞ −∞ Y(a, b)γ x − b a dadb |a| 3 , C ψγ = +∞ −∞ ˆ γ(ω) ˆ ψ * (ω) dω |ω| ,<label>(2)</label></formula><p>Here, the choice of the reconstruction kernel γ(t) is rather arbitrary: it is mainly restricted by the mutual admissibility condition 0 &lt; |C ψγ | &lt; +∞. One of the most famous inversion formulae <ref type="bibr" target="#b12">(Grossman and Morlet, 1984;</ref><ref type="bibr" target="#b24">Vityazev, 2001</ref>) contains γ = ψ, and it is similar to the original CWT (1). It requires that the wavelet must satisfy the classic admissibility condition 0 &lt; C ψψ &lt; +∞, implying in particular thatˆψthatˆ thatˆψ(0) = 0, and hence ψ(t) must integrate to zero. This special case can be viewed as an orthogonal projection in the Hilbert space of Y, while other γ correspond to oblique projections. The generalized inversion formulae (2) can be verified by applying the Fourier transform to it.</p><p>An alternative definition of the CWT can be written down as</p><formula xml:id="formula_2">Υ(κ, s) = +∞ −∞ f (x)ψ(κx + s)dx,<label>(3)</label></formula><p>where κ = 1/a is a wavenumber-like parameter, while s = −b/a is a phase-like parameter. In terms of κ and s, the inversion formula (2) attains the following shape:</p><formula xml:id="formula_3">f (x) = 1 C ψγ +∞ −∞ +∞ −∞ Υ(κ, s)γ(κx + s)dκds. (4)</formula><p>These alternative definitions differ from the classic ones only in the parametrization of their arguments,</p><formula xml:id="formula_4">i.e. Υ(κ, s) = Y(1/κ, −s/κ).</formula><p>We need to discuss practical subtleties of the inversion formulae <ref type="bibr">(2)</ref>. Their direct use might seem problematic in practice, because the integration with respect to the scale parameters a or κ is unlimited. 1 However, the two types of parametrization infer different infinite ranges: either a → ∞ (large scales) or κ → ∞ (small scales). Which parameters offer better numerical efficiency, depends on the limiting behaviour of the integrand in the relevant tail.</p><p>The parameters k and s appear more practical in this concern: Υ(κ, s) is always smooth near κ = 0, while Y(a, b) is bad-behaved for a → 0. Therefore, in practical computations we always represent the CWT in terms of the (κ, s) arguments. However, in the mathematical formulae following below we mainly stick with the traditional (a, b)-notation.</p><p>Concerning the integration of the small-scale tail κ → ∞, in practice we always have to limit |κ| in (4) by some κ max . This infers that all the scales smaller than a min = 1/κ max are eliminated, triggering an effect of smoothing in the resulting f (x). In other words, the reconstruction of f (x) on the basis of Υ or Y is necessarily approximate. But from what goes below it follows, that the uncertainties (or noise) in Υ(κ, s) reside mainly at the small scales as well. Loosing some small-scale structure is an internal property of the noise thresholding procedure constructed below. But this is a natural issue inherited from an ill-posed nature of our original task: to reconstruct the p.d.f. from a finite sample. It is not a problem of the inversion formulae (2,4) themselves.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">Informal justification of the method</head><p>Our goal is to detect specific structural patterns in the sample, such that can be used to refine our knowledge of the physics behind the sampled objects. Such patterns may include e.g. clusters or gaps, or sharp gradients. Contrary to the wavelet analysis of time series, we usually do not expect to have any periodic patterns in the distribution, so the technique pre-sented below are targeted to reveal aperiodic structures in general.</p><p>The potential use of the CWT in this task can be demonstrated as follows. Let us choose some smoothing kernel ϕ(t) (not a wavelet yet), and apply it to a derivative f (k) (x), instead of f (x) itself. Then use integration by parts k times to obtain the following equality:</p><formula xml:id="formula_5">+∞ −∞ f (k) (x)ϕ x − b a dx = (−1) k a k +∞ −∞ f (x)ϕ (k) x − b a dx.</formula><p>(5) We assume here that ϕ(t) tends to zero for t → ±∞, along with its derivatives, so the relevant boundary terms do not appear in (5).</p><p>We can see that the right-hand side of (5) involves a derivative kernel ψ k (t) = (−1) k ϕ (k) (t). Now assume we aim to reveal local maxima or minima or zones of fast changes in the p.d.f. f (x). This can be done by considering the derivatives f ′ (x) and f ′′ (x). The first derivative carries information about slopes in f (x), and highlights sudden jumps. The second derivative carries information about deviation of f (x) from its local linear slope, highlighting groupings ( f ′′ &lt; 0, concave upward f ) or gaps ( f ′′ &gt; 0, convex downward f ). The formula (5) provides the necessary link between these derivatives and the CWT via the wavelets ψ 1,2 .</p><p>The function ϕ should desirably have a simple bell-like shape with non-vanishing integral, so it cannot be a wavelet. We will call ϕ the generating function for ψ k .</p><p>A classic example is given by Hermitian wavelets, which satisfy our construction, and are derived from the Gaussian:</p><formula xml:id="formula_6">ϕ(t) = e − t 2 2 =⇒ ψ 1 (t) = te − t 2 2 , ψ 2 (t) = (t 2 − 1)e − t 2 2 .</formula><p>(6) These kernels are sometimes called the WAVE and MHAT ('Mexican Hat') wavelets, and they infer a Gaussian smoothing on the derivatives f ′ (x) and f ′′ (x).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.">Estimating the wavelet transform from a sample</head><p>Assume that we aim to analyse the distribution of a random quantity x, and this x has the p.d.f. of f (x). We will refer to it as to 'the x-distribution'. The 4 CWT (1) can be viewed as the mathematical expectation of another random quantity y:</p><formula xml:id="formula_7">y = ψ x − b a , Y(a, b) = E y.<label>(7)</label></formula><p>We will call its distribution 'the y-distribution'. It depends on the underlying x-distribution, on the adopted wavelet shape, and also on the parameters a, b.</p><p>From observations we have a random sample of N values x 1 , x 2 , . . . , x N , drawn from the xdistribution, and we need to estimate the CWT based on this sample. Extending the definition from ( <ref type="bibr">Abramovich et al., 2000, sect. 3.2)</ref> to the continuous case, we may adopt the sample mean estimate</p><formula xml:id="formula_8">Y(a, b) = 1 N N i=1 y i = 1 N N i=1 ψ x i − b a .<label>(8)</label></formula><p>This can be used as a practical formula that allows one to derive the estimation of Y(a, b) from the sample {x i }. We will call (8) the sample wavelet transform (SWT), by analogy with mean/sample mean, variance/sample variance, etc. For simplicity, let us introduce a shorthand * * for the sample-averaging operation:</p><formula xml:id="formula_9">φ := 1 N N i=1 φ i or φ(x) := 1 N N i=1 φ(x i ). (9)</formula><p>Then <ref type="formula" target="#formula_8">(8)</ref> turns to just Y = y. Obviously, (8) is an unbiased estimate of (1), i.e. E Y = Y for any a, b. Moreover, if f and ψ are such that the central limit theorem is satisfied, Y is asymptotically Gaussian for N → ∞. Its variance can be expressed as </p><formula xml:id="formula_10">D(a, b) := D Y = D y N = = 1 N           +∞ −∞ f (x)ψ 2 x − b a dx − Y 2           .<label>(10</label></formula><formula xml:id="formula_11">= 1 N − 1        1 N N i=1 ψ 2 x i − b a − Y 2 (a, b)        = = y 2 − −y 2 N − 1 .<label>(11)</label></formula><p>This is basically the sample variance estimate for {y i }, divided by N. Now we can construct a suitable goodness-of-fit statistic for the CWT. Let us consider a null hypothesis Y(a, b) = Y 0 (a, b) that we need to test. After that, construct the following standardized quantity:</p><formula xml:id="formula_12">z(a, b) = Y(a, b) − Y 0 (a, b) D(a, b)<label>(12)</label></formula><p>In fact, this z(a, b) is nothing more than just the Student t-statistic for the sample {y i }, with an exception that the Student test was originally designed for strictly Gaussian input data, while our y i are nonGaussian in general. The statistic z(a, b) is asymptotically standard normal for N → ∞, if Y 0 is true. We adopt the test statistic <ref type="formula" target="#formula_0">(12)</ref>    <ref type="formula" target="#formula_0">(12)</ref> obviously contain random noise owing to the discrete and finite nature of the sample {x i }. This is different from the traditional additive noise that appears in the time series analysis, so we cannot use any theoretic results from this domain. The noise in our task is basically a shot noise instead. To complete our statistical testing scheme, 5 we must characterize the noise levels in z(a, b) by determining its statistical distributions.</p><p>We adopt the frequentiest hypothesis testing framework and aim to compute the associated pvalue or 'false alarm probability' (FAP hereafter). We want to test the following hypotheses:</p><formula xml:id="formula_13">H 0 : Y(a, b) = Y 0 (a, b) everywhere in D, H A : Y(a, b) Y 0 (a, b) somewhere in D,<label>(13)</label></formula><p>where D is some predefined domain in the (a, b) plane. The model Y 0 is treated acceptable whenever |z(a, b)| remains low within the domain D:</p><formula xml:id="formula_14">|z(a, b)| &lt; z thr ∀(a, b) ∈ D,<label>(14)</label></formula><p>which can be equivalently rewritten as</p><formula xml:id="formula_15">z max &lt; z thr , z max = max (a,b)∈D |z(a, b)|.<label>(15)</label></formula><p>Now, z max can be adopted as our test statistic: reject H 0 if z max &gt; z thr , and keep H 0 otherwise. Assuming that H 0 is true, define the distribution of z max :</p><formula xml:id="formula_16">P max (z) = Pr(z max &lt; z|H 0 ).<label>(16)</label></formula><p>We can derive the threshold level z thr from the desired FAP as FAP = 1 − P max (z thr ). However, to do this we must know the function P max (z), which is an extremevalue distribution (EVD) of the random field z(a, b). Analytic characterization of P max (z) is the main problem treated in this section below. Our significance test is similar in several aspects to the method by <ref type="bibr" target="#b23">Skuljan et al. (1999)</ref>. The crucial difference from <ref type="bibr" target="#b23">Skuljan et al. (1999)</ref> is that they consider different values Y(a, b) individually, while we treat them as an ensemble and construct the maximized statistic z max . As such, <ref type="bibr" target="#b23">Skuljan et al. (1999)</ref> deal with the single-value distributions (SVD) of˜Y of˜ of˜Y(a, b), instead of the EVD (16). However, the SVD is not appropriate in this task, unless we know a priori the exact location (a 0 , b 0 ), where Y may possibly deviate from Y 0 . In practice we consider Y in a more or less wide domain D with no or little prior knowledge on (a, b), so we perform multiple single-value tests at once, increasing the probability to admit a false alarm. The same effect appears in the periodogram time-series analysis due to the unknown signal frequency, where it is called the 'bandwidth penalty' (e.g. <ref type="bibr" target="#b14">Horne and Baliunas, 1986;</ref><ref type="bibr" target="#b22">Schwarzenberg-Czerny, 1998;</ref><ref type="bibr" target="#b3">Baluev, 2008</ref>). In our present task this effect may be called the 'domain penalty'.</p><p>To put our approach in a more general mathematical framework, the maximum modulo is an L ∞ metric. That is, we utilize the L ∞ norm of z(a, b) as an aggregate test statistic. Though we do not consider other options below, this is definitely not the unique treatment available in this task. In particular, we could use the L 2 norm of z(a, b), and it would lead us to a chi-square-like test. An approach of this kind was used by e.g. <ref type="bibr" target="#b19">McEwen et al. (2004)</ref> to analyse the WMAP CMB data. We nonetheless prefer the approach based on the extreme-value testing, since it allows us to easily identify which particular wavelet coefficients (values of the z statistic) appeared significant. In the case of the χ 2 statistic, it becomes unclear which points in the (a, b) plane are responsible for the observed χ 2 deviation: just a narrow domain corresponding to the maximum peak of z(a, b), or maybe this includes some additional points, even though below the maximum, contribute with a large amount due to a large cumulative area they occupy.</p><p>Another potentially promising approach might be offered by the L 1 metric minimization and the compressed sensing techniques ( <ref type="bibr" target="#b13">Hara et al., 2017</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.">Noise distribution in the normal case</head><p>The random field z(a, b) is asymptotically Gaussian with standardized characteristics: E z(a, b) → 0 and D z(a, b) → 1 for N → ∞. Therefore, we should first derive the FAP estimate for the limiting case, assuming that N is large enough, so that z(a, b) is nearly standard Gaussian in the domain D. EVDs for a standard Gaussian random field were investigated in multiple works (e.g. Aza¨ısAza¨ıs and Wschebor, 2009, for a review). Our task falls under conditions of the generalized Rice method <ref type="bibr" target="#b1">(Aza¨ısAza¨ıs and Delmas, 2002</ref>), and we rely on this theory to derive the necessary FAP estimation. An overview of the problem from a more practical point of view, explaning its role in periodogram data analysis, was given in <ref type="bibr" target="#b4">(Baluev, 2013)</ref>. Our current task lead us to the same abstract EVD problem.</p><p>We are going to apply the formulae of <ref type="bibr">(Baluev, 2013, Sect.</ref> 3) to construct a FAP estimate FAP = 1 − P max (z), which is a tail probability of z max . We try to keep most of the notations here the same or at least similar. But the reader is cautioned about a potentially misleading difference that z in <ref type="bibr" target="#b4">(Baluev, 2013)</ref> would have the meaning of z 2 /2 here, while Z from (Baluev, 2013) is the same as our present z. We will not discuss or explain the theory of the Rice method below, referring the reader to the cited literature.</p><p>We should start from the one-sided version of (15,16):</p><formula xml:id="formula_17">FAP + (z thr ) = Pr(z + max &gt; z thr ), z + max = max (a,b)∈D z(a, b),<label>(17)</label></formula><p>where we maximize z itself rather than its absolute value |z|. We use only the primary term in the FAP approximation, given by the generalized Rice formula:</p><formula xml:id="formula_18">FAP + (z thr ) ∼ D dadb +∞ z thr dz R 3 p zz ′ z ′′ (z, 0, z ′′ ) det z ′′ dz ′′ .</formula><p>(18) The integral in <ref type="formula" target="#formula_0">(18)</ref> gives the average number of local maxima of z(a, b) inside D that rise above the threshold z thr . This is an asymptotic approximation valid for z thr → ∞, or FAP → 0. In particular, we neglected the effect of the boundary of D that has the relative magnitude of ∼ 1/z thr . In (18), the notation p zz ′ z ′′ stands for the 6-variate p.d.f. of the random field value z, its gradient z ′ , and its Hessian matrix z ′′ , if all are computed at the given point (a, b).</p><p>For a standard Gaussian z(a, b), the integral in (18) becomes:</p><formula xml:id="formula_19">FAP + (z) ∼ A 0        2 π ze −z 2 /2 + erfc z √ 2        + A 1 erfc z √ 2 ,<label>(19)</label></formula><p>This is a special case of formula <ref type="formula" target="#formula_1">(20)</ref> from <ref type="bibr" target="#b4">(Baluev, 2013)</ref>. We rewrite it as:</p><formula xml:id="formula_20">FAP + (z) ∼ W 00 ze −z 2 /2 + W 02 π 2 erfc z √ 2 ∼ W 00 + W 02 z −2 + . . . ze −z 2 /2 ,<label>(20)</label></formula><p>where W 00 and W 02 are coefficients that could be expressed via A 0,1 . We follow the convention that the index j in W i j corresponds to the power z − j in the relevant term of the expansion. That is, the term with W 02 has the relative magnitude of ∼ 1/z 2 and hence can be neglected for large z. Additional index i is reserved for non-Gaussian corrections to (20) that will be considered below.</p><p>The primary coefficeint W 00 becomes</p><formula xml:id="formula_21">W 00 = 1 (2π) 3 2 D det G(a, b) dadb, G = Var z ′ ,<label>(21)</label></formula><p>where the 2 × 2 matrix G is the covariance matrix of the gradient z ′ .</p><p>So far in this subsection we performed mainly repacking and adaptation of the formulae from <ref type="bibr" target="#b4">(Baluev, 2013)</ref>. But now the covariance matrix G in (21) depends on specific characteristics of our random field. The calculation of G involves relatively long but routine manipulations. We do this by applying the following sequence:</p><p>1. compute the gradient of <ref type="formula" target="#formula_0">(12)</ref>; 2. average its pairwise products with respect to x i (using f (x) as the p.d.f.); 3. whenever legitimate, replace various sample momenta by their integral counterparts, e.g.</p><formula xml:id="formula_22">y 2 − −y 2 → D y for large N.</formula><p>The matrix G is finally expressed as:</p><formula xml:id="formula_23">lim N→∞ G i j = Cov(y ′ i , y ′ j ) D y − Cov(y, y ′ i ) Cov(y, y ′ j ) ( D y) 2 ,<label>(22)</label></formula><p>where an index near derivatives denotes the variable, either a or b. As we can see, G depends on the wavelet ψ (via y), its first derivative ψ ′ (via y ′ ), and also on the x-distribution p.d.f. f (x) via the covariance momenta. The latter dependence is particularly troubling, because we do not know f (x) at this stage: its characterization is actually our final goal. However, instead of using <ref type="formula" target="#formula_1">(22)</ref> directly, we may substitute an estimate in its place. In particular, it is convenient to replace all covariances in (22) by their sample estimates:</p><formula xml:id="formula_24">Cov(y ′ i , y ′ j ) ≃ ≃y ′ i y ′ j − −y ′ i y ′ j , Cov(y, y ′ i ) ≃ ≃yy ′ i − −yy ′ i , D y ≃ ≃y 2 − −y 2 .<label>(23)</label></formula><p>Such a replace yields an estimate G that we can substitute in (21) instead of G and then integrate it numerically. This infers a relative error of ∼ 1/ √ N in the result.</p><p>Finally, let us consider the two-sided estimation FAP (instead of the one-sided FAP + ). To treat this case we must double <ref type="formula" target="#formula_0">(18)</ref>, because the statistics of positive and negative maxima is symmetric and their average numbers must be identical. Therefore, we may just double <ref type="formula" target="#formula_1">(20)</ref>:</p><formula xml:id="formula_25">FAP(z) ∼ 2W 00 ze −z 2 /2 + W 02 √ 2π erfc z √ 2 .<label>(24)</label></formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3.">Handling deviations from the normality</head><p>Non-Gaussian deviations in the z-distribution may constitute a serious issue. It concerns more deep matters than just the accuracy of the FAP estimate <ref type="bibr">(20)</ref>. If (20) is by any reason inaccurate then we could just perform Monte Carlo simulations to acquire a better estimate. But non-Gaussianity also results in statistical asymmetry between positive and negative values of z(a, b), and non-Gaussian deviations vary over the (a, b) plane. This may cause an inhomogeneous noise in the SWT, when only a minor fraction of points supply a dominant contribution to the extreme-value statistic z max . This is a pathological situation that should be avoided <ref type="bibr">(Jansen, 2001, sect. 5.8)</ref>.</p><p>Consider the scale a is small. Then most y i terms in the sum (8) become negligible, because most of x i fall outside of the wavelet localization range. This has an effect of decreasing the 'effective N'. In the ultimate case, just a few of x i contribute significant amount in the sum (8), rendering its distribution drastically non-Gaussian. Therefore, our analysis is meaningful only if it does not consider too small a. Depending on N, this small-scale limit may be larger or smaller, and we must find a way to determine it.</p><p>Roughly, the effective number of terms contributing in the sum (8) can be estimated using the following formula:</p><formula xml:id="formula_26">n(a, b) =        N i=1 ϕ x i − b a        +∞ −∞ ϕ(x)dx .<label>(25)</label></formula><p>Since ϕ has approximately the same localization as ψ, the number of terms dominating in <ref type="formula" target="#formula_1">(25)</ref> is approximately the same as in <ref type="formula" target="#formula_8">(8)</ref>, but now all these terms are positive and never cancel each other. The characteristic (25) can be used as a simple criterion of the normality, but it appears too rough. Simulations revealed that with some wavelets we need at least n = 100 to achieve a good normality, while others yield satisfactory results already for n = 10. Obviously, there is more deep dependence on the wavelet shape, and we should seek more subtle normality criteria than (25).</p><p>Martins <ref type="formula" target="#formula_0">(2010)</ref> investigated the Student t-statistic like our (12) for non-Gaussian data and expressed its first momenta. Using these results, we can write down the following characteristics:</p><formula xml:id="formula_27">E z ≃ − 1 2</formula><p>As y √ N ,</p><formula xml:id="formula_28">D z ≃ 1 + 1 N 2 + 7 4 (As y) 2 , As z ≃ −2 As y √ N , Ex z ≃ 1 N 12(As y) 2 − 2 Ex y + 6 ,<label>(26)</label></formula><p>where As is skewness and Ex is excess kurtosis. As we can see, the skewness As y plays a dominant role here. Interestingly, we also obtain some deviations in the average and variance of z, i.e. not only the normality of z is disturbed, but also its normalization gets broken and a bias appears. It follows from <ref type="formula" target="#formula_1">(26)</ref> that As y and Ex y could be used to construct the dedicated normality test. However, it is unclear at this stage, how to formulate such a criterion, because there is no connection between (26) and our FAP estimate <ref type="bibr">(20)</ref>. To establish this connection, we employ a series decomposition of the Edgeworth type. For the p.d.f. of the z-statistics it looks like:</p><formula xml:id="formula_29">p nongauss (z) ≃ p gauss (z) + 1 √ N C 11 p 11 (z)+ + 1 N [C 21 p 21 (z) + C 22 p 22 (z)] + . . . ,<label>(27)</label></formula><p>where the coefficients C i j can be expressed via the momenta <ref type="bibr">(26)</ref>, and p i (z) are derivatives of p gauss (z). We constructed a similar multivariate series for the 6-dim p.d.f. p zz ′ z ′′ that appears in the Rice formula (18), 8 and then integrate it term-by-term. The result is an Edgeworth-type series for the FAP.</p><p>We cannot provide this computation in full details, because some decompositions appearing on the way contained up to ∼ 60000 terms. We used a computer algebra system to reach the goal, and a skeleton of this computation is provided in Appendix A, while the MAPLE worksheet containing these computations is attached as the online-only material (see Appendix C). This computation resulted in the following double-series expansion that extends <ref type="formula" target="#formula_1">(20)</ref> to the non-Gaussian case:</p><formula xml:id="formula_30">FAP ± (z) ∼ ze −z 2 × W 00 + W 02 z −2 + . . . ± ± 1 √ N W 1,−3 z 3 + W 1,−1 z + . . . + + 1 N W 2,−6 z 6 + W 2,−4 z 4 + . . . + . . . .<label>(28)</label></formula><p>We did not plan to use the decomposition (28) in the direct way, i.e. to compute non-Gaussian corrections to the p-values. In fact, it looks likely that whenever the non-Gaussian deviations are significant indeed, this decomposition may have poor convergence, if it converges at all. But we only need to determine the domain in the (a, b) plane, where z(a, b) guaranteedly preserve almost Gaussian behaviour, enabling us using <ref type="bibr">(20)</ref> without any corrections at all. This opportunity reveals itself if we look at the general expression for W i j :</p><formula xml:id="formula_31">W i j = 1 (2π) 3 2 D q i j (a, b) det G(a, b) dadb. (29)</formula><p>It is very similar to (21) though contains an additional multiplier q i j in the integrand. Obviously, if q i j (a, b) is small, the particular point (a, b) contributes with a relatively small amount to the selected coefficient W i j , compared to its contribution in the primary coefficient W 00 . On contrary, if we consider only points with small q i j , the integral (29) should appear small relatively to W 00 , and hence the nonGaussian deviations should remain small too. Therefore, our normality criterion may involve a combination of 4 quantities: q 1,−3 , q 1,−1 , q 2,−6 , and q 2,−4 (while q 02 is unrelated to non-Gaussianity).</p><p>These q i j should be multiplied by some powers of z and N in accordance with the relevant terms of <ref type="bibr">(28)</ref>. After that, we join them together in a sum-of-squares metric and construct the following criterion:</p><formula xml:id="formula_32">1 N q 2 1,−3 z 6 * + q 2 1,−1 z 2 * + 1 N 2 q 2 2,−6 z 12 * + q 2 2,−4 z 8 * &lt; ε 2<label>(30)</label></formula><p>Note that the normality depends on the z level (larger z, less Gaussian), so we had to specify a characteristic z * in (30). The meaning of this z * is the maximum z-level, for which the normality is guaranteedly preserved. It depends on the desired FAP-level that we expect to approximate. In practice these characteristic z-levels do not change much: they usually reside in the range 3 − 5 for all reasonable values of parameters. We employ a universal value z 2 * = 10. Another control parameter in <ref type="formula" target="#formula_2">(30)</ref> is ε, and it sets the desired limit on the relative magnitude of possible non-Gaussian corrections. We usually set ε 2 = 0.1.</p><p>The computation sequence and all formulae necessary to compute the coefficients q i j are given in Appendix A. Reviewing them, we can confirm that the skewness As y is solely responsible for the greatest terms in (30), q 1,−3 and q 2,−6 . The normality domain would enlarge significantly, if As y is somehow suppressed.</p><p>When applying (30) in practice, we noticed that the normality can be broken not only in the smallscale range, as we expected, but also on the opposite, large-scale side of the (a, b) plane (if a comparable to the sample variance and above). However, if the small-scale deviation indicated, basically, a developing degeneracy of the z-distribution, the nonGaussianity in the large-scale range is not such a serious issue. This is an effect of a partial coverage of a highly dilated wavelet, and it does not necessarily infer a degeneracy in the z-distribution. When a is large, the values of z(a, b) are typically very large too, and hence undoubtfully significant, even though non-Gaussian. Simultaneously the large-scale part of the CWT is important in recovering the correct normalization of f (x) (as a p.d.f., it should always integrate to unit). Therefore, in the large-scale domain a σ x it is reasonable to replace the full criterion (30) by the simplified one (25). In such a way, non-Gaussian points at large scales are removed from the analysis, only if the associated number statistics 9 appeared too poor.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Finding optimal wavelets</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1.">Motivation</head><p>So far we paid relatively little attention to the choice of the wavelet ψ(t). We only required it to be the first or second derivative of some bell-shaped generating function ϕ(t), suitable for smoothing. The requirement of having the 'bell-like shape' can be formalized as follows:</p><formula xml:id="formula_33">ϕ(t) &gt; 0 everywhere, ϕ(t) = ϕ(−t), ϕ ′ (t) &gt; 0 for t &lt; 0, ϕ ′ (t) &lt; 0 for t &gt; 0. (31)</formula><p>That is, ϕ(t) must be even and always positive, and must have a single local maximum at t = 0, monotonically decreasing in the tails.</p><p>We still have much freedom in selecting ϕ. We may seek such a ϕ that would improve some properties of our analysis algorithm: reduce the noise level or reduce normality deviations in z.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2.">Wavelets normalization</head><p>Before proceeding further, we need to address a normalization issue for ϕ(t). Having some initial ϕ(t), we can arbitrarily rescale it to ϕ 1 (t) = Kϕ(kt). This new generating function is 'physically' identical to the initial one, nut nonetheless ϕ 1 and ϕ differ in many their formal characteristics. It is convienient to introduce some standard normalization of ϕ(t), and compare two generating functions or two wavelets only after they both are properly rescaled.</p><p>The first natural normalizing condition is that ϕ must be a weight function, that is it must integrate to 1. When such a ϕ is used for smoothing, it maps a constant function to the same constant. This enables us to treat our analysis intuitively, directly comparing the values of Y with f ′ or f ′′ .</p><p>The second condition is intended to normalize the noise in the wavelet transform, expression (10). Of course, achieving a strictly constant D(a, b) is impossible, but we can reach this in the most important small-scale region. For small a, f (x) can be treated almost constant inside the wavelet localization segment. Therefore, we can simplify (1) and <ref type="formula" target="#formula_0">(10)</ref> to</p><formula xml:id="formula_34">Y = a +∞ −∞ f (b + at)ψ(t)dt ≈ a f (b) +∞ −∞ ψ(t)dt = 0, D = 1 N           a +∞ −∞ f (b + at)ψ 2 (t)dt − Y 2           ≈ ≈ a f (b) N +∞ −∞ ψ 2 (t)dt.<label>(32)</label></formula><p>Hence, to equibalance D(a, b) for different wavelets ψ, all these wavelets must have the same L 2 norm. Summarizing, our two normalization condition can be written down as follows:</p><formula xml:id="formula_35">+∞ −∞ ϕ(t)dt = 1, +∞ −∞ ψ 2 (t)dt = 1.<label>(33)</label></formula><p>Now, assume that we have some unnormalized ϕ(t) and seek such coefficients k and K that ϕ nrm (t) = Kϕ(kt) satisfies (33). In the first case, ψ = −ϕ ′ , we obtain:</p><formula xml:id="formula_36">ϕ nrm (t) = Kϕ(kt), ψ nrm (t) = −Kkϕ ′ (kt), K =           +∞ −∞ ϕ dt +∞ −∞ ϕ ′2 dt           − 1 3 , k =           +∞ −∞ ϕ dt           2 3           +∞ −∞ ϕ ′2 dt           − 1 3 .<label>(34)</label></formula><p>In the second case, ψ = ϕ ′′ , we have</p><formula xml:id="formula_37">ϕ nrm (t) = Kϕ(kt), ψ nrm (t) = Kk 2 ϕ ′′ (kt), K =           +∞ −∞ ϕ dt           − 3 5           +∞ −∞ ϕ ′′2 dt           − 1 5 , k =           +∞ −∞ ϕ dt           2 5           +∞ −∞ ϕ ′′2 dt           − 1 5 .<label>(35)</label></formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>10</head><p>For examaple, for (6):</p><formula xml:id="formula_38">WAVE : K = 0.7663992, k = 1.921078, MHAT : K = 0.5442755, k = 1.364296.<label>(36)</label></formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.3.">Formalizing wavelet optimality</head><p>We want to improve our wavelet in two aspects: (i) improve the normality of z(a, b), and (ii) improve the sensitivity of z(a, b) to weak signals. Let us consider these tasks individually.</p><p>As we noticed in Sect. 4, the skewness As y is responsible for the largest-order terms in the normality criterion <ref type="bibr">(30)</ref>. Therefore, we must find such a wavelet that has As y = 0 if possible. In general, this goal cannot be achieved in the entire (a, b) plane, but we may try to do this for small a, where the nonGaussianity is more important. In this case we obtain</p><formula xml:id="formula_39">As y = E (y − Y) 3 ( D y) 3/2 ≈ 1 a f (b) +∞ −∞ ψ 3 (t)dt +∞ −∞ ψ 2 (t)dt 3/2 .<label>(37)</label></formula><p>Hence, As y would (almost) vanish if the wavelet satisfies the restriction</p><formula xml:id="formula_40">+∞ −∞ ψ 3 (t)dt = 0.<label>(38)</label></formula><p>If ψ = −ϕ ′ then ψ is an odd function. Equation <ref type="formula" target="#formula_2">(38)</ref> is always satisfied for odd wavelets. Deviations from the normality should be small for such wavelets 'as is', without making any special efforts. On contrary, if ψ = ϕ ′′ then it is an even function, and the equality (38) becomes non-trivial. In particular, the MHAT wavelet does not satisfy (38) and generates large skewness effects in z(a, b). Now let us consider improving the sensitivity of z(a, b). In the FAP approximation (20), larger W 00 imply smaller significance and larger noise. Therefore, we should try to minimize W 00 by seeking an optimal wavelet ψ. We must also take care of the normalization (33), because otherwise we may reduce noise level simultaneously with the signal (for example, if we merely scale ψ down), or just move the noise to smaller a without changing its magnitude.</p><p>To minimize W 00 , we apply the small-scale approximation to <ref type="bibr">(22)</ref>, taking into account the normalization (33). After easy manipulations, this yields</p><formula xml:id="formula_41">a 4 det G ≈ T (ψ) =           +∞ −∞ t 2 ψ ′2 dt − 1 4           +∞ −∞ ψ ′2 dt.<label>(39)</label></formula><p>According to <ref type="formula" target="#formula_0">(21)</ref> and <ref type="formula" target="#formula_2">(39)</ref>, the magintude of W 00 is proportional to T (ψ). Therefore, minimizing W 00 is equivalent to minimizing the functional T (ψ) with respect to the wavelet ψ, taking into account the normalization constraints (33).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.4.">Finding optimal solutions</head><p>To solve the variational task of the previous subsection, we pre-normalize ψ using <ref type="bibr">(34,</ref><ref type="bibr">35</ref>) and then substitute ψ nrm to (39). For odd wavelets we obtained</p><formula xml:id="formula_42">T nrm (ϕ) =           +∞ −∞ t 2 ϕ ′′2 dt − 1 4 +∞ −∞ ϕ ′2 dt                     +∞ −∞ ϕ ′′2 dt           × ×           +∞ −∞ ϕ ′2 dt           − 8 3           +∞ −∞ ϕ dt           4 3 ,<label>(40)</label></formula><p>while in the even case</p><formula xml:id="formula_43">T nrm (ϕ) =           +∞ −∞ t 2 ϕ ′′′2 dt − 1 4 +∞ −∞ ϕ ′′2 dt                     +∞ −∞ ϕ ′′′2 dt           × ×           +∞ −∞ ϕ ′′2 dt           − 12 5           +∞ −∞ ϕ dt           4 5 .<label>(41)</label></formula><p>Contrary to T , the appropriate T nrm can be minimized without paying attention to the constraints (33). In the even case, the skewness elimination constraint (38) must be taken into account in this optimization. And in any case, the general requirements (31) must be satisfied. Note that there is a trivial minimum T nrm = 0, achieved if ϕ integrates to zero, but such a generating function violates (31) and cannot be used as a smoothing kernel.</p><p>The task appears too difficult with arbitrary ϕ, so we first adopt a simple parametric model for it and then perform the optimization with respect to the 11 model parameters. We set the following model:</p><formula xml:id="formula_44">ϕ(t) = P(t 2 )e − t 2 2 , P(u) = p 0 + p 1 u + . . . + p m u m , ψ 1 (t) = P 1 (t 2 )te − t 2 2 , P 1 (u) = P(u) − 2P ′ (u), ψ 2 (t) = P 2 (t 2 )e − t 2 2 , P 2 (u) = (u − 1)P 1 (u) − 2uP ′ 1 (u).<label>(42)</label></formula><p>The optimization is made by varying the coefficients p i . Since the scale factor is arbitrary here, we set p m = 1 and treat other p i as free. Substituting (42) to the objective (39), as well as to the constraints (33) and (38), yields some multivariate polynomials depending on p i . Therefore, our optimization task is reduced to a system of algebraic equations. Such systems can be solved by reducing them to a single polynomial equation of a higher degree, with respect to a single unknown variable, some of p i in our case. Each root of the latter polynomial generates one possible solution to the system, and by finding all real roots we may obtain the whole set of solutions. After that, we need to select only those solutions that satisfy (31), and also conider the relevant boundary minima. These constraints can also be formulized via algebraic restrictions.</p><p>The degree of the polynomials arising on the way is pretty large, so we seeked the help from the computer algebra again, and now give only a summary of the results. We considered quadratic polynomials P(u), m = 2, and found the following:</p><p>1. For odd wavelets there is a single solution satisfying (31) that we called WAVE2, with T nrm slightly smaller than for the WAVE wavelet (T nrm = 0.170 against T nrm = 0.183). This WAVE2 wavelet is very close to WAVE <ref type="figure" target="#fig_2">(Fig. 1)</ref> for CBHAT. Their graphs are shown in <ref type="figure" target="#fig_2">Fig. 1</ref>. There is a noticable similarity between the generating functions in the WAVE/WAVE2 and in the MHAT/CBHAT pairs. This means that e.g. the MHAT and CBHAT CWTs should remain very similar to each other if the noise is negligible. But the noise properties with CBHAT are much better than with MHAT. The odd wavelets WAVE and WAVE2 are very close to each other, though WAVE2 offers slightly better sensitivity.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">Wavelet reconstruction of the probability density function</head><p>Basically, our z statistic (12) together with the FAP estimate (24) provide a goodness-of-fit test for the wavelet transform. We know that if the null hypothesis Y 0 (a, b) was correct, the random field z(a, b) should likely stay within a ±z thr band about zero. Then a natural question appears: what is the simplest p.d.f. model f 0 (x) that we must adopt to keep z(a, b) solely within this admissible noise band?</p><p>We formulate a rather simplified iterative method that tries to construct f (x) from the least possible number of the detected patterns. ations can be viewed to belong to the matching pursuit family, and the "simplicity" of f (x) is understood in terms of sparsity of its CWT. Two methods, named as 'hard' and 'soft' thresholding, can be used ( <ref type="bibr" target="#b0">Abramovich et al., 2000</ref>). In the first case, the thresholded value Y thr is set to either Y 0 or Y, depending on whether the statistic z appeared significant or not. In the second case, the value of Y is changed by the maximum admissible amount, ±z thr D, in order to shrink the absolute deviation |Y thr − Y 0 |. In the latter case, Y thr (a, b) becomes continuous at the signal/noise transition. The choice of the hard or soft thresholding scheme is a matter of the variance/bias tradeoff: the 'hard' version results in a larger variance, while the 'soft' one has larger bias.</p><p>After thresholding, we should apply an inversion formula to Y thr in order to reconstruct f (x). But to do this, we must define the reconstruction kernel γ. We tried to find an optimal reconstruction kernel γ based on the requirement to minimize the random noise in the reconstructed f (x). This task is considered in Appendix B, where the necessary optimal kernel γ was determined via its Fourier image as</p><formula xml:id="formula_45">ˆ γ(ω) ∝ ˆ ψ(ω)/|ω|.<label>(45)</label></formula><p>For example, for the WAVE wavelet we should set</p><formula xml:id="formula_46">γ WAVE (t) = ∞ 0 e − ω 2 2 sin ωt dω = √ 2 Dw t √ 2 ,<label>(46)</label></formula><p>where Dw(x) is the Dawson function. This function looks generally similar to the WAVE wavelet, with much heavier tails though (∼ 1/x for large x). The reconstruction kernel for the even case, ψ 2 = −ϕ ′′ , can be obtained by differentiating: γ 2 (t) = −γ ′ 1 (t), looks similar to MHAT <ref type="figure" target="#fig_2">(Fig. 1)</ref>. Longer tails result in a more smoothed reconstruction than for γ = ψ. Also, the side minima of γ 2 are smaller than those of ψ, resulting in reduced side artifacts.</p><p>For the wavelet model (42) we derived the following general expressions:</p><formula xml:id="formula_47">γ 1 (t) = p 0 d + p 1 t(td − 1) + p 2 t(t 3 d − 1 − t 2 ) + . . . , γ 2 (t) = p 0 (td − 1) + p 1 [(t 2 − 2)td − 1 − t 2 ]+ + p 2 [(t 2 − 4)t 3 d + 1 + 3t 2 − t 4 ] + . . . , d = √ 2 Dw t √ 2 .<label>(47)</label></formula><p>These formulae can be used to compute γ 1 for WAVE2 and γ 2 for CBHAT wavelets by substituting the coefficients from <ref type="bibr">(43,</ref><ref type="bibr">44)</ref>. Their normaliza-tion constants become</p><formula xml:id="formula_48">C ψ 1 γ 1 = π 2 √ 2 p 2 0 + p 0 p 1 + 3 2 p 0 p 2 + 3 4 p 2 1 + + 15 4 p 1 p 2 + 105 16 p 2 2 + . . . , C ψ 2 γ 2 = π 2 √ 2 p 2 0 − p 0 p 1 − 9 2 p 0 p 2 + 7 4 p 2 1 + + 21 4 p 1 p 2 + 225 16 p 2 2 + . . . .<label>(48)</label></formula><p>Whenever the wavelets are normalized according to <ref type="bibr">(34,</ref><ref type="bibr">35)</ref>, their reconstruction kernels scale as Kγ 1 (kt) or Kkγ 2 (kt), while the constants C ψγ scale by K 2 /k and by K 2 k, respectively. In particular,</p><formula xml:id="formula_49">C WAVE ≈ 4.2676, C MHAT ≈ 2.8205, C WAVE2 ≈ 4.1710, C CBHAT ≈ 2.8195.<label>(49)</label></formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.">Test simulations and the exoplanetary example</head><p>Approximating the false alarm probability was one of the most complicated part of the method, possibly vulnerable to mistakes. Therefore, we need to verify the relevant formulae by comparing them with numerical simulations.</p><p>We consider the accuracy of the FAP approximations in the Gaussian case <ref type="bibr">(20)</ref>, and partly <ref type="bibr">(28)</ref>. Generating in the similar way 10 5 simulated samples, for each trial we computed the maximum value z max of z(a, b). The maximization was restricted to the normality domain, determined in accordance with <ref type="bibr">(30)</ref>. The set of simulated z max then was used to construct their empirical distribution function and hence the simulated FAP curve. The latter can be compared with the analytic approximations <ref type="bibr">(20,</ref><ref type="bibr">28)</ref>. This comparison is shown in <ref type="figure" target="#fig_3">Fig. 2</ref>. We can see that the agreement is good, if FAP is small (below 0.1) and W 00 is not too small (above 1). These are natural restrictions of the Rice method used to approximate the FAP. In particular, the MHAT wavelet generates too small normality domain, implying that its W 00 is small as well, and the analytic FAP approximation becomes poor. For other wavelets, we obtain good agreement for the cases N = 300 and N = 1000. For N = 100 (not shown), the quality of the approximation degrades even for wavelets other than MHAT, because the normality domain shrinks too much in any case. Therefore, our algorithm is applicable to samples that contain a few hundred objects at least.</p><p>The effect of the wavelet normality is demonstrated in <ref type="figure">Fig. 3</ref>. We show the y-distribution generated by the MHAT or CBHAT wavelet, depending on the characteristic n from (25). In the first case, this distribution is clearly non-Gaussian, and this remains noticable even for n as large as 100. The CB-HAT wavelet demonstrates much better behaviour: the non-Gaussian deviations become invisible to an eye for n = 10 already. This confirms that the nonGaussianity in CBHAT was indeed suppressed a lot.</p><p>Finally, we apply our technique to a realworld data set. We considered the exoplanetary candidates from the Extrasolar planets catalog at www.exoplanet.eu. The sample was formed from N = 695 candidates detected by the radial-velocity technique. Using our wavelet method, we analysed the distribution of orbital periods P of these candidates (more precisely, we considered x = log P). We assumed the simplest initial model Y 0 ≡ 0.</p><p>We do not plan to analyse this distribution here in depth, and we currently avoid any physical interpretation of the results (this is left for the more thorough work in future). Our aim is only to further test the wavelet analysis method and demonstrate how it may work with real data. So we did not undertake any attempts to 'clean' this sample to make it more homogeneous or less affected by observational biases. We also assume that thanks to the third Kepler law, the orbital periods are equivalent, in average, to the distance from the star (orbital semimajor axis), because majority of the stars involved in the planet search programmes are similar to the Sun and have roughly the same mass of 1 Solar mass. So in the statistical sense a 'short-period' planet is roughly the same as a 'close-in' planet.</p><p>Our analysis algorithm provides two types of the output: (i) the normalized wavelet transform (12), accompanied by the significance estimate (24), and (ii) the reconstructed p.d.f. obtained iteratively as described in Sect. 8 below. We insist that the wavelet transform should be treated as the primary source of information, because it allows to clearly separate different patterns from each other, and also provides a direct estimate of their statistical significance. The  Figure 3: Non-gaussianity effect inspired by the MHAT and CBHAT wavelets in the y-distribution. These are normal quantilequantile plots, in which the standard Gaussian distribution should follow the main diagonal. Simulations assumed a flat xdistribution, or f (x) = const within a wide range. The characteristic n here is the math. expectation of <ref type="formula" target="#formula_1">(25)</ref>, that is the average number of samples x i falling in the wavelet localization domain.</p><p>reconstructed p.d.f. is merely a nice and intuitive representation of this wavelet map. This reconstruction is still not completely free from artifacts, and it was not designed to give any significance measures. Various wavelet transforms of this sample are plotted in <ref type="figure" target="#fig_1">Fig. 4</ref>. Based on these graphs, we may highlight the following: period exoplanets (P 1 yr, very large significance), the family of 'hot jupiters' at short periods (P ∼ 3 − 10 d, approx. two-sigma significance), and the 'period valley' between them (above the three-sigma significance). The small-scale side spike near the long-period group (in CBHAT plot, about three-sigma significance) indicates that there is a relatively sharp transition between them and the period valley.</p><p>3. The effect of the 'domain penality' on the significance estimates is dramatic. We obtain considerably more diverse set of structures, if the significance is determined from the singlevalue FAP distribution, like in <ref type="bibr" target="#b23">Skuljan et al. (1999)</ref>. However, these increased significance estimates would correspond to an impractical condition that the scale and position of a given structure was known a priori. Most of the structures appearing significant in the SVD mode, become just usual noisy deviations in the EVD mode. In practice the SVD significance is usually inadequate, because we basically estimate patterns locations by spotting the maximum deviations over the plot. 4. Our method could in principle detect in this sample details as small as a ∼ 0.05, based on the minimum scale allowed by the normality criterion, though small-scale structures can be detected only if they have enough amplitude. 5. The graphs constructed with the use of an odd or an even wavelet appear highly complementary. One allows to better understand another.</p><p>The reconstructed p.d.f. of this distribution is plotted in <ref type="figure" target="#fig_6">Fig. 5</ref> for WAVE2 and CBHAT wavelets and three different noise threshold levels, corresponding to the 1, 2, 3-sigma significance. We can see that the 'hot jupiters' density bump, as well as the 'period valley' depression, both appear rather shallow in the absolute measure. Nevertheless, their significance in the SWT is high enough. An interiguing detail is a possible bimodality of the primary maximum that appears at the 1-sigma reconstruction with the CBHAT wavelet. However, the wavelet transform did not contain any hint of a sharp local minima at this position (P ∼ 700 d), even at the 1-sigma significance level. This means that this local minima may be a minor artifact of the reconstruction. It is the wavelet transform that provides us with the significance information, so we must wait until this putative local minimum reveals itself in z(a, b). Nevertheless, this period range definitely contains subtle details that need further interpretation, in particular there is a rather sharp border with the 'period valley'. The advantage of our wavelet technique is that it allows us to discuss such details in a much more rigorous and objective manner than e.g. the traditional histogram.</p><p>A detailed analysis of a wide variety of exoplanetary distributions is given in <ref type="bibr" target="#b5">(Baluev, 2017)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8.">Summary of the algorithm</head><p>In this section, we provide a brief summary of the method with quick references to the main formulae. A software project implementing the entire pipeline of the algorithm is hosted at the SourceForge.net service under the title WaveletStat. <ref type="bibr">2</ref> The algorithm infers the use of one of the optimized wavelets, WAVE2 (43) or CBHAT (44), normalized according to either <ref type="bibr">(34) or (35)</ref>. The analysis requires to solve four major sub-tasks described below. Note that algorithmically they may overlap with each other.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8.1.">Computation of the SWT</head><p>Use formulae <ref type="bibr">(8,</ref><ref type="bibr">11,</ref><ref type="bibr">12)</ref> to compute Y(a, b) and z(a, b) on some dense enough grid in the (a, b) plane. The grid has to be non-uniform: it should increase its b-axis density to smaller a (as ∆b ∝ a), and the aaxis should be logarithmic at small a, in order to have all local maxima of the CWT sampled uniformly. A good choice is a uniform grid in log(1 + a 0 /a), where a 0 is proportional to the sample variance.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8.2.">Determination of the normality domain</head><p>The normality domain in the (a, b) plane is determined based on the criterion (30), in which the quantities q i j are defined in Appendix A:</p><p>1. Expressions (A.1) define the vector v.</p><p>2. An estimatioñ v is constructed by substituting the covariance estimates (23) and their necessary analogues, including Y ≃ Y. 3. The elements of˜vof˜ of˜v are arranged in products and then are sample-averaged according to <ref type="bibr">(A.13)</ref>, yielding various momenta estimates. 4. Finally, q i j are constructed from these momenta using formulae (A.15) and those given in the attached MAPLE worksheet.</p><p>It is also necessary to set in (30) two error control parameters z * and ε. Values z 2 * = 10 and ǫ 2 = 0.1 appear practically reasonable. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8.3.">Applying a FAP threshold to clean the noise</head><p>First we need to compute W 00 in (21), substituting det G from (A.15) and other quantities already defined. The integration in (21) should be made within the normality domain. Optionally, a correction term W 02 may be computed, based on (29) with q 02 expressed in the attached MAPLE worksheet. After that, apply the asymptotic estimate (24) to compute the FAP for each points inside the normality domain. Threshold the points given some small critical FAP thr : domains with FAP &lt; FAP thr correspond to significant features in the CWT, while everything else should be attributed to the noise. This can be made for different FAP thr .</p><p>8.4. Reconstruction of the p.d.f. f (x) from the cleaned wavelet transform Apply the hard or soft noise thresholding to Y to obtain Y thr . Then substitute it in the inversion formula (2), using the optimized reconstruction kernel γ defined in (47), and the constants from (49). After this, we obtain a better approximation than Y 0 was, but it is not guaranteed that no significant patterns remain in the residual wavelet transform. We should update Y 0 with this new model and return back to the noise thresholding step 8.3, iterating until all significant patterns (in the normality domain) are cleared away from the residual. The SWT from the step 8.1 and the Gaussian domain from 8.2 do not change in these iterations.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="9.">Conclusions and discussion</head><p>Our main results that allowed to significantly improve available methods of the p.d.f. wavelet analysis, are:</p><p>1. Asymptotic estimation of the p-value significance, obtained with an adequate treatment of the 'domain penalty' effect. This approximation is practically accurate and entirely analytic, thus removing the need of Monte Carlo simulations. 2. Construction of an objective criterion to determine the applicability domain of the method in the shift-scale plane, based on the Gaussianity requirement. 3. Derivation of optimal wavelets and optimal reconstruction kernels that allowed to improve the S/N ratio and to reduce the non-Gaussian deviations, thus expanding the applicability domain in the shift-scale plane. We also showed that the MHAT wavelet is practically useless in this task because of the large nonGaussianity it generates.</p><p>The simulations revealed that the method can be used on samples containing a few hundred of objects at least, because otherwise the normality domain in the (a, b) plane shrinks to much, rendering the analysis unreliable. Another limitation of our algorithm is that it can process only 1D distributions. It cannot 18 analyse 2D distributions that were the main goal in e.g. ( <ref type="bibr" target="#b23">Skuljan et al., 1999</ref>), or distributions of higher dimension.</p><p>Generalization of the technique to two dimensions and more remains a task for future, and the above theory represents the necessary basis for future improvements. The design of the method would probably allow us to incorporate a neat reduction of various statistical distortions, e.g. selection biases. In the current form our method can be already applied to exoplanetary distributions, including candidates discovered by the Kepler spacecraft, as well as to study the Milky Way stellar population. transform of everything that should remain inside the integrals in (18), if we remove p zz ′ z ′′ :</p><formula xml:id="formula_50">(z ′′ aa z ′′ bb − z ′′ ab 2 )δ(z ′ a )δ(z ′ b )U(z − z thr ), (A.11)</formula><p>where δ(x) is the Dirac delta function, and U(x) is the Heaviside function. The Fourier transform of (A.11) with respect to</p><formula xml:id="formula_51">z = (z, z ′ a , z ′ b , z ′′ aa , z ′′ ab , z ′′ bb ) reads: (2π) 3 πδ(t 1 ) + i t 1 e iz thr t 1 × ×[δ(t 4 )δ(t 6 )δ ′′ (t 5 ) − δ ′ (t 4 )δ ′ (t 6 )δ(t 5 )]. (A.12)</formula><p>After multiplying (A.12) by the expansion of (A.9) and integrating with respect to t, we derive the final Edgeworth-like FAP approximation (28), along with the expressions for all coefficients W i j expressed as <ref type="bibr">(29)</ref>. The quantities q i j in <ref type="formula" target="#formula_1">(29)</ref> are expressed via the cumulants l k . In practical computations, the latters can be estimated with O(µ) accuracy as follows. First, in the elements of v all covariances are replaced with their esimates (23) and with analogous sample estimates for Cov(y, y ′′ ) and Var y ′ . Also, we must replace Y by its estimation (8), as well as Y ′ and Y ′′ should be replaced by the correponding derivatives of <ref type="bibr">(8)</ref>. This gives an estimate˜vestimate˜ estimate˜v that allows to compute arbitrary sample momenta of the following kind: The formulae for q 02 , q 1,−1 , and q 2,−4 cannot be exposed here because of their size, but they can be found in the MAPLE worksheet attached to the paper. They contain various L i j and L i jk , and a 4-index momentum L 0000 in q 2,−4 .</p><formula xml:id="formula_52">L i j = ˜ v i ˜ v</formula><p>Appendix B. Uncertainty of the reconstructed density function</p><p>Now it is convinient to use an equivalent form of the CWT (3) and its inverse (4).</p><p>Let us assume that there is a 'signal domain' S in the (a, b) plane, in which we put Y thr = Y, while in all other parts of the plane Y thr = Y 0 . We can ssume that S is fixed. In actuality S is a random outcome of the thresholding procedure that depends on the noise in z(a, b), but in this case there is an 'average' signal domain, and the actual S may deviate by only a small relative perturbation from it.</p><p>Let us substitute Y thr (k, c) in (4) and split the integration over S and over its complement ¯ S:</p><formula xml:id="formula_53">C ψγ f (x) = ¯ S Υ 0 (κ, s)γ(κx + s)dκds+ + S Υ(κ, s)γ(κx + s)dκds. (B.1)</formula><p>The first integral in (B.1) does not include any random noise, and it represents a 'predicted' part of the reconstructed p.d.f., i.e. the part for which the model Y 0 appeared in good agreement with the sample. We denote this part as f ¯ S (x). The random part is the second integral that contains a noisy estimation Υ. Since it was defined as a sample average (8), its mean is E Υ = Υ, and the formula for its covariance function can be derived by generalizing (10):</p><formula xml:id="formula_54">N Cov( Υ, Υ ′ ) = +∞ −∞ f (x)ψ(κx + s)ψ(k ′ x + c ′ )dx − ΥΥ ′ .</formula><p>(B.2) By using the equations (1), (B.1), and (B.2), we can derive the main statistical characteristics of the p.d.f. estimation f (x), namely its mean and the variance:</p><formula xml:id="formula_55">E f (x) = f ¯ S (x) + f S (x), N D f (x) = +∞ −∞ R 2 S (x, x ′ ) f (x ′ )dx ′ − f 2 S (x), f S (x) = +∞ −∞ R S (x, x ′ ) f (x ′ )dx ′ , R S (x, x ′ ) = 1 C ψγ S ψ(κx ′ + s)γ(κx + s)dκds. (B.3)</formula><p>Both ψ and γ appearing in the definition of R S are well-localized functions, with the characteristic localization ∼ 1/κ = a. Small a, or large κ, dominate in the integral defining R S (x, x ′ ), so this function must be well localized with respect to the argument difference x − x ′ . Therefore, this kernel basically performs a low-pass filtering on f (x), and the filtering scale is about the minimum value of a present in the domain S. This enables us to further simplify (B.3) by employing the small-scale approximation, in which f (x) can be treated constant inside an integral:</p><formula xml:id="formula_56">f S (x) ≃ f (x) +∞ −∞ R S (x, x ′ )dx ′ = 0, N D f (x) ≃ f (x) +∞ −∞ R 2 S (x, x ′ )dx ′ . (B.4)</formula><p>Now it becomes clear that the following aggregate noise characteristic gets a nice representation:</p><formula xml:id="formula_57">N +∞ −∞ D f (x) f (x) dx ≃ +∞ −∞ +∞ −∞ R 2 S (x, x ′ )dxdx ′ . (B.5)</formula><p>Its behaviour depends solely on the L 2 norm of the function R S , which in turn depends on ψ and γ. We must minimize R S with respect to γ to obtain the least noisy p.d.f. reconstruction. We can see that the optimality depends strongly on the domain S used in (B.5). We need to specify S to proceed further, but this depends on what kind of 'optimality' we want from our reconstruction algorithm.</p><p>Thinking of this more deeply, the plain minimization of the cumulative noise (B.5) does not appear very useful. In terms of our pattern analysis, the distribution f (x) is viewed as a superposition of multiple patterns with different scale and position, and these patterns may overlap and interfere with each other. At least, there is always a background largescale structure that contrubutes in each value of f (x) at any given x, making it unclear what is the actual contribution from smaller-scale structures. Instead of the 'aggregate optimality', we would prefer to optimize individually all noise contributions coming from each of the individual structures. This means the 'local optimality' that binds us to a more or less narrow domain in the (a, b) plane.</p><p>Therefore, let us set S to a narrow box ∆κ × ∆s about a point (κ 0 , s 0 ). This means to consider the contribution from just a single elementary structure detected in the (a, b) plane, and neglecting everything else including the large-scale background. We have: Then we can write C ψγ = (η, γ), meaning under ( * , * ) the scalar product in the Hilbert space. Thanks to the Parseval theorem, this scalar product can be equivalently computed via the time-domain integration of ηγ or via the frequency-domain integration ofˆηofˆ ofˆη * ˆ γ. Using this notation, we must solve</p><formula xml:id="formula_58">R S (x, x ′ ) = ∆κ∆s C ψγ ψ(κ 0 x ′ +<label>s</label></formula><formula xml:id="formula_59">R S ∝ γ |(η, γ)| −→ min γ ⇐⇒ |(η, γ)| γ −→ max γ .</formula><p>(B.8) Speaking in geometric wording, we must maximize the cosine of an 'angle' between η and γ. This is obviously achieved if γ is 'parallel' to η, or just put γ = η.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head></head><label></label><figDesc>as the core of our method. Large values of |z(a, b)| point out some 'structural patterns' in the p.d.f. f (x), in addition to those already included in the null model Y 0 . It is legal to start the procedure from the trivial null hypothesis Y 0 (a, b) ≡ 0, if no initial information about f (x) and Y(a, b) is available.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>4 .</head><label>4</label><figDesc>Characterizing the noise level and calibrating the p-values 4.1. The problem The estimates (8) and</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Different analysing wavelets ψ, their generating functions ϕ, and the associated optimal reconstruction kernels γ. Everything after the normalization (33).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: Analytic approximations (20,28) of the FAP(z) law, compared with Monte Carlo simulations. The simulations involved the normality criterion (30) and thus all coefficients W i j are restricted to the normality domain. Red-colored curves refer to positive extrema distributions (maxima of z(a, b), FAP + ), blue-colored ones refer to the negative ones (minima of z(a, b), FAP − ), though they appear mostly indistinguishable from each other. Theoretic approximations are shown in thicker dashed lines.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Figure 4 :</head><label>4</label><figDesc>Figure 4: Wavelet transforms of the orbital periods distribution for N = 695 exoplanetary candidates. The colors map the significance of z(a, b), taking the sign into account (red-yellow for z &gt; 0, blue-cyan for z &lt; 0). Two bottom panels show the 'SVD significance'= z. The others show the 'EVD significance', being the normal quantile of the FAP estimate (24). The hashed regions are where the normality test (30) was failed. The black curves near the bottom of each graph mark the condition n = 10, with n given in (25).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Figure 5 :</head><label>5</label><figDesc>Figure 5: Reconstructed p.d.f. of the exoplanetary orbital periods distribution, based on the same sample as in Fig. 4. The soft thresholding method was used here. Different curves refer to one-sigma (FAP = 0.31), two-sigma (FAP = 0.05), and three-sigma (FAP = 0.0027) signficance tolerances. A histogram of the sample is also plotted.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head></head><label></label><figDesc>0 )γ(κ 0 x + s 0 ), R S = ∆κ∆s κ 0 |C ψγ | ψ γ −→ min γ . (B.6) Note that C ψγ also depends on γ, according to (2). To express it in a more convenient manner, let us define the auxiliary function η, such that ˆ η(ω) = ˆ ψ(ω)/|ω|. (B.7)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" validated="false"><head>)). It would be much more useful to deal with a constant noise level, so we need to normalize Y in some way to equibalance the noise over the (a, b) plane.</head><label></label><figDesc></figDesc><table>One can see that this function may vary dramati-
+cally over the (a, b) plane. This means that the noise 
+contribution in the estimate 
+Y is non-uniform. In 
+other words, 
+Y becomes heteroscedastic, rendering 
+
+this estimate practically unsuitable (Jansen, 2001, 
+sect. 5.8For this goal, we may use the classic unbiased 
+variance estimate 
+
+
+D(a, b) </table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" validated="false"><head>Boundary optima did not allow to further re- duce T nrm . All optimal solutions of this</head><label></label><figDesc></figDesc><table>. 
+2. For even wavelets we found a single local min-
+imum of T nrm satisfying (31). This minimum 
+corresponds to a suitable optimal solution with 
+T nrm = 0.479. We called this new wavelet 
+CBHAT, or 'Cowboy Hat', by its reminiscent 
+shape (Fig. 1). Note that the classic MHAT 
+wavelet has a smaller T nrm = 0.217, but this 
+is by the cost of breaking (38) and largerly 
+skewed noise in CWT. We put more priority on 
+suppressing the non-Gaussianity, and therefore 
+
+we adopt CBHAT wavelet as a better replace-
+ment of MHAT. 
+3. task 
+are located strictly inside the domain (31). 
+
+Our new optimal wavelets are defined by the for-
+mulae 
+
+ϕ(t) = (24.8929 + 0.3794t 2 + t 4 )e − t 2 
+2 , 
+
+ψ 1 (t) = (24.1342 − 3.6206t 2 + t 4 )te − t 2 
+2 , 
+K = 0.0313959, k = 2.22497 
+(43) 
+
+for WAVE2, and like 
+
+ϕ(t) = (14.9952 + 5.2378t 2 + t 4 )e − t 2 
+2 , 
+
+ψ 2 (t) = (−4.5196 + 0.8062t 2 − 3.7622t 4 + t 6 )e − t 2 
+2 , 
+K = 0.0345363, k = 2.01127 
+(44) 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" validated="false"><head>j , L i jk = ˜ v i ˜ v j ˜ v k , L 0000 = ˜ v 4... . The most simple expressions are: det G ≃ L 11 L 22 − L 2</head><label></label><figDesc></figDesc><table>0 − 3. 
+(A.13) 
+By a convention, the indices in v i count from zero. 
+For example: 
+
+L 11 = ˜ v 2 
+1 
+estimates D 
+∂y nrm 
+∂b 
+, 
+
+L 000 = ˜ v 3 
+0 
+estimates E y 3 
+nrm = As y, 
+L 0000 = ˜ v 4 
+0 − 3 estimates E y 4 
+nrm − 3 = Ex y, 
+
+L 011 = ˜ v 2 
+1 ˜ 
+v 0 
+estimates E 
+ 
+     
+
+∂y nrm 
+∂b 
+2 
+y nrm 
+ 
+     . 
+
+(A.14) 
+
+All necessary quantities can be explicitly expressed 
+via these L 12 , 
+q 1,−3 ≃ −L 000 /3, 
+
+q 2,−6 ≃ L 2 
+000 /18. 
+(A.15) 
+
+</table></figure>
+
+			<note place="foot" n="1"> The infinite integration with respect to b or s is typically not a problem, since the integrands in (2,4) tend to zero quickly enough for b → ∞ or s → ∞.</note>
+
+			<note place="foot" n="1">. The MHAT wavelet is practically useless in this analysis, because it generates too large non-Gaussianity. 2. Other wavelets appear quite useful and easily identify several well-known structures in the exoplanetary period distribution (Cumming, 2010): the primary maximum containing long-</note>
+
+			<note place="foot" n="2"> http://sourceforge.net/projects/waveletstat/</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Acknowledgements</head><p>This work was supported by the Russian Foundation for Basic Research grant 17-02-00542 A and by the Presidium of Russian Academy of Sciences programme P-28, subprogramme "The space: investigating fundamental processes and their interrelations".</p></div>
+			</div>
+
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>MAPLE worksheets</head><p>The supplementary material contains two MAPLE worksheets:</p><p>1. edge.mw -contains the full derivation of the FAP Edgeworth decomposition (28), following the scheme layed out in Appendix A; 2. qij.mw -contains only the final expressions for q i j for the normality test (30). They are expressed via the cumulants l that are estimated by L in (A.13).</p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<monogr>
+		<title level="m" type="main">Wavelet analysis and its statistical applications</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Abramovich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">C</forename><surname>Bailey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Sapatinas</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2000" />
+			<biblScope unit="volume">49</biblScope>
+			<biblScope unit="page" from="1" to="29" />
+		</imprint>
+	</monogr>
+<note type="report_type">JRSS-D (The Statistician</note>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">Asymptotic expansions for the distribution of the maximum of Gaussian random fields</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Aza¨ısaza¨ıs</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Delmas</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Extremes</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="page" from="181" to="212" />
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<monogr>
+		<title level="m" type="main">Level Sets and Extrema of Random Processes and Fields</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Aza¨ısaza¨ıs</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Wschebor</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2009" />
+			<publisher>Wiley</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Assessing the statistical significance of periodogram peaks</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">V</forename><surname>Baluev</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">385</biblScope>
+			<biblScope unit="page" from="1279" to="1285" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Detecting non-sinusoidal periodicities in observational data: the von Mises periodogram for variable stars and exoplanetary transits</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">V</forename><surname>Baluev</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">431</biblScope>
+			<biblScope unit="page" from="1167" to="1179" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<monogr>
+		<title level="m" type="main">Fine-resolution wavelet analysis of exoplanetary distributions: hints of an overshooting iceline accumulation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">V</forename><surname>Baluev</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv.org:1712.06374</idno>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+<note type="report_type">preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Statistics of masses and orbital parameters of extrasolar planets using continuous wavelet transforms</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">V</forename><surname>Baluyev</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Tenth anniversary of 51 Peg -b: Status of and prospects for hot Jupiter studies</title>
+		<editor>Arnold, L., Bouchy, F., Moutou, C.</editor>
+		<meeting><address><addrLine>Paris</addrLine></address></meeting>
+		<imprint>
+			<publisher>Frontier Group</publisher>
+			<date type="published" when="2005" />
+			<biblScope unit="page" from="103" to="110" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">Gaia Data Release 1. Summary of the astrometric, photometric, and survey properties</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G A</forename><surname>Brown</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">595</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">The distribution of nearby stars in phase space mapped by Hipparcos. II. Inhomogeneities among A-F type stars</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Chereul</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Crézé</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Bienaymé</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">340</biblScope>
+			<biblScope unit="page" from="384" to="396" />
+			<date type="published" when="1998" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Statistical distribution of exoplanets</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Cumming</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Exoplanets</title>
+		<editor>Seager, S.</editor>
+		<meeting><address><addrLine>Tucson</addrLine></address></meeting>
+		<imprint>
+			<publisher>University of Arizona Press</publisher>
+			<date type="published" when="2010" />
+			<biblScope unit="page" from="191" to="214" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">Density estimation with nonparametric methods</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Fadda</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Slezak</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Bijaoui</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;ASS</title>
+		<imprint>
+			<biblScope unit="volume">127</biblScope>
+			<biblScope unit="page" from="335" to="352" />
+			<date type="published" when="1998" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">Wavelets for period analysis of unevenly spaced time series</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Foster</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">112</biblScope>
+			<biblScope unit="page" from="1709" to="1729" />
+			<date type="published" when="1996" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">Decomposition of Hardy functions into square integrable wavelets of constant shape</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Grossman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Morlet</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">SIAM J. Math. Anal</title>
+		<imprint>
+			<biblScope unit="volume">15</biblScope>
+			<biblScope unit="page" from="723" to="736" />
+			<date type="published" when="1984" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">Radial velocity data analysis with compressed sensing techniques</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">C</forename><surname>Hara</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Boué</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Laskar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">C</forename><surname>Correia</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">464</biblScope>
+			<biblScope unit="page" from="1220" to="1246" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">A prescription for period analysis of unevenly spaced time series</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">H</forename><surname>Horne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">L</forename><surname>Baliunas</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">302</biblScope>
+			<biblScope unit="page" from="757" to="763" />
+			<date type="published" when="1986" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<monogr>
+		<title level="m" type="main">Noise Reduction by Wavelet Thresholding</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Jansen</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2001" />
+			<publisher>Springer</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">On inversion of continuous wavelet transform</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Su</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Wang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Open J. Stat</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="page" from="714" to="720" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Student t-statistic distribution for nongaussian populations</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Martins</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proc. ITI 2010, 32nd International Conference on Information Technology Interfaces, IEEE</title>
+		<meeting>ITI 2010, 32nd International Conference on Information Technology Interfaces, IEEE</meeting>
+		<imprint>
+			<date type="published" when="2010" />
+			<biblScope unit="page" from="563" to="568" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">Wavelet-bayesian inference of cosmic strings embedded in the cosmic microwave background</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Mcewen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">M</forename><surname>Feeney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">V</forename><surname>Peiris</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Wiaux</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Ringeval</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">R</forename><surname>Bouchet</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">472</biblScope>
+			<biblScope unit="page" from="4081" to="4098" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">A high-significance detection of non-Gaussianity in the Wilkinson Microwave Anisotropy Probe 1-yr data using directional spherical wavelets</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Mcewen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">P</forename><surname>Hobson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">N</forename><surname>Lasenby</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J</forename><surname>Mortlock</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">359</biblScope>
+			<biblScope unit="page" from="1583" to="1596" />
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">N-body simulations with two-orders-of-magnitude higher performance using wavelets</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">B</forename><surname>Romeo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Horellou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Bergh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">342</biblScope>
+			<biblScope unit="page" from="337" to="344" />
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">A wavelet add-on code for new-generation N-body simulations and data denoising (JOFILUREN)</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">B</forename><surname>Romeo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Horellou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Bergh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">354</biblScope>
+			<biblScope unit="page" from="1208" to="1222" />
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">Period search in large datasets</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Schwarzenberg-Czerny</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Baltic Astron</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="page" from="43" to="69" />
+			<date type="published" when="1998" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">Velocity distribution of stars in the solar neighbourhood</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Skuljan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Hearnshaw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">L</forename><surname>Cottrell</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">308</biblScope>
+			<biblScope unit="page" from="731" to="740" />
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<monogr>
+		<title level="m" type="main">Wavelet analysis of time series (in Russian)</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">V</forename><surname>Vityazev</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2001" />
+			<publisher>SPb Univ. Press</publisher>
+			<pubPlace>Saint Petersburg</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

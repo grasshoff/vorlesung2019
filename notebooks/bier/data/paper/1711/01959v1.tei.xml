@@ -1,0 +1,951 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-11T13:19+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">An Introduction to Data Analysis in Asteroseismology</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Tiago</forename><forename type="middle">L</forename><surname>Campante</surname></persName>
+						</author>
+						<title level="a" type="main">An Introduction to Data Analysis in Asteroseismology</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<abstract>
+				<p>A practical guide is presented to some of the main data analysis concepts and techniques employed contemporarily in the asteroseismic study of stars exhibiting solar-like oscillations. The subjects of digital signal processing and spectral analysis are introduced first. These concern the acquisition of continuous physical signals to be subsequently digitally analyzed. A number of specific concepts and techniques relevant to asteroseismology are then presented as we follow the typical workflow of the data analysis process, namely, the extraction of global asteroseismic parameters and individual mode parameters (also known as peak-bagging) from the oscillation spectrum.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Solar-like oscillations are excited by turbulent convection in the outer layers of stars (see, e.g., <ref type="bibr" target="#b15">Christensen-Dalsgaard, 2004</ref>, and references therein). Consequently, all stars cool enough to harbor an outer convective envelope may be expected to exhibit solar-like oscillations. Among several other classes of pulsating stars, solar-like oscillations are detectable in main-sequence core, and post-main-sequence shell, hydrogen-burning stars residing on the cool side of the Cepheid instability strip. The NASA Kepler mission ( <ref type="bibr" target="#b6">Borucki et al., 2010</ref>) has led to a revolution in the field of cool-star asteroseismology by allowing the detection of solar-like oscillations in several hundred solar-type stars (i.e., low-mass, main-sequence stars and cool subgiants) and in over ten thousand red giants (for a review, see <ref type="bibr" target="#b13">Chaplin &amp; Miglio, 2013)</ref>. Of all these stars displaying solar-like oscillations about one hundred are Kepler Objects of Interest (KOIs), i.e., candidate exoplanet-host stars (e.g., <ref type="bibr" target="#b9">Campante et al., 2015;</ref><ref type="bibr" target="#b27">Lundkvist et al., 2016)</ref>.</p><p>The present chapter is intended as a practical guide to some of the main data analysis concepts and techniques employed contemporarily in the asteroseismic study of stars exhibiting solar-like oscillations. The contents of this chapter strongly reflect the author's own experience as a data analyst. For that reason, special care has been taken to provide references to the work conducted by others, so that the reader can easily expand on the material presented herein.</p><p>Pre-processing of light curves, although an integrant part of the data analysis process, is beyond the scope of this contribution. I therefore start by introducing the subjects of digital signal processing and spectral analysis in Sect. 2. These concern the acquisition of continuous physical signals to be subsequently digitally analyzed. A number of specific concepts and techniques relevant to asteroseismology are then presented as we follow the typical workflow of the data analysis process (see <ref type="figure">Fig. 1</ref>). One must first establish whether signatures of solar-like oscillations are detectable in the power spectrum of the light curve. If they are, an attempt is made at extracting global asteroseismic parameters from the data <ref type="bibr">(Sect. 3)</ref>. One then establishes whether the oscillation spectrum is of sufficient quality to allow extraction of individual frequencies. If the answer is yes, individual mode parameters are then extracted by fitting a multiparameter model to the oscillation spectrum, i.e., by peak-bagging the oscillation spectrum (Sect. 4).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Digital signal processing and spectral analysis</head><p>Whereas some temporal phenomena can be understood through models in the time domain involving deterministic trends and/or stochastic autoregressive behavior, others are dominated by periodic behavior that is most effectively modeled in the frequency domain. The functional form of solar-like oscillations is that of a stochastically-excited harmonic oscillator. This being a periodic functional form, the Fourier transform becomes the obvious choice for performing data analysis.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Nyquist sampling theorem and aliasing</head><p>Let us consider the idealized case of a continuous signal x(t) sampled by a set of impulse functions regularly spaced by ∆t. Since the Fourier transform of such a set of impulse functions is another set of impulse functions with separation 1/∆t in the frequency domain, one can use the convolution theorem to show that the transform of the sampled signal is periodic: <ref type="figure">Fig. 1</ref> Typical workflow of the data analysis process.</p><formula xml:id="formula_0">x(t) +∞ ∑ n=−∞ δ (t − n ∆t) ⇐⇒ X(ν) * 1 ∆t +∞ ∑ n=−∞ δ ν − n ∆t ,<label>(1)</label></formula><p>where X(ν) is the Fourier transform of x(t), the symbol '⇐⇒' indicates a Fourier pair and the symbol ' * ' denotes convolution. The Nyquist sampling theorem <ref type="bibr" target="#b31">(Nyquist, 1928;</ref><ref type="bibr" target="#b35">Shannon, 1949)</ref> states that if the Fourier transform of a continuous signal is band-limited, i.e., is zero for all |ν|≥ν lim , then x(t) can be uniquely reconstructed from a knowledge of its sampled values at uniform intervals of ∆t ≤ 1/(2 ν lim ). For a given uniform sampling interval ∆t, the Nyquist frequency is defined as ν Nyq = 1/(2∆t). In case the continuous signal being sampled contains frequency components above the Nyquist frequency, these will give rise to an effect known as aliasing, whereby the transform of the continuous signal is distorted due to spectral leakage. The signal is then said to be undersampled and can no longer be uniquely recovered.</p><p>The Nyquist frequency can be thought of as the highest useful frequency to search for in the power spectrum. However, based on astrophysical arguments, one can also accept frequencies above ν Nyq ( <ref type="bibr" target="#b30">Murphy et al., 2013;</ref><ref type="bibr" target="#b12">Chaplin et al., 2014</ref>). Prospects for detecting solar-like oscillations in the super-Nyquist regime of Kepler long-cadence data, i.e., above the associated Nyquist frequency of ∼ 283 µHz, are now being explored ( <ref type="bibr" target="#b40">Yu et al., 2016)</ref>. Targets of interest are cool subgiants and stars lying at the base of the red-giant branch.</p><p>Regular gaps in the light curve due to diurnal interruptions and, for data sets spanning more than a year, caused by the annual motion of the Earth, are usually present in observations carried out from the ground, giving rise also to frequency aliasing. Daily aliases, appearing at splittings of ±1 cycle/day (or, equivalently, ±11.57 µHz), are particularly problematic when observing solar-like oscillations, since frequency separations of that same magnitude are common (e.g., <ref type="bibr" target="#b3">Arentoft et al., 2008;</ref><ref type="bibr" target="#b5">Bedding et al., 2010</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Filtering</head><p>Asteroseismic time series are often affected by low-frequency drifts, which can be either of instrumental origin or else intrinsic to the star. These low-frequency drifts introduce a background in the Fourier domain that ultimately leads to a degradation of the signal-to-noise ratio (SNR) in the oscillation modes. High-pass filters are widely used to reduce this effect while preserving the relevant signals.</p><p>Let us start by shedding some light on the process of smoothing of a time series. Smoothing consists in convolving a signal x(t) with a weighting function w(t):</p><formula xml:id="formula_1">x low (t) = x(t) * w(t) ⇐⇒ X low (ν) = X(ν)W (ν) ,<label>(2)</label></formula><p>where X(ν) and W (ν) are the transforms of x(t) and w(t), respectively. Conversely, a high-pass filter can be implemented by simply computing x high (t)=x(t) − x low (t):</p><formula xml:id="formula_2">x high (t) ⇐⇒ X high (ν) = X(ν) [1 −W (ν)] .<label>(3)</label></formula><p>A commonly used high-pass filter in helioseismology is the backwards-difference filter <ref type="bibr" target="#b19">(García &amp; Ballot, 2008)</ref>:</p><formula xml:id="formula_3">x bd (t) = x(t) − x(t − t 0 ) = x(t) − [x(t) * δ (t − t 0 )] ,<label>(4)</label></formula><p>where a time shift t 0 has been considered. It becomes immediately obvious that w(t) = δ (t − t 0 ) in Eq. (2). Using Eq. (3), one can then determine the transfer function of the backwards-difference filter:</p><formula xml:id="formula_4">|1 −W (ν)| 2 = 2 sin π 2 ν ν c 2 ,<label>(5)</label></formula><p>where the cut-off frequency, ν c = 1/(2t 0 ), has been introduced.</p><p>Typical examples of the weighting function w(t) are a boxcar function, a triangular function (equivalent to the convolution of two boxcar functions) and a bellshaped function (equivalent to the convolution of four boxcar functions or two triangular functions). The transform of the boxcar function is the sinc function and thus leads to an excessive ringing (or Gibbs-like) effect in the Fourier domain. Multipleboxcar smoothing is therefore advisable.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Power spectral density estimation</head><p>Attention is first drawn to the estimation of the Fourier transform of x(t) based on a finite number of samples. Suppose there are N evenly spaced samples x(t n )=x(n∆t), with n = 0, 1, . . . , N−1. The Discrete Fourier Transform 1 (DFT) is defined as:</p><formula xml:id="formula_5">X DFT (ν p ) = N−1 ∑ n=0 x(t n ) e i 2πν p t n for ν p = p/(N∆t) , p = 0, 1, . . . , N − 1 . (6) X DFT (ν p )</formula><p>is the truncated transform of the sampled signal, which has periodicity 1/∆t or twice the Nyquist frequency. Then p = 0 corresponds to the transform at zero frequency and p=N/2 to the value at ±ν Nyq . Values of p between N/2+1 and N−1 correspond to the transform for negative frequencies.</p><p>Finally, I introduce the one-sided power density spectrum or power spectrum, P(ν q ), defined only for nonnegative frequencies (with q = 0, 1, . . . , N/2):</p><formula xml:id="formula_6">P(ν 0 ) = ∆t N |X DFT (ν 0 )| 2 , P(ν q ) = ∆t N X DFT (ν p ) 2 + X DFT (ν N−p ) 2 ,<label>(7)</label></formula><formula xml:id="formula_7">P(ν N/2 ) = ∆t N X DFT (ν N/2 ) 2 ,</formula><p>where ν N/2 = 1/(2∆t) (i.e., the Nyquist frequency). Based on Parseval's theorem (Parseval des Chênes, 1806), we may then normalize P(ν q ) according to</p><formula xml:id="formula_8">N/2 ∑ q=0 P(ν q ) ∆ ν = 1 N N−1 ∑ n=0 x 2 (t n ) .<label>(8)</label></formula><p>According to the Wiener-Khintchine theorem <ref type="bibr" target="#b39">(Wiener, 1930;</ref><ref type="bibr" target="#b25">Khintchine, 1934)</ref>, the power spectrum and the autocorrelation function, φ (τ), are a Fourier pair:</p><formula xml:id="formula_9">φ (τ) = +∞ −∞ P(ν) e −i 2πντ dν ⇐⇒ P(ν) = +∞ −∞ φ (τ) e i 2πντ dτ ,<label>(9)</label></formula><p>where</p><formula xml:id="formula_10">φ (τ) = lim T →∞ 1 T T /2 −T /2 x(t)x(t + τ) dt .<label>(10)</label></formula><p>The Wiener-Khintchine theorem is absolutely crucial to understanding the spectral analysis of random processes. It straightforwardly explains, for instance, why white noise, whose autocorrelation function is the Dirac delta function, has constant power spectral density.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4">Power spectrum statistics and hypothesis testing</head><p>In the following I consider the statistics of the power spectrum of a pure noise signal (see also <ref type="bibr" target="#b2">Appourchaux, 2013)</ref>. Let x(t) represent a random process from which a finite number of samples x(t n ) are drawn. The samples are assumed to be independent and identically distributed (i.i.d.), and the process is further assumed to be stationary, with E [x(t n )] = 0 and E x 2 (t n ) = σ 2 0 for all n. The DFT of the set x(t n ) may be decomposed into its real and imaginary parts as:</p><formula xml:id="formula_11">X DFT (ν p ) = X Re DFT (ν p ) + i X Im DFT (ν p ) = N−1 ∑ n=0 x(t n ) cos(2πν p t n ) + i N−1 ∑ n=0 x(t n ) sin(2πν p t n ) .<label>(11)</label></formula><p>It follows from the Central Limit theorem that, for large N, both X Re DFT and X Im DFT are normally distributed with</p><formula xml:id="formula_12">E X Re DFT (ν p ) = E X Im DFT (ν p ) = 0 ,<label>(12)</label></formula><formula xml:id="formula_13">E X Re DFT (ν p ) 2 = E X Im DFT (ν p ) 2 = N 2 σ 2 0 .<label>(13)</label></formula><p>Finally, since X Re DFT and X Im DFT are independent and have the same normal distribution, the power spectrum, |X DFT | 2 , then has by definition a chi-squared distribution with 2 degrees of freedom (i.e., χ 2 2 ). Adopting |X DFT | 2 ∆t/N as our normalization of the power spectrum yields a constant power spectral density for the noise of σ 2 0 ∆t and variance (σ 2 0 ∆t) 2 . Consequently, as N tends to infinity by sampling a longer stretch of data, the variance in the power spectrum remains unchanged. Furthermore, the probability density, p(z), that the observed power spectrum takes a particular value z at a fixed frequency bin is given by</p><formula xml:id="formula_14">p(z) = 1 z exp − z z ,<label>(14)</label></formula><p>where z=σ 2 0 ∆t. Equation <ref type="formula" target="#formula_0">(14)</ref> enables one to derive the probability that the power in one bin is greater than m times the mean level of the continuum, z:</p><formula xml:id="formula_15">F(m) = e −m .<label>(15)</label></formula><p>For instance, a confidence level of 99% or, equivalently, a false alarm probability of 1%, leads to m ≈ 4.6. For a frequency band containing M bins, the probability that at least one bin has a normalized power greater than m is then:</p><formula xml:id="formula_16">F M (m) = 1 − (1 − e −m ) M ,<label>(16)</label></formula><p>which approximates to F M (m) = Me −m for e −m 1. In astrophysics it is very common to deal with unevenly sampled time series. In that event, an existing frequentist statistic known as the Lomb-Scargle periodogram 2 is widely used as an estimator of the power spectral density. The LombScargle periodogram can be formulated either as a modified Fourier analysis or as a least-squares regression of the data set to sine waves with a range of frequencies. It has the attractive property of retaining the χ 2 2 statistics.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.5">Non-Fourier periodograms</head><p>Astronomers have developed and extensively used a variety of non-Fourier periodograms for period searches in unevenly spaced data sets (e.g., <ref type="bibr" target="#b16">Clarke, 2002</ref>). The most common strategy involves folding the data modulo a trial period, computing a statistic on the folded time series (now a function of phase rather than time), and plotting the statistic for all independent periods. These methods measure the strength of signals that are strictly periodic, but not necessarily sinusoidal in shape. They are also relatively insensitive to the duration and uneven spacing of the data set, and some methods readily permit heteroscedastic weighting from measurement errors. An overview of the application of non-Fourier periodograms to asteroseismic data sets is given in sect. 5. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Extracting global asteroseismic parameters</head><p>In order to fully characterize a star using asteroseismology, it is desirable that we obtain precise estimates of individual mode parameters (e.g., frequencies, amplitudes and linewidths). However, this is only possible for data above a certain SNR. Global asteroseismic parameters, indicative of the overall stellar structure, are on the other hand readily extractable using automated pipelines that are able to incorporate data with a lower SNR and for which a full peak-bagging analysis is not always possible. Furthermore, the automated nature of these pipelines is required if we are to efficiently exploit the large volumes of data made available by current and future space-based missions <ref type="bibr" target="#b34">(Rauer et al., 2014;</ref><ref type="bibr" target="#b11">Campante et al., 2016b</ref>). In this section I introduce an automated pipeline 3 which has been originally designed to extract global asteroseismic parameters of main-sequence and sub-giant stars from Kepler power spectra <ref type="bibr" target="#b7">Campante, 2012)</ref>. This pipeline allows extracting the following information from the power spectrum (points 1-4 are covered below):</p><p>1. Frequency range of the oscillations; 2. Parameterization of the stellar background signal; 3. Average large frequency separation, ∆ ν; 4. Frequency of maximum amplitude, ν max ; 5. Maximum mode amplitude, A max .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Detectability of oscillations</head><p>We want to look for a frequency range in the power spectrum in which peaks appear at nearly regular intervals, one of the main signatures of the presence of solar-like oscillations. I note that the assumption of quasi-regularity may, however, be too strong in the case of evolved stars due to the presence of mixed modes. We start by partitioning the power spectrum into overlapping windows of variable width, w. The width w depends on the central frequency of the window, ν central , used as a proxy for ν max . We make use of the fact that the width of the p-mode bump approximately scales with ν max (e.g., <ref type="bibr" target="#b37">Stello et al., 2007;</ref><ref type="bibr" target="#b29">Mosser et al., 2010)</ref>, and so w is defined as w = (ν central /ν max, )w .</p><p>The next step consists in computing the power spectrum of the power spectrum, PS⊗PS, for each of these frequency windows. The presence of prominent features in the PS⊗PS around the predicted 4 values of ∆ ν/2, ∆ ν/4, and ∆ ν/6 (the first, second, and third harmonics, respectively) is then examined. An hypothesis test is subsequently applied, whereby the presence of oscillations in a given window is established if the probability of the three above features being due to noise is less than 1%. Finally, the frequency range of the oscillations is determined based on the overall span of the windows with detected oscillations. <ref type="figure" target="#fig_1">Figure 2</ref> shows the detection of oscillations in the K2 power spectra of four solartype stars. Sets of vertical gray solid and dashed lines are separated by the estimated ∆ ν, and mark the spacing on which we would expect to see modes. The insets show the PS⊗PS, computed from the region around ν max . The significant peaks in the PS⊗PS lie at ∆ ν/2 and are a signature of the near-regular spacing of solar-like oscillations. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Background signal</head><p>The model of the stellar background signal is kept simple, merely containing a granulation component and photon shot noise. We fit this model to a smoothed version of the power spectrum employing a nonlinear least-squares fitting algorithm.</p><p>The frequency range of the oscillations (if detected) is excluded from the fitting window. The fitting window starts at 100 µHz to allow for the decay of any possible activity component, characterized by considerably longer timescales, and extends all the way up to the Nyquist frequency of Kepler short-cadence data (∼8300 µHz).</p><p>The granulation component is represented by a Harvey-like profile (e.g., <ref type="bibr" target="#b24">Kallinger et al., 2014</ref>, and references therein) to which an offset is added to account for the shot noise component:</p><formula xml:id="formula_17">B(ν) = B 0 + η 2 (ν) B gran 1 + (2πν τ gran ) a ,<label>(17)</label></formula><p>where B gran is the height at ν = 0 of the granulation component, τ gran is the characteristic turnover timescale and a calibrates the amount of memory in the process. Such a functional form is representative of a random non-harmonic field whose au- </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Large frequency separation (∆ ν)</head><p>In order to estimate the average large frequency separation, ∆ ν, we compute the PS⊗PS over the frequency range of the oscillations. The feature at ∆ ν/2 (first harmonic) in the PS⊗PS is then located and its power-weighted centroid computed to provide an estimate of ∆ ν. The standard deviation of grouped data, given by</p><formula xml:id="formula_18">[∑ hx 2 − (∑ hx) 2 / ∑ h] / (∑ h − 1)</formula><p>, is adopted as the error on ∆ ν, meaning that the feature in the PS⊗PS is interpreted as an assembly of spectral heights (h) over a number of bins (with midpoint x).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4">Frequency of maximum amplitude (ν max )</head><p>In order to estimate the frequency of maximum amplitude, ν max , we average the pmode power (after subtraction of the background fit) over contiguous rectangular windows of width 2∆ ν and convert to power per radial mode by multiplying by ∆ ν/c, where c measures the effective number of modes per order (see <ref type="bibr" target="#b26">Kjeldsen et al., 2008</ref>). An estimate of ν max is then given by the power-weighted centroid, with the associated uncertainty derived from the standard deviation of grouped data (see Sect. 3.3).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Peak-bagging</head><p>In this section I introduce a Bayesian peak-bagging tool that employs Markov chain Monte Carlo (MCMC) techniques (e.g., <ref type="bibr" target="#b8">Campante et al., 2011;</ref><ref type="bibr">Handberg &amp; Cam- pante, 2011;</ref><ref type="bibr" target="#b7">Campante, 2012;</ref><ref type="bibr" target="#b10">Campante et al., 2016a</ref>). Besides making it possible to incorporate relevant prior information through Bayes' theorem, this tool also allows obtaining the marginal probability density function (pdf) for each of the model parameters. Such techniques are in many ways an extension of the Maximum Likelihood Estimation (MLE) methods originally introduced in helioseismology <ref type="bibr" target="#b18">(Duvall &amp; Harvey, 1986;</ref><ref type="bibr" target="#b1">Anderson et al., 1990</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Power spectrum of a solar-like oscillator</head><p>Understanding the characteristics of the power spectrum of a solar-like oscillator is fundamental in order to extract information on the physics of the modes. The stochastic driving of a damped oscillator can be described by</p><formula xml:id="formula_19">d 2 dt 2 y(t) + 2η d dt y(t) + ω 2 0 y(t) = f (t) ,<label>(18)</label></formula><p>where y(t) is the amplitude of the oscillator, η is the linear damping rate, ω 0 is the frequency of the undamped oscillator and f (t) is a random forcing function. The Fourier transform of Eq. <ref type="formula" target="#formula_0">(18)</ref> is then expressed as</p><formula xml:id="formula_20">−ω 2 Y (ω) − i 2ηω Y (ω) + ω 2 0 Y (ω) = F(ω).<label>(19)</label></formula><p>When a realization of y(t) is observed for a finite amount of time, an estimate of the power spectrum is then given by</p><formula xml:id="formula_21">P(ω) = |Y (ω)| 2 = |F(ω)| 2 (ω 2 0 − ω 2 ) 2 + 4 η 2 ω 2 .<label>(20)</label></formula><p>In the limit of taking the average of an infinite number of realizations, and assuming the damping rate to be very small compared to the frequency of oscillation, one obtains near the resonance the following expression for the limit spectrum:</p><formula xml:id="formula_22">P(ω) 1 4 ω 2 0 P f (ω) (ω − ω 0 ) 2 + η 2 .<label>(21)</label></formula><p>The average power spectrum of the random forcing function, P f (ω), is a slowlyvarying function of frequency. The result is thus a Lorentzian profile, characterized by the central frequency ω 0 and a width determined by the linear damping rate η. Panels (a) and (b) in <ref type="figure" target="#fig_3">Fig. 4</ref> display two realizations of the same limit spectrum. Both power spectra appear as an erratic function concealing the underlying Lorentzian profile. Panel (c) displays a realization of the same limit spectrum, although with a resolution twenty times higher. Increasing the total observational span, hence the resolution, did nothing to reduce the variance in the power spectrum (cf. Sect. 2.4). Panel (d) displays the average of a large number of realizations with the same resolution as in (c), thus converging to the limit spectrum.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Modeling the power spectrum</head><p>We are primarily interested in performing a global fit to the power spectrum, whereby the observed modes are fitted simultaneously over a broad frequency range. We thus model the limit oscillation spectrum as a sum of standard Lorentzian profiles, O(ν), which sit atop a background signal described by B(ν):</p><formula xml:id="formula_23">P(ν; λ λ λ ) = O(ν) + B(ν) = ∑ n ,l l ∑ m=−l E lm (i s )H n l 1 + 2(ν−ν n l0 −mν s ) Γ n lm 2 + B(ν) ,<label>(22)</label></formula><p>where λ λ λ represents the set of model parameters. The inner sum in the above equation runs over the azimuthal components {m} of each multiplet {n , l}, while the outer   sum runs over the selection of observed modes. <ref type="figure" target="#fig_5">Figure 5</ref> shows the power spectrum of HD 49933 (blue) based on 180 days of CoRoT photometry. The best-fitting model (red) is overlaid, with the shaded areas indicating the ranges of the uniform priors (see Sect. 4.3.1) on the mode frequencies.</p><formula xml:id="formula_24">ℓ =2 ℓ =1 ℓ =0 ℓ =2 ℓ =1ℓ =0 ℓ =2 ℓ =1ℓ =0 ℓ =2 ℓ =1ℓ =0 ℓ =2 ℓ =1ℓ =0 ℓ =2 ℓ =1ℓ =0 ℓ =2 ℓ =1ℓ =0 ℓ =2 ℓ =1ℓ =0 ℓ =2 ℓ =1ℓ =0 ℓ =2 ℓ =1ℓ =0 ℓ =2 ℓ =1ℓ =0 ℓ =2 ℓ =1ℓ =0 ℓ =2 ℓ =1ℓ =0 ℓ =2 ℓ =1ℓ =0ℓ =1</formula><p>At a given frequency bin j, the probability density, f (P j ; λ λ λ ), that the observed power spectrum takes a particular value P j is related to the limit spectrum, P(ν j ; λ λ λ ), by (cf. Eq. 14)</p><formula xml:id="formula_25">f (P j ; λ λ λ ) = 1 P(ν j ; λ λ λ ) exp − P j P(ν j ; λ λ λ ) .<label>(23)</label></formula><p>We now want to specify the likelihood function, i.e., the joint pdf of the data sample {P j }. Assuming the frequency bins to be uncorrelated, the joint pdf is simply given by the product of f (P j ; λ λ λ ) over some frequency interval of interest spanned by j:</p><formula xml:id="formula_26">L(λ λ λ ) = ∏ j f (P j ; λ λ λ ) . (24)</formula><p>4.3 Bayesian parameter estimation using MCMC I now describe the formalism of a Bayesian approach to parameter estimation and model comparison that employs an MCMC algorithm. Let us consider a set of competing hypotheses, {H i }, assumed to be mutually exclusive. One should be able to assign a probability, p(H i |D, I), to each hypothesis taking into account the observed data, D, and any available prior information, I. This is done through Bayes' theorem <ref type="bibr" target="#b4">(Bayes &amp; Price, 1763)</ref>:</p><formula xml:id="formula_27">p(H i |D, I) = p(H i |I)p(D|H i , I) p(D|I) . (25)</formula><p>The probability of the hypothesis H i in the absence of D is called the prior probability, p(H i |I), whereas the probability including D is called the posterior probability, p(H i |D, I). The quantity p(D|H i , I) is called the likelihood of H i . The denominator p(D|I) is the global likelihood for the entire class of hypotheses. The sum of the posterior probabilities over the hypothesis space of interest is unity, hence one has:</p><formula xml:id="formula_28">p(D|I) = ∑ i p(H i |I)p(D|H i , I) .<label>(26)</label></formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3.1">Parameter estimation</head><p>If a particular hypothesis, i.e., a given model M describing the physical process, is assumed true, then the hypothesis space of interest concerns the values taken by the model parameters, λ λ λ . These parameters are continuous and one will be interested in obtaining their pdf. The global likelihood of model M is then given by the continuous counterpart of Eq. <ref type="formula" target="#formula_1">(26)</ref>:</p><formula xml:id="formula_29">p(D|I) = p(λ λ λ |I)p(D|λ λ λ , I)dλ λ λ .<label>(27)</label></formula><p>We restate Bayes' theorem to account for this new formalism:</p><formula xml:id="formula_30">p(λ λ λ |D, I) = p(λ λ λ |I)p(D|λ λ λ , I) p(D|I) ,<label>(28)</label></formula><p>where p(D|I) plays the role of a normalization constant. Ultimately, we are interested in using MCMC techniques to map the posterior pdf, p(λ λ λ |D, I). The procedure of marginalization allows computation of the posterior pdf for a subset of parameters λ λ λ A by integrating over the remaining parameters (or nuisance parameters) λ λ λ B :</p><formula xml:id="formula_31">p(λ λ λ A |D, I) = p(λ λ λ A , λ λ λ B |D, I)dλ λ λ B . (29)</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3.2">Model comparison</head><p>The problem of model comparison is analogous to that of parameter estimation. When facing a situation in which several parameterized models are available for describing the same physical process, one expects Bayes' theorem to allow for a statistical comparison between such models. Bayesian model comparison has a built-in Occam's razor by which a complex model is automatically penalized, unless the available data justify its additional complexity. Competing models may be either intrinsically different models or else similar but with varying number of parameters (i.e., nested models), or even the same model with different priors affecting its parameters.</p><p>Given two or more competing models and our prior information, I, being in the present context that one and only one of the models is true, we can assign individual probabilities similarly to what has been done in Eq. <ref type="formula" target="#formula_1">(25)</ref>, after replacing H i by M i :</p><formula xml:id="formula_32">p(M i |D, I) = p(M i |I)p(D|M i , I) p(D|I) ,<label>(30)</label></formula><p>where the global likelihood of model M i , p(D|M i , I), also called the evidence of the model, is given by Eq. <ref type="bibr">(27)</ref>. We are often interested in computing the ratio of the probabilities of two competing models:</p><formula xml:id="formula_33">O i j ≡ p(M i |D, I) p(M j |D, I) = p(M i |I)p(D|M i , I) p(M j |I)p(D|M j , I) = p(M i |I) p(M j |I) B i j ,<label>(31)</label></formula><p>where O i j is the odds ratio in favor of model M i over model M j , B i j is the so-called Bayes' factor and p(M i |I)/p(M j |I) is the prior odds ratio. The Bayesian odds ratio is the product of the ratio of the prior probabilities of the models and the ratio of their global likelihoods.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3.3">Markov chain Monte Carlo</head><p>The need becomes clear for a mathematical tool that is able to efficiently evaluate the multidimensional integrals required in the computation of the marginal distributions. The aim is to draw samples from the target distribution, p(λ λ λ |D, I), by constructing a pseudo-random walk in parameter space such that the number of samples drawn from a particular region is proportional to its posterior density. This is achieved by generating a Markov chain, whereby a new sample, λ λ λ t+1 , depends on the previous sample, λ λ λ t , according to a time-independent quantity called the transition kernel, p(λ λ λ t+1 |λ λ λ t ). After a burn-in phase, p(λ λ λ t+1 |λ λ λ t ) should be able to generate samples of λ λ λ with a probability density converging on the target distribution.</p><p>We generate a Markov chain by using the Metropolis-Hastings algorithm <ref type="bibr">(Metropo- lis et al., 1953;</ref><ref type="bibr" target="#b23">Hastings, 1970)</ref>. Let us denote the current sample by λ λ λ t . We would like to steer the Markov chain toward the next sampling state, λ λ λ t+1 , by first proposing a new sample, ξ ξ ξ , to be drawn from a proposal distribution, q(ξ ξ ξ |λ λ λ t ), which can have almost any form. The proposed sample is then accepted with a probability given by: α(λ λ λ t , ξ ξ ξ ) = min(1, r) = min 1, p(ξ ξ ξ |D, I) p(λ λ λ t |D, I) q(λ λ λ t |ξ ξ ξ ) q(ξ ξ ξ |λ λ λ t ) ,</p><p>where α(λ λ λ t , ξ ξ ξ ) is the acceptance probability and r is called the Metropolis ratio. If ξ ξ ξ is not accepted, then the chain will keep the current sampling state, i.e., λ λ λ t+1 =λ λ λ t . <ref type="figure" target="#fig_6">Figure 6</ref> shows the output from three two-dimensional MCMC simulations of the same triple-peaked posterior.</p><p>Once the posterior pdf, p(λ λ λ |D, I), has been mapped, the procedure of marginalization becomes trivial. The marginal posterior distribution of a given parameter λ , p(λ |D, I), is then simply obtained by collecting its samples in a normalized histogram. An estimate of the k-th moment of λ about the origin is then given by</p><formula xml:id="formula_35">λ k ≡ λ k p(λ |D, I)dλ ≈ 1 N ∑ λ k t ,<label>(33)</label></formula><p>where N is the total number of samples.</p><p>The basic Metropolis-Hastings algorithm runs the risk of becoming stuck in a local mode of the target distribution. A way of overcoming this is to employ parallel tempering, whereby a discrete set of progressively flatter versions of the target distribution is created by introducing a tempering parameter, γ. We modify Eq. <ref type="formula" target="#formula_1">(28)</ref> to generate the tempered distributions: p(λ λ λ |D, γ, I) ∝ p(λ λ λ |I)p(D|λ λ λ , I) γ , 0 &lt; γ ≤ 1 .</p><p>For γ = 1, we retrieve the target distribution, while distributions with γ &lt; 1 are effectively flatter versions of the target distribution. By running such a set of chains in parallel and allowing their parameter states to swap, we increase the mixing properties of the Markov chain. Furthermore, the Metropolis-Hastings algorithm can be refined by implementing a statistical control system (e.g., <ref type="bibr" target="#b20">Gregory, 2005</ref>) allowing to automatically fine-tune the proposal distribution during the burn-in phase (see <ref type="figure" target="#fig_6">Fig. 6</ref>).</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head></head><label></label><figDesc>2 of the book by Aerts et al. (2010).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Fig. 2</head><label>2</label><figDesc>Fig. 2 K2 power spectra (slightly smoothed) of four solar-type stars with detected oscillations. Insets show the PS⊗PS, computed from the region around ν max . From Chaplin et al. (2015).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Fig. 3</head><label>3</label><figDesc>Fig. 3 Output from the analysis of the Kepler light curve of the bright G-type dwarf 16 Cyg A. Top panel: Modeling the stellar background signal. Bottom panel: Detection of oscillations in the PS⊗PS. From Campante (2012).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Fig. 4</head><label>4</label><figDesc>Fig. 4 Lorentzian profile (limit spectrum) and the erratic behavior of the power spectrum. From Anderson et al. (1990).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Fig. 5</head><label>5</label><figDesc>Fig. 5 Power spectrum of the F-type star HD 49933 (blue) based on 180 days of CoRoT photometry and best-fitting model (red). Shaded areas indicate the ranges of the uniform priors on the mode frequencies. From Handberg &amp; Campante (2011).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Fig. 6</head><label>6</label><figDesc>Fig. 6 Two-dimensional MCMC simulations of a triple-peaked posterior. The same target distribution is sampled by three chains, each characterized by a different set {σ } of step sizes in parameter space. From Handberg &amp; Campante (2011).</figDesc></figure>
+
+			<note place="foot" n="1"> Cooley &amp; Tukey (1965) have introduced the Fast Fourier Transform (FFT), an efficient method of implementing the DFT.</note>
+
+			<note place="foot" n="2"> Fast computation of the periodogram is achieved using the algorithm presented in Press &amp; Rybicki (1989), whose trick is to carry out extirpolation of the data onto a regular mesh and subsequently employ the FFT. 3 A comparison of different pipelines used to extract global asteroseismic parameters is presented in Verner et al. (2011).</note>
+
+			<note place="foot" n="4"> The predicted value of ∆ ν is computed according to the relation ∆ ν ∝ν 0.77 central (Stello et al., 2009).</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Aerts</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Christensen-Dalsgaard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Kurtz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Asteroseismology</title>
+		<imprint>
+			<date type="published" when="2010" />
+			<publisher>Springer</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">R</forename><surname>Anderson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Duvall</surname><genName>Jr</genName></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">M</forename><surname>Jefferies</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">364</biblScope>
+			<biblScope unit="page">699</biblScope>
+			<date type="published" when="1990" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Appourchaux</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Canary Islands Winter School of Astrophysics</title>
+		<editor>P. L. Pallé &amp; C. Esteban</editor>
+		<imprint>
+			<publisher>Cambridge University Press</publisher>
+			<date type="published" when="2013" />
+			<biblScope unit="page">123</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Arentoft</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Kjeldsen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">R</forename><surname>Bedding</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">687</biblScope>
+			<biblScope unit="page">1180</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Bayes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Price</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Philosophical Transactions</title>
+		<imprint>
+			<biblScope unit="volume">53</biblScope>
+			<biblScope unit="page">370</biblScope>
+			<date type="published" when="1763" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">R</forename><surname>Bedding</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Kjeldsen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Campante</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">713</biblScope>
+			<biblScope unit="page">935</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Borucki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Koch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Basri</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">327</biblScope>
+			<biblScope unit="page">977</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L. ; T L</forename><surname>Campante</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Karoff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Chaplin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">408</biblScope>
+			<biblScope unit="page">542</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+		<respStmt>
+			<orgName>Universidade do Porto Campante</orgName>
+		</respStmt>
+	</monogr>
+<note type="report_type">PhD thesis</note>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Campante</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Handberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Mathur</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">534</biblScope>
+			<biblScope unit="page">6</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Campante</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Barclay</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Swift</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">799</biblScope>
+			<biblScope unit="page">170</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Campante</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">N</forename><surname>Lund</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">S</forename><surname>Kuszlewicz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">819</biblScope>
+			<biblScope unit="page">85</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Campante</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Schofield</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">S</forename><surname>Kuszlewicz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">830</biblScope>
+			<biblScope unit="page">138</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Chaplin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Elsworth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">R</forename><surname>Davies</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">445</biblScope>
+			<biblScope unit="page">946</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Chaplin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Miglio</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ARA&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">51</biblScope>
+			<biblScope unit="page">353</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Chaplin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">N</forename><surname>Lund</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Handberg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">127</biblScope>
+			<biblScope unit="page">1038</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Christensen-Dalsgaard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Sol. Phys</title>
+		<imprint>
+			<biblScope unit="volume">220</biblScope>
+			<biblScope unit="page">137</biblScope>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Clarke</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">386</biblScope>
+			<biblScope unit="page">763</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Cooley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Tukey</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mathematics of Computing</title>
+		<imprint>
+			<biblScope unit="volume">19</biblScope>
+			<biblScope unit="page">297</biblScope>
+			<date type="published" when="1965" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jr</forename><surname>Duvall</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Harvey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename></persName>
+		</author>
+		<title level="m">NATO ASIC Proc. 169: Seismology of the Sun and the Distant Stars</title>
+		<editor>D. O. Gough</editor>
+		<imprint>
+			<publisher>D. Reidel Publishing Co</publisher>
+			<date type="published" when="1986" />
+			<biblScope unit="page">105</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>García</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Ballot</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">477</biblScope>
+			<biblScope unit="page">611</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">C</forename><surname>Gregory</surname></persName>
+		</author>
+		<title level="m">Bayesian Logical Data Analysis for the Physical Sciences: A Comparative Approach with &apos;Mathematica&apos; Support</title>
+		<imprint>
+			<publisher>Cambridge University Press</publisher>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Handberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">L</forename><surname>Campante</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">527</biblScope>
+			<biblScope unit="page">56</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Tiago</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Campante</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">K</forename><surname>Hastings</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Biometrika</title>
+		<imprint>
+			<biblScope unit="volume">57</biblScope>
+			<biblScope unit="page">97</biblScope>
+			<date type="published" when="1970" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Kallinger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>De Ridder</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Hekker</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">570</biblScope>
+			<biblScope unit="page">41</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Khintchine</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mathematische Annalen</title>
+		<imprint>
+			<biblScope unit="volume">109</biblScope>
+			<biblScope unit="page">604</biblScope>
+			<date type="published" when="1934" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Kjeldsen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">R</forename><surname>Bedding</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Arentoft</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">682</biblScope>
+			<biblScope unit="page">1370</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Lundkvist</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Kjeldsen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Albrecht</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature Communications</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="page">11201</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Metropolis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Rosenbluth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">N</forename><surname>Rosenbluth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">H</forename><surname>Teller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Teller</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="page">1087</biblScope>
+			<date type="published" when="1953" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Mosser</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Belkacem</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M.-J</forename><surname>Goupil</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">517</biblScope>
+			<biblScope unit="page">22</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Murphy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Shibahashi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Kurtz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">430</biblScope>
+			<biblScope unit="page">2986</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Nyquist</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Transactions of the AIEE</title>
+		<imprint>
+			<biblScope unit="volume">47</biblScope>
+			<biblScope unit="page">617</biblScope>
+			<date type="published" when="1928" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">Mémoires présentésprésentés`présentésà l&apos;Institut des Sciences</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M.-A</forename><surname>Parseval Des Chênes</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">pars divers savans, et lus dans ses assemblées. Sciences, mathématiques et physiques. (Savansétrangers Savans´Savansétrangers</title>
+		<imprint>
+			<date type="published" when="1806" />
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page">638</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">H</forename><surname>Press</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">B</forename><surname>Rybicki</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">338</biblScope>
+			<biblScope unit="page">277</biblScope>
+			<date type="published" when="1989" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Rauer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Catala</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Aerts</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Experimental Astronomy</title>
+		<imprint>
+			<biblScope unit="volume">38</biblScope>
+			<biblScope unit="page">249</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">E</forename><surname>Shannon</surname></persName>
+		</author>
+		<title level="m">Proceedings of the Institute of Radio Engineers</title>
+		<meeting>the Institute of Radio Engineers</meeting>
+		<imprint>
+			<date type="published" when="1949" />
+			<biblScope unit="volume">37</biblScope>
+			<biblScope unit="page">10</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Stello</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Chaplin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Basu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Elsworth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">R</forename><surname>Bedding</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">400</biblScope>
+			<biblScope unit="page">80</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Stello</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Bruntt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Kjeldsen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">377</biblScope>
+			<biblScope unit="page">584</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">A</forename><surname>Verner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Elsworth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Chaplin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">415</biblScope>
+			<biblScope unit="page">3539</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Wiener</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Acta Mathematica</title>
+		<imprint>
+			<biblScope unit="volume">55</biblScope>
+			<biblScope unit="page">117</biblScope>
+			<date type="published" when="1930" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Yu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Huber</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">R</forename><surname>Bedding</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">463</biblScope>
+			<biblScope unit="page">1297</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

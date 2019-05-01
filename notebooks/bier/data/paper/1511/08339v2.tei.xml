@@ -1,0 +1,1132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-04T16:24+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">DREAMING OF ATMOSPHERES</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2016-02-12">February 12, 2016 Draft version February 12, 2016</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">P</forename><surname>Waldmann</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Physics &amp; Astronomy</orgName>
+								<orgName type="institution">University College London</orgName>
+								<address>
+									<addrLine>Gower Street</addrLine>
+									<postCode>WC1E 6BT</postCode>
+									<country key="GB">UK</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">DREAMING OF ATMOSPHERES</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2016-02-12">February 12, 2016 Draft version February 12, 2016</date>
+						</imprint>
+					</monogr>
+					<note>Draft version Preprint typeset using L A T E X style emulateapj v. 08/22/09</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>Subject headings: methods: data analysis -methods: statistical -techniques: spectroscopic - radiative transfer</keywords>
+			</textClass>
+			<abstract>
+				<p>Here we introduce the RobERt (Robotic Exoplanet Recognition) algorithm for the classification of exoplanetary emission spectra. Spectral retrievals of exoplanetary atmospheres frequently requires the preselection of molecular/atomic opacities to be defined by the user. In the era of open-source, automated and self-sufficient retrieval algorithms, manual input should be avoided. User dependent input could, in worst case scenarios, lead to incomplete models and biases in the retrieval. The RobERt algorithm is based on deep belief neural (DBN) networks trained to accurately recognise molecular signatures for a wide range of planets, atmospheric thermal profiles and compositions. Reconstructions of the learned features, also referred to as &apos;dreams&apos; of the network, indicate good convergence and an accurate representation of molecular features in the DBN. Using these deep neural networks, we work towards retrieval algorithms that themselves understand the nature of the observed spectra, are able to learn from current and past data and make sensible qualitative preselections of atmospheric opacities to be used for the quantitative stage of the retrieval process.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">INTRODUCTION</head><p>The atmospheric retrieval of exoplanetary emission/transmission spectra is a complex undertaking (e.g. <ref type="bibr" target="#b34">Madhusudhan &amp; Seager 2009;</ref><ref type="bibr" target="#b30">Lee et al. 2011b;</ref><ref type="bibr" target="#b32">Line et al. 2012;</ref><ref type="bibr" target="#b6">Benneke &amp; Seager 2013;</ref><ref type="bibr" target="#b16">Griffith 2014;</ref><ref type="bibr">Waldmann et al. 2015a,b)</ref>. Here, retrieval parameter dimensionality becomes an important factor to consider and though desirable, most times allowing for all known atmospheric species to be fitted is too computationally expensive. Hence, a user defined pre-selection of atmospheric absorbers/emitters must be made. A 'seasoned user' would make this pre-selection based on previous experiences and a qualitative recognition of absorption/emission features present in the observed spectrum. Here, the human brain is very good in abstracting previously seen patterns to unseen circumstances, a desirable feature to be replicated by machines .</p><p>As we move to an era of largely automated retrievals, through the provision of open-source code to the community and future ground and space-based spectroscopic surveys, it is important to strive towards universally applicable self-sufficient retrieval algorithms. In an ideal case scenario, the retrieval suite would posses recognition and learning capabilities similar to the 'seasoned user' and would not require any auxiliary user input but the observed spectrum itself. In other words, the program would understand what it is looking at, make a qualitative pre-selection of absorbing/emitting atmospheric species, followed by a quantitative retrieval.</p><p>In <ref type="bibr" target="#b44">Waldmann et al. (2015a)</ref>, we began working towards this end by introducing a pattern recognition algorithm, Marple. Based on principal-component analysis (PCA) facial-recognition approaches, Marple is able to rapidly sift through large molecular data bases and return a list of the most probable absorbing species in the observed spectrum. This information can then be Electronic address: ingo@star.ucl.ac.uk fed to the T -REx atmospheric retrieval code <ref type="bibr">(Wald- mann et al. 2015a</ref>,b) for a more quantitative analysis. Based on intrinsically linear coordinate transformations, Marple works well for transmission spectroscopy where the temperature-pressure profile (TP-profile) can be assumed to be isothermal and the transmission approximated by a linear system.</p><p>The emission spectroscopy case is more complicated. Here, the shape of spectral features strongly depends on the varying atmospheric thermal profile as well as varying molecular abundances. Such a non-linear system is often poorly captured by a principal component approach.</p><p>Consequently, we have developed a new neuralnetwork based spectroscopic pattern recognition framework, RobERt (Robotic Exoplanet Recognition), capable of learning and abstracting highly non-linear systems and recognising spectral features found in emission spectroscopy.</p><p>In this paper we introduce the concept of deep-belief networks (DBNs) to the recognition of spectral features, describe the training set and algorithm used and discuss RobERt's recognition abilities using simulated spectra.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">ROBERT</head><p>RobERt mimics human recognition of spectroscopic features by using a pre-trained deep belief neural network <ref type="bibr" target="#b20">(Hinton 2006</ref><ref type="bibr" target="#b20">(Hinton , 2007</ref><ref type="bibr" target="#b4">Bengio et al. 2007a;</ref><ref type="bibr" target="#b28">Le Roux &amp; Bengio 2010;</ref><ref type="bibr" target="#b35">Montavon et al. 2012;</ref><ref type="bibr" target="#b7">Bianchini &amp; Scarselli 2014</ref>) at its core. DBNs are multi-layer non-linear transformations of the input data, in this case the emission spectrum, where each consecutive layer presents a progressively higher level of abstraction of the underlying features in the spectrum. These levels of abstraction are learned in an unsupervised (i.e. autonomous) fashion from a large catalogue of input spectra. Once these features are learned from the data, a second, supervised learning stage is used to assign the learned features to their correct labels (e.g. H 2 O, CH 4 , etc.).</p><p>Neural networks are now commonly used in complex classification tasks such as image recognition (e.g. <ref type="bibr" target="#b45">Wang et al. 2014a;</ref><ref type="bibr" target="#b40">Shen et al. 2015;</ref><ref type="bibr" target="#b33">Liu et al. 2014;</ref><ref type="bibr" target="#b27">Krizhevsky et al. 2012</ref>), speech &amp; music recognition (e.g. <ref type="bibr" target="#b23">Hung et al. 2005;</ref><ref type="bibr" target="#b24">Jaitly &amp; Hinton 2011;</ref><ref type="bibr" target="#b48">Zhang &amp; Wu 2013;</ref><ref type="bibr" target="#b37">Pradeep &amp; Kumaraswamy 2014)</ref>, biology (e.g. <ref type="bibr" target="#b17">Head-Gordon &amp; Stillinger 1993;</ref><ref type="bibr" target="#b36">Plebe 2007;</ref><ref type="bibr" target="#b47">Wu &amp; McLarty 2012;</ref><ref type="bibr" target="#b41">Spencer et al. 2015</ref>) and find increasing use in the classification of galaxies and cosmology (e.g. <ref type="bibr" target="#b10">Collister &amp; Lahav 2004;</ref><ref type="bibr" target="#b0">Agarwal et al. 2012;</ref><ref type="bibr" target="#b25">Karpenka et al. 2013;</ref><ref type="bibr">Agarwal et al. 2014;</ref><ref type="bibr" target="#b39">Reis et al. 2012;</ref><ref type="bibr" target="#b22">Huertas-Company et al. 2015;</ref><ref type="bibr">El- lison et al. 2015;</ref><ref type="bibr" target="#b12">du Buisson et al. 2015;</ref><ref type="bibr" target="#b12">Dieleman et al. 2015)</ref>.</p><p>Whereas an in-depth derivation of DBNs is beyond the scope of this paper, we will briefly outline its underlying architecture and implementation. We refer the interested reader to <ref type="bibr" target="#b2">Bengio (2009)</ref>;  and <ref type="bibr" target="#b14">Fischer &amp; Igel (2014)</ref> for detailed derivations. <ref type="figure" target="#fig_0">Figure 1</ref> shows a schematic of the the deep belief network. The multi-layer DBN can be constructed from several Restricted Boltzmann Machines <ref type="bibr" target="#b15">(Freund &amp; Haussler 1992;</ref><ref type="bibr" target="#b8">Bishop 2006;</ref><ref type="bibr" target="#b28">Le Roux &amp; Bengio 2008;</ref><ref type="bibr" target="#b29">Lee et al. 2011a;</ref><ref type="bibr" target="#b2">Bengio 2009</ref><ref type="bibr">Bengio , 2012</ref><ref type="bibr" target="#b35">Montavon et al. 2012;</ref><ref type="bibr" target="#b14">Fischer &amp; Igel 2014</ref>) with the addition of a logistic regression layer at the top of the network. The RBM is a two-layer neural network able to learn the underlying probability distribution over its set of input values. It represents a particular kind of Markov Random Field (Davison 2008) consisting of one layer of binary or Gaussian stochastic visible units (the input data) and one layer of binary stochastic hidden units. In RBMs all hidden units are connected to all visible units but have no intra-layer dependence. Hence all hidden units given the visible units are statistically independent and we can write the probability of all visible units given all hidden units and vice versa as the product of the individual probabilities,</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">Restricted Boltzmann Machines</head><formula xml:id="formula_0">P (v|h) = i P (v i |h) P (h|v) = j P (h j |v) (1)</formula><p>where v and h are the column vectors of visible and hidden units respectively and i and j are their corresponding indices. We now want to find a configuration of the hidden layers, h, that allows us to reconstruct the input, v, with minimal error. Since P (v|h) and P (h|v) are factorial, we can write the activation functions of the individual visible and hidden binary units as</p><formula xml:id="formula_1">P (v i = 1|h) = ς(b i + j h j w ij ) P (h j = 1|v) = ς(c j + i v i w ij ) (2)</formula><p>where ς is the sigmoid function forming increasingly abstract representations of the input layer the further up the network they are. Green represents logistic units linking data labels to the top-layer of hidden units. All units are connected (black lines) with all units in the layers above and below but not intra-level connections exist. It can be seen that the DBN can be built from three consecutive RBMs with the addition of a logistic regression layer.</p><formula xml:id="formula_2">ς(x) = (1 + e −x ) −1<label>(3)</label></formula><p>Assuming both visible and hidden units are binary, RBMs assign an energy term for each configuration of v and h</p><formula xml:id="formula_3">E(v, h) = −b T v − c T h − h T W v<label>(4)</label></formula><p>where b and c are bias vectors for the visible and hidden units respectively and W is a matrix of connection weights between v and h. The probability over all visible and hidden units P (v, h) is now given by</p><formula xml:id="formula_4">P (v, h) = e −E(v,h) Z (5)</formula><p>where Z is the partition function</p><formula xml:id="formula_5">Z = v,h e −E(v,h)<label>(6)</label></formula><p>The probability over the visible units as given by the RBM can now be calculated by summing over all hidden units</p><formula xml:id="formula_6">P (v) = 1 Z h e −E(v,h)<label>(7)</label></formula><p>We now train the RBM by finding a set of parameters, θ = {W, b}, that maximises the log-likelihood of the data, lnP (v|θ). The derivative of the log-likelihood with respect to the individual weights gives us the gradient on lnP (v|θ)</p><formula xml:id="formula_7">∂lnP (v|θ) ∂w ij = − h P (h|v) ∂E(v, h) ∂w ij + v,h P (v, h) ∂E(v, h) ∂w ij (8) = v i h j P (h|v) − −v i h j P (v,h) (9) = v i h j data − −v i h j model (10)</formula><p>where v i h j data is the expectation value of all the hidden and visible unit activations given the training data and v i h j model is the same expectation under the reconstructed model distribution. The cost function for the optimisation algorithm is now simply given by</p><formula xml:id="formula_8">∆w ij = (v i h j data − −v i h j model ) (11)</formula><p>where is a learning rate parameter.</p><p>Training can be performed using simple gradient descent. However, an exact calculation of v i h j model is highly computationally expensive. The likelihood gradient can be approximated by sampling the likelihood using Gibbs sampling ( <ref type="bibr" target="#b38">Press et al. 2007</ref>). Here samples are iteratively drawn from v i h j data and v i h j model until the Markov Chain Monte Carlo (MCMC) sampling converges. Contrastive Divergence (CD, Hinton 2002) further simplifies the Gibbs sampling process by breaking the requirement for exact convergence and restricting the MCMC chain to a few (as few as one) iterations. This leads to significant gains in convergence speed. For an indepth explanation of CD, we refer the reader to <ref type="bibr" target="#b20">(Hinton 2002;</ref><ref type="bibr">Bengio et al. 2007b</ref>; Bengio 2009).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.">Deep Belief Networks</head><p>We now construct the DBN using RBMs as building blocks. As convention and in accordance with <ref type="figure" target="#fig_0">figure 1</ref>, we refer to the data input to be at the 'bottom' of the network and increase in abstraction as we go 'up' the network.</p><p>The bottom RBM has the normalised emission spectrum as input (i.e. visible) units. Here a binary representation of the observed data is not ideal and we replace v with Gaussian units. These better represent the continuous values found in spectroscopic data. The hidden units and all higher DBN layers remain binary. For the Gaussian RBM layer, the unit activations (Krizhevsky 2009; <ref type="bibr" target="#b45">Wang et al. 2014b</ref>) become</p><formula xml:id="formula_9">P (v i |h) = N (v i ; b i + j w ij h j , σ 2 i ) P (h j = 1|v) = ς(c j + i w ij v i σ 2 i ) (12)</formula><p>where N is the Normal distribution and σ the standard deviation of the spectrum. Furthermore, we substitute the energy term (equation. 4) with</p><formula xml:id="formula_10">E(v, h) = i (v i − b i ) 2 2σ i − j b j h j − i,j v i σ i h j w i,j<label>(13)</label></formula><p>We now learn the RBM greedily until convergence and take the resulting hidden layer as input to the next higher up RBM. We repeat this process for three consecutive RBMs. This constitutes the unsupervised training stage as the DBN learns on un-labeled data.</p><p>Once the RBM layers are trained, we form a MultiLayer Perceptron (MLP) by attaching a logistic regression layer to the top layer of the network (equation 12). This links the top most hidden units to the data labels (e.g. H 2 O, CH 4 , CO 2 , etc.). We now greedily learn the whole network using stochastic gradient descent by presenting a spectrum of a given composition and its corresponding data label to the network. This supervised learning has two purposes: 1) it fine tunes the network, 2) it associates labels to the network. More specifically, in the supervised learning stage, the RBM layers are fixed and act as a feed-forward network. The logistic regression layer now learns the mapping between the high-level representations of the upper RBM layer and the associated data labels. We refer the interested reader to the standard literature (e.g. Bishop 2006; Hilbe 2009) for an in-depth treatment of logistic regression.</p><p>We learn the MLP using mini-batch stochastic gradient descent ( <ref type="bibr" target="#b31">Li et al. 2014</ref>). Mini-batches determine the number of training examples looked at simultaneously before updating the DBN weights. Looking at 'chunks' of data simultaneously, allows us to vectorise the gradient computation and achieve higher convergence speeds than for standard stochastic gradient descent methods. We did not require the use of any regularisations during supervised learning, but employ 'early stopping' criteria to avoid overfitting (see section 3.2). It is worth mentioning that 'dropout' algorithms ( <ref type="bibr" target="#b21">Hinton et al. 2012;</ref><ref type="bibr" target="#b42">Srivastava et al. 2014</ref>) have recently been shown to reach lower reconstruction errors than conventional supervised learning (with or without regularisation) and are found to be highly robust against overfitting, hence avoiding the need for early stopping criteria.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">IMPLEMENTATION AND TRAINING</head><p>RobERt is written in python using the scipy optimisation toolbox and the theano 1 library. Theano is a very powerful graph and symbolic math toolbox with efficient parallelisation (through the BLAS library) and native GPU support. The training data was generated using T -REx run with OpenMP parallelisation to produce the required grid of emission forward models.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Training data set</head><p>In the unsupervised training stage, RobERt requires a large set of example emission spectra to train with. Such a training set should include a broad range of planet types, atmospheric trace gasses and TP-profiles. We  considered a total of five planets ranging from warm SuperEarths (GJ1214b, <ref type="bibr" target="#b9">Charbonneau et al. 2009</ref>) to the strongly insolated hot-Jupiters (e.g. WASP-12b, <ref type="bibr" target="#b18">Hebb et al. 2009</ref>). In total we simulated 17150 emission spectra per planet and 85750 spectra in total. Each spectrum contains only one trace gas species at a time and no mixtures are considered in the training set. <ref type="table" target="#tab_0">Table 1</ref> summarises the training set parameters. The creation of the training set took ∼3 hours on 96 Intel Xeon E5-2697v2 cpus.</p><p>The data set was now randomly divided into 80% training data and 20% test data. RobERt is only trained on the training data with random selection of spectra from the test data presented to RobERt at every N th iteration of the supervised learning to test RobERt's prediction accuracy.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.1.">Normalisation</head><p>Before training RobERt on the catalogue of input spectra, we first normalise the input to a zero mean and unit variance grid. Though this is not strictly necessary, the normalisation significantly improves convergence properties of DBNs. The normalisation consists of three steps: 1) We normalise the emission spectrum with the Planckian of the planet's host star to obtain the planetary intensity</p><formula xml:id="formula_11">I p = (F p /F * ) × BB * R * R p 2<label>(14)</label></formula><p>where F p /F * is the column vector of the planetary/stellar flux ratio and BB * is the Planck function at the stellar temperature. This normalisation step ensures that the training process is not biased by the underlying stellar black body function. 2) We now convert I p into brigthness temperatures using</p><formula xml:id="formula_12">T p = hc λk × log 2hc 2 I p (λ)λ 5 + 1 −1 (15)</formula><p>where k is the Boltzmann constant, h the Planck constant, c the speed of light and λ the wavelength.  3) Finally we subtract the mean value of T p and normalise to unit variance to give the normalised spectrumˆTtrumˆ trumˆT p <ref type="figure" target="#fig_1">Figure 2</ref> shows an example input spectrum of H 2 O before normalisation (top, blue) and after normalisation (bottom, red).</p><formula xml:id="formula_13">ˆ T p = T p − ¯ T p var(T p − ¯ T p )<label>(16)</label></formula><p>3.2. Training RobERt is now set up to contain three RBM levels of 500, 200 and 50 neurons from bottom to top respectively, with the input data vector containing 900 spectral points. As discussed in section 6, we find that slightly smaller networks have similar performance levels but larger networks are too redundant.</p><p>The unsupervised training stage ran over 100 iterations per RBM level at a learning rate of = 0.01. We find that for all layers, convergence is typically reached between the 80 th -90 th iteration. During the supervised training stage, we adopt a learning rate of = 0.01 and a mini-batch sizes of typically 100 training spectra. The reconstruction error of the DBN given the test data is computed at each training epoch. Convergence of the supervised learning is reached when no improvement in reconstruction error is obtained over a maximum of 20 epochs and the iteration with the lowest reconstruction error is then taken as final result. This early stopping prevents significant overfitting during the supervised training stage.</p><p>The full training process takes ∼1.5h on 6 cpu cores or &lt;10 min. using a Nvidia Tesla K40 card (2880 GPUs). RobERt completes the supervised training stage with a test data recognition accuracy of 99.7%.</p><p>One major advantage of DBNs is their ability to generalise patterns over large ranges of parameter spaces, both seen and perviously unseen by the network. To demonstrate this behaviour, we generated emission spectra of the hot-Jupiter WASP-76b ( <ref type="bibr" target="#b46">West et al. 2013</ref>), unknown to RobERt, for a variety of trace gas molecules, mixtures and signal-to-noise (S/N) ratios. The spectral recognition process now proceeds in three stages:</p><p>1) The observed spectrum is normalised following the steps described in section 3.1.1.</p><p>2) The mean of each spectral bin is randomly perturbed within the measurement error bar, resulting in a 'noisy' spectrum.</p><p>3) The visible units of the DBN are set to the normalised, noisy spectrum and the DBN is run in the forward direction to obtain the label probabilities P (label).</p><p>Steps 2 &amp; 3 are repeated 100 times and the label probabilities recorded, summed and normalised. <ref type="figure" target="#fig_2">Figure 3</ref> shows four normalised example spectra and the results of RobERt's identification for S/N ratios of 20, 10, 5 and 2. Spectra containing only one main trace gas components are recovered &gt;99% of the time, across all planet types considered. This remains true for strongly saturated spectra with molecular abundances of &gt; 1 × 10 −2 and very low S/N values. Surprisingly even S/N ratios of 0.5 -1.0 allow RobERt to recognise the dominant trace gas component with good accuracy. RobERt was trained on only individual trace gases, i.e. pure water spectra or pure methane spectra, but not on mixtures of trace gasses. This is mainly due to the very large number of permutations required to represent mixtures of molecules accurately over varying abundances and TP-profiles in the training data. It is hence encouraging to see that RobERt understands mixtures well when presented with them. <ref type="figure" target="#fig_2">Figure 3</ref> shows two examples of spectra containing H 2 O + CH 4 and H 2 O, CO 2 &amp; TiO. In the three molecules example, RobERt identifies the main constituents, water and carbon-dioxide, with a high probability and the third constituent is either attributed to TiO, VO, CO or NO with TiO having the highest probability of these candidates. In an automated retrieval context, the retrieval code would run a first pass with CO 2 , H 2 O, TiO, VO, CO &amp; NO as input and proceed to nested model down-selection in subsequent retrieval runs ( <ref type="bibr" target="#b44">Waldmann et al. 2015a</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">Restricted wavelength ranges and resolution</head><p>miss-matches Whereas it is more adequate to train the DBN with instrument specific resolutions and wavelength ranges, e.g. for HST/WFC3, JWST/MIRI &amp; JWST/NIRSPEC, it is an intriguing exercise in itself to explore the effect of incomplete wavelength ranges on RobERt's ability to recognise molecular species. As stated previously, in this example RobERt was trained on a wavelength grid ranging from 1-20µm with a constant resolution of 300. <ref type="figure">Figure 4</ref> shows the normalised water-only emission spectrum for the HST/WFC3 G141 grism wavelength range (yellow spectrum). The remaining spectrum outside the wavelength range considered is padded with zeros on both sides. RobERt is clearly able to identify water as dominant trace gas. We now consider increasingly restrictive wavelength ranges until the clear water detection breaks down at the 1.26 -1.53µm bandpass <ref type="bibr">Wavelength (µm)</ref> 1.2</p><p>1.4 <ref type="figure">Figure 4</ref>. Similar to <ref type="figure" target="#fig_2">figure 3</ref>; Left shows input spectrum at S/N = 20 for a normalised water spectrum in the HST/WFC3 G141 grism passband (yellow, 1.1 -1.8 µm). Darker colour shading represents progressively smaller passbands for which the recognition was performed. Blue dashed and black dotted lines show normalised spectra of NO and CH 4 respectively. Right shows the corresponding detection probability per molecule for the varying wavelength ranges. Water is readily recognised to be the main trace gas component but for the smallest bandpass considered where H 2 O, CH 4 and NO are assigned roughly equal probabilities. As can be seen in the left plot, H 2 O, CH 4 and NO normalised spectra all have very similar features when only the most restricted (darkest shaded) spectral range is considered.</p><formula xml:id="formula_14">1.6 1.8 Normalized H 2 O H C N C H 4 C O 2 C O N H 3 N O S iO T iO V O</formula><p>and RobERt attributes nearly equal probabilities to H 2 O, CH 4 and NO. Whilst initially surprising, upon closer inspection all three molecular species have strong overlapping features in this wavelength range (blue and black lines in <ref type="figure">figure 4</ref> show the normalised spectrum of NO at 1 × 10 −2 and CH 4 at 1 × 10 −4 respectively) and a 'visual' separation of molecules becomes very difficult. We now investigate the effect of resolution missmatches between the observed data and the resolution with which the DBN is trained. As expected, downsampling from a higher resolution to the DBN resolution does not impair recognition efficiency. The effect of upsampling, i.e. interpolating the observed spectrum to the resolution of the DBN, is more case dependent. We find no degradation of the recognition efficiency upsampling broad absorbing species such as H 2 O or CH 4 from resolutions as low as R = 30 to the native resolution of the DBN. Here, the interpolation simply adds noise to the spectrum against which the DBN is very robust. Generally speaking, all molecules can be identified unless their features are strongly undersampled. Trace gases with more narrow emission/absorption bands (e.g. CO, NO) are hence more strongly affected. For the molecular mixtures considered here, we find a conservative lower limit of R ∼ 25 (constant with λ) below which feature detection becomes difficult. It should be noted that a strongly undersampled spectrum will always be difficult to interpret independently of the methodology used.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">DREAMING OF ATMOSPHERES</head><p>When RobERt is used for recognition purposes we set the visible units to the values of the input spectrum and propagate the network forward (i.e. upwards) to obtain a classification label. Another approach to qualitatively check the convergence quality of the DBN is to reverse the network and propagate the network weights backwards (i.e. downwards) starting from a label. In other words, we activate the, say, H 2 O label and RobERt will return what it 'thinks' are the defining features of a water spectrum. This backwards propagation is commonly referred to as 'dreaming' in the machine learning literature. <ref type="figure" target="#fig_3">Figure 5</ref> shows dreams of three molecules, H 2 O, CO 2 and TiO. We compare these dreams with real, normalised spectra with abundances of 1 × 10 4 underneath. The likeness of the dreamed spectra with real data is striking. L1, L2 and L3 represent the neural activations of the bottom, middle and top RBMs respectively. We find the neural activations in the dream state to be a useful indicator of the sparsity (i.e. number of units set to or close to zero) of the neural network and find networks with ∼10% average sparsity to yield the most accurate spectral reconstructions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">DISCUSSION</head><p>The size of the DBN is an important factor to be considered, RobERt consists of three RBMsáRBMsá 500, 200 and 50 neurons from bottom to top respectively. We find a three layer DBN to work best but also find that networks with too many neurons per layer, particularly in the upper levels, lead to noisy reconstructions, low maximum likelihoods, and a poorer recognition performance. We attribute this effect to a high level of redundancy in the network, which introduces noise. As described above, by inspecting the neural activations during the dream state of RobERt, we can measure the sparsity of individual layers for individual states (i.e. molecule activations). Tests have shown that ∼10% in sparsity averaged across activation states produces the most robust and highest S/N networks. Smaller, simpler networks run the risk of not being able to differentiate between molecules correctly.</p><p>As stated previously, RobERt has only been trained on spectra containing one trace gas at a time. Despite this obvious limitation, we show in section 4 that RobERt is indeed able to identify mixtures of molecules, though caveats to this capability should be mentioned. Similar to inspecting a spectrum by eye, RobERt is able to identify mixtures if the trace gas signatures are very different to one another (e.g. H 2 O and CO, <ref type="figure" target="#fig_3">figure 5</ref>) or if sufficient wavelength coverage is provided (e.g. CH <ref type="bibr">4</ref> and H 2 O, <ref type="figure" target="#fig_2">figure 3</ref>). The DBN struggles whenever either too little wavelength coverage is available (e.g. <ref type="figure">figure 4</ref>) or the secondary trace gas is of an order of magnitude less abundant than the primary absorber/emitter, i.e. secondary signatures imprint themselves as noise on the main absorber/emitter.</p><p>Though some of these limitations are fundamental (i.e. insufficient wavelength coverage, too low S/N, etc.), future work will investigate the use of convolutional deep belief networks (e.g. <ref type="bibr" target="#b29">Lee et al. 2011a</ref>) to boost recognition accuracy by learning the localised correlations in the observed spectra. Additionally, an updated supervised learning cost-function is imaginable where not the identification of a single trace gas is rewarded but instead a 'best ranking' of groups of molecules.</p><p>As pre-selector to the T -REx retrieval suite, RobERt will provide rankings of the most likely molecules to be considered in the quantitative retrieval. This is an iterative process with the retrieval models increasing in complexity, from the simplest atmospheres (containing only the few most likely molecular absorbers/emitters detected by RobERt) to more complex models (containing less likely opacities). The Bayes factor is the measure of convergence here ( <ref type="bibr" target="#b44">Waldmann et al. 2015a</ref>). In future implementations of RobERt, online-learning will become important after its initial training phase is complete. With each new data set, RobERt will be able to update and improve its DBN, taking the T -REx results as labeled training set. Such an application is particularly suited as part of a larger data reduction/analysis pipeline for future large scale ground and space-based surveys.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.">CONCLUSION</head><p>In this paper we present the use of Deep belief networks in the identification and classification of exoplanetary emission spectra. We have shown that DBNs are well suited to identifying molecular signatures in extrasolar planet spectra. They are very robust to low S/N ratios and are able to identify trace gases even when wavelength ranges are strongly restricted compared to the initial training setup. This property is important as training a DBN is relatively computationally intensive and hence one would ideally want the trained DBN to be as universally applicable as possible. Their ability to abstract and generalise non-linear systems very effectively, makes DBNs an ideal tool for qualitative 'pre-selection' of parameter spaces for spectral retrieval applications.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 .</head><label>1</label><figDesc>Figure 1. Schematic outline of a Restricted Boltzmann Machine (RBM) on the left and a full Deep belief network (DBN) in the form of a Multi-layer Perceptron (MLP) on the right. Blue bottom layer are the 'visible units' which are set to the input spectrum during training and recognition. Red are layers of 'hidden units' forming increasingly abstract representations of the input layer the further up the network they are. Green represents logistic units linking data labels to the top-layer of hidden units. All units are connected (black lines) with all units in the layers above and below but not intra-level connections exist. It can be seen that the DBN can be built from three consecutive RBMs with the addition of a logistic regression layer.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 2 .</head><label>2</label><figDesc>Figure 2. Top: example spectrum of a hot-Jupiter (water only) generated by T -REx. Bottom: the normalised emission spectrum used for training RobERt.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 3 .</head><label>3</label><figDesc>Figure 3. Left: example normalised emission spectra at S/N = 20. From top to bottom the spectral compositions are: 1) H 2 O (1 × 10 −4 ); 2) CH 4 (1 × 10 −4 ); 3) H 2 O (1.5 × 10 −4 ) &amp; CH 4 (1 × 10 −4 ); 4) H 2 O (2 × 10 −4 ), CH 4 (2 × 10 −4 ) &amp; TiO (1×10 −4 ). Right: Corresponding probability of the molecule being present in the spectrum to the left. All probabilities are normalised (p(x)/max[p(x)]) for clarity and colour coded to represent 4 different S/N values of the input spectrum: 20 (black), 10 (brown), 5 (orange), 2 (yellow).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 5 .</head><label>5</label><figDesc>Figure 5. Spectral reconstruction (or 'dreaming') of three molecules H 2 O, CO 2 &amp; TiO. Top three panels show neuron activations for the bottom (L1) to top (L3) Restricted Boltzmann Machine layers. Bottom two rows show normalised H 2 O, CO 2 &amp; TiO spectra reconstructed by the neural network and real data examples as comparison. The similarities between 'dreamed' and real spectral features are striking. This indicates a good representation of molecular features in the neural network.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" validated="true"><head>Table 1 Summary of training set</head><label>1</label><figDesc></figDesc><table>No. planets 5 
+Planets 1 WASP-12b, HD189733b, 
+HD209458b, HAT-P-11b, GJ1214b 
+No. molecules 10 
+Molecules H 2 O, HCN, CH 4 , CO 2 , 
+CO, NH 3 , NO, SiO, TiO, VO 
+Abundance range 1 × 10 −7 − 1 × 10 −2 
+Compositions / planet 5 
+TP-profiles / planet 7 
+λ range 1 -20µm 
+Resolution 300 (constant) 
+Points / spectrum 900 
+Spectra / planet 17150 
+Spectra total 85750 </table></figure>
+
+			<note place="foot" n="1"> all parameters from http://exoplanet.eu 1 https://pypi.python.org/pypi/Theano</note>
+
+			<note place="foot" n="4">. RECOGNITION OF EMISSION SPECTRA</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>ACKNOWLEDGEMENTS</head><p>IPW thanks G. Tinetti, R. Varley, M. Rocchetto, A. Tsiaras &amp; G. Morello for useful discussions. This work was supported by the ERC project 617119 (ExoLights).</p></div>
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Agarwal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">B</forename><surname>Abdalla</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">A</forename><surname>Feldman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Lahav</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">A</forename><surname>Thomas</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Monthly Notices of the Royal Astronomical Society</title>
+		<imprint>
+			<biblScope unit="volume">424</biblScope>
+			<biblScope unit="page">1409</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+	</analytic>
+	<monogr>
+		<title level="j">Monthly Notices of the Royal Astronomical Society</title>
+		<imprint>
+			<biblScope unit="volume">439</biblScope>
+			<biblScope unit="page">2102</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Bengio</surname></persName>
+		</author>
+		<title level="m">Learning Deep Architectures for AI</title>
+		<imprint>
+			<publisher>Now Publishers Inc</publisher>
+			<date type="published" when="2009" />
+			<biblScope unit="volume">2</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<monogr>
+				<title level="m">Neural Networks: Tricks of the Trade</title>
+		<meeting><address><addrLine>Berlin, Heidelberg; Berlin Heidelberg</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2012" />
+			<biblScope unit="page" from="437" to="478" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Bengio</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Lamblin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Popovici</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Larochelle</surname></persName>
+		</author>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="2007" />
+			<biblScope unit="volume">19</biblScope>
+			<biblScope unit="page">153</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<monogr>
+				<title level="m">Advances in Neural Information Processing Systems</title>
+		<editor>B. Schölkopf, J. Platt, &amp; T. Hoffman</editor>
+		<imprint>
+			<publisher>MIT Press</publisher>
+			<date type="published" when="2007" />
+			<biblScope unit="volume">19</biblScope>
+			<biblScope unit="page" from="153" to="160" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Benneke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Seager</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">APJ</title>
+		<imprint>
+			<biblScope unit="volume">778</biblScope>
+			<biblScope unit="page">153</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Bianchini</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Scarselli</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neural Networks and Learning</title>
+		<imprint>
+			<biblScope unit="volume">25</biblScope>
+			<biblScope unit="page">1553</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">M</forename><surname>Bishop</surname></persName>
+		</author>
+		<title level="m">Pattern Recognition and Machine Learning</title>
+		<imprint>
+			<publisher>Springer Verlag</publisher>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><forename type="middle">K</forename><surname>Berta</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Irwin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">462</biblScope>
+			<biblScope unit="page">891</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">A</forename><surname>Collister</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Lahav</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">116</biblScope>
+			<biblScope unit="page">345</biblScope>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">C</forename><surname>Davison</surname></persName>
+		</author>
+		<title level="m">Statistical Models</title>
+		<imprint>
+			<publisher>Cambridge University Press</publisher>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Dieleman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">W</forename><surname>Willett</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Dambre</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Du Buisson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Sivanandam</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">A</forename><surname>Bassett</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Smith</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">APJ</title>
+		<imprint>
+			<biblScope unit="volume">450</biblScope>
+			<biblScope unit="page">2026</biblScope>
+			<date type="published" when="1441" />
+		</imprint>
+	</monogr>
+	<note>APJ</note>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">L</forename><surname>Ellison</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Teimoorinia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J</forename><surname>Rosario</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Mendel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">APJ</title>
+		<imprint>
+			<biblScope unit="volume">455</biblScope>
+			<biblScope unit="page">370</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Fischer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Igel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Pattern Recognition</title>
+		<imprint>
+			<biblScope unit="volume">47</biblScope>
+			<biblScope unit="page">25</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Freund</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Haussler</surname></persName>
+		</author>
+		<title level="m">Advances in Neural Information Processing Systems</title>
+		<imprint>
+			<date type="published" when="1992" />
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="page">912</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">A</forename><surname>Griffith</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Philosophical Transactions of the Royal Society A: Mathematical</title>
+		<imprint>
+			<biblScope unit="volume">372</biblScope>
+			<biblScope unit="page">30086</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Head-Gordon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">H</forename><surname>Stillinger</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Physical Review E (Statistical Physics</title>
+		<imprint>
+			<biblScope unit="volume">48</biblScope>
+			<biblScope unit="page">1502</biblScope>
+			<date type="published" when="1993" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Hebb</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Collier-Cameron</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Loeillet</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">APJ</title>
+		<imprint>
+			<biblScope unit="volume">693</biblScope>
+			<date type="published" when="1920" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">H</forename><surname>Hilbe</surname></persName>
+		</author>
+		<title level="m">Logistic Regression Models</title>
+		<imprint>
+			<publisher>Chapman &amp; Hall</publisher>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">E</forename><surname>Hinton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Neural Networks: Tricks of the Trade</title>
+		<meeting><address><addrLine>Berlin, Heidelberg; Berlin Heidelberg</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2002" />
+			<biblScope unit="volume">14</biblScope>
+			<biblScope unit="page" from="599" to="619" />
+		</imprint>
+	</monogr>
+	<note>Neural Computation</note>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">E</forename><surname>Hinton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Srivastava</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Krizhevsky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Sutskever</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">R</forename><surname>Salakhutdinov</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1207.0580</idno>
+		<imprint>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+<note type="report_type">arXiv preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Huertas-Company</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Gravet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Cabrera-Vives</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">APJ</title>
+		<imprint>
+			<biblScope unit="volume">221</biblScope>
+			<biblScope unit="issue">8</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">C</forename><surname>Hung</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C.-S</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C.-Y</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M.-S</forename><surname>Chiu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Yee</surname></persName>
+		</author>
+		<title level="m">19th International Conference on Advanced Information Networking and Applications (AINA&apos;05</title>
+		<imprint>
+			<publisher>IEEE</publisher>
+			<date type="published" when="2005" />
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="157" to="162" />
+		</imprint>
+	</monogr>
+	<note>AINA papers</note>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Jaitly</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Hinton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">ICASSP 2011 -2011 IEEE International Conference on Acoustics, Speech and Signal Processing</title>
+		<imprint>
+			<publisher>IEEE</publisher>
+			<date type="published" when="2011" />
+			<biblScope unit="page" from="5884" to="5887" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">V</forename><surname>Karpenka</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Feroz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">P</forename><surname>Hobson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">429</biblScope>
+			<biblScope unit="page">1278</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<monogr>
+		<title level="m" type="main">Learning multiple layers of features from tiny images</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Krizhevsky</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2009" />
+		</imprint>
+		<respStmt>
+			<orgName>University of Toronto</orgName>
+		</respStmt>
+	</monogr>
+<note type="report_type">Tech. rep</note>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Krizhevsky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Sutskever</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">E</forename><surname>Hinton</surname></persName>
+		</author>
+		<title level="m">Advances in neural</title>
+		<imprint>
+			<date type="published" when="2012" />
+			<biblScope unit="page">1097</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Le Roux</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Bengio</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neural Computation</title>
+		<imprint>
+			<biblScope unit="volume">20</biblScope>
+			<biblScope unit="page">2192</biblScope>
+			<date type="published" when="1631" />
+		</imprint>
+	</monogr>
+	<note>Neural Computation</note>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Grosse</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ranganath</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">Y</forename><surname>Ng</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Communications of the ACM</title>
+		<imprint>
+			<biblScope unit="volume">54</biblScope>
+			<biblScope unit="page">95</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">N</forename><surname>Fletcher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">G J</forename><surname>Irwin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Monthly Notices of the Royal Astronomical Society</title>
+		<imprint>
+			<biblScope unit="volume">420</biblScope>
+			<biblScope unit="page">170</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">J</forename><surname>Smola</surname></persName>
+		</author>
+		<title level="m">Proceedings of the 20th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining, KDD &apos;14</title>
+		<meeting>the 20th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining, KDD &apos;14<address><addrLine>New York, NY, USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>ACM</publisher>
+			<date type="published" when="2014" />
+			<biblScope unit="page" from="661" to="670" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Line</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Vasisht</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">749</biblScope>
+			<biblScope unit="page">93</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Han</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Meng</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Tong</surname></persName>
+		</author>
+		<title level="m">2014 IEEE Conference on Computer Vision and Pattern Recognition (CVPR)</title>
+		<imprint>
+			<publisher>IEEE</publisher>
+			<date type="published" when="2014" />
+			<biblScope unit="page" from="1805" to="1812" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Madhusudhan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Seager</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">707</biblScope>
+			<biblScope unit="page">24</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Montavon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Orr</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K.-R</forename><surname>Müller</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Neural Networks: Tricks of the Trade</title>
+		<meeting><address><addrLine>Berlin, Heidelberg</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2012" />
+			<biblScope unit="volume">7700</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Plebe</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neurocomputing</title>
+		<imprint>
+			<biblScope unit="volume">70</biblScope>
+			<biblScope unit="page">2060</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Pradeep</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Kumaraswamy</surname></persName>
+		</author>
+		<title level="m">2014 National Conference on Communication, Signal Processing and Networking (NCCSN)</title>
+		<imprint>
+			<publisher>IEEE</publisher>
+			<date type="published" when="2014" />
+			<biblScope unit="page" from="1" to="5" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<monogr>
+		<title level="m" type="main">Numerical Recipes 3rd Edition: The Art of Scientific Computing</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">H</forename><surname>Press</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">A</forename><surname>Teukolsky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">T</forename><surname>Vetterling</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">P</forename><surname>Flannery</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2007" />
+			<publisher>Cambridge University Press</publisher>
+			<pubPlace>New York, NY, USA</pubPlace>
+		</imprint>
+	</monogr>
+	<note>3rd edn.</note>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">R R</forename><surname>Reis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Soares-Santos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Annis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">747</biblScope>
+			<biblScope unit="page">59</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Shen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Zhu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Electronics Letters</title>
+		<imprint>
+			<biblScope unit="volume">51</biblScope>
+			<biblScope unit="page">905</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Spencer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Eickholt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Cheng</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">IEEE/ACM Transactions on Computational Biology and Bioinformatics</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="page">103</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Srivastava</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Hinton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Krizhevsky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Sutskever</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Salakhutdinov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Machine Learning Research</title>
+		<imprint>
+			<biblScope unit="volume">15</biblScope>
+			<biblScope unit="page">1929</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">P</forename><surname>Waldmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Rocchetto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">813</biblScope>
+			<biblScope unit="page">13</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">P</forename><surname>Waldmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Rocchetto</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">802</biblScope>
+			<biblScope unit="page">107</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Melchior</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Wiskott</surname></persName>
+		</author>
+		<idno>abs/1401.5900</idno>
+	</analytic>
+	<monogr>
+		<title level="j">CoRR</title>
+		<imprint>
+			<biblScope unit="page">5900</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">G</forename><surname>West</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Almenara</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">R</forename><surname>Anderson</surname></persName>
+		</author>
+		<idno>arXiv.org</idno>
+		<imprint>
+			<date type="published" when="2013" />
+			<biblScope unit="page">5607</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">H</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Mclarty</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neural Networks and Genome Informatics</title>
+		<imprint>
+			<date type="published" when="2012" />
+			<publisher>Elsevier</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X.-L</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Wu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Audio</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="page">697</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

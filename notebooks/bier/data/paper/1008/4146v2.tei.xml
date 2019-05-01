@@ -1,0 +1,405 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-04T16:07+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Inferring the eccentricity distribution</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">David</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Adam</forename><forename type="middle">D</forename><surname>Myers</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jo</forename><surname>Bovy</surname></persName>
+						</author>
+						<title level="a" type="main">Inferring the eccentricity distribution</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>Subject headings: binaries: general -celestial mechanics, stellar dynamics - methods: data analysis -methods: statistical -planetary systems</keywords>
+			</textClass>
+			<abstract>
+				<p>Standard maximum-likelihood estimators for binary-star and exoplanet eccentricities are biased high, in the sense that the estimated eccentricity tends to be larger than the true eccentricity. As with most non-trivial observables, a simple histogram of estimated eccentricities is not a good estimate of the true eccentricity distribution. Here we develop and test a hierarchical probabilistic method for performing the relevant meta-analysis, that is, inferring the true eccentricity distribution, taking as input the likelihood functions for the individual-star eccentricities, or samplings of the posterior probability distributions for the eccentricities (under a given, uninformative prior). The method is a simple implementation of a hierarchical Bayesian model; it can also be seen as a kind of heteroscedastic deconvolution. It can be applied to any quantity measured with finite precision-other orbital parameters, or indeed any astronomical measurements of any kind, including magnitudes, distances, or photometric redshifts-so long as the measurements have been communicated as a likelihood function or a posterior sampling.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>With rare exceptions, binary star and exoplanet science hinges not on the specific value of any individual eccentricity (or mass or period), but rather on the distribution, or the distribution as a function of stellar properties or other parameters. The goal of any statistical study should be to determine the distribution of the quantity of interest-we will concentrate on orbital eccentricity for specificity-that would have been observed if the investigator had extremely high signal-to-noise data and some (magical) method for precise determination of all nuisance parameters, such as instrument calibration and system inclination and so forth. That is, the investigator wants the observational-uncertainty-deconvolved distribution of the quantity of interest.</p><p>One exciting development in the study of binaries and exoplanets is that many groups are building probabilistic modeling software <ref type="bibr" target="#b5">(Ford 2005;</ref><ref type="bibr" target="#b6">Gregory 2005;</ref><ref type="bibr" target="#b0">Balan &amp; Lahav 2009)</ref>. Rather than fitting and returning a single set of parameters, These probabilistic packages (approximately) sample from the posterior probability distribution under weakprior assumptions. These posterior samplings are much more useful than best-fit parameter values, because they permit subsequent investigators to perform probabilistic inference on the output without going back to the raw radial-velocity data while still properly propagating uncertainties. In this Article, we give an example of probabilistic meta-analysis that becomes possible when the parameter outputs for individual stars are probabilistic.</p><p>For any plausibly exoplanet-or binary-hosting star n, there are parameters ω n ≡ (κ n , T n , φ n , e n , , n ) ,</p><p>where κ n is the velocity amplitude, T n is the period, φ n is some orbital phase or fiducial time, e n is the eccentricity, and n is the longitude of perihelion. Fitting to these parameters is non-linear and unbiased estimators are rare. For these reasons, maximum-likelihood (or, for Gaussian noise, minimum-χ 2 ) parameters are not in general unbiased estimators of the true parameters-maximum-likelihood estimators only become unbiased in the limit of an infinite amount of data. Almost all single-point estimates, including maximum-a-posteriori or median-of-sampling parameters, are also biased in general ( <ref type="bibr" target="#b9">Lehmann &amp; Casella 1998</ref>).</p><p>Indeed, along these lines, it has been shown that the eccentricity e n of any star n has this property: The maximum-likelihood estimate˜eestimate˜ estimate˜e n of the eccentricity is biased high; any histogram of estimated eccentricities˜eeccentricities˜ eccentricities˜e n will have a mean (and variance) that is higher than that of the true distribution of true eccentricities e n <ref type="bibr" target="#b15">(Shen &amp; Turner 2008)</ref>. These results-and the incredible diversity of eccentricities observed in exoplanet systems-motivate a concentration on the eccentricity distribution in what follows. Without the analysis methods we propose here, it is possible that conclusions about the high eccentricities of exoplanet systems might be over-stated or distorted.</p><p>There are three fundamental approaches to determination of the true eccentricity distribution-or true distribution of any quantity-given noisy measurements˜emeasurements˜ measurements˜e n , where n is an index over instances (in this case, stars with binary or exoplanet companions). The first (and worst) is just to adopt the estimated values as good estimates of the true values and create a histogram (or other density estimate) of the observed values˜evalues˜ values˜e n . Because these estimators are biased, and because they are noisy, the distribution created in this way will have the wrong mean and variance; it will be a strongly biased estimate of the true distribution of true eccentricities e n . Furthermore, adding new˜enew˜ new˜e n estimates from new stars n will not decrease these biases; there is no √ N improvement as new data are added. There are suggestions of less-biased estimators for eccentricity ( <ref type="bibr" target="#b16">Zakamska et al 2010)</ref>, but anything unbiased in eccentricity e will still be biased for any nonlinear function of e, and point estimates still have the property that the distribution of point estimates will in general be different in variance from the true distribution, if only because of observational noise.</p><p>The second approach is to deconvolve the distribution of maximum-likelihood or best-fit˜e fit˜ fit˜e n values. In this approach the investigator recognizes that the distribution of estimates˜eestimates˜ estimates˜e n is the true distribution convolved with the uncertainty distribution, where that uncertainty can be described as the probability of estimating˜eestimating˜ estimating˜e n when the true value is e n , or p(˜ e n |e n ). The investigator finds the distribution of true values e n that, when it is convolved with the uncertainties, produces the distribution of estimates˜eestimates˜ estimates˜e n . Done correctly, this will be performed in a forward-modeling of the observed distribution, starting at the true distribution. This method is much more responsible, but when the investigator works at the distribution level (that is, not at the individual-star level), the investigator must assume things about the distribution of uncertainties, equivalent to assuming that all the stars have the same relationship p(˜ e n |e n ) between the estimated and true values. It is also a disadvantage that when performed na¨ıvelyna¨ıvely, deconvolutions can be very sensitive to histogram binning (or, equivalently, choices about the density estimation) and are unstable to "ringing" and other issues coming from shot noise in the observed distribution.</p><p>The third approach-and the approach taken here-is forward modeling of the heteroscedastic observed data (or eccentricity estimates, if these estimates are not single point estimates but rather posterior samplings). That is, the investigator makes a non-parametric (or highly parameterized) model of the frequency distribution function f α (e) for the true e n values, and finds the best-fit values of the distribution parameters α-the values of the parameters α that, after convolution with the (suitably transformed) distributions in the nuisance parameters, explains best the full set of eccentricity samplings. This is also essentially deconvolution, but it has the enormous advantage over na¨ıvena¨ıve deconvolution that it accounts for the fact that different stars have different levels of (and functional forms for) uncertainty in the nuisance parameters. This forward-modeling approach is slowly being adopted in astrophysics (an early proponent is Loredo 2004); we used a simple version of it to estimate the galaxy luminosity function ( <ref type="bibr" target="#b1">Blanton et al 2003)</ref> and the velocity distribution in the Galaxy disk <ref type="bibr" target="#b2">(Bovy et al 2009a)</ref>, and we built a general tool for situations in which distributions are smooth and observational uncertainties are simple ( <ref type="bibr" target="#b3">Bovy et al 2009b)</ref>.</p><p>Here we perform this forward modeling for a situation in which the observational uncertainties are not simple (uncertainties are asymmetric; measurements are biased) in an area (exoplanet eccentricities) of great current scientific interest. Everything that follows is straightforwardly generalized to other parameters and other kinds of systems. For example, parallax-based stellar distances, photometric redshifts, and faint-source fluxes also suffer from systematic biases <ref type="bibr" target="#b11">(Lutz &amp; Kelker 1973;</ref><ref type="bibr" target="#b4">Connolly et al 1995;</ref><ref type="bibr" target="#b7">Hogg &amp; Turner 1998)</ref>. Scientific results based on these measurements rely on the true distributions, not the distributions of (biased) measurements, and in all of these cases, the objects of greatest interest have measurements at relatively low precision or low signal-to-noise. Reliable scientific results can be obtained nonetheless, though only by modeling the data; that is the fundamental motivation for this work.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Method</head><p>There are N stars n (1 ≤ n ≤ N ), each of which has some number M n of radial velocity measurements v nj . For each star n, the set of measurements (data)</p><formula xml:id="formula_1">D n ≡ {v nj } Mn j=1 (2)</formula><p>is modeled as being affected by a single companion. We are not explicitly considering multiple companion stars or planets at this stage, although the generalization is straightforward. The model is</p><formula xml:id="formula_2">v nj = V n + g n (t nj ) + E nj ,<label>(3)</label></formula><p>where V n is an overall system velocity, the function g(t nj ) is the radial velocity equation, and the E nj are noise contributions drawn from a Gaussian of zero mean and variance [σ 2 nj + S 2 n ], where σ 2 nj is the uncertainty variance for the jth observation of star n and S 2 n is a noise variance from intrinsic stellar variability and other unmodeled sources of noise. The radial velocity equation g n (t) for star n is parameterized by velocity amplitude κ n , period T n , orbital phase φ n , eccentricity e n , and longitude of perihelion n . (five parameters). This model of one star has 7 parameters (V n , S n , and five orbit parameters per star), which we can think of as living in a list ω n , and the model of al N stars has [7 N ] continuous parameters in a bigger list {ω n } N n=1 . The likelihood L n for the seven parameters ω n for star n is just the probability of the data D n for star n given the parameters ω n for star n</p><formula xml:id="formula_3">L n ≡ p(D n |ω n ) −2 ln L n = Q + Mn j=1 ln(σ 2 nj + S 2 n ) + Mn j=1 [V n + g ωn (t nj ) − v nj ] 2 σ 2 nj + S 2 n ,<label>(4)</label></formula><p>where Q is some constant. This looks like χ 2 but is modified for the jitter parameter S 2 n . For each system n we imagine that we have been provided (by the exoplanet observing or fitting team, say) not the original data, but just a K-element sample from a posterior probability distribution function (posterior PDF) created from the likelihood and an uninformative prior PDF p 0 (ω n ):</p><formula xml:id="formula_4">p(ω n |D n ) = 1 Z n p(D n |ω n ) p 0 (ω n ) ,<label>(5)</label></formula><p>where Z n is a normalization constant (for our purposes). The prior PDF p 0 (ω n ) will be decided not by us but by the exoplanet-fitter; we expect (need) it to be uninformative, for example, flat in all parameters, or in their logarithms. For each star n this sampling takes the form of a chain of K samples k, each of which is a set of 7 parameters ω nk , such that the distribution of the samples is consistent with a random draw from the posterior PDF.</p><p>The total likelihood L for all the parameters of all the stars n is just the product of the individual-star likelihoods</p><formula xml:id="formula_5">L ≡ p({D n } N n=1 | {ω n } N n=1 ) = N n=1 L n .<label>(6)</label></formula><p>This product formulation of the total likelihood makes the implicit assumption that the different star observations are independent; that is, we are assuming that there are no likelihood covariances among the parameters of different systems n. That assumption will be at least weakly violated in any real survey of binaries or exoplanets, because different observations will share hardware issues and calibration information.</p><p>We want, however, not the likelihood for all the star and orbital parameters but instead the likelihood L α for the parameters α of the eccentricity distribution f α (e). This requires a slight re-thinking, because once we know the true eccentricity distribution, that is a better prior PDF to be using than the uninformative prior PDF p 0 (ω n ). It is this process-opening up the prior PDF to modeling and putting what we want to infer in the place of the prior PDF from previous inferences-that makes the method hierarchical. To make this inference we must change variables and integrate out the individual-star parameters which are-for our purposes-nuisance parameters. For the likelihood function L α , this change of variables and integration is</p><formula xml:id="formula_6">L α ≡ p({D n } N n=1 |α) L α = N n=1 dω n p(D n |ω n ) p(ω n |α) p(ω n |α) ≡ f α (e n ) p 0 (ω n ) p 0 (e n ) ,<label>(7)</label></formula><p>where the integrals are over the N 7-dimensional parameter spaces and we have multiplied the uninfomative prior PDF p 0 (ω n ) by a ratio of the eccentricity distribution we want to infer to its uninformative counterpart. This is a marginalized likelihood (or "marginal likelihood") because we have inserted a prior PDF for the nuisance parameters and integrated them out, but left the result in the dimensions of likelihood (probability of data given parameters).</p><p>In multiplying the prior PDF by f α (e)/p 0 (e) we have implicitly assumed that the true distribution of parameters is separable; that is, that both the uninformative prior PDF and the informative prior PDF parameterized by α can be written as a prior PDF on the eccentricity e multiplied by a prior PDF on the other parameters. This is not true in general, and is a limitation of this formulation. The limitation is not fundamental; f α (e) can be replaced with a multivariate distribution function in the general case.</p><p>The [7 N ]-dimensional integral (or product of N 7-dimensional integrals) looks intimidating, but that integration is exactly the capability that the sampling from each individual system n provides for us: Given a K-element sampling with elements ω nk ,</p><formula xml:id="formula_7">dω n p 0 (ω n |D n ) F (ω n ) ≈ 1 K K k=1 F (ω nk ) ;<label>(8)</label></formula><p>where p 0 () represents the posterior PDF under the uninformative prior PDF upon which the sampling is based. The point is that all probability integrals can be approximated as sums over samples. So the sampling approximation to the marginalized likelihood for the α is just</p><formula xml:id="formula_8">L α ≈ N n=1 1 K K k=1 f α (e nk ) p 0 (e nk ) ,<label>(9)</label></formula><p>where all that is inside the sum is the ratio between the uninformative prior PDF (on which the sampling is based) and the new prior PDF that we want to infer, and the e nk are the K samples of each e n . This sampling approximation to the likelihood L α for the parameters α can be optimized to obtain a maximum-likelihood true eccentricity distribution, or it can be multiplied by a prior PDF, normalized, and sampled to obtain a posterior PDF sampling for the parameters α. Either way, it is the likelihood that non-trivially enters into our inference.</p><p>The expression for the likelihood L α in equation <ref type="formula" target="#formula_8">(9)</ref> is an importance-sampling approximation to the ratio of Bayes factors (integrals of the posterior probability distribution over the nuisance parameters). The comparison of marginalized likelihoods of two models (between the default prior PDF and the distribution parameterized by α or between two different values of the parameters α) is equivalent to a marginalized Bayesian comparison between two models. It is an importance sampling because it uses a sampling but re-weights the samples by the ratio of probabilities between the two models. The usual caveats concerning importance sampling apply here as well: Since the samples returned by the MCMC are generally not independent, the importance-sampling approximation does not improve as √ N and if the default prior PDF and the distribution parameterized by α are very different, the importance-sampling approximation will be noisy. Therefore, we prefer the default prior PDF to be uninformative. We also need it to be uninformative to ensure that the posterior PDF generated with p 0 (e) has support-and samples-wherever the posterior PDF generated with f α (e) is significant.</p><p>From an inference perspective, it is more sensible to simultaneously infer α and all the ω n for all the systems, and perform the marginalization on the joint inference. Here we use this importance-sampling approximation because by assumption we do not have the exoplanet data; we have only the K-element samplings from the posterior PDFs (the posterior PDFs created with the uninformative prior PDF).</p><p>All that remains is to choose functional forms for (parameterizations of) the eccentricity distribution function f α (e), and a prior PDF on the parameters α (if we want to perform sampling or further marginalization, which we do). There are many possible choices here, and a true Bayesian doesn't choose but rather does them all and includes them all in the output. However, for specificity and clarity, we consider only two forms for the eccentricity distribution. The first is a step function with M steps:</p><formula xml:id="formula_9">f α (e) ≡ M m=1 exp(α m ) s(e; m−1 M , m M ) s(x; L, H) ≡    0 for x &lt; L (H − L) −1 for L ≤ x ≤ H 0 for H &lt; x M m=1 exp α m = 1 ,<label>(10)</label></formula><p>where we have laboriously defined the step function as a mixture of top-hats and given the normalization constraint on the elements α m of the parameter vector α. For the prior PDF on the α we use</p><formula xml:id="formula_10">p(α) ∝ δ(1 − M m=1 exp α m ) exp(− 1 2 M m=2 [α m − α m−1 ] 2 ) ,<label>(11)</label></formula><p>where the delta function ensures the normalization of f α (e), and is a control parameter that controls our expectation that f α (e) be smooth. Of course this smoothness parameter -and the bin number M -should be learned along with α, but as this is beyond our scope, we simply set = 2 and M = 20. Empirically, this keeps the distributions smooth when the data sets get small, but permits good freedom and doesn't influence the results much for large data sets, as we show below. This is a simple smoothness prior <ref type="bibr" target="#b8">(Kitagawa &amp; Gersch 1996)</ref>; more sophisticated versions can employ a Gaussian process <ref type="bibr" target="#b14">(Rasmussen &amp; Williams 2006</ref>) on the α m -the prior in equation <ref type="formula" target="#formula_0">(11)</ref> is a special case of this-and the hyper-parameters (only in this case) controlling the smoothness of the distribution can be marginalized out. This has the advantage that the number of bins can be very large, but it has the disadvantage that sampling highly correlated bin heights is challenging (Murray et al 2010a,b).</p><p>The second form we consider for the eccentricity distribution is that of the beta distribution</p><formula xml:id="formula_11">f α (e) = Γ(a + b) Γ(a) Γ(b) e [a−1] (1 − e) [b−1] α ≡ (a, b) ,<label>(12)</label></formula><p>where Γ(z) is the gamma function, and we are redefining the parameter list α to contain the beta distribution shape parameters a and b. This distribution is defined on the interval</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Experiments</head><p>We generated N = 400 ersatz radial velocity data sets n, each of which contained M n = 30 radial velocity measurements scattered uniformly over a time baseline of 1000 days. These measurements were created using the model for the radial velocity of the parent star of a theoretical exoplanet (or companion star in a binary system) described by equation <ref type="formula" target="#formula_2">(3)</ref>. We assumed reasonable distributions for the governing parameters of the model, together with some (trivial) simplifications:</p><p>Each ersatz parent or primary star was assumed to have a mass of M n = 1 M and vanishing overall system velocity (V n = 0) in the absence of its exoplanet (or stellar companion). Intrinsic radial velocity and primary star mass were, though, left free in fitting. Each ersatz exoplanet or companion star was assigned a mass m n drawn from a distribution p(m) ∝ 1/m (flat in ln m) constrained to lie in [0.1 M Jup ] &lt; m n &lt; [10 M Jup ]. Companions were given orbital periods drawn from a distribution p(T ) ∝ 1/T constrained to lie in</p><formula xml:id="formula_12">[2 d] &lt; T &lt; [2000 d].</formula><p>Phases φ n and n were drawn from uniform distributions 0 &lt; φ &lt; 2π, except for the inclination i n , which was drawn from a distribution flat in cos i. The masses M n and m n and inclinations i n enter into the radial velocity model through the κ n :</p><formula xml:id="formula_13">κ n = [2π G] 1/3 m n sin i n T 1/3 n [M n + m n ] 2/3 [1 − e 2 n ] 1/2 .<label>(14)</label></formula><p>The eccentricity e n for each ersatz companion was drawn from one of two frequency distributions: The first is an intuitive distribution</p><formula xml:id="formula_14">f (e) = 1 Z 1 [1 + e] 4 − e 2 4<label>(15)</label></formula><p>( <ref type="bibr" target="#b15">Shen &amp; Turner 2008)</ref>, where Z is a normalization constant; hereafter we call this distribution "ST4". The second is an unrealistic straw-man designed to stress-test the inference methodology. It is a Gaussian with mean e = 0.3 and variance (0.05) 2 (but set to zero outside of the range 0 &lt; e &lt; 1).</p><p>The error added to each ersatz measurement was drawn from a Gaussian of known observational noise variance, but with every point assigned its own individual (heteroscedastic) noise variance, uniformly distributed (in variance) in the interval ( √ 10 m s −1 ) 2 &lt; σ 2 nj &lt; (10 m s −1 ) 2 . For the ersatz observations, the jitter parameters S 2 n were set to vanish, but, as with the system velocity and mass of the parent (or primary) star, the jitter parameters S 2 n were left free in the fitting.</p><p>We optimized, fit, and marginalized the radial velocity model to each of the ersatz data sets using Metropolis-Hastings Markov Chain Monte Carlo (MCMC) sampling. For the MCMC we adopted a standard uninformative prior PDF that is flat in ln κ n , flat in ln T n , flat in φ n , flat in n , and flat in e n . We performed the sampling not in the naive parameter space (ln κ n , ln T n , φ n , e n , , n ) but in a better-behaved sampling space of (ln T n , κ n cos[φ n + n ], κ n sin[φ n + n ], e n cos n , e n sin n ) .</p><p>In this space, sampling is better behaved, but the "natural prior" PDF is not flat in ln κ n or e n , so a compensating prior PDF (or Jacobian) must be multiplied in. We confirmed that our sampler is using the correct uninformative prior PDF by running it on empty data sets; the resulting no-data samplings are samplings of the prior PDF.</p><p>On each system n we set parameter step-sizes (for a Gaussian proposal distribution in the sampling space) such that acceptance ratios were near 0.4. On each system 10 6 links of MCMC were run, checked for mixing (convergence), and thinned (subsampled uniformly) to produce a set of K = 10 5 nearly independent parameter samples ω nk -independence is however not required for the sampling approximation of equation <ref type="formula" target="#formula_8">(9)</ref> to work. Radial velocity curves for two ersatz exoplanets are shown in <ref type="figure" target="#fig_1">Figure 1</ref>, together with their MCMC samplings in period and eccentricity. For each system n we search the chain for the maximuma-posteriori parameters. We also used a modified (simulated annealing) MCMC sampling to find the maximum-likelihood parameters˜ωparameters˜ parameters˜ω n , one member of which is the "best-fit" eccentricity˜ecentricity˜ centricity˜e n .</p><p>At this point we have the full N ×K sampling e nk . This makes it possible to compute the marginalized likelihood of equation <ref type="formula" target="#formula_8">(9)</ref> for any parameters α. Again, we perform MetropolisHastings MCMC, but now in the space of α with the prior PDF of equation (11). The proposal distribution used in the MCMC was a small Gaussian perturbation applied to every component of α, with Gaussian variance chosen to keep the acceptance ratio near 0.4. For each experiment 10 4 links of MCMC were run, and checked for mixing. From this posterior sampling, we can obtain whatever results are desired, the maximum-a-posteriori distribution, the marginalized (mean-of-posterior) distribution, a sampling of distributions consistent with the data, or any quantile of the eccentricity distribution.</p><p>In <ref type="figure">Figure 2</ref> and <ref type="figure" target="#fig_3">Figure 3</ref> we show the results of four experiments, two with N = 300 systems and two with N = 30, and two with the ST4 input eccentricity distribution, and two with the Gaussian input eccentricity distribution. We show the true (input) eccentricities, the maximum-likelihood eccentricities, and the inferred distribution. In each case, we find-as expected-that the marginalized (mean-of-posterior) inferred eccentricity distribution is a far better description of the original input eccentricity distribution than the naive distribution created by histogramming the maximum-likelihood eccentricity estimates˜eestimates˜ estimates˜e n . The inferred distribution captures well the smooth distribution that was used to generate the ersatz data. Furthermore, where the actual finite sampling of true values departs (just by Poisson statistics) from the smooth distribution, the inferred distribution even captures those deviations, especially when there are N = 300 systems <ref type="figure">(Figure 2)</ref>. <ref type="figure">Figure 2</ref> and <ref type="figure" target="#fig_3">Figure 3</ref> also show that the mean of the eccentricity distribution is overestimated when the best-fit eccentricities˜eeccentricities˜ eccentricities˜e n are used to represent the eccentricity distribution, and that the over-estimate does not decrease as the number of objects increases. However, the marginalized inferred mean-the mean obtained by marginalizing over samples-is a very good estimate of the true mean of the true distribution. The same holds for all of the quantiles of the distribution.</p><p>The sampling in α provides full uncertainty information, including the uncertainty in every component of α and also all of the component-component covariances. In <ref type="figure">Figure 2</ref> and <ref type="figure" target="#fig_3">Figure 3</ref> we show only a superimposed sampling. This conveys information about the uncertainty distribution in each bin, but it doesn't display the full power of the sampling for error analysis and propagation.</p><p>We repeat these experiments but now using the beta distribution for f α (e). Once again we perform Metropolis-Hastings MCMC, but now in the space of the beta-distribution shape parameters α ≡ (a, b). Again the proposal distribution used in the MCMC was a small Gaussian perturbation applied to the two components of α, with Gaussian variance chosen to keep the acceptance ratio near 0.4. For each experiment 2 × 10 3 links of MCMC were run, and checked for mixing. We show the results of the beta-distribution fitting in <ref type="figure">Figure 4</ref>. It also performs extremely well.</p><p>We obtained K = 10 5 samples per star, but this is almost certainly overkill. In <ref type="figure">Figure 5</ref> we show how the results change when this sampling is thinned down to just K = 50 samples of the posterior PDF. The thinning was done uniformly, taking every 2000th sample from the parent set of 10 5 . The results are only slightly worse with K = 50; this speeds up the code by a factor of 2000, of course.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Discussion</head><p>We have shown that proper inference of the eccentricity distribution outperforms the naive approach of histogramming best-fit eccentricity values. Our inference proceeds by inserting the model eccentricity distribution as a prior on the eccentricities, after which a good eccentricity distribution is one that makes the data-the set of all exoplanet observationsprobable. Because this method models the distribution prior to observation, it is effectively a deconvolution working on heteroscedastic data; it is a generalization to arbitrarily nonGaussian uncertainties of previous work in this area <ref type="figure">(Bovy et al 2009b)</ref>. There is nothing crucial about eccentricity; the method presented here can be applied to any problem in which the true distribution f (x) is desired and there are only noisy measurements. As long as the measurements are presented as likelihood functions or samplings under an uninformative prior, the function f (x) can be inferred as described here.</p><p>Though it is common for investigators to present as measured distribution functions the histogram of estimated values, sometimes even worse mistakes are made. For example, it is sometimes tempting for an investigator to see the output of the sampler as providing a better estimate of the distribution function. The thinking is "well, the object has some probability of being in each of these eccentricity bins, so I will add a bit into each bin on its behalf". This thinking is wrong: It convolves the error-convolved distribution with the errors once again. We will not cite specific examples (to protect the guilty), but this is occasionally done and always incorrect.</p><p>One limitation of this study is that we made a simplifying assumption of a separable prior; that is, we imagined that there was one eccentricity distribution for all of the stars in the sample. In reality, the eccentricity distribution will depend on parent star and exoplanet parameters, and there will be no clean separation of the eccentricity distribution. There are two reactions to this. The first is to live with the result, understanding that the distribution returned by the method is correct for the specific sample in hand, marginalizing over all other parameters. The second is to permit non-separable distribution functions. In this latter case, hierarchical modeling becomes even more necessary. All of the correlations between orbital parameters or dependences on the parent star's properties can be modeled on the prior level and fit as we did here. This situation is not substantially more complicated; it is just that the terms in the sum in the likelihood of equation <ref type="formula" target="#formula_8">(9)</ref> becomes a function of multiple parameters, and the parameterization of the function changes.</p><p>Another limitation of this work is that we only considered single-planet systems. This was in part because we do not have a simple prior for generating realistic multiple-planet systems, but also because there is nothing fundamental that changes if we switch to multipleplanet systems. We also permitted additional "jitter" in the observations but did not in fact add jitter or any other kind of additional noise or data outliers. Again, addition of these things-and proper modeling of them-changes the individual-object likelihood functions and samplings, but does not change the procedure by which the eccentricity distribution is inferred.</p><p>Finally, this study has some danger of "garbage in, garbage out:" we generated data in accord with our general expectations, and fit it in accord with those same expectations. This is a limitation of all studies on artificial data, of course. However, we note that the parameterized eccentricity distributions that we fit are mixtures of step functions and beta distributions; neither of these are related directly to-or even very appropriate for representing-either of the distributions we used to generate the ersatz data. Furthermore, the "uninformative" prior PDF we used in the exoplanet samplings were wrong, not just because it got the eccentricity prior PDF wrong (the subject of this Article) but because they also got the velocity amplitude κ prior PDF wrong: The ersatz exoplanets were generated with isotropic inclinations and a power-law distribution of masses m; this does not generate a power-law frequency distribution in κ. That is, this method works well even when the priors in the other parameters are substantially wrong. And of course these prior PDFs can be inferred too, in a generalization.</p><p>In <ref type="figure">Figure 2</ref> and <ref type="figure" target="#fig_3">Figure 3</ref>, there are many objects whose eccentricities have been overestimated by the maximum-likelihood method, some of them drastically. This arises naturally because the maximum-likelihood eccentricity tends to be higher than the true eccentricity, but it also arises a bit un-naturally because we have included in these figures some ersatz systems for which the exoplanet is not detected at significant signal-to-noise. That is, we threw in every system, even though at some periods, masses, and inclinations, the signalto-noise is near or below unity. In most real experiments, these systems are removed (no-one measures the eccentricity distribution for undetected planets!). However, this method is not thrown off significantly by the low signal-to-noise systems. This is a good property of a proper probabilistic data analysis methodology: It is not moved around by the lowest signalto-noise objects. Many popular methods in astrophysics do not have this simple property (necessary property, some would say). For example, in principal components analysis, the highest-noise systems often dominate the total data variance and therefore dominate the analysis. In general, measurements of variance (as measurements of distribution functions often are) can be thrown by noisy data. Forward models tend not to be.</p><p>In the real world, an investigator might want to infer the eccentricity distribution, but use input from many different exoplanet observers, each of whom might have sampled their exoplanets with different uninformative priors p 0 (e). This is not a problem; in the importance sampling of equation <ref type="formula" target="#formula_8">(9)</ref>, the sum for each object n should make use of the uninformative prior p 0 (e) used on object n. Also in the real world, an investigator might want to infer the eccentricity distribution using a mixture of measurements, some of which have been delivered as samplings, and some of which have been delivered just as maximum-likelihood estimates. Unfortunately these latter-maximum-likelihood estimates or any other singlepoint estimates-are nearly useless for modeling.</p><p>The method presented here is a baby step towards a hierarchical Bayesian method. The method would be fully hierarchical if we went back to the objects and re-sampled them using the inferred prior, or, even better, inferred the prior and performed the individual-object samplings simultaneously. That is, this method becomes fully hierarchical when the inferred distribution function is used to improve the individual-object estimates. When the measurements are given as likelihood functions, this should be the preferred method.</p><p>Along those lines, we could have performed a less simple but faster hierarchical sampling: Rather than marginalizing over the individual eccentricities by summing over a (potentially large) number of eccentricity samples for each exoplanet, we can use the provided samplings of the individual eccentricities as the basis of an approach that samples both the parameters of the eccentricity distribution and the true eccentricities of the planets. This approach avoids the sum in equation <ref type="formula" target="#formula_8">(9)</ref>. It also returns updated posterior samples of the individual eccentricies using the better prior-the prior inferred from the population of planets.</p><p>Briefly, this approach entails writing down the joint posterior probability of the individual eccentricies and the parameters of the eccentricity distribution. Using Bayes's theorem, we can write this joint distribution as</p><formula xml:id="formula_16">p({e n }, α| {D n } N n=1 ) ∝ p({D n } N n=1 |{e n }) p({e n }|α) p(α) .<label>(17)</label></formula><p>By sampling from this posterior distribution, we simultaneously obtain samples of the eccentricities of the individual planets and of the parameters of the eccentricity distribution. These eccentricity samples will then have used the better eccentricity prior parameterized by α, rather than the uninformative original prior. For planets detected at low signal-to-noise, this leads to more realistic estimates of the eccentricity (see <ref type="figure">Figure 6</ref>).</p><p>We can re-write equation <ref type="formula" target="#formula_0">(17)</ref> as</p><formula xml:id="formula_17">p({e n }, α| {D n } N n=1 ) ∝ p({D n } N n=1 |{e n }) p 0 ({e n }) p({e n }|α) p 0 ({e n }) p(α) .<label>(18)</label></formula><p>The provided eccentricity chains give us samples of the distribution in square brackets. We can re-use these samples in a manner similar to that in equation <ref type="formula" target="#formula_8">(9)</ref> to sample from the joint distribution of {e n } and α. Starting from initial ({e n } (i) , α (i) ), first (1) Metropolis-sample {e n } (i+1) from p({e n }| {D n } N n=1 , α (i) ) by sampling from</p><formula xml:id="formula_18">p({D n } N n=1 |{e n }) p 0 ({e n }) ; (19)</formula><p>which can be done by just picking a random sample from the given eccentricity chains for the individual planets-and using the Metropolis-Hastings acceptance probability on</p><formula xml:id="formula_19">p({e n } (i+1) |α (i) ) p 0 ({e n } (i) |α (i) ) p({e n } (i) α (i) ) p 0 ({e n } (i+1) |α (i) ) .<label>(20)</label></formula><p>Using this acceptance probability ensures that the samples are "importance-resampled" according to the new prior parameterized by α. Then, (2) sample α (i+1) from p(α|{e n } (i+1) ) using any MCMC sampler. The resulting sampling of α can then be used in exactly the same way as in Section 3.</p><p>Just to demonstrate the power of the hierarchical approach, in <ref type="figure">Figure 6</ref> we show a comparison of the maximum-likelihood eccentricity estimates to the mean-of-sampling estimates made with the inferred prior. That is, we take the marginalized inferred distribution f α (e), re-weight the eccentricity samples with this inferred distribution, and produce as a point estimate for each system n the mean of the re-weighted sampling. These mean-of-sampling estimates, made with a correctly informative prior, are-not surprisingly-better than the maximum-likelihood estimates.</p><p>In general, hierarchical inference must become a standard tool in astrophysics going forward: Our science is fundamentally statistical, and the objects of greatest interest are measured always at the limits of instrumental sensitivity. Hierarchical methods are the right tools for these jobs.  300 stars / inferred distribution <ref type="figure">Fig. 2</ref>.-True, maximum-likelihood, and inferred eccentricity distributions for two samples of 300 ersatz exoplanets. The top panels show-as dotted curves-the frequency distributions from which the true eccentricities were drawn, the ST4 distribution on the left, and the Gaussian distribution on the right (see text for details). Superimposed is shown-as histograms-the obtained sampling of true eccentricities. The vertical lines indicate the means of the histogrammed distributions. The middle panels show-as histograms-the distributions of the maximum-likelihood (best-fit) eccentricities. Again, the vertical lines show the means of the histogrammed distributions. The bottom panels show a sampling-as a set of superimposed light histograms-of inferred distribution functions, drawn from the posterior PDF, and-as a solid line with dots-the marginalized inferred distribution (the mean of a 10 4 -point sampling). The vertical line shows the mean of the marginalized inferred distribution (the marginalized mean). The dotted curves are repeated in all panels to guide the eye.   .-Improving point estimates hierarchically. The top row shows a comparison of true eccentricities (for our ersatz exoplanets) with the maximum-likelihood estimates, for the ST4 (left) and Gaussian (right) true distributions. The bottom row shows the comparison of mean-of-sampling eccentricity estimates (see text), made using as prior PDFs on the eccentricity the (highly informative) marginalized inferred distributions of <ref type="figure">Figure 2</ref>. The horizontal line near 0.2 in the left figure and near 0.3 in the right figure comes from very low signal-to-noise systems (signal-to-noise at or below unity) for which the mean-of-sampling estimate ends up being very close to the mean of the prior PDF; this is the only reasonable mean estimate when the data are not informative.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head></head><label></label><figDesc>It is a pleasure to thank Brendon Brewer (UCSB), Fengji Hou (NYU), Dustin Lang (Princeton), Iain Murray (Edinburgh), Daniel Mortlock (Imperial), Hans-Walter Rix (MPIA), Sam Roweis (deceased), and Christian Schwab (Yale) for valuable discussions, and an anonymous referee for useful feedback. DWH and JB acknowledge financial support from NASA (grants NNX08AJ48G), the NSF (grant AST-0908357), and a Research Fellowship of the Humboldt Foundation. ADM acknowledges financial support from NASA (grants NNX08AJ28G and GO9-0114). This research made use of the SAO/NASA Astrophysics Data System, the Python programming language, and open-source software in the numpy and matplotlib projects. All code used in this project is available from DWH upon request.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Fig. 1 .</head><label>1</label><figDesc>Fig. 1.-Two example ersatz exoplanets, one with relatively high signal-to-noise and one with relatively low. The top panels show the heteroscedastic radial velocity data with the true radial velocity model overplotted as a solid grey line, and the the maximum-likelihood (best-fit) radial velocity model overplotted as a dashed black line. The middle and bottom panels show the distribution of periods and eccentricities in ten percent of the K = 10 5 samples in the thinned chain from the MCMC. Again, the solid grey line shows the true value, and the dashed black line shows the maximimum-likelihood value.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Fig. 3 .</head><label>3</label><figDesc>Fig. 3.-Same as Figure 2 but for just the first 30 ersatz exoplanets.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Fig. 4 .Fig. 6</head><label>46</label><figDesc>Fig. 4.-On the left, similar to the bottom-left panel of Figure 2 (300 stars, ST4 distribution), but using the beta distribution rather than the step function for f α (e). The true ST4 distribution is shown with a dotted line, a sampling from the posterior PDF is shown with solid grey lines, and the marginalized inferred distribution (the mean of a 2 × 10 3 -point sampling) is shown with a solid black line. On the right, the same but similar to the bottom-left panel of Figure 3 (30 stars, ST4 distribution).</figDesc></figure>
+
+			<note place="foot" n="0"> &lt; e &lt; 1 and has remarkable freedom with only two parameters. We take the prior PDF on the parameters (a, b) to be flat in the allowed region a &gt; 0 and b &gt; 0. Technically this prior PDF is improper, but the posterior PDF under any realistic data set is proper. In either case-step function or beta distribution-when we have a set of J samples α j of the distribution-function parameter vector that are effectively samples from the posterior probability distribution, we can use that distribution of distributions or else marginalize out the parameters. The marginalized distribution f α (e) is given by</note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">T</forename><surname>Balan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Lahav</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">394</biblScope>
+			<date type="published" when="1936" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Blanton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">592</biblScope>
+			<biblScope unit="page">819</biblScope>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Bovy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">T</forename><surname>Roweis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">700</biblScope>
+			<biblScope unit="page">1794</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Bovy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">T</forename><surname>Roweis</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:0905.2979</idno>
+		<imprint>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">J</forename><surname>Connolly</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Csabai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">S</forename><surname>Szalay</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">C</forename><surname>Koo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">G</forename><surname>Kron</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Munn</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">110</biblScope>
+			<biblScope unit="page">2655</biblScope>
+			<date type="published" when="1995" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Ford</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">129</biblScope>
+			<biblScope unit="page">1706</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">C</forename><surname>Gregory</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">631</biblScope>
+			<biblScope unit="page">1198</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">L</forename><surname>Turner</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">110</biblScope>
+			<biblScope unit="page">727</biblScope>
+			<date type="published" when="1998" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">Smoothness Priors Analysis of Time Series</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Kitagawa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Gersch</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Lecture Notes in Statistics</title>
+		<imprint>
+			<biblScope unit="volume">116</biblScope>
+			<date type="published" when="1996" />
+			<publisher>Springer</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">L</forename><surname>Lehmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Casella</surname></persName>
+		</author>
+		<title level="m">Theory of Point Estimation</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="1998" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">J</forename><surname>Loredo</surname></persName>
+		</author>
+		<title level="m">American Institute of Physics Conference Series</title>
+		<imprint>
+			<date type="published" when="2004" />
+			<biblScope unit="volume">735</biblScope>
+			<biblScope unit="page">195</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">E</forename><surname>Lutz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">H</forename><surname>Kelker</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">85</biblScope>
+			<biblScope unit="page">573</biblScope>
+			<date type="published" when="1973" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Murray</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P</forename><surname>Adams</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J C</forename><surname>Mackay</surname></persName>
+		</author>
+		<title level="m">Proceedings of the 13th International Conference on Artificial Intelligence and Statistics (AISTATS)</title>
+		<editor>Y. W. Teh &amp; M. Titterington</editor>
+		<meeting>the 13th International Conference on Artificial Intelligence and Statistics (AISTATS)</meeting>
+		<imprint>
+			<date type="published" when="2010" />
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="page">541</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Murray</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P</forename><surname>Adams</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1006.0868</idno>
+		<imprint>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">E</forename><surname>Rasmussen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Williams</surname></persName>
+		</author>
+		<title level="m">Gaussian Processes for Machine Learning</title>
+		<imprint>
+			<publisher>MIT Press</publisher>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Shen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">L</forename><surname>Turner</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">685</biblScope>
+			<biblScope unit="page">553</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">L</forename><surname>Zakamska</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Pan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Ford</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1008.4152</idno>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+	<note>in press. This preprint was prepared with the AAS L A T E X macros v5.2</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

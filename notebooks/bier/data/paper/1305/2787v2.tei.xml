@@ -1,0 +1,1398 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-04T16:14+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">tau: A 1D radiative transfer code for transmission spectroscopy of extrasolar planet atmospheres</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2013-09-06">6 Sep 2013</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D J</forename><surname>Hollis</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Physics and Astronomy</orgName>
+								<orgName type="institution">University College London</orgName>
+								<address>
+									<addrLine>Gower Street</addrLine>
+									<postCode>WC1E 6BT</postCode>
+									<settlement>London</settlement>
+									<country key="GB">UK</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Tessenyi</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Physics and Astronomy</orgName>
+								<orgName type="institution">University College London</orgName>
+								<address>
+									<addrLine>Gower Street</addrLine>
+									<postCode>WC1E 6BT</postCode>
+									<settlement>London</settlement>
+									<country key="GB">UK</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Physics and Astronomy</orgName>
+								<orgName type="institution">University College London</orgName>
+								<address>
+									<addrLine>Gower Street</addrLine>
+									<postCode>WC1E 6BT</postCode>
+									<settlement>London</settlement>
+									<country key="GB">UK</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">tau: A 1D radiative transfer code for transmission spectroscopy of extrasolar planet atmospheres</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2013-09-06">6 Sep 2013</date>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>extrasolar planets</term>
+					<term>atmospheric characterisation</term>
+					<term>spectroscopy</term>
+					<term>radiative transfer</term>
+				</keywords>
+			</textClass>
+			<abstract>
+				<p>The tau code is a 1D line-by-line radiative transfer code, which is generally applicable for modelling transmission spectra of close-in extrasolar planets. The inputs are the assumed pressure-temperature profile of the planetary atmosphere , the continuum absorption coefficients and the absorption cross-sections for the trace molecular absorbers present in the model, as well as the fundamental system parameters taken from the published literature. The program then calculates the optical path through the planetary atmosphere of the radiation from the host star, and quantifies the absorption due to the modelled composition in a transmission spectrum of transit depth as a function of wavelength. The code is written in C++, parallelised using OpenMP, and is available for public download and use from http://www.ucl.ac.uk/exoplanets/.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>The discovery of the first extra-solar planet by Wolszczan and Frail <ref type="bibr" target="#b0">[1]</ref> in 1992 marked the beginning of an entirely new area of astronomy, and the detection of transiting exoplanets by Mayor and Queloz <ref type="bibr" target="#b1">[2]</ref> in 1995 for the first time made it possible to attempt to characterise planets outside of our own Solar System. The subsequent rapid advances in the field have led to a large number of currently confirmed planets, predominantly so-called 'hot Jupiters', gas giants orbiting very close in to their parent stars. Such planets exist in extreme regimes in terms of temperatures, stellar fluxes and tidal forces, and bridge the gap between planetary and stellar bodies; hence a wide variety of models (see for example Showman and Guillot <ref type="bibr" target="#b2">[3]</ref>, Cooper and Showman <ref type="bibr" target="#b3">[4]</ref>, Venot et al.</p><p>[5], Irwin et al. <ref type="bibr" target="#b5">[6]</ref>, Fortney et al. <ref type="bibr" target="#b6">[7]</ref>, Seager et al. <ref type="bibr" target="#b7">[8]</ref>, Burrows et al. <ref type="bibr" target="#b8">[9]</ref>) have been developed to attempt to understand the orbital and atmospheric dynamics</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Background Theory</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">System geometry</head><p>Figure 1: Diagram illustrating the geometry of a primary transit, with light from the star blocked as the planet moves around in its orbit and passes between star and observer.</p><p>The key to being able to characterise exoplanets and infer vital information such as the atmospheric composition is the observation of planetary transits (e.g. Seager and Sasselov <ref type="bibr" target="#b10">[11]</ref>, <ref type="bibr">Brown [12]</ref>, Tinetti et al. <ref type="bibr" target="#b9">[10]</ref>). In the case of a primary transit (the planet passing between the observer and the star, as shown in <ref type="figure">Figure 1</ref>), light from the star is blocked by the planet, producing a reduction in the observed flux. This reduction, or the transit depth, can be expressed simply as the ratio between the radius of the planet, R p and the radius of the star, R * , given by,</p><formula xml:id="formula_0">transit depth = R 2 p R 2 * .<label>(1)</label></formula><p>Transmission spectroscopy, as the name suggests, deals with the transmission of the stellar light through the planetary atmosphere, and hence applies in this primary transit scenario. In particular, it probes the terminator region, the part of the planet separating the dayside and nightside. When the planet passes in front of the star, the light is filtered through this section of the atmosphere of the planet in order to reach the Earth, introducing a very small, but nonetheless measurable, variation in the observed flux. Since different molecules absorb some of the stellar light at different wavelengths, by measuring the spectrum (the observed flux as a function of wavelength) of the planet relative to the star, the various absorption features can be identified, and the types and amounts of molecules present in the atmosphere of the planet can be inferred.</p><p>The tau code enables this kind of study, and can be used to generate model spectra of both gaseous and terrestrial exoplanet atmospheres to be compared with observed data (e.g. by minimising some goodness-of-fit parameter) in order to infer compositions (see for example <ref type="bibr">Waldmann et al. [13]</ref>, <ref type="bibr">Danielski et al. [14]</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.">Radiative transfer</head><p>It is instructive to consider a simple absorption scheme for radiation passing through a gas, e.g. a planetary atmosphere. If the intensity at the start of an arbitrary path is I λ , then as the radiation passes through the medium along a path ds it is weakened by absorption and scattering by the material, with the extinction effects expressed as,</p><formula xml:id="formula_1">dI λ = − I λ σ λ ρ ds,<label>(2)</label></formula><p>where ρ is the (mass) density of the material in kg m −3 and σ λ is the mass extinction cross section in m 2 kg −1 for radiation of wavelength λ, or the sum of the absorption and scattering cross sections.</p><p>This can be rearranged to give,</p><formula xml:id="formula_2">dI λ σ λ ρ ds = − I λ ,<label>(3)</label></formula><p>from which the quantities optical path length, u, and optical depth, τ , can be defined as,</p><formula xml:id="formula_3">u = ρ ds,<label>(4)</label></formula><formula xml:id="formula_4">τ λ = σ λ ρ ds = σ λ u,<label>(5)</label></formula><p>respectively. It follows that the intensity at a point at altitude z is given by integrating along the vertical path from the top of the atmosphere z ∞ as,</p><formula xml:id="formula_5">I λ (z) = I λ (0) exp −σ λ z∞ z ρ dz ,<label>(6)</label></formula><p>which is the monochromatic intensity at altitude z as given by the BeerBouguer-Lambert Law, I λ (z) = I λ (0) e −τ λ (z) ,</p><p>quantifying the absorption of radiation entering from above and passing down vertically through the atmosphere. For more information on radiative transfer in planetary atmospheres, the reader is directed to texts such as Liou <ref type="bibr" target="#b14">[15]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.">Absorption cross-sections</head><p>The distance travelled through the atmosphere is hence an important quantity in determining the transfer of radiation down through the atmosphere. This in turn depends on various parameters, and fundamentally on the extinction cross-section, σ λ in Equation 2. Neglecting scattering for simplicity, this becomes the absorption cross-section, which is calculated in turn from the absorption coefficient, α(λ). This is a quantity calculated by considering the quantum behaviour of the molecules and how they absorb and emit radiation -for example different molecules have different electronic transitions, and both rotate and vibrate spatially in many different orientations and configurations at various characteristic frequencies (wavelengths), i.e. with different energies. The possible transitions between these energy levels produce many absorption and emission lines for a given molecule, many of which may occur at the same wavelengths but represent different motions and transitions between states with different quantum numbers. Hence a line list must be produced, which provides each emission and absorption line intensity as a function of wavelength, for each different transition between all quantum states, for a given molecule. This line list can then be used, in conjunction with the partition function for that molecule and correct line shape (i.e. considering the necessary line broadening effects) at the correct temperature and pressure, in order to combine all transitions over wavelength. This gives the variation of absorption coefficient with wavelength for a given molecule at a given temperature, with the 'strength' of the absorption quantified in the value of the absorption coefficient for that particular wavelength. These absorption coefficients are normally expressed in units giving the absorption per unit mass, or attenuation per unit length and density (relative to stp), and can be converted, depending on their units, to mass absorption cross-sections, σ λ , with units cm 2 g −1 . Finally, removing any mass or density dependence by converting these to units of cm 2 gives the absorption cross-sections, σ(λ), as a function of wavelength as required for this code.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4.">Optical depth</head><p>The optical path of the stellar photons is shown in <ref type="figure">Figure 2</ref>. The optical path is calculated according to the geometry of this transverse view through the terminator of the transit system, and also requires a knowledge of the quantity of each molecule i in the path, expressed by the dimensionless mixing ratio, χ i . This is the ratio of the amount of that molecule to the amounts of all other molecules combined, i.e. it is a fractional abundance or amount of the gas in question relative to the rest of the atmosphere. Hence the concentration of a particular molecule i with a number density ρ N [m −3 ] is χ i ρ N , and Equation 5 can then be extended to give the optical depth at an altitude z [m] for a given molecule i with cross-section σ i [m 2 ] as,</p><formula xml:id="formula_7">τ i (λ, z) = 2 l(z) 0 σ i (λ) χ i (z ′ ) ρ N (z ′ ) dl.<label>(8)</label></formula><p>Figure 2: Geometry of a primary transit observation, illustrating the paths of the stellar photons filtered through the planetary atmosphere.</p><p>The total depth for all molecules for that path is then,</p><formula xml:id="formula_8">τ (λ, z) = N i=1 τ i (λ, z),<label>(9)</label></formula><p>the sum of the contributions from the N individual molecules present in the atmosphere. This is finally converted to an equivalent atmospheric depth A(λ) by summing all of the viewing paths as,</p><formula xml:id="formula_9">A(λ) = 2 zmax 0 (R p + z) (1 − e − τ (λ,z) ) dz,<label>(10)</label></formula><p>with the total transit depth at that wavelength D(λ) found by,</p><formula xml:id="formula_10">D(λ) = R 2 p + A(λ) R 2 * .<label>(11)</label></formula><p>A model of the actual stellar spectrum is thus not required at any point. Absorption by the molecules present in the atmosphere reduces the overall final transmitted flux at wavelength λ by the factor (1 − e − τ (λ,z) ), which is the same effect as having a totally opaque body with a slightly larger radius transiting the star. The absorption can therefore be quantified by a simple radius ratio (i.e. a conventional transit depth) at each wavelength, and a spectrum can hence be constructed showing the absorption as a function of wavelength for the input model parameters.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Installation</head><p>• Step 1: Download the tar ball tau.tar.gz from http://www.ucl.ac.uk/exoplanets/.</p><p>• Step 2: In the directory where the file is downloaded, type into the terminal:</p><p>tar -xvf tau.tar.gz</p><p>This will extract all of the source files into a directory named tau.</p><p>• Step 3: To compile and make the executable, whilst in the tau directory type:</p><formula xml:id="formula_11">g++ -lgomp -fopenmp -o tau ./src/tau.cpp</formula><p>This creates the executable file tau in the current directory. The header file containing the required functions and scientific constants is located in the directory ./tau/src/, output files are placed in the directory ./tau/out/, and the required input files should be in the directory ./tau/run/. Documentation for the code is in ./tau/doc/.</p><p>Note that for the compilation, it is assumed that g++ from GCC, the Gnu Compiler Collection, is present on the system. If not, it may be downloaded from http://gcc.gnu.org. Additionally, the library omp.h from the OpenMP API specification for parallel programming must be installed, obtainable from http://openmp.org/.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Implementation</head><p>The tau code is a line-by-line radiative transfer code following Ehrenreich et al. <ref type="bibr" target="#b15">[16]</ref>, Tinetti et al. <ref type="bibr" target="#b9">[10,</ref><ref type="bibr" target="#b16">17]</ref>, which calculates the transmittance of radiation through an atmosphere given the temperature structure (variation of temperature with pressure/altitude), the assumed gaseous constituent abundances, or mixing ratios (either hard-coded in pre-compilation, or read in from file, depending on the run mode), and a defined spectral wavelength grid on which to calculate the results (with resolution depending on how much detail is required in the final model spectrum).</p><p>The code assumes local thermodynamic equilibrium ('LTE') conditions for an input atmospheric profile, which most commonly also assumes hydrostatic equilibrium. The atmosphere itself is divided into horizontal layers, which are assumed to be sufficiently thin as to be regarded as homogenous within each layer. Each layer is hence uniquely defined by the pressure/altitude and temperature value, determined according to the precise nature of the P-T profile input by the user (i.e. the existence and exact form of any temperature inversions, or the assumption of a non-isothermal atmosphere).</p><p>The optical path length in each layer can hence be calculated according to the geometry of the system, and the optical depth follows by a simple product between this length, the abundance of each type of absorber present, and the absorption cross-section for each absorber. For each layer-segment along the viewing path then, the separately calculated contributions of all species to the optical depth may be added together, and these optical depths may themselves be added together to provide a value integrated along the entire viewing path to the observer. Rayleigh scattering within the atmosphere, and optionally opacity due to collision-induced absorption, are also included, but at present a comprehensive treatment of cloud scattering is omitted, for simplicity.</p><p>The code is written in C++, with one file containing the main program (./tau/src/tau.cpp) and one file containing the libraries, some scientific constants and the external functions called in the main code (./tau/src/functions.h). It includes some functions from the OpenMP parallel programming librarythese are used to retrieve the total program runtime, and for some calculations in the interpolation functions. These calculations will by default be performed on the maximum number of cores available; if only a single core is available, the program should be compiled as normal and the program will effectively run in serial mode. The speedup factor of the parallel implementation depends not only on the number of cores used, but also various input factors, such as the number of absorbers and the sizes and wavelength ranges of their input crosssection files, and the required resolution of the output spectrum. The main processing bottleneck is the interpolation of the absorption cross-section files to the wavelength grid (see Section 4.5).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">Input files</head><p>The tau code requires the following files to run:</p><p>• atmospheric P-T profile</p><p>• absorption cross-section as a function of wavelength for each modelled absorber/trace molecule</p><formula xml:id="formula_12">• [optional] stellar radius R * (λ) • [optional] CIA absorption coefficients α cia (λ)</formula><p>• [optional] cloud mass absorption coefficients α ′ cld (λ) All of these files should be stored in the directory ./tau/run/, and are read in at various points of the code, as detailed in Section 4.5. Note the formats and units of the input files must be adhered to -if the absorption cross-section data to be used are originally expressed in wavenumbers, they must be converted before being read in by the code (for example using the relation λ = (1 × 10 4 )/ν, with the wavelength λ in µm and the wavenumber ν in cm −1 ).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.1.">P-T profile</head><p>The atmospheric profile file (see sample file ./tau/run/profile.atm) describes the temperature and pressure variation with altitude in a given number of horizontal layers from the top to the bottom of the model atmosphere. It must be in (at least) 4-column format, separated by a non-zero amount of whitespace, containing columns of pressure (p, in P a), temperature (T , in K) and altitude (z, in km) in that order, with then at least one column of mixing ratios (χ, dimensionless) as a function of altitude, with one column per intended molecular absorber to be modelled in the atmosphere. This fourth column must still be present even if Run Mode 9 is selected, and the values are then overridden by the value hard-coded in (see Section 4.3). The columns must start with the uppermost (i.e. lowest pressure) atmospheric layer, and the number of atmospheric layers is 39 in the sample file, but this may be any value the user chooses. In addition, a header of 10 lines, the contents of which is ignored by the program, must be present at the start of the file. The file is read in by the function readAtmFile_H and associated sub-functions, the source code for which is located in the header file. The atmospheric profile can be calculated in whatever manner and using whichever program the user chooses, so long as the final files adhere to the specified format.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.2.">Absorption cross-sections</head><p>The molecular absorber cross-section files (see sample files ./tau/run/h2o_T.abs 1 ) give the variation in absorption cross-section as a function of wavelength, with one file per molecule/trace absorber present in the modelled atmosphere. They are in a 2-column format, separated by a non-zero amount of whitespace, with the first column being the wavelength (λ, in µm) and the second being the absorption cross-section at that wavelength (σ(λ), in cm 2 ), in that order. There is no header associated with these files, and the files may either be in wavelength-decreasing or wavelength-increasing order, with any re-ordering, if necessary, being performed within the program. The files are read in by the function readAbsFile_H and associated sub-functions, the source code for which is located in the header file. Absorption cross-sections may be obtained from various external sources, such as the hitran <ref type="bibr" target="#b18">[19]</ref> and Exomol <ref type="bibr" target="#b19">[20]</ref> molecular line list projects, and again, may have to be converted to the required format and units before use with this code. Care must be taken to use the appropriate line lists for the modelled atmospheric conditions, since there are strong dependencies of absorption coefficients, and hence cross-sections, on factors such as temperature and pressure. A detailed study of this temperature dependence and the calculation of molecular line lists is however outside the scope of this document, and the reader is directed to <ref type="bibr">Tennyson and Yurchenko [20]</ref> for further information.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.3.">Stellar radius</head><p>A changing stellar radius as a function of wavelength may also be modelled, controlled, as for the CIA and cloud optional inputs, by the state of the sw_ switches (e.g. sw_rad for the stellar radius input). The file (e.g. ./tau/run/rad_star.rad) must be in 2-column format, separated by a nonzero amount of whitespace, containing columns of wavelength (λ, in µm) and stellar radius (R * , in m) in that order, in wavelength-decreasing order. No header should be present at the start of the file, which is read in and interpolated to the model grid by the function interpolateCS_H the source code for which is located in the header file. The stellar radius values are necessary at all wavelengths to calculate absorption at those wavelengths. If sw_rad is set but the range of the stellar radius input file data does not span the wavelength range set for the model wavelength grid, a warning message will be displayed. Wavelengths for which no data are provided will then be set to the constant stellar radius value defined with the other system parameters at the head of the code. This may lead to inaccurate results, hence care should be taken that the stellar radius as a function of wavelength is known across the entire desired wavelength range of the transmission spectrum calculation if sw_rad is set. Also note that the value of s_rad_fac will be overridden in this case and will have no effect.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.4.">CIA coefficients</head><p>The file containing the collision-induced absorption ('CIA') coefficients (e.g. ./tau/run/h2_h2_1000K.cia) gives the variation in absorption coefficient as a function of wavelength. They are in a 2-column format, separated by a non-zero amount of whitespace, with the first column being the wavelength (λ, in µm) and the second being the absorption coefficient at that wavelength (α cia,λ , in units of cm −1 amagat −2 ). There is no header associated with these files, and they must be in wavelength-decreasing order. The files are read in by the function interpolateCS_H the source code for which is located in the header file. CIA coefficients may be obtained from external sources such as Borysow et al. <ref type="bibr" target="#b20">[21,</ref><ref type="bibr" target="#b21">22]</ref> in the units stated above (and converted within the program), or from Richard et al. <ref type="bibr" target="#b22">[23]</ref> in different units (requiring additional conversion). If the input data do not span the wavelength range of the model grid, the optical depths will be set to zero for the relevant wavelengths, and hence there will be no absorptive effect on the spectrum here. If extra CIA is desired (e.g. from H 2 -He collisions), this may be added 'artificially' by using the CIA file as another trace molecular absorber, with the coefficients converted to cross-sections as per the format requirements and specifying a mixing ratio of χ = 1. More details regarding the calculation can be found in Appendix A.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.5.">Cloud coefficients</head><p>Cloud effects are not modelled in this version of the code for simplicity, although they will be treated in detail in future versions. However, if scattering data are available from external studies of cloud physics, they may be coupled to the code and input as files (e.g. ./tau/run/cloud1.cld). Since the LorenzMie theory of particle scattering is complex and dependent on the properties of the clouds (e.g. particle shape and size), calculation of these parameters must be performed externally, and any optional input files used must contain the cloud mass absorption coefficient as a function of wavelength, for each different cloud type/composition. The files must be in 2-column format, separated by a non-zero amount of whitespace, containing columns of wavelength (λ, in µm) and cloud mass absorption coefficient (α ′ cld (λ), in cm 2 g −1 ) in that order, in wavelength-decreasing order. No header should be present at the start of the files, which are read in and interpolated to the model grid by the function interpolateCS_H the source code for which is located in the header file. If the input data do not span the model wavelength range, the missing optical depths will again be set to zero (i.e. will have no effect on the spectrum). If cloud opacity data are to be input, the vertical extent of the clouds must also be set, by specifying the maximum (i.e. the cloud base) and minimum pressure levels at which the clouds exist. These values are currently set to be the same for every different input cloud file for simplicity, since future versions of the code will treat cloud effects more completely, and will have the capability of specifying a different vertical extent for each type of cloud. The default values model clouds extending through atmospheric layers from 0.1 bar to 1.0 mbar.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.">Output files</head><p>The output from the code is an ascii file called tau_output.dat, which gives the variation in radius ratio between the planet and the star as a function of wavelength, as per Equation 11. This file is in two columns, the first containing the wavelength (λ, in µm) and the second containing the amount of absorption (D(λ), a dimensionless ratio). From Equation 11 it can hence be seen that a larger value for the absorption is equivalent to a larger transit depth, and hence a larger equivalent planetary radius, at that wavelength. This can then be plotted to give the full absorption spectrum of the specified molecular absorbers in the given atmosphere on the planet in primary transit.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3.">Run modes</head><p>The current version of the code has the option to run in 3 modes, as detailed below. Run Mode 0 is used to calculate the spectrum for a single trace molecular absorber, Run Mode 1 is used to model multiple molecular absorbers, and Run Mode 9 is used for a quick run with custom settings. Run Modes 0 and 1 allow the .atm and/or .abs file inputs to be specified as command line arguments or interactively, and Run Mode 9 provides a quick testing mode, allowing all interactive elements to be bypassed and all input files and mixing ratio values hard-coded prior to compilation. The usage instructions and mode formats can be displayed by typing ./tau at the command line, and the option sorting and default file definitions can be found in the function optionSort_H in the header file.</p><p>• This mode allows the user to specify the atmospheric profile file and a single absorption cross-section file (i.e. to model a single absorber molecule in the atmosphere). If run in this mode, both files are optional command line arguments, and if nothing is entered for either the code reverts to the default files, ./run/profile.atm and ./run/h2o_1500K.abs. It is possible to only enter a filename for the atmospheric profile, and leave the code to take the default absorption cross-section file, but if the .abs file is to be entered, so the .atm file must also be. Mixing ratios are read in from the atmospheric profile file.</p><p>• Run Mode 1: The run command for this mode is ./tau 1 <ref type="bibr">[atmfile]</ref> This mode allows the user to specify on the command line the atmospheric profile file and (interactively) multiple absorption cross-section files (i.e. to model an arbitrary number of absorber molecules in the atmosphere). If run in this mode, the file is an optional command line argument, and if nothing is entered the code reverts to the default file, ./run/profile.atm.</p><p>Mixing ratios are read in from the atmospheric profile file (one column per absorption cross-section file).</p><p>• Run Mode 9: The run command for this mode is ./tau 9</p><p>This mode allows the user to bypass all interactive input, and to specify all input files and mixing ratios in the program code pre-compilation. This mode is useful for example when comparing models where the atmospheric constituents and most of the mixing ratios remain constant between runs but one or a few are altered. The default atmospheric profile and absorption coefficient files are set in the file functions.h, and mixing ratios are set to χ = 10 −5 in the file tau.cpp.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.4.">Run parameters</head><p>The tau code requires certain parameters to be specified in order to produce the required model, as follows.</p><p>• Parameters defined by user:</p><p>rad_fac, s_rad_fac variables to increase or decrease the assumed planetary radius. These radius modifiers can be altered as required to vary the planetary and stellar radii by these percentages, in order improve the fit to any observations. The variables represent the, sometimes significant, uncertainties in estimations of the planetary and stellar radii respectively, deriving from uncertainties in stellar models and the ill-defined planetary 'surface' for gas giants (the altitude (generally unknown) at which the atmospheric pressure is equal to 1 or 10 bar).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>lambda_min, lambda_max</head><p>the desired minimum and maximum wavelengths of the output spectrum, in µm. If these are set such that lambda_max &lt; lambda_min, the program will revert to automatically adopt the global minimum and maximum wavelength values from the input absorption cross-section files as the bounds of the calculated spectrum, and use the default wavelength resolution.</p><p>lambda_res the default resolution ∆λ of the output spectrum, where spectral resolving power R at a wavelength λ is defined by R ≡ λ / ∆λ. If the wavelength range is defined manually (i.e. lambda_max &gt; lambda_min) then the resolution can be automatically updated to be one two-thousandth of the total range.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>sw_rad, sw_cia, sw_cld</head><p>switches to include (if not set to 0) a stellar radius varying with wavelength, H 2 -H 2 CIA and extra opacities due to clouds respectively, which can be turned off if required, but CIA should in general be left on. H 2 Rayleigh scattering is always included, and becomes increasingly important at smaller wavelengths (since the scattering cross-section σ R ∼ λ −4 ), and CIA provides a base absorption floor at pressure levels in the atmosphere of greater than p ≈ 1 bar. More details regarding the expressions used for the extra scattering effects can be found in Appendix A. The cloud switch sw_cld should be set to equal the number of different clouds for which input files are supplied.</p><p>mixdef the default mixing ratio, taken as the mixing ratio for all trace molecules at all heights, for Run Mode 9 only.</p><p>• Parameters taken from literature measurements/estimations:</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Rp</head><p>the radius of the planet to be modelled, in R .</p><p>Rstar the radius of the host star, in R ⊙ .</p><p>semimajor the semi-major axis of the planetary orbit, in AU .</p><p>grav the gravitational acceleration at the planetary surface, in ms −2 .</p><p>temp the planetary temperature, in K.</p><p>• Rayleigh scattering parameters:</p><p>Different bulk compositions are accounted for using the class Mol. Each constituent species of the bulk atmosphere is specified as a variable of type Mol, defined for example by H2("H2",2.0,2.0e-9,1.0001384), where the respective parameters are the name of the molecule, the relative molecular weight (in u), the particle radius (in m), and the refractive index (assumed constant with wavelength). A class method is then used to add each species to the Atmos class with a specified fractional abundance (N.B. the total sum of the abundances must equal 1, to make up the entire bulk atmosphere), and the mean molecular weight of the entire atmosphere is calculated. This, along with the surface gravity and pressure used to cre-ate the atmospheric P-T profile, defines the scale height and determines whether the planet is terrestrial in nature, or a hydrogen-dominated giant.</p><p>• Filenames specified by user:</p><p>rad_file file containing the stellar radii values R * (λ).</p><p>cia_file file containing CIA coefficients α cia (λ).</p><p>cld_file array of files containing cloud optical depth values τ cld,i (λ).</p><p>arg_outfile output file to write the final spectrum to. The run parameters are then initialised and defined, and some option sorting and memory allocation is performed. The next main stage is to read in the absorption cross-sections for all of the modelled absorber molecules (see Section 4.1). A two-dimensional vector container, sigma_array, is first declared, and resized such that one 'row' is used to store the cross-sections as a function of wavelength for each molecule, with the top 'row' in the object reserved for the output wavelength grid. In order to maintain a well-defined spectral resolution in the final wavelength grid, the data from each absorption cross-section file are read into temporary containers, and then cross-interpolated in the function interpolateAbs_H to the same wavelength grid, defined using the minimum and maximum wavelength values (either input by the user, or taken automatically from all .abs files) and with spacing given by the user-defined parameter lambda_res. If any absorption cross-section files do not cover the same wavelength range as that determined by the lambda_min and lambda_max values, the absorption cross-sections for those molecules are set to zero in these regions. Hence those molecules will have no effect on the spectrum throughout wavelength ranges for which they have no input data. The interpolated data are finally stored in the sigma_array.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.5.">Program structure</head><p>Vector containers are then created to hold data from any optional file inputs, with radius (rad_star) and CIA (cia_coeffs) data in one-dimensional vectors, and cloud data (cld_tau) in a two-dimensional vector, with optical depths as a function of wavelength for each different cloud type/condition held in a different 'row' in this object. Depending on the states of the optional input switches, the function interpolateCS_H may then be called to also interpolate the data to the new wavelength grid. If the switches are off, then the vectors are initialised to their respective defined constant values, as detailed in Section 4.1, regardless of the contents of the specified files, or even if the specified files exist. If cloud opacity data is to be input, the cloud vertical extent is also defined here by specifying the pressure levels of the cloud base and top.</p><p>The atmospheric profile data are then read in by the code, with each atmospheric state parameter defined as an array of floats, with size equal to the number of vertical layers as read from the file, such that each atmospheric layer is then uniquely defined by the values of the pressure, temperature and altitude variables. The mixing ratios for each modelled absorber gas are read in similarly, or in the testing run mode can be hard-coded in here. The atmospheric state parameters are then also used to calculate the number density in each vertical layer, rho <ref type="bibr">[layer]</ref>, from the standard thermodynamic state and ideal gas equations, which can be arranged 2 to give,</p><formula xml:id="formula_13">ρ N [layer] = p k B T ,<label>(12)</label></formula><p>where k B is Boltzmann's constant, and p and T are the pressure and temperature respectively for each layer.</p><p>The final section of the code calculates the path length integral given by Equation 8 for each molecule, summing these and converting the value to the equivalent transit depth as a function of wavelength. The program declares an array to hold the final absorption values, one per wavelength value, and then loops over wavelength and the number of vertical layers, to first calculate the geometric path length dl at altitude z <ref type="bibr">[k+j]</ref>, and hence the optical path length (the product of the geometric path length and the number density of the layers along the path). The optical path at each altitude tau <ref type="bibr">[j]</ref> is then found for each absorber/scatter by taking the product of the optical path length with the abundance of that constituent. Calculations of the Rayleigh scattering, CIA and (estimated) cloud contributions to the opacity are also performed at this point in the code, since they are function of parameters that vary in each layer of the optical path. The calculation procedure for these extra opacities is detailed in Appendix A.</p><p>Finally the equivalent radius of the planet (plus atmosphere) for all viewing paths (i.e. integrated over altitude) as a function of wavelength can then be calculated as per Equations 10 and 11. Note that the equations in the code calculate the half values for the quantities dl and integral, which can then simply be doubled due to the symmetry in <ref type="figure">Figure 2</ref> in order to find the full values. The specified output file is then opened and the model data written to it, and the code finishes with a call to a library to calculate the total runtime.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.6.">Code validation</head><p>In order to validate the output from the code, a comparison to an analytic solution may be performed. As discussed in Lecavelier Des Etangs et al. <ref type="bibr" target="#b23">[24]</ref>, Howe and Burrows <ref type="bibr" target="#b24">[25]</ref>, for opacity sources that are independent of temperature and pressure and proportional to the wavelength the cross-section may be expressed in the form of a scaling law,</p><formula xml:id="formula_14">σ = σ 0 λ λ 0 α .<label>(13)</label></formula><p>The slope of the observed planetary radius as a function of the logarithm of the wavelength should then be a straight line with gradient α,</p><formula xml:id="formula_15">dR p dlnλ = αH,<label>(14)</label></formula><p>with H being the atmospheric scale height, H ≡ k B T /µg. If an opacity source is known to follow Equation 13 and if the equilibrium temperature is known, Equation 14 can hence be used to calculate the mean molecular weight of the bulk atmosphere, or conversely if the weight is known the approximate temperature can be found. Rayleigh scattering is such an phenomenon and follows Equation 13, with α = −4, and so the code was run with no other opacity sources in the wavelength region λ ≤ 1.0µm in order to validate the model. Performing this check, the code produced a slope which was within 2% of the analytical Rayleigh slope (i.e. with α = −4), which is in excellent agreement with the 1% figure found by Shabram et al. <ref type="bibr" target="#b25">[26]</ref>. However this treatment is not valid for opacity sources that do vary significantly with temperature and pressure, such as NIR absorption by molecules in general. A better test of the validity of the code is therefore obtained by noting that a recent study <ref type="bibr" target="#b13">[14]</ref> using the tau code was able to infer molecular abundances for the planet HD189733b that were in excellent agreement with the constraints published by other studies using a variety of different retrieval methods (see for example Swain et al. <ref type="bibr" target="#b26">[27,</ref><ref type="bibr" target="#b27">28]</ref>, Madhusudhan and Seager <ref type="bibr" target="#b28">[29]</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Application</head><p>The first step in the modelling procedure is to obtain the input files, in the correct formats. A P-T profile can be generated, ranging for example in pressure from 1.0 × 10 −3 P a to 1.0 × 10 +6 P a (10 nbar down to 10 bar). This range covers most of the relevant atmosphere, with corresponding altitudes calculated for each level using the hydrostatic assumption and the atmospheric scale height and planetary surface gravity (estimated with mass and radius values from the literature). The profile can in general be isothermal, with T ≈ T obs of the planet, since transmission observations are currently not able to disentangle the degeneracy between the temperature profile and the absorber abundances, and so are insensitive to the exact form of the temperature profile. The absorption cross-section data for the relevant molecules must then be obtained, for example from the hitemp <ref type="bibr" target="#b29">[30]</ref> or Exomol <ref type="bibr" target="#b19">[20]</ref> line lists. Note that the data may need to be converted into different units -for example if absorption cross-sections are given in units of cm 2 g −1 , they will need to be converted by multiplying each value by µ / N A , where µ is the mean molecular weight in atomic units (e.g. µ = 16 for CH 4 , 28 for CO, 44 for CO 2 ) and N A is Avogadro's constant. Absorption cross-sections should be calculated from line lists that are, to first order, at the same temperature as the planet T ≈ T obs , but can vary a little since the atmosphere is unlikely to be perfectly isothermal. The final file to be supplied is the data for the H 2 -H 2 CIA effects, necessary when considering atmospheric pressures above approximately 1 bar. These data can be taken from the literature (for example from Borysow et al. <ref type="bibr" target="#b21">[22]</ref>), again converted to the specified format and correct units as appropriate.</p><p>The next step is to calibrate the base level of the spectrum by changing the radius modifiers, in order to attempt to match the base level of any observations with all of the mixing ratios set to zero (i.e. no trace molecular absorbers present). The effect of this is to model the H 2 -H 2 continuum, or minimum absorption level, on top of which the trace molecules will absorb, with output shown in <ref type="figure" target="#fig_2">Figure 3</ref>. The underlying continuum will always be present when probing down to higher pressures, and allows effective constraints to be placed on the minimum absolute abundances of other trace absorber molecules if this is first calibrated to the highest possible value, and then the minimum possible amounts of other molecules are gradually added in.</p><p>The first trace molecule to consider adding into the model is H 2 O, since it is found in relatively large abundances in known exoplanet atmospheres <ref type="bibr" target="#b16">[17,</ref><ref type="bibr" target="#b27">28]</ref>, and is a very strong absorber in the NIR. In this range, water has characteristic absorption bands at wavelengths around 5.0 − 7.0 µm, with a narrower band around 3.0 µm, and steadily increasing broad band absorption as the wavelength increases (see <ref type="figure" target="#fig_4">Figure 4</ref>). Spectra generated with no molecular absorbers, modifying the radius factors in order to calibrate the underlying H 2 -H 2 continuum ('base level'). The system parameters were those for the planet HD189733b, as reported in Schneider et al. <ref type="bibr" target="#b30">[31]</ref>, with an isothermal atmosphere at 1000K, and the CIA file used for this was obtained from Borysow et al. <ref type="bibr" target="#b21">[22]</ref> at 1000K. Also note that Rayleigh scattering is evident here in the large slope at wavelengths λ &lt; ∼ 0.5 µm. This process can then be repeated, adding in one constituent at a time, for as many molecules as are required (informed for example by results from atmospheric chemical equilibrium models). Other important absorbers include methane, which is also a strong NIR absorber and has broad characteristic features, and carbon monoxide and dioxide, which can also be present but with much narrower absorption peaks, except for CO 2 around 14.0 − 16.0 µm. If any extra opacities remain, further molecules may be added based on their typical absorption peaks and atmospheric chemistry considerations. Examples of the output from varying abundances of methane, carbon monoxide and carbon dioxide are shown in <ref type="figure">Figures 5, 6</ref>, and 7.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">Conclusion</head><p>This paper introduces the tau code, a 1D line-by-line radiative transfer code for transmission spectroscopy of extrasolar planets. It is generally applicable for the modelling of the transmission of radiation through the atmospheres of planets, in particular close-in gas giants. The result is a theoretical transmission spectrum of the planet, given the various inputs, which may be compared with relevant primary transit observations in order to match the spectra and hence infer characteristics of the atmosphere in question, such as composition and atmospheric structure. The code runs with the command   ./tau mode [input files] -it then proceeds to read in the assumed atmospheric P-T profile and absorption and scattering behaviour of the gases present, and interpolates to a defined wavelength grid. The optical depth as a function of wavelength is then calculated in a line-by-line integration scheme given input abundances for the trace constituents and a primary transit viewing geometry.</p><p>The program, not being a chemical equilibrium code or GCM, does not model photochemistry <ref type="bibr" target="#b31">[32]</ref>, dynamics, heat transfer or effects such as rainout <ref type="bibr" target="#b32">[33]</ref>, and assumes no time variation in the atmosphere. Studies using global circulation models indicate that these effects may be important and necessary in order to accurately and completely characterise a planetary atmosphere; such considerations are likely to be particularly pertinent when modelling the atmospheres of hot Jupiters (the most likely objects for which relevant data is available for fitting), since these objects are likely to be tidally locked, and hence possibly subject to significant temperature contrasts between day-and night-sides and extreme UV heating, with associated winds and large-scale circulation effects, and possible breakdown of hydrostatic and LTE assumptions. For more information on this subject the reader is referred to sources such as Showman et al. <ref type="bibr" target="#b33">[34]</ref>, <ref type="bibr">Koskinen et al. [35]</ref>. The code also does not yet have a complete treatment of cloud physics in terms of the detailed Mie scattering theory or geometric approximations at present, and so does not model such effects, though such a formulation will appear in a later version. However, codes modelling all of these effects are perfectly complementary to tau, and provide extra data that can improve the results. If such relevant data are available from other sources (e.g. absorption cross-sections for cloud types predicted to be present, calcu-lated with an external program), these may easily be coupled to the tau code by simply providing the coefficient filenames and including them as extra opacities in the model. Similarly, results from other studies (e.g. dynamical and thermochemical models, in terms of modelling the atmospheric profile, which molecules are important etc.) can be used in conjunction with tau in order to inform the use of this code. In addition to the inclusion of more detailed cloud modelling, future work will involve streamlining the code, and treating all inputs self-consistently, for example calculating the atmospheric structure within the code and using all molecular absorption and collision data in the same format.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Appendix A. Opacities due to scattering</head><p>Transmission through the atmosphere may additionally be decreased by extra absorption and scattering effects, such as Rayleigh scattering and collisioninduced absorption ('CIA'). The size of a scattering particle can be expressed in the form of the size parameter, x, such that,</p><formula xml:id="formula_16">x = 2πa λ , (A.1)</formula><p>for a particle of characteristic dimension a and light of wavelength λ. Rayleigh scattering, the cause of the diffuse sky radiation that makes the sky appear blue, is caused by the scattering of electromagnetic radiation by particles much smaller than the wavelength of the radiation, i.e. in the small size parameter regime x ≪ 1. Scattering from larger particles (applicable for example when considering the transmission of radiation through clouds, and when x &gt; ∼ 1) is calculated using the geometric approximation or Lorenz-Mie-Debye theory, which reduces to the Rayleigh approximation for small x. Cloud scattering is not implemented in this version of the code, since the calculation of the Mie solutions depends in a complex manner on factors such as the particle size distribution in the cloud, and the precise shape of the scattering particles, and hence requires detailed cloud models (both photochemical and dynamical) and forward scattering models (see for example <ref type="bibr">de Kok and Stam [36]</ref>), which are outside the scope of this project. Collision-induced absorption on the other hand does not depend on the size parameter, but occurs in regions of the atmosphere at high pressure (i.e. the lower atmosphere), or along very long absorbing paths. Common diatomic molecules such as H 2 , N 2 and O 2 do not normally absorb in the infra-red, since their symmetry means that they lack a permanent dipole moment and hence their rotational and vibrational energy levels cannot be excited by absorption of radiation. However, the collision processes that occur in such high pressure environments do induce a dipole moment, and hence these molecules suddenly become visible in absorption. In hot Jupiters the CIA due to hydrogen pairs is clearly the most important (since hydrogen is so abundant in these atmospheres) and a continuum is produced in the transmission spectra, producing an effective absorption floor at this atmospheric level below which the infra-red radiation cannot penetrate.</p><p>where χ is the mixing ratio and ρ N is the scattering particle number density. If the bulk atmosphere is composed of a mixture of species (e.g. H 2 -He mixes for hot Jupiters), the overall cross-section is simply the weighted sum over all of the constituents <ref type="bibr" target="#b36">[37]</ref>, and for the bulk atmosphere (i.e. with constant abundance profiles) the optical depth becomes,</p><formula xml:id="formula_17">τ R = i [χ i σ R,i (λ)] . path ρ N dl ≡ σ R,tot (λ) path ρ N dl. (A.3) σ R (λ)</formula><p>is the Rayleigh scattering cross-section, given by <ref type="bibr" target="#b14">[15,</ref><ref type="bibr" target="#b37">38]</ref> as,</p><formula xml:id="formula_18">σ R (λ) = 128π 5 3λ 4 α 2 = 128 3 π 5 a 6 λ 4 (m 2 r − 1) 2 f (δ), (A.4)</formula><p>where α is the polarisability of the particle, m r is the (real part of the) refractive index, a is the scattering particle radius and f (δ) is a molecular anisotropy correction factor. Hence Rayleigh scattering is a function of the electric polarisability of the scattering particles, is independent of the density of the scattering medium, and has a wavelength dependence ∼ λ −4 .</p><p>This equation is used in the function scatterRayleigh_H, located in the header file. Since the Rayleigh cross-section σ R is a function only of the wavelength and particle properties and not of the atmospheric layer, computational expense can be saved by calling this function only once per bulk atmosphere species, at the start of the wavelength loop, with the wavelength λ in µm and the species class Mol as arguments. The function reads in, initialises and converts quantities as appropriate, before using the equation to calculate the species Rayleigh cross-section given those parameters, with the appropriate King correction factor for molecular asymmetry if necessary. This is returned and the final Rayleigh cross-section for the bulk atmosphere at that wavelength, σ R,tot (λ), is the weighted sum of the constituent species. For each atmospheric layer then, this total cross-section is multiplied by the layer optical path length, and hence the contributions of every layer summed to give the total Rayleigh optical depth at wavelength λ, as per Equation A.3.</p><p>As noted previously, this treatment of the Rayleigh scatter is only valid for small size parameters x ≪ 1 -this condition is tested for in the main integration loop, with a cutoff defined arbitrarily as λ ≤ 50 a. If this is not valid in some regions of the defined wavelength range, a warning is printed and no Rayleigh scattering opacity is included in the overall sum for these wavelengths. This formulation is also subject to the assumption that absorption by the particles is negligible (i.e. the imaginary part of the refractive index is negligible and the particles are purely scattering), and further, that the refractive indices are constant with wavelength (though see for example <ref type="bibr">Dalgarno and Kingston [39]</ref>, Bates <ref type="bibr" target="#b36">[37]</ref>). This formulation is therefore only an approximate calculation of the Rayleigh scatter -although more complex aspects, such as refractive index changing with wavelength, temperature and pressure, are considered to be insignificant <ref type="bibr" target="#b15">[16]</ref> and are not incorporated in this code, they would be required to treat this problem fully. The sample values for the refractive indices and particle sizes in the published code were taken from and calculated using the values and expressions in Allen <ref type="bibr" target="#b39">[40]</ref>, using the Lorentz-Lorenz approximation for low density gases <ref type="bibr" target="#b40">[41]</ref>, and validated against the values and expressions from Born <ref type="bibr" target="#b41">[42]</ref>, Vardya <ref type="bibr" target="#b42">[43]</ref>, Lecavelier Des Etangs et al. <ref type="bibr" target="#b23">[24]</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Appendix A.2. Collision-induced absorption</head><p>CIA is calculated in the function scatterCIA_H, called with the external absorption coefficients α in cm −1 amg −2 (previously interpolated to the model wavelength grid in the function interpolateCS_H) and atmospheric H 2 fraction. The return value is the absorption cross-section α cia in m 5 mol −2 . The full optical depth is dependent on the densities of both of the scattering particle types in every layer along the path as, Therefore within the function the read-in coefficients are converted from units of cm −1 amg −2 to units of cm 5 mol −2 using the variable conv_factor, which divides the coefficients by the square of Loschmidt's number L 0 (the number of molecules in one amagat at stp). The function then converts the coefficient to units of m 5 mol −2 and returns it, which gives a dimensionless value for τ cia , as required when multiplying the coefficients by (mol m −3 ) 2 . m in Equation A.6. However CIA coefficients for example from hitran (see <ref type="bibr">Richard et al. [23]</ref>, already in units of cm 5 mol −2 ) can also be used by simply setting the value of conv_factor within the function to 1. where ρ cld is the (mass) density of the cloud along the path. The density is found by interpolating between the specified pressure levels that define the vertical extent of the cloud, following the density profiles of Ackerman and Marley <ref type="bibr" target="#b44">[45]</ref> where ln|ρ cld | ∼ ln|p|. The units of ρ cld and dl are then converted as appropriate for the absorption coefficients, and an estimate of the optical depth obtained as per Equation A.7.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Run Mode 0 :</head><label>0</label><figDesc>The run command for this mode is ./tau 0 [[atmfile]] [absfile]</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head></head><label></label><figDesc>The code is run by typing ./tau mode [input files] depending on the run mode required (see Section 4.3). It begins by including the required C++ libraries and scientific constants, along with the prototypes for the external functions called in the main code, located in the file ./tau/src/functions.h</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 3 :</head><label>3</label><figDesc>Figure 3: Spectra generated with no molecular absorbers, modifying the radius factors in order to calibrate the underlying H 2 -H 2 continuum ('base level'). The system parameters were those for the planet HD189733b, as reported in Schneider et al. [31], with an isothermal atmosphere at 1000K, and the CIA file used for this was obtained from Borysow et al. [22] at 1000K. Also note that Rayleigh scattering is evident here in the large slope at wavelengths λ &lt; ∼ 0.5 µm.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Figure 4 :</head><label>4</label><figDesc>Figure 4: Adding H 2 O into the model with a mixing ratio of 1.0 × 10 −5 , using the zero offset Rayleigh and CIA baseline model from Figure 3, and the absorption cross-sections used for water from the BT2 line list at 1000K. The shape of the continuum can clearly still be seen, with the water absorption lines extending up from it into the higher atmosphere. (a) shows the the spectrum in the NIR, with the H 2 O absorption emerging from the CIA floor, and (b) shows the same model at a slightly lower model resolution on a larger scale from 0 − 20 µm.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Figure 5 :Figure 6 :</head><label>56</label><figDesc>Figure 5: Contribution of CH 4 to the transmission spectrum, added on top of the base composition with a mixing ratio of 1.0 × 10 −4 . Absorption cross-section data are from the Exomol project, at 900K.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Figure 7 :</head><label>7</label><figDesc>Figure 7: Contribution of CO 2 to the transmission spectrum, added on top of the base composition with a mixing ratio of 1.0×10 −5 . Absorption cross-section data are from hitemp, at 1000K.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>τ</head><label></label><figDesc>cia = path α i,j . c i . c j . dl, (A.5) for CIA from two particles i and j. Hence for H 2 -H 2 absorption, with χ i,j ≈ 1, the optical depth is, τ cia = path α i,j . ρ i . ρ j . dl = path α i,j . ρ 2 N . dl. (A.6)</figDesc></figure>
+
+			<note place="foot" n="1"> calculated for water at temperature T from the BT2 [18] line list.</note>
+
+			<note place="foot" n="2"> Note that using this form of the equations eliminates the need to calculate the conventional density ρ (mass density), and hence the volume V of any layer in the atmosphere.</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Acknowledgments</head><p>MDJH is supported by an Impact/Perren studentship, and MT by an STFC studentship. GT is a Royal Society University Research Fellow.</p></div>
+			</div>
+
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Appendix A.1. Rayleigh scattering</head><p>The optical depth due to Rayleigh scattering is given, for scattering particles at concentration c = χ ρ N along a path path dl, by,</p><p>Appendix A.3. Cloud opacity estimation A basic estimation of the optical depth due to the presence of clouds is also included in this code, if files containing the relevant absorption coefficients are specified as inputs to the program. Following Sharp and Burrows <ref type="bibr" target="#b43">[44]</ref>, if the cloud mass absorption coefficient α ′ cld (λ), in cm 2 g −1 , is provided, then the cloud optical depth can be found by converting to the cloud absorption coefficient α cld (λ), in cm 5 mol −2 , with, τ cld = path α cld . ρ cld . dl, (A.7)</p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Wolszczan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">355</biblScope>
+			<biblScope unit="page" from="145" to="147" />
+			<date type="published" when="1992" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Mayor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Queloz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">378</biblScope>
+			<biblScope unit="page" from="355" to="359" />
+			<date type="published" when="1995" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">P</forename><surname>Showman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Guillot</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astronomy and Astrophysics</title>
+		<imprint>
+			<biblScope unit="volume">385</biblScope>
+			<biblScope unit="page" from="166" to="180" />
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">S</forename><surname>Cooper</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">P</forename><surname>Showman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">649</biblScope>
+			<biblScope unit="page" from="1048" to="1063" />
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Venot</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Hébrard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Agúndez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Dobrijevic</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Selsis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Hersant</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Iro</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Bounaceur</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astronomy &amp; Astrophysics</title>
+		<imprint>
+			<biblScope unit="volume">546</biblScope>
+			<biblScope unit="page">43</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Irwin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Teanby</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>De Kok</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Fletcher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Howett</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Tsang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Wilson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Calcutt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Nixon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Parrish</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Quantitative Spectroscopy and Radiative Transfer</title>
+		<imprint>
+			<biblScope unit="volume">109</biblScope>
+			<biblScope unit="page" from="1136" to="1150" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Fortney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Lodders</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Marley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Freedman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">678</biblScope>
+			<biblScope unit="page" from="1419" to="1435" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Seager</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Kuchner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">A</forename><surname>Hier-Majumder</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Militzer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">669</biblScope>
+			<biblScope unit="page" from="1279" to="1297" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Burrows</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Sudarsky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Hubeny</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">650</biblScope>
+			<biblScope unit="page" from="1140" to="1149" />
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M.-C</forename><surname>Liang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vidal-Madjar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Ehrenreich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Lecavelier Des Etangs</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><forename type="middle">L</forename><surname>Yung</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal Letters</title>
+		<imprint>
+			<biblScope unit="volume">654</biblScope>
+			<biblScope unit="page" from="99" to="102" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Seager</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">D</forename><surname>Sasselov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">537</biblScope>
+			<biblScope unit="page" from="916" to="921" />
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">M</forename><surname>Brown</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">553</biblScope>
+			<biblScope unit="page" from="1006" to="1026" />
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">P</forename><surname>Waldmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Deroo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D J</forename><surname>Hollis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">766</biblScope>
+			<biblScope unit="page">7</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<monogr>
+		<title level="m" type="main">0.94 -2.42 micron ground-based transmission spectra of the hot Jupiter HD-189733b</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">D</forename><surname>Danielski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Deroo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">P</forename><surname>Waldmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D J</forename><surname>Hollis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Swain</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+	<note>In revision</note>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<monogr>
+		<title level="m" type="main">An introduction to atmospheric radiation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K.-N</forename><surname>Liou</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2002" />
+			<publisher>Academic Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Ehrenreich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Lecavelier Des Etangs</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vidal-Madjar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Selsis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astronomy and Astrophysics</title>
+		<imprint>
+			<biblScope unit="volume">448</biblScope>
+			<biblScope unit="page" from="379" to="393" />
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">A</forename><surname>Griffith</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Waldmann</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Philosophical Transactions of the Royal Society A: Mathematical, Physical and Engineering Sciences</title>
+		<imprint>
+			<biblScope unit="volume">370</biblScope>
+			<biblScope unit="page" from="2749" to="2764" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Barber</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">J</forename><surname>Harris</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">N</forename><surname>Tolchenov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Monthly Notices of the Royal Astronomical Society</title>
+		<imprint>
+			<biblScope unit="volume">368</biblScope>
+			<biblScope unit="page" from="1087" to="1094" />
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Rothman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Gordon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Barbe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Benner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Bernath</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Birk</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Boudon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Brown</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Campargue</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-P</forename><surname>Champion</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Chance</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Coudert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Dana</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Devi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Fally</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-M</forename><surname>Flaud</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Gamache</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Goldman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Jacquemart</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Kleiner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Lacome</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Lafferty</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-Y</forename><surname>Mandin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Massie</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Mikhailenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Miller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Moazzen-Ahmadi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Naumenko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Nikitin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Orphal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Perevalov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Perrin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Predoi-Cross</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Rinsland</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Rotger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Simečková</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Smith</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Sung</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Tashkun</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Toth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vandaele</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Vander</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Auwera</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Quantitative Spectroscopy and Radiative Transfer</title>
+		<imprint>
+			<biblScope unit="volume">110</biblScope>
+			<biblScope unit="page" from="533" to="572" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">N</forename><surname>Yurchenko</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Monthly Notices of the Royal Astronomical Society</title>
+		<imprint>
+			<biblScope unit="volume">425</biblScope>
+			<biblScope unit="page" from="21" to="33" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Borysow</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><forename type="middle">G</forename><surname>Jorgensen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Zheng</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astronomy and Astrophysics</title>
+		<imprint>
+			<biblScope unit="volume">324</biblScope>
+			<biblScope unit="page" from="185" to="195" />
+			<date type="published" when="1997" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Borysow</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><forename type="middle">G</forename><surname>Jørgensen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Fu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Quantitative Spectroscopy and Radiative Transfer</title>
+		<imprint>
+			<biblScope unit="volume">68</biblScope>
+			<biblScope unit="page" from="235" to="255" />
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Richard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Gordon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Rothman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Abel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Frommhold</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Gustafsson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-M</forename><surname>Hartmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Hermans</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Lafferty</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Orton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Smith</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Tran</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Quantitative Spectroscopy and Radiative Transfer</title>
+		<imprint>
+			<biblScope unit="volume">113</biblScope>
+			<biblScope unit="page" from="1276" to="1285" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Lecavelier Des Etangs</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pont</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vidal-Madjar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Sing</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astronomy and Astrophysics</title>
+		<imprint>
+			<biblScope unit="volume">481</biblScope>
+			<biblScope unit="page" from="83" to="86" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">R</forename><surname>Howe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">S</forename><surname>Burrows</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">756</biblScope>
+			<biblScope unit="page">176</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Shabram</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Fortney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">P</forename><surname>Greene</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Freedman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">727</biblScope>
+			<biblScope unit="page">65</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Swain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Vasisht</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">452</biblScope>
+			<biblScope unit="page" from="329" to="331" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Swain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Vasisht</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Tinetti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Bouwman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Yung</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Deming</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Deroo</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal Letters</title>
+		<imprint>
+			<biblScope unit="volume">690</biblScope>
+			<biblScope unit="page" from="114" to="117" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Madhusudhan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Seager</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">707</biblScope>
+			<biblScope unit="page" from="24" to="39" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Rothman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Gordon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Barber</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Dothe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Gamache</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Goldman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Perevalov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Tashkun</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Tennyson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Quantitative Spectroscopy and Radiative Transfer</title>
+		<imprint>
+			<biblScope unit="volume">111</biblScope>
+			<biblScope unit="page" from="2139" to="2150" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Schneider</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Dedieu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">Le</forename><surname>Sidaner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Savalle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Zolotukhin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astronomy and Astrophysics</title>
+		<imprint>
+			<biblScope unit="volume">532</biblScope>
+			<biblScope unit="page">79</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">I</forename><surname>Moses</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Visscher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Fortney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">P</forename><surname>Showman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">K</forename><surname>Lewis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">A</forename><surname>Griffith</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Klippenstein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Shabram</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">J</forename><surname>Friedson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Marley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Freedman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">737</biblScope>
+			<biblScope unit="page">15</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Burrows</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">M</forename><surname>Sharp</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">512</biblScope>
+			<biblScope unit="page" from="843" to="863" />
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">P</forename><surname>Showman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Fortney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Lian</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Marley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">S</forename><surname>Freedman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">A</forename><surname>Knutson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">699</biblScope>
+			<biblScope unit="page" from="564" to="584" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">T</forename><surname>Koskinen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">D</forename><surname>Aylward</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">G A</forename><surname>Smith</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Miller</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">661</biblScope>
+			<biblScope unit="page" from="515" to="526" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>De Kok</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Stam</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Icarus</title>
+		<imprint>
+			<biblScope unit="volume">221</biblScope>
+			<biblScope unit="page" from="517" to="524" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Bates</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Planetary and Space Science</title>
+		<imprint>
+			<biblScope unit="volume">32</biblScope>
+			<biblScope unit="page" from="785" to="790" />
+			<date type="published" when="1984" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Jackson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Classical Electrodynamics</title>
+		<imprint>
+			<date type="published" when="1999" />
+			<publisher>Wiley</publisher>
+		</imprint>
+	</monogr>
+	<note>3rd edition</note>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Dalgarno</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">E</forename><surname>Kingston</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings of the Royal Society of London. Series A. Mathematical and Physical Sciences</title>
+		<imprint>
+			<biblScope unit="volume">259</biblScope>
+			<biblScope unit="page" from="424" to="431" />
+			<date type="published" when="1960" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<monogr>
+		<title level="m" type="main">Allen&apos;s Astrophysical Quantities</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">C W</forename><surname>Allen</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2000" />
+			<publisher>Springer</publisher>
+		</imprint>
+	</monogr>
+	<note>4th edition</note>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Sneep</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Ubachs</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Quantitative Spectroscopy and Radiative Transfer</title>
+		<imprint>
+			<biblScope unit="volume">92</biblScope>
+			<biblScope unit="page" from="293" to="310" />
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Born</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Optik: Ein Lehrbuch der elektromagnetischen Lichttheorie</title>
+		<imprint>
+			<date type="published" when="1933" />
+		</imprint>
+	</monogr>
+	<note>Julius Springer</note>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Vardya</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">135</biblScope>
+			<biblScope unit="page">303</biblScope>
+			<date type="published" when="1962" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">M</forename><surname>Sharp</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Burrows</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal Supplement Series</title>
+		<imprint>
+			<biblScope unit="volume">168</biblScope>
+			<biblScope unit="page" from="140" to="166" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">S</forename><surname>Ackerman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Marley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">556</biblScope>
+			<biblScope unit="page" from="872" to="884" />
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

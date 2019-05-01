@@ -1,0 +1,539 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-11T13:24+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Fast computation of quadrupole and hexadecapole approximations in microlensing with a single point-source evaluation</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2015">2015</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Arnaud</forename><surname>Cassan</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Institut d&apos;Astrophysique de Paris</orgName>
+								<orgName type="institution">UPMC Univ Paris</orgName>
+							</affiliation>
+							<affiliation key="aff1">
+								<orgName type="laboratory">UMR 7095</orgName>
+								<orgName type="institution" key="instit1">CNRS</orgName>
+								<orgName type="institution" key="instit2">Sorbonne Universités</orgName>
+								<address>
+									<addrLine>98 bis bd Arago</addrLine>
+									<postCode>F-75014</postCode>
+									<settlement>Paris</settlement>
+									<country key="FR">France</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Fast computation of quadrupole and hexadecapole approximations in microlensing with a single point-source evaluation</title>
+					</analytic>
+					<monogr>
+						<title level="j" type="main">MNRAS</title>
+						<imprint>
+							<biblScope unit="volume">000</biblScope>
+							<biblScope unit="page" from="1" to="7"/>
+							<date type="published" when="2015">2015</date>
+						</imprint>
+					</monogr>
+					<note type="submission">Last updated &lt;date&gt;; in original form &lt;date&gt;</note>
+					<note>Preprint 8th November 2018 Compiled using MNRAS L A T E X style file v3.0</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>gravitational lensing: micro -methods: numerical -planets and satellites: de- tection</keywords>
+			</textClass>
+			<abstract>
+				<p>The exoplanet detection rate from gravitational microlensing has grown significantly in recent years thanks to a great enhancement of resources and improved observational strategy. Current observatories include ground-based wide-field and/or robotic worldwide networks of telescopes, as well as space-based observatories such as satellites Spitzer or Kepler/K2. This results in a large quantity of data to be processed and analysed, which is a challenge for modelling codes because of the complexity of the parameter space to be explored, and the intensive computations required to evaluate the models. In this work, I present a method that allows to compute the quadrupole and hexadecapole approximation of the finite-source magnification with more efficiency than previously available codes, with routines about × 6 and × 4 faster respectively. The quadrupole takes just about twice the time of a point-source evaluation, which advocates for generalizing its use to large portions of the light curves. The corresponding routines are available as open-source python codes.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">INTRODUCTION</head><p>Since the visionary work of <ref type="bibr" target="#b15">Mao &amp; Paczynski (1991)</ref>, Galactic gravitational microlensing has led to the discovery of dozens of exoplanets and brown dwarfs, <ref type="bibr">1</ref> and revealed an unexpected population of cold, low-mass exoplanets located beyond the snow-line of their stars. Statistical studies have more recently settled that exoplanets in the Milky Way are the rule rather than the exception ( <ref type="bibr" target="#b5">Cassan et al. 2012</ref>), thereby opening exceptional prospects to discover exoplanets in a variety of systems and configurations. A recent highlight of exoplanets microlensing search is the characterization of the mass and distance from Earth of planetary microlenses through space parallax measurements: such observations are performed simultaneously with ground-based observatories and from space, using Spitzer (e.g. <ref type="bibr" target="#b20">Udalski et al. 2015;</ref><ref type="bibr" target="#b19">Street et al. 2016)</ref> and Kepler/K2 (campaign C9, 2016 April 7 through July 1, <ref type="bibr">Hende- rson et al. 2016</ref>), with a strong involvement of the international microlensing community.</p><p>The recent upgrades of ground-based telescopes, including robotic ones, have dramatically increased the amount of photometric data that need to be processed, with thousands of data points for which the models have to be computed. In fact, modelling is currently the most difficult task in microlensing and in most cases the bottleneck of detections delivery. Hence, the improvement of both the strategy of the exploration of the parameter space and the effi-1 http://exoplanet.eu/catalog/ ciency of the computations are of prime interest, in their mathematical and numerical aspects. Improved strategies to search the parameter space first include the exploitation of features in the light curves to limit the region to be explored. <ref type="bibr" target="#b0">Albrow et al. (1999)</ref> have introduced a model to fit individual caustic crossings independently from the whole light curve. This strategy has been extended to binary-lens causticcrossing events through the definition of a specific parametrization (dates of caustic entry and exit and corresponding positions of the source centre on the caustics) that allows to limit the search to light curves producing caustic magnification peaks at the dates seen in the data <ref type="bibr" target="#b3">(Cassan 2008;</ref><ref type="bibr" target="#b4">Cassan et al. 2010</ref>). To avoid unnecessary calculations of light curves, Penny (2014) has developed in a similar manner the concept of caustic regions of influence that are defined as empirical analytic expressions limiting the parameter space to regions where most low-mass planetary signals lie. A better understanding of the link between the caustic topography and the resulting light curves is a key ingredient to limit the region in the parameter space to explore. A detailed study of this aspect has been conducted by <ref type="bibr" target="#b14">Liebig et al. (2015)</ref> in the binary lens case. In that work, the authors established a classification of all possible peaks in the light curves into four types only, and arranged the corresponding possible light-curve morphologies into 73 categories. Hence, inspecting the characteristics of the observed light curves (number and shape of peaks for example) naturally provides clever initial guesses for the subsequent minimization algorithms (in particular Bayesian algorithms, e.g. <ref type="bibr" target="#b12">Kains et al. 2012</ref>). cient mathematical methods and numerical codes to perform the calculations of the probed microlensing models. <ref type="bibr" target="#b19">Skowron &amp; Gould (2012)</ref> have proposed a new algorithm to solve complex polynomial equations, which can solve the lens equation faster than classical roots finder codes. Nevertheless when finite-source calculations are required, the computation time significantly increases. This has triggered the development of a number of methods or approximations to overcome the problem. While magnification maps obtained by inverse ray-shooting are well suited for a large number of lenses (Wambsganss 1997), they are in general much too slow to be computed in real time, even for triple lenses. Pre-computed magnification maps are however useful for statistical studies where a large number of simulated light curves needs to be computed (e.g. <ref type="bibr" target="#b13">Kubas et al. 2008;</ref><ref type="bibr" target="#b5">Cassan et al. 2012)</ref>. A refined image-centred rayshooting algorithm has been developed by <ref type="bibr" target="#b1">Bennett (2010)</ref> to more specifically address the calculation of high-magnification planetary models, in which the source images are highly elongated. Image contouring provides an interesting alternative to ray-shooting <ref type="bibr" target="#b10">(Gould &amp; Gaucherel 1997;</ref><ref type="bibr" target="#b8">Dong et al. 2006;</ref><ref type="bibr" target="#b7">Dominik 2007)</ref>, because it is far less demanding in computation time. <ref type="bibr" target="#b2">Bozza (2010)</ref> has significantly improved the contouring method by including an error control algorithm which optimizes the sampling of the contour of the images.</p><p>When finite-source effects are noticeable but are weak enough (e.g. caustic or cusp passages without caustic crossing), multipole approximations of the finite-source magnification <ref type="bibr" target="#b16">(Pejcha &amp; Heyrovský 2009</ref>) have proven to be of great help because the computation time is several order of magnitudes below that of the exact finite-source magnification. A simple implementation of the quadrupole and hexadecapole approximations has been proposed by <ref type="bibr" target="#b9">Gould (2008)</ref>, using respectively 9 and 13 (point source) resolutions of the polynomial lens equation to evaluate numerically the corresponding coefficients of the expansion.</p><p>In this work, I present an improved implementation of the quadrupole and hexadecapole approximations, based on the construction of the image contours through a Taylor expansion around the individual images of the source centre, and which makes use of a single resolution of the lens equation. In section 2, I present the method that yields the multipole coefficients of the expansion, and in section 3, I discuss its implementation and numerical efficiency.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">MULTIPOLE EXPANSION</head><p>The main steps of the method are as follows. For a given position of the source centre at affix ζ 0 = ξ 0 + iη 0 ∈ C (Witt 1990) in the source plane, I first expand the image position z ∈ C around the exact position of the image z 0 of the source in the lens plane. I then use this expansion to perform the integration of the area of the image through the Green-Riemann formula, from which I obtain the magnification as a series of powers of ρ 2 .</p><p>While the method itself seems fairly clear, in practice it is not straightforward to obtain simple expressions of the coefficients of the expansion, which should ideally be easy to calculate and fast to compute numerically, as it is of main interest in this work. I find that by using a combination of a Taylor expansion with respect to the two coordinates in the source plane (ξ, η) and using properties of complex numbers provide an elegant and powerful way to express the expansion, as I show below.</p><p>Let us consider a microlensing system composed of L components with mass ratio q l = M l /M with respect to the total lens mass M, and located at positions s l ∈ C in the lens plane. The lens equation then reads 2</p><formula xml:id="formula_0">ζ = z − L l=1 q l (z − s l ) = z − W 1 ,<label>(1)</label></formula><p>where I have introduced the W k factors, k ≥ 1, as</p><formula xml:id="formula_1">W k ≡ (−1) (k−1) (k − 1)! L l=1 q l (z − s l ) k .<label>(2)</label></formula><p>For a point-source ζ, the lens equation provides several images j located at z j (3 or 5 for binary lenses, n + 1 to 5n − 5 for n lens components, Rhie 2003), but for clarity I have omitted any explicit reference to j in z, W k and other quantities introduced later. The signed point-source magnification µ 0 of an image is the inverse of the determinant of the Jacobi matrix of transformation</p><formula xml:id="formula_2">(z, z) → (ζ, ζ) (Witt 1990; Daněk &amp; Heyrovský 2015), given by J ≡ det ∂(ζ, ζ)/∂(z, z), or J = ∂ζ ∂z ∂ζ ∂z − ∂ζ ∂z ∂ζ ∂z = 1 − ∂ζ ∂z 2 = 1 − |W 2 | 2 .<label>(3)</label></formula><p>Hence the point-source magnification reads</p><formula xml:id="formula_3">µ 0 = 1 1 − |W 2 | 2 ,<label>(4)</label></formula><p>the sign of which (in fact, the sign of J) gives the parity of the image. The critical curves correspond to infinite values of µ 0 , or W 2 = −e −iφ , with φ a phase parameter ranging from 0 to 2π (Witt 1990, see Appendix A for two interpretations of φ).</p><p>I proceed now with the first step, the expansion of z around z 0 , the exact image of the source centre ζ 0 . At order p ≥ 1, the Taylor expansion of z as a function of coordinates (ξ, η) ∈ R 2 in the source plane is</p><formula xml:id="formula_4">z (ξ, η) = z (ξ 0 + δξ, η 0 + δη) z 0 + p≥1 1 p! ∂z ∂ξ δξ + ∂z ∂η δη [p] ,<label>(5)</label></formula><p>in which [p] refers to the symbolic binomial expansion of the terms inside the brackets 3 , and where the derivatives are evaluated at (ξ 0 , η 0 ). In the following, I will use a more compact notation of the derivatives,</p><formula xml:id="formula_5">a p−n,n = ∂ p z ∂ξ p−n ∂η n ,<label>(6)</label></formula><p>for 0 ≤ n ≤ p. Until this point, I have used the linearity of the complex notation as a convenient way to write the Taylor expansion of z = x + iy. A naive approach would be to differentiate x and y with respect to ξ and η, but this requires to separate real and imaginary parts of the lens equation <ref type="formula" target="#formula_0">(1)</ref>, which results in cumbersome, numerically time-consuming expressions of the derivatives, and furthermore depends on the detailed form of the adopted lens equation.</p><p>In the following, I will therefore use the complex formalism and exploit the property that W k is a single function of z, so that 4</p><formula xml:id="formula_6">dW k dz = W k+1 .<label>(7)</label></formula><p>2 A shear can be added in the equation, with minor changes in the expansion as explained in footnote 4. <ref type="bibr">4</ref> The method can be extended to any expression W k depending on z only, as for example adding a shear γ.</p><formula xml:id="formula_7">3 For example, [p] = 2 gives ∂ 2 z ∂ξ 2 δξ 2 + 2 ∂ 2 z ∂ξ∂η δξδη + ∂ 2 z ∂η 2 δη 2 .</formula><formula xml:id="formula_8">Then, ζ = z + γz − W 1 , W 1 = −γz + W 1 , W 2 = −γ + W 2 and for k ≥ 3, W k = W k .</formula><p>Fast quadrupole and hexadecapole computation 3</p><formula xml:id="formula_9">W 3 W 4 W 5 W 6 Q 2,0 a 2 1,0 - - - Q 1,1 a 1,0 a 0,1 - - - Q 3,0 3 a 1,0 a 2,0 a 3 1,0</formula><p>--  <ref type="formula" target="#formula_0">(16)</ref>, for orders 2 ≤ p ≤ 5. Since the formal expression of Q i, j is the same as Q j,i (but Q i, j Q j,i ), interchanging all indexes (i, j) appearing in the expressions of Q p−n,n gives the expression of Q n,p−n , so it is enough to provide c k n−p,n for n ≤ ≤p/2.</p><formula xml:id="formula_10">Q 2,1 2 a 1,0 a 1,1 + a 0,1 a 2,0 a 2 1,0 a 0,1 - - Q 4,0 4 a 1,0 a 3,0 + 3 a 2 2,0 6 a 2 1,0 a 2,0 a 4 1,0 - Q 3,1 3 a 1,0 a 2,1 + a 0,1 a 3,0 + 3 a 1,1 a 2,0 3 a 2 1,0 a 1,1 + 3 a 1,0 a 0,1 a 2,0 a 3 1,0 a 0,1 - Q 2,2 2 a 1,0 a 1,2 + 2 a 0,1 a 2,1 + a 2,0 a 0,2 + 2 a 2 1,1 a 2 1,0 a 0,2 + 4 a 1,0 a 0,1 a 1,1 + a 2 0,1 a 2,0 a 2 1,0 a 2 0,1 - Q 5,0 10 a 2,0 a 3,0 + 5 a 1,0 a 4,0 15 a 1,0 a 2 2,0 + 10 a 2 1,0 a 3,0 10 a 3 1,0 a 2,0 a 5 1,0 Q 4,1 6 a 2,0 a 2,1 + 4 a 1,1 a 3,0 + 4 a 1,0 a 3,1 + a 0,1 a 4,0 12 a 1,0 a 1,1 a 2,0 +3 a 0,1 a 2 2,0 +6 a 2 1,0 a 2,1 + 4 a 0,1 a 1,0 a 3,0 4 a 3 1,0 a 1,1 + 6 a 0,1 a 2 1,0 a 2,0 a 0,1 a 4 1,0 Q 3,2 3 a 1,2 a 2,0 + 6 a 1,1 a 2,1 + 3 a 1,0 a 2,2 + a 0,2 a 3,0 + 2 a 0,1 a 3,1 6 a 1,0 a 2 1,1 + 3 a 2 1,0 a 1,2 + 3 a 0,2 a 1,0 a 2,0 + 6 a 0,1 a 1,1 a 2,0 + 6 a 0,1 a 1,0 a 2,1 + a 2 0,1 a 3,0 a 0,2 a 3 1,0 + 6 a 0,1 a 2 1,0 a 1,1 + 3 a 2 0,1 a 1,0 a 2,0 a 2 0,1 a 3 1,0</formula><p>I use this property to compute the derivatives (6), starting with p = 1 for which I provide the explicit expressions, and use p = 2 to explain the general method for any p.</p><p>From the lens equation, one has</p><formula xml:id="formula_11">∂ζ ∂α = ∂z ∂α − W 2 ∂z ∂α ,<label>(8)</label></formula><p>where the differentiation is made with respect to α ∈ {ξ, η}. To eliminating derivatives of z, I conjugate (8), isolate ∂z/∂α and introduce it back into (8), which leads to</p><formula xml:id="formula_12">∂z ∂α 1 − W 2 W 2 = ∂ζ ∂α + W 2 ∂ζ ∂α .<label>(9)</label></formula><p>Considering that 1 − W 2 W 2 = 1/µ 0 and that</p><formula xml:id="formula_13">∂ζ ∂ξ = 1 , ∂ζ ∂η = i , ∀p &gt; 1, ∂ p ζ ∂ξ p−n ∂η n = 0 ,<label>(10)</label></formula><p>I obtain the two derivatives a 1,0 and a 0,1 (p = 1) by successively choosing α = ξ and η,</p><formula xml:id="formula_14">a 1,0 =µ 0 1 + W 2 ,<label>(11)</label></formula><formula xml:id="formula_15">a 0,1 =iµ 0 1 − W 2 .</formula><p>For p = 2, I derive (8) a second time with respect to variables (α, β) ∈ {ξ, η} × {ξ, η}, which leads to three different combinations a 2−n,n (n = 0, 1 and 2) satifying</p><formula xml:id="formula_16">∂ 2 ζ ∂α∂β = ∂ 2 z ∂α∂β − ∂W 2 ∂β ∂z ∂α − W 2 ∂ 2 z ∂α∂β = 0 .<label>(12)</label></formula><p>Using the rule (7), the derivative of W 2 can be expressed as</p><formula xml:id="formula_17">∂W 2 ∂β = dW 2 dz ∂z ∂β = W 3 ∂z ∂β ,<label>(13)</label></formula><p>so that (12) involves derivatives of z and z, and constants depending on z 0 only. With the same procedure as for p = 1 (conjugating and replacing), I get</p><formula xml:id="formula_18">a 2,0 =µ 0 W 3 a 2 1,0 + W 2 W 3 a 2 1,0 ,<label>(14)</label></formula><formula xml:id="formula_19">a 1,1 =µ 0 W 3 a 1,0 a 0,1 + W 2 W 3 a 1,0 a 0,1 , a 0,2 =µ 0 W 3 a 2 0,1 + W 2 W 3 a 2 0,1 .</formula><p>More generally for p ≥ 1 and 0 ≤ n ≤ p, it appears that a p−n,n can be expressed as</p><formula xml:id="formula_20">a p−n,n = µ 0 Q p−n,n + W 2 Q p−n,n ,<label>(15)</label></formula><p>where the Q p−n,n coefficients can be iteratively calculated using the prescriptions given above. Factoring the W k , I define</p><formula xml:id="formula_21">Q p−n,n = p+1 k=3 c k n−p,n W k ,<label>(16)</label></formula><p>where the coefficients c k n−p,n are given in <ref type="table">Table 2</ref> up to order p = 5 (we shall see later that expanding z up to this order provides the hexadecapole term of the finite-source magnification). For p ≥ 3, I find that Q p−n,n can be obtained with the following algorithm: let us introduce p variables (α p , . . . , α 1 ) ∈ {ξ, η} × · · · × {ξ, η}. For 3 ≤ k ≤ p + 1, the general expression of c k n−p,n is obtained from</p><formula xml:id="formula_22">R k p = ∂R k p−1 ∂α p + R k−1 p−1 + δ(k, 3) ∂ p−1 z ∂α p−1 . . . ∂α 1 ∂z ∂α p ,<label>(17)</label></formula><p>with δ(3, k) = 1 only if k = 3, and in which n of the α i variables are chosen to be η, and the remaining p − n others ξ. The second step of the method consists of calculating the area of the image using the previous expansion of z, with the provisional assumption that the source is uniformly bright. Let ρ be the source radius in Einstein units. For ρ 1, the (circular) contour of the source can be parametrized as ζ = ζ 0 + ρ cos θ + i ρ sin θ, i.e. by choosing δξ = ρ cos θ and δη = ρ sin θ in the expansion of z written in (5). As a matter of fact, z is now a function of (ρ, θ), and to avoid confusions I introduce  <ref type="figure">Figure 1</ref>. Upper panel: simulated microlensing light curve (magnitude of total magnification A as a function of time t in units of source radius crossing time, for s = 1.7, q = 0.2 and for a uniformly bright source) displaying two clear caustic crossings (t ∼ −4 and t ∼ 8) and a cusp approach (t ∼ 25). The exact finite-source magnification is the bold, dark grey curve, while the blue, red and green curves are respectively the monopole, quadrupole and hexadecapole approximations. Middle panel: residual magnitudes of the different finite-source approximations with respect to the exact magnification. Lower panel: absolute value of the residuals in logarithmic scale, for reference to future space-based microlensing missions which are expected to reach mmag precision light curve photometry. The small wiggles below the fraction of mmag come from errors in computing the exact magnification rather than from the multipole approximations.</p><formula xml:id="formula_23">Z(ρ, θ) ≡ z ξ 0 + ρ cos θ, η 0 + ρ sin θ − z 0 .<label>(18) 1 2</label></formula><p>This expression hence involves powers of ρ as well as powers of cos θ and sin θ. For a given source size ρ, the (signed) area S of the image can be performed through the Green-Riemann (or Stokes) formula, Fast quadrupole and hexadecapole computation 5 ρ remain. Furthermore, it can be found by inspecting Z and ∂Z/∂θ that pursuing the expansion to order p adds terms factors of ρ m , where m ≥ p + 1. In other words, the expansion of Z is complete in ρ m for p = m − 1.</p><formula xml:id="formula_24">S = Im       C Z dZ 2       = 1 2 Im 2π 0 Z ∂Z ∂θ dθ ,<label>(19)</label></formula><p>Expanding S in the form</p><formula xml:id="formula_25">S (ρ) = p≥1 πρ p+1 (p − 1)! µ p−1<label>(20)</label></formula><p>yields, up to order p = 5, the following non-vanishing terms + a 0,1 (a 1,4 + 2 a 3,2 + a 5,0 ) .</p><formula xml:id="formula_26">µ 0 = Im a 1,0 a 0,1 ,<label>(21)</label></formula><formula xml:id="formula_27">µ 2 = 1 4 Im a 1,0 (a 2,1 + a 0,3 ) + 2 (a 1,1 a 2,0 + a 1,1 a 0,2 )<label>(22</label></formula><p>The first term µ 0 is indeed the point-source magnification defined in (21), since from (11) one has</p><formula xml:id="formula_28">a 1,0 a 0,1 = iµ 2 0 (1 − |W 2 | 2 − W 2 + W 2 ) of which imaginary part is µ 2 0 (1 − |W 2 | 2 ) = µ 0 .</formula><p>Let us now consider a limb-darkened source with brightness profile</p><formula xml:id="formula_29">I(r) = 1 − Γ          1 − 3 2 1 − r 2 ρ 2          , 0 ≤ r ≤ ρ ,<label>(24)</label></formula><p>where for all Γ, the surface integral of I(r) over the source face S always equals πρ 2 ,</p><formula xml:id="formula_30">S I(r) ds = 2π 0 dφ ρ 0 I(r)rdr = πρ 2 .<label>(25)</label></formula><p>The uniformly bright source has Γ = 0. The signed magnification is now given by the ratio</p><formula xml:id="formula_31">µ ≡ ρ 0 I(r) dS S I(r) ds = 1 ρ 2 p≥1 (p + 1) µ p−1 (p − 1)! ρ 0 I(r) r p dr ,<label>(26)</label></formula><p>where the enumerator of the first integral is already integrated over the angle, and in which I have changed variable dS = dS dr dr according to <ref type="bibr">(20)</ref>. The integral can be performed analytically for any value of p, and yields</p><formula xml:id="formula_32">µ = µ 0 + µ 2 2! 1 − 1 5 Γ ρ 2 + µ 4 4! 1 − 11 35 Γ ρ 4 + O ρ 6 .<label>(27)</label></formula><p>As expected, the monopole of the finite-source expansion (p = 1) is the point-source magnification of the source, and there is no dipole (p = 2). The quadrupole is obtained for p = 3, and the hexadecapole for p = 5. Finally, the total magnification of the source A(ζ 0 ) is the sum of the absolute values of the individual magnification factors µ(z j ) of each of the images j. If j denotes the parity of image j ( j = 1 if µ &gt; 0, −1 otherwise), one has</p><formula xml:id="formula_33">A = j µ(z j ) = j j µ(z j ) ,<label>(28)</label></formula><p>so that after factorizing ρ 2 and ρ 4 amongst the different images, the total magnification A has the same form <ref type="bibr">5</ref> as <ref type="formula" target="#formula_1">(27)</ref> with A q instead of µ q , where A q is a combination of j µ q .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">APPLICATION</head><p>An example of light curves obtained with the various finite-source approximations are displayed in <ref type="figure">Fig. 1</ref>. In this example, the lens is a binary with parameters s = 1.7 (separation in Einstein units) and q = 0.2 (lens mass ratio), and the source radius is ρ = 0.01 in Einstein units (slightly larger than typical source sizes to better see the differences). The source crosses two caustics (entry at t ∼ −4, exit at t ∼ 8) and later approaches a cusp (t ∼ 25). The exact finite-source magnification is displayed as the bold, dark grey curve, while the blue, red and green curves are respectively the monopole, quadrupole and hexadecapole approximations. The middle panel shows a zoom on the residuals (approximated minus exact magnifications) in linear scale, while the lower panel shows the absolute value of the residuals in logarithmic scale. The latter panel can be used to compare the precision of the approximations to the precision of the photometry expected from future space-based missions such as Wide-Field Infrared Survey Telescope, which is expected to be of order of a mmag. It appears that the quadrupole expansion already provides a much better approximation than the monopole (point-source magnification), in particular, near cusp approaches. The hexadecapole appears essentially as an approximation that allows the source to approach the caustics slightly closer than the quadrupole before the approximation breaks down (see also the discussion in <ref type="bibr" target="#b9">Gould 2008)</ref>.</p><p>Since one of the drivers of this work was to improve the numerical efficiency in calculating the quadrupole and hexadecapole approximations, I have tested a non-fully optimized python routine to estimate the potential gain for a binary lens. I find that the quadrupole (respectively hexadecapole) is about × 2 (respectively × 5) slower than point source. The quadrupole and hexadecapole implementations presented here are respectively × 6 and × 4 faster than the implementation of <ref type="bibr" target="#b9">Gould (2008)</ref>. It is likely that going to higher orders in the finite-source approximation will not help, though, not only because the gain in precision will be limited, but also because the additional calculations (such as a p−n,n ) grow substantially with increasing order p. It is also clear that the gain in time will increase with the number of lens components since solving the lens equation will take more time, while the additional calculations do not, as they depend only on the set of input complex numbers W k .</p><p>Additionally, a further advantage of using the exact multipole expansion rather than a numerical estimation resides in the fact that the discontinuities of the magnification happen at the same positions in the light curve than with point-source, so there are no spurious wiggles of the magnification close to the caustics.</p><p>An open source code with a first implementation of the equations presented here is available for download in my GitHub repository <ref type="bibr">6</ref> . The file multipoles.py includes two functions that return the quadrupole and hexadecapole approximations of the finite-source magnification: quadrupole(Wk,rho,Gamma) and hexadecapole(Wk,rho,Gamma), whose arguments are W k (a 2D complex array in which one of the dimension refers to the individual images), ρ the source radius in Einstein units and Γ the source linear limb-darkening coefficient. In practice (as shown in the example() function provided), for each position of the source, one needs to compute the images of the source centre, discard the virtual ones, and evaluate the corresponding W k (up to k = 4 for the quadrupole and k = 6 for the hexadecapole) that are inputs of the two functions. It is likely that these functions will gain in speed from a re-writing in cython or c++ with a more efficient use of complex number calculations. For information, further orders of a p−n,n for p ≥ 6 can be displayed using function Q(p) in file Rkp.py, as an implementation of (17).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">CONCLUSION</head><p>I have presented a method that allows to compute the quadrupole and hexadecapole approximations with more efficiency than previously available codes (respectively about six times and four times faster). It appears that the quadrupole approximation already provides a much more precise approximation than point-source, for a computing time only about two times slower. This advocates for using the quadrupole in place of point-source in most part of the light curve, except at baseline. The hexadecapole seems well suited to make the link between exact finite-source and quadrupole in limited regions of the light curves close to sharp magnification peaks. Open source codes of the algorithms presented here are available for download, and I welcome numerical optimization updates.</p><formula xml:id="formula_34">W 2 = −e −iφ .<label>(A1)</label></formula><p>In this appendix I propose two interpretations of φ. The first one is geometrical. Starting from the lens equation (1), one can write</p><formula xml:id="formula_35">dζ dφ = dz dφ − W 2 dz dφ ,<label>(A2)</label></formula><p>which, after conjugating the whole expression and replacing dz/dφ in (A2), yields</p><formula xml:id="formula_36">dζ dφ = e iφ dζ dφ .<label>(A3)</label></formula><p>Since dζ/dφ defines in the source plane a vector T tangent to the caustic curve parametrized by φ, the former equation means that φ is the oriented angle between the symmetrical vector of T with respect to the horizontal axis and T . In other words, φ/2 modulo π is the geometric angle between the horizontal axis and the tangent to the caustic. A second interpretation of φ is related to curves in the lens <ref type="bibr">7</ref> The two − signs reflect the different conventions between the formalisms.  <ref type="figure">Figure A1</ref>. Binary lens with the less massive component on the left hand side (z 2 = −s, with z = x + iy) and the more massive body at the centre of the coordinate system (z 1 = 0), the positions of which are marked as black × on the horizontal axis. The relative mass ratio of the system is q = µ 2 /µ 1 &lt; 1. The thick black curve is the critical line (J = 0), and the thin black lines are the J-curves (J = cst). The φ-lines (φ = cst) are plotted as thin green lines. They are orthogonal to the J-curves except at saddle points, which are marked as the two off-axis black +. The two off-axis black × mark the two extrema (maxima) of J(x, y). The thick magenta lines mark the boundaries between the different kinds of field lines (finite or semi-infinite, starting at lens positions or at extrema of J). There are six of them in the binary lens case, which all (necessarily) pass through a saddle point.</p><p>plane obtained with φ = cst. From the definition of the Jacobian J in (3) and since J &lt; 1, one has</p><formula xml:id="formula_37">J = 1 − W 2 W 2 = 1 − −e −iφ √ 1 − J −e iφ √ 1 − J ,<label>(A4)</label></formula><p>from which we write</p><formula xml:id="formula_38">W 2 = −e −iφ √ 1 − J .<label>(A5)</label></formula><p>Solving this equation for a given φ ∈ [0, 2π[ and J ∈] − ∞, 1[ leads to four possible solutions z in the lens plane. Varying φ for a given J draws iso-magnification curves (as four distinct branches that connect), that I will refer to as J-curves. Let us study the curves obtained for φ constant. Differentiating both sides of equation (A5) with respect to φ and J yields</p><formula xml:id="formula_39">W 3 ∂z ∂φ = −iW 2 , W 3 ∂z ∂J = − W 2 2(1 − J) ,<label>(A6)</label></formula><p>and ∂z ∂φ = i2 (1 − J) ∂z ∂J .</p><p>Since ∂z/∂J defines in the lens plane a vector T J tangent to the J-curves, ∂z/∂φ hence defines a vector T φ perpendicular to those, as long as T φ 0 (or equivalently T J 0). It means that φ = cst lines can be interpreted as field lines (perpendicular to the J-curves) parametrized by J and crossing the critical lines at J = 0. I will call them φ-lines.</p><p>An example is given in <ref type="figure">Fig. A1</ref> for a binary lens with separation s = 1 and mass ratio q = 0.25. The φ-lines are the green, radial lines crossing the (thin black) J-curves orthogonally (except at saddle points, marked as black +, see below). The thick black line is the critical curve. φ-lines can be of finite length or semi-infinite. For J → −∞, the only possibility is that at least one of the z → s l , so that all φ-lines start at one of the lens component positions. For J → 1, one has W 2 → 0, which results in two possibilities for z: either z → ∞ and the line goes to infinity, or z converges to a finite value, which geometrically necessarily correspond to an extrema of mapping J(z). Expanding (A5) and setting</p><formula xml:id="formula_41">√ 1 − J → 0, one finds L l=1 q l kl (z − z k ) 2 = 0 . (A8)</formula><p>Therefore for L lens components, there are 2(L − 1) extrema of J(z).</p><p>In the binary lens case, with the convention that the origin of the coordinate system is at the position of the more massive body z 1 = 0 and that the less massive body is located at z 2 = −s, with q = µ 2 /µ 1 &lt; 1 their relative mass ratio, there are two extrema at</p><formula xml:id="formula_42">z ± = − s 1 + q 1 ± i √ q ,<label>(A9)</label></formula><p>which are marked as off-axis × in <ref type="figure">Fig. A1</ref>. Finally, the boundary values of φ which separate regions of different kinds of φ-lines (finite or semi-infinite, starting at one or another lens position) correspond to lines that necessarily cross the J-curves at saddle points as stated before, whereW 3 = 0 <ref type="bibr" target="#b6">(Daněk &amp; Heyrovský 2015)</ref> i.e. </p></div><figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" validated="false"><head>Table 1 .</head><label>1</label><figDesc></figDesc><table>Coefficients c k 
+n−p,n (with k referring to column W k ) as defined in </table></figure>
+
+			<note place="foot">MNRAS 000, 1-7 (2015)</note>
+
+			<note place="foot" n="5"> This is the same expansion as Gould (2008) but with a different choice of numerical factors. 6 https://github.com/ArnaudCassan/microlensing/ MNRAS 000, 1-7 (2015)</note>
+
+			<note place="foot">This paper has been typeset from a T E X/L A T E X file prepared by the author. MNRAS 000, 1-7 (2015)</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>ACKNOWLEDGEMENTS</head><p>AC acknowledges financial support from Université Pierre et Marie Curie under grants Émergence@Sorbonne Universités 2016 and Émergence-UPMC 2012. I would like to thank the anonymous referee for useful remarks on the text.</p><p>The boundary φ-lines may start and/or end at one of the lens position, at a maxima of J(z) or at infinity, but they all necessarily pass through a saddle point. Once the saddle points are found through (A8), the corresponding values of φ are obtained from (A1) and the corresponding boundary φ-lines can be drawn. In the binary lens case, it appears that there exists six such boundary φ-lines, displayed in <ref type="figure">Fig. A1</ref> as thick magenta lines.</p></div>
+			</div>
+
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>APPENDIX A: TWO INTERPRETATIONS OF WITT'S φ</head><p>In his original article, Witt (1990) introduced a phase parameter φ ∈ [0, 2π] to compute the critical curves 7 ,</p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D</forename><surname>Albrow</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">522</biblScope>
+			<biblScope unit="page">1022</biblScope>
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">P</forename><surname>Bennett</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">716</biblScope>
+			<biblScope unit="page">1408</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Bozza</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">408</biblScope>
+			<biblScope unit="page">2188</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Cassan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">491</biblScope>
+			<biblScope unit="page">587</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Cassan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Horne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Kains</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Tsapras</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Browne</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">515</biblScope>
+			<biblScope unit="page">52</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Cassan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">481</biblScope>
+			<biblScope unit="page">167</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Daněk</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Heyrovský</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">806</biblScope>
+			<biblScope unit="page">63</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Dominik</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">377</biblScope>
+			<biblScope unit="page">1679</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Dong</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">642</biblScope>
+			<biblScope unit="page">842</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gould</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">681</biblScope>
+			<biblScope unit="page">1593</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gould</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Gaucherel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">477</biblScope>
+			<biblScope unit="page">580</biblScope>
+			<date type="published" when="1997" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">B</forename><surname>Henderson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">128</biblScope>
+			<biblScope unit="page">124401</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Kains</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Browne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Horne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Hundertmark</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Cassan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">426</biblScope>
+			<biblScope unit="page">2228</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Kubas</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">483</biblScope>
+			<biblScope unit="page">317</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Liebig</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>D&amp;apos;ago</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Bozza</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Dominik</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">450</biblScope>
+			<biblScope unit="page">1565</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Mao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Paczynski</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">374</biblScope>
+			<biblScope unit="page">37</biblScope>
+			<date type="published" when="1991" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Pejcha</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Heyrovský</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">690</biblScope>
+			<biblScope unit="page">1772</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">T</forename><surname>Penny</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">790</biblScope>
+			<biblScope unit="page">142</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">H</forename><surname>Rhie</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:astro-ph/0305166</idno>
+		<imprint>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+<note type="report_type">preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Skowron</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gould</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Street</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1203.1034</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">819</biblScope>
+			<biblScope unit="page">93</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+	<note>preprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Udalski</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">799</biblScope>
+			<biblScope unit="page">237</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Wambsganss</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">284</biblScope>
+			<biblScope unit="page">172</biblScope>
+			<date type="published" when="1997" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">J</forename><surname>Witt</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">236</biblScope>
+			<biblScope unit="page">311</biblScope>
+			<date type="published" when="1990" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

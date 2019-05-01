@@ -1,0 +1,688 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-11T13:16+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Globally Optimal Symbolic Regression</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2017-11-15">15 Nov 2017</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Vernon</forename><surname>Austel</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Sanjeeb</forename><surname>Dash</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Oktay</forename><surname>Gunluk</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Lior</forename><surname>Horesh</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Leo</forename><surname>Liberti</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Giacomo</forename><surname>Nannicini</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Baruch</forename><surname>Schieber</surname></persName>
+						</author>
+						<title level="a" type="main">Globally Optimal Symbolic Regression</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2017-11-15">15 Nov 2017</date>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<abstract>
+				<p>In this study we introduce a new technique for symbolic regression that guarantees global optimality. This is achieved by formulating a mixed integer non-linear program (MINLP) whose solution is a symbolic mathematical expression of minimum complexity that explains the observations. We demonstrate our approach by rediscovering Kepler&apos;s law on planetary motion using exoplanet data and Galileo&apos;s pendulum periodicity equation using experimental data.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Discovering mathematical models that explain the behavior of a system has a broad range of applications. Symbolic regression is an important field in machine learning whose goal is to find a symbolic mathematical expression that explains a dependent variable in terms of a number of independent variables for a given data set, most commonly as an explicit function of the independent variables. Unlike traditional (numerical) regression schemes, the functional form of the expression is not assumed to be known a priori <ref type="bibr" target="#b11">[12]</ref>. The utility of the approach has been established for a broad range of applications <ref type="bibr" target="#b5">[6,</ref><ref type="bibr" target="#b24">25,</ref><ref type="bibr" target="#b6">7,</ref><ref type="bibr" target="#b7">8]</ref>, including the discovery of equations <ref type="bibr" target="#b21">[22,</ref><ref type="bibr" target="#b12">13,</ref><ref type="bibr" target="#b18">19,</ref><ref type="bibr" target="#b19">20]</ref>.</p><p>Starting with <ref type="bibr" target="#b10">[11]</ref>, symbolic regression problems have been typically solved with genetic programming <ref type="bibr" target="#b1">[2,</ref><ref type="bibr" target="#b0">1]</ref>, an evolutionary metaheuristic related to genetic algorithms; another such technique is grammatical evolution <ref type="bibr" target="#b17">[18]</ref>. Even before <ref type="bibr" target="#b10">[11]</ref>, heuristics to find explicit functional relationships were developed as part of the BACON system, see <ref type="bibr" target="#b13">[14]</ref>. There has been much research into improving symbolic regression techniques. In <ref type="bibr" target="#b4">[5]</ref>, the separability of the desired functional form is exploited to speed up symbolic regression, whereas a set of candidate basis functions is used in <ref type="bibr" target="#b15">[16]</ref> for this purpose. Other recent work has focused on finding accurate constants in the derived symbolic mathematical expression <ref type="bibr" target="#b9">[10]</ref>. To discover meaningful functions in the context of physical systems, the authors of <ref type="bibr" target="#b18">[19]</ref> search for functions that not only match the data, but also have the property that partial derivatives also match the empirically computed partial derivatives. The same authors search for implicit functional relationships in <ref type="bibr" target="#b19">[20]</ref>. Another approach populates a large hypothesis space of functional forms, on which sparse selection is applied <ref type="bibr" target="#b3">[4]</ref>.</p><p>In this study we present a Mixed-Integer Non-Linear Programming (MINLP) formulation that produces the simplest symbolic mathematical expression that satisfies a prescribed upper bound on the prediction error. Our MINLP formulation can be solved to optimality using existing state-of-the-art global optimization solvers. The key advantage of our approach is that it produces a globally optimal mathematical expression while avoiding exhaustive search of the solution space. Another advantage is that it produces correct real-valued constants (within a tolerance) directly; most other methods use specialized algorithms to refine constants <ref type="bibr" target="#b9">[10,</ref><ref type="bibr" target="#b22">23]</ref> and cannot guarantee global optimality. In addition, our formulation can, in principle, seamlessly incorporate additional constraints and objectives to capture domain knowledge and user preferences.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">A MINLP Formulation for Free-Form Model Discovery</head><p>A symbolic regression scheme consists of a space of valid mathematical expressions together with a mechanism for its exploration. A mathematical expression can be represented by a (rooted) expression tree where each node is labeled by one of the following entities: operators (such as +, −, ×, log), variables (i.e., the independent variables), and constants. Edges of the tree link these entities in a way that is consistent with a prescribed grammar. For example, an expression tree for 2(w 1 + w 2 ) 3 + 1 is:</p><formula xml:id="formula_0">+ root 1 × pow(·, ·) 3 + w1 w2 2</formula><p>Here +, × and the power function are the operators, w 1 , w 2 are the variables, and numbers 1, 2 and 3 are the constants.</p><p>In our MINLP based approach we model the grammar of valid expression trees by a set of constraints. The discrete variables of the formulation are used to define the structure of the expression tree, and the continuous variables to evaluate the resulting symbolic expression for specific numerical values associated with the data. To choose among the many possible expressions that fit the data (within an error bound), we set the objective to minimize the description complexity of the expression. Consequently, the MINLP formulation has the form</p><formula xml:id="formula_1">min C(f cqwz ) (Complexity) s.t. (c, q, w, z) ∈ T (Grammar) v i = f cqwz (x i ), ∀i ∈ I (Prediction) D(v, y) ≤ ǫ</formula><p>(Error) where c, q, w and z are decision variables, f cqwz is the expression tree defined by these variables, T is the set of values of the decision variables that define valid expression trees of bounded size, C measures the description complexity of the expression tree, D measures error of the predicted values v, and (x, y) are the observed data. In practice, MINLP solvers (e.g., BARON <ref type="bibr" target="#b20">[21]</ref>, COUENNE <ref type="bibr" target="#b2">[3]</ref>, SCIP <ref type="bibr" target="#b14">[15]</ref>) employ various convex relaxation schemes to obtain lower bounds on the objective function value and use these bounds in divide-and-conquer strategies to obtain globally optimal solutions <ref type="bibr" target="#b20">[21]</ref>. We note that our MINLP approach bears similarities to the one presented in <ref type="bibr" target="#b8">[9]</ref>, however unlike our model, the one presented in <ref type="bibr" target="#b8">[9]</ref> is computationally impractical.</p><p>We next give the details of our formulation. The input to the formulation consists of a rooted binary tree, a set of candidate operators and an observed dataset. For each observation i ∈ I, we denote the value of the independent variables by x i ∈ R m and the dependent variable values by y i ∈ R. Let D = {1, . . . , m} denote the indices of the independent variables. Let T = (N, E) be the input binary tree, let s ∈ N denote root node and L ⊂ N denote the leaf nodes. Each node n ∈ N \ {s} in the tree has exactly one predecessor and each node n ∈ N \ L has exactly two successors. Let O = U ∪ B denote the set of candidate operators where U contains the unary operators (such as squareroot) and B contains the binary operators (such as addition). Our formulation has two parts: The first part consists of constraints and decision variables that construct the expression tree and the second part is used to evaluate the difference between the estimated and actual dependent variable value of each observation using the constructed expression tree.</p><p>Grammar. The first part of the formulation chooses a subtree of T and assigns either an operator, a constant, or an input variable to each node of the chosen subtree in a consistent way. For each n ∈ N , we have a decision variable u n ∈ {0, 1} to indicate if the node is used (active) in the expression tree. Decision variables z n,o ∈ {0, 1} and w n,d ∈ {0, 1} denote whether the operator o ∈ O or the input variable d ∈ D are assigned to node n respectively. Finally we have a decision variable q n ∈ {0, 1} if a constant value is assigned the node. The constraint</p><formula xml:id="formula_2">q n + d∈D w n,d + o∈O z n,o = u n , ∀n ∈ N,<label>(1)</label></formula><p>enforces that each active node is assigned an operator, a constant, or one of the variables. Let n ∈ N \ L be a non-leaf node with successors l, r ∈ N where l has a smaller index than r. Note that if node n is assigned a binary operator then both nodes l, r have to be active in the tree; and if n is assigned a unary operator then exactly one of the nodes (say l) has to be active. Consequently, we have constraints u r = o∈B z n,o and u l = o∈B∪U z n,o . Notice that these constraints also enforce that if a node is inactive, or is assigned a constant or is a variable, then its successor nodes cannot be active. As the leaf nodes cannot be assigned operators, we also set z n,o = 0 for all o ∈ O, l ∈ L. Finally, we define a continuous variable c n for n ∈ N to denote the value of the constant when q n = 1. It is possible to show that any c ∈ R |N | together with binary vectors q, w, z, and u (of appropriate dimensions) that satisfy the constraints above define an expression tree and vice versa.</p><p>In addition to the basic model described above, we impose some additional constraints to improve computational performance (without compromising optimality). For example we make sure that if a node is assigned a binary operator, then both its successor nodes cannot be assigned constants at the same time. Similarly the left successor of a unary operator cannot be a constant. We also have several constraints to deal with symmetry as expression trees are inherently symmetric objects in the sense that the same function can be represented with different trees, for example by flipping two branches succeeding a commutative binary operator. To avoid numerical problems, we also set bounds on the absolute value of the continuous variables.</p><p>Prediction. Using the first set of variables, the second part of the formulation computes the value of the function (defined by the expression tree) for each observation. More precisely, we define a variable v n,i to denote the value of node n ∈ N for observation i ∈ I. Value of a node clearly depends on the operator assigned to it and the values of its successor nodes. For example, if the addition operator a ∈ B is assigned to node n ∈ N that has successor nodes r, l ∈ N , then v n,i would be the sum of v r,i and v l,i . Therefore we have a constraint:</p><formula xml:id="formula_3">v n,i = q n c n + d∈D w n,d x i d + o∈B z n,o f o (v r,i , v l,i ) + o∈U z n,o f o (v l,i ) ∀i ∈ I, n ∈ N,<label>(2)</label></formula><p>where f o (·) denotes the function on the argument(s) of the operator o ∈ O. Also note that v n,i = 0 only if u n = 1. Leaf nodes cannot be assigned operators, therefore the last two summations in <ref type="formula" target="#formula_3">(2)</ref> are zero for these nodes.</p><p>Error. Recall that s ∈ N denotes the root node of the expression tree and therefore v s,i corresponds to the estimated output variable for observation i ∈ I. We define the error for observation i ∈ I as (v s,i − y i ) and relative error as (v s,i /y i − 1). Using these expressions, we can define a discrepancy function such as D(v s , y) = i∈I (v s,i − y i ) 2 . In our computational experiments, we control the relative error in our model by adding the constraint i∈I (v s,i /y i − 1) 2 ≤ ǫ for a given ǫ &gt; 0. Complexity. We can define a function to measure description complexity of the model in various ways, for example C(f cqwz ) = n∈N o∈O c o z n,o , where c o ∈ R is a complexity weight assigned to operator o ∈ O by the user. In our computational experiments, we use the expression n∈N u n to minimize the total number of nodes in the expression tree.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Computational Experiments</head><p>We report our computational experience on the discovery of physical laws using real-world datasets. We solve the optimization problem described in Section 2 with the MINLP solver BARON <ref type="bibr" target="#b20">[21]</ref> v17.8.9, using IBM ILOG CPLEX and IPOPT <ref type="bibr" target="#b23">[24]</ref> as subsolvers. We can only use operators that are handled by BARON. Furthermore, when multiple globally optimal solution exists, we do not have control over which one is returned. Experiments are run on the cloud, so CPU speed cannot be precisely quantified.</p><p>Exoplanet Data. The first set of experiments concerns the discovery of Kepler's law on planetary motion on a dataset taken from NASA <ref type="bibr" target="#b16">[17]</ref> reporting information on planetary systems. The dataset consists of tuples of the form (planet, star, τ, M, m, d) where τ is the orbital period of the planet, M the mass of the star, m the mass of the planet, d the major semi-axis of the orbit. Planet features are normalized to Earth's, star features to Sol's. τ is further normalized since its range is very large. We build three test problems from this dataset, including the systems listed in brackets: EP1 (Sol and Trappist), EP2 (HD 219134 and Kepler), EP3 (GJ 667C, HD 147018, HD 154857, HD 159243 and HD 159868). <ref type="table">Table 1</ref>: Results for the exoplanet dataset. Time limit is 6 hours. Grey cells exceed the time limit. c represents constants (we do not report its value for brevity). <ref type="table">Table 2</ref>: Results for the pendulum dataset. Time limit is 6 hours. All formulas are certified optimal.</p><formula xml:id="formula_4">Maximum relative error Dataset 2% 5% 10% 20% 30% 50% EP1 3 √ cτ 2 M 3 √ cτ 2 M 3 √ τ 2 (M + c) 3 √ τ ( √ τ + M ) √ cτ 2 √ τ M EP2 3 √ cτ 2 M c 3 √ τ 2 c 3 √ τ 2 3 √ cτ 2 √ τ √ τ EP3 3 √ cτ 2 M 3 √ cτ 2 M √ τ M + τ 3 √ cτ 2 M √ cτ + c √ τ</formula><formula xml:id="formula_5">Maximum relative error Dataset 0.5% 1% 2% 5% DS1 j(ℓ − c) − ℓ j √ ℓ + c j √ ℓ cj DS2 j √ ℓ j √ ℓ cj cj DS3 j √ ℓ j √ ℓ ℓ − cj cj DS4 j(ℓ − c) − c j √ ℓ cj cj</formula><p>We consider the set of operators +, * , √ , 3 √ , and full binary expression trees with depth at most 3 (the root has depth 0) in which each operator can appear at most 3 times. We aim to predict d in terms of the other input variables. Results are reported in <ref type="table">Table 1</ref> Most of the formulas returned are certified globally optimal in a relatively short period of time: on average, 50 minutes for the instances solved to global optimality (two instances hit the time limit and thus are not certified globally optimal within the time limit), standard deviation 75. The number of nodes explored by the Branch-and-Bound algorithm varies greatly: from 147 for the simplest formula √ τ , to over 600k for one instance that is not solved to optimality within the allotted runtime. The geometric mean is 19917. By contrast, the number of binary expression trees of depth 3 with 4 candidate operations, 3 input variables, and numerical constants is ≈ 2 · 10 7 without accounting for symmetry. We remark that the number of nodes explored by Branch-and-Bound does not correspond to the number of candidate expression trees that have been examined: it is merely a measure of difficulty of the search.</p><p>Pendulum Data. The second set of experiments concerns ten pendulums with different link lengths, and timestamps for the time at which each pendulum crosses the midpoint of its arc. The data is obtained from a high-resolution video recording of the pendulums, yielding hundreds of timestamps. From the raw data, we randomly extract ten tuples (one for each link length) of the form (ℓ, i, t i , j, t j ), where ℓ is the link length, i and j are integers, t i and t j are the timestamps for the i-th and j-th crossing of the midpoint, and j &gt; i. We aim to predict t j .</p><p>The period of the pendulum is given by τ = 2π ℓ/g. Hence, we aim to obtain the equation t j = πj ℓ/g. The experimental setup is similar to the exoplanet dataset, but we add "−" to the list of operators. <ref type="table">Table 2</ref> shows that many experiments return the correct formula except the multiplicative constant, since π/ √ g ≈ 1.002 and its discrepancy from 1 is too small to be significant, up to experimental error. With error bound 0.5%, we observe overfitting on DS1 and DS4: the simpler formula j √ ℓ does not satisfy the error bound due to experimental error. Because the link lengths of the ten pendulums are close to each other (ranging from 0.28m to 0.307m), for larger error bounds a simpler expression of the form cj suffices. The average runtime is 2 minutes, standard deviation 2.3. The number of nodes ranges from 57 to 8134, geometric mean 299. Despite the presence of redundant variables, the algorithm quickly identifies the simplest formula explaining the data.</p><p>In this extended abstract we focused on small datasets and did not address scalability, which is a known limitation of Branch-and-Bound-based methods for MINLP. This is left for future research.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head></head><label></label><figDesc>, for different upper bounds applied to the relative model error. For small model errors, we always find a refined expression of Kepler's third law: d = 3 √ cτ 2 M . Given the data, the more comprehensive formula would be d = 3 cτ 2 (M + m), but the dependency on m is not picked up because m is negligible compared to M . As model error upper bound increases, we find simpler formulas that do not accurately reflect Kepler's third law.</figDesc></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">Symbolic regression via genetic programming</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Douglas</forename><surname>Adriano</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Augusto</forename><surname>Helio</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">C</forename><surname>Barbosa</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the Sixth Brazilian Symposium on Neural Networks</title>
+		<meeting>the Sixth Brazilian Symposium on Neural Networks</meeting>
+		<imprint>
+			<publisher>IEEE</publisher>
+			<date type="published" when="2000" />
+			<biblScope unit="page" from="173" to="178" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<monogr>
+		<title level="m" type="main">Genetic programming: an introduction</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Wolfgang</forename><surname>Banzhaf</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Peter</forename><surname>Nordin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Robert</forename><forename type="middle">E</forename><surname>Keller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Frank</forename><forename type="middle">D</forename><surname>Francone</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1998" />
+			<publisher>Morgan Kaufmann</publisher>
+			<biblScope unit="volume">1</biblScope>
+			<pubPlace>San Francisco</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">François Margot, and Andreas Wächter. Branching and bounds tightening techniques for non-convex MINLP</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Pietro</forename><surname>Belotti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jon</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Leo</forename><surname>Liberti</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Optimization Methods and Software</title>
+		<imprint>
+			<biblScope unit="volume">24</biblScope>
+			<biblScope unit="issue">4-5</biblScope>
+			<biblScope unit="page" from="597" to="634" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Discovering governing equations from data by sparse identification of nonlinear dynamical systems</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Joshua</forename><forename type="middle">L</forename><surname>Steven L Brunton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J Nathan</forename><surname>Proctor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Kutz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings of the National Academy of Sciences</title>
+		<imprint>
+			<biblScope unit="volume">113</biblScope>
+			<biblScope unit="issue">15</biblScope>
+			<biblScope unit="page" from="3932" to="3937" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<monogr>
+		<title level="m" type="main">A divide and conquer method for symbolic regression</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Zonglin Jiang Changtong</forename><surname>Luo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Chen</forename><surname>Chen</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1705.08061v2</idno>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Scaling laws for plasma confinement</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Jack</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">John B</forename><surname>Connor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Taylor</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nuclear Fusion</title>
+		<imprint>
+			<biblScope unit="volume">17</biblScope>
+			<biblScope unit="issue">5</biblScope>
+			<biblScope unit="page">1047</biblScope>
+			<date type="published" when="1977" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Method for the identification of explicit polynomial formulae for the friction in turbulent pipe flow</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>James W Davidson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Dragan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Godfrey A</forename><surname>Savic</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Walters</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Hydroinformatics</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="115" to="126" />
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">Symbolic and numerical regression: experiments and applications</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>James W Davidson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Dragan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Godfrey A</forename><surname>Savic</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Walters</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Information Sciences</title>
+		<imprint>
+			<biblScope unit="volume">150</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="95" to="117" />
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<monogr>
+		<title level="m" type="main">Globally optimal mixed integer non-linear programming (MINLP) formulation for symbolic regression</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Lior</forename><surname>Horesh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Leo</forename><surname>Liberti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Haim</forename><surname>Avron</surname></persName>
+		</author>
+		<idno>219095</idno>
+		<imprint>
+			<date type="published" when="2016" />
+			<publisher>IBM</publisher>
+		</imprint>
+	</monogr>
+<note type="report_type">Technical Report</note>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Differentiable genetic programming</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Dario</forename><surname>Izzo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Francesco</forename><surname>Biscani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Alessio</forename><surname>Mereta</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">LNCS</title>
+		<editor>J. McDermott et al.</editor>
+		<imprint>
+			<biblScope unit="volume">10196</biblScope>
+			<biblScope unit="page" from="35" to="51" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<monogr>
+		<title level="m" type="main">Genetic Programming: On the Programming of Computers by Means of Natural Selection</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">John</forename><forename type="middle">R</forename><surname>Koza</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1992" />
+			<publisher>MIT Press</publisher>
+			<pubPlace>Cambridge</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">Workflow to set up substantial targetoriented mechanistic process models in bioprocess engineering</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Paul</forename><surname>Kroll</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Alexandra</forename><surname>Hofer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Ines</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Christoph</forename><surname>Stelzer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Herwig</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Process Biochemistry</title>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">Data-driven discovery of physical laws</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Pat</forename><surname>Langley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Cognitive Science</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="31" to="54" />
+			<date type="published" when="1981" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<monogr>
+		<title level="m" type="main">Heuristics for empirical discovery</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Pat</forename><surname>Langley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Gary</forename><forename type="middle">Lee</forename><surname>Bradshaw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Herbert A</forename><surname>Simon</surname></persName>
+		</author>
+		<editor>L. Bolc</editor>
+		<imprint>
+			<date type="published" when="1987" />
+			<publisher>Springer</publisher>
+			<pubPlace>Berlin</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Stephen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Tobias</forename><surname>Maher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Tristan</forename><surname>Fischer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Gerald</forename><surname>Gally</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ambros</forename><surname>Gamrath</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Robert</forename><forename type="middle">Lion</forename><surname>Gleixner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Gregor</forename><surname>Gottwald</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Thorsten</forename><surname>Hendel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Marco</forename><forename type="middle">E</forename><surname>Koch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Matthias</forename><surname>Lübbecke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Benjamin</forename><surname>Miltenberger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Marc</forename><forename type="middle">E</forename><surname>Müller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Christian</forename><surname>Pfetsch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Daniel</forename><surname>Puchert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Sebastian</forename><surname>Rehfeldt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Robert</forename><surname>Schenker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Felipe</forename><surname>Schwarz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Yuji</forename><surname>Serrano</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Dieter</forename><surname>Shinano</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jonas</forename><forename type="middle">T</forename><surname>Weninger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jakob</forename><surname>Witt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Witzig</surname></persName>
+		</author>
+		<idno>17-12</idno>
+	</analytic>
+	<monogr>
+		<title level="j">The SCIP</title>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+<note type="report_type">Technical Report</note>
+	<note>ZIB</note>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">Ffx: Fast, scalable, deterministic symbolic regression technology</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Mcconaghy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Genetic Programming Theory and Practice X</title>
+		<meeting><address><addrLine>New York</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2011" />
+			<biblScope unit="page" from="235" to="260" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Nasa</forename></persName>
+		</author>
+		<ptr target="https://exoplanetarchive.ipac.caltech.edu/docs/intro.html" />
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">Grammatical evolution</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>O&amp;apos;neill</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Ryan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">IEEE Trans. Evol. Comput</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="issue">4</biblScope>
+			<biblScope unit="page" from="349" to="358" />
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">Distilling free-form natural laws from experimental data</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Michael</forename><surname>Schmidt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Hod</forename><surname>Lipson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">324</biblScope>
+			<biblScope unit="issue">3</biblScope>
+			<biblScope unit="page" from="81" to="85" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">Symbolic regression of implicit equations</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Michael</forename><surname>Schmidt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Hod</forename><surname>Lipson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Genetic Programming Theory and Practice VII</title>
+		<meeting><address><addrLine>Berlin</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2010" />
+			<biblScope unit="page" from="73" to="85" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">A polyhedral branch-and-cut approach to global optimization</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Mohit</forename><surname>Tawarmalani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Nikolaos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Sahinidis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mathematical Programming</title>
+		<imprint>
+			<biblScope unit="volume">103</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page" from="225" to="249" />
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Declarative bias in equation discovery</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ljupco</forename><surname>Todorovski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Saso</forename><surname>Dzeroski</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the Fourteenth International Conference on Machine Learning</title>
+		<meeting>the Fourteenth International Conference on Machine Learning</meeting>
+		<imprint>
+			<date type="published" when="1997" />
+			<biblScope unit="page" from="376" to="384" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">Faster genetic programming based on local gradient search of numeric leaf values</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Topchy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">F</forename><surname>Punch</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the Genetic and Evolutionary Computation Conference</title>
+		<meeting>the Genetic and Evolutionary Computation Conference</meeting>
+		<imprint>
+			<date type="published" when="2011" />
+			<biblScope unit="page" from="155" to="162" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">On the implementation of a primal-dual interior point filter line search algorithm for large-scale nonlinear programming</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Andreas</forename><surname>Wächter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Larry</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Biegler</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mathematical Programming</title>
+		<imprint>
+			<biblScope unit="volume">106</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page" from="25" to="57" />
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">Genetic programming: An introduction and survey of applications</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Mark</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Willis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Peter</forename><surname>Hugo G Hiden</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ben</forename><surname>Marenbach</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Gary A</forename><surname>Mckay</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Montague</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Genetic Algorithms in Engineering Systems: Innovations and Applications, 1997. GALESIA 97. Second International Conference On (Conf. Publ. No. 446)</title>
+		<imprint>
+			<publisher>IET</publisher>
+			<date type="published" when="1997" />
+			<biblScope unit="page" from="314" to="319" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

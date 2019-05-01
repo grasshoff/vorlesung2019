@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2019-01-22T13:28+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Efficient joint sampling of impact parameters and transit depths in transiting exoplanet lightcurves</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2018-11-13">November 13, 2018</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Néstor</forename><surname>Espinoza</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Max-Planck-Institut für Astronomie</orgName>
+								<address>
+									<addrLine>Königstuhl 17</addrLine>
+									<postCode>69117</postCode>
+									<settlement>Heidelberg</settlement>
+									<country key="DE">Germany</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Efficient joint sampling of impact parameters and transit depths in transiting exoplanet lightcurves</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2018-11-13">November 13, 2018</date>
+						</imprint>
+					</monogr>
+					<note>Draft version Typeset using L A T E X RNAAS style in AASTeX62</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>methods: analytical</term>
+					<term>methods: statistical</term>
+					<term>planets and satellites: fundamental parameters</term>
+				</keywords>
+			</textClass>
+			<abstract/>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>INTRODUCTION</head><p>When fitting transiting exoplanet lightcurves, it is usually desirable to have ranges and/or priors for the parameters which are to be retrieved that include our degree of knowledge (or ignorance) in the routines which are being used. In Markov Chain Monte Carlo (MCMC) routines, for example, these enter as (hopefully proper; <ref type="bibr" target="#b2">Tak et al. 2018</ref>) prior distributions. These can either represent our current knowledge of the distribution of such parameters (e.g., based on their observed values, see, e.g., <ref type="bibr" target="#b1">Kipping 2013a</ref><ref type="bibr" target="#b1">Kipping , 2014</ref>) or physically plausible parameters ranges to be sampled (see, e.g., <ref type="bibr" target="#b1">Kipping 2013b</ref><ref type="bibr" target="#b1">Kipping , 2016</ref>).</p><p>Among the parameters that are constrained by transiting exoplanet lightcurves, there are two which are of much physical significance: the impact parameter of the orbit, b = (a/R * ) cos i, and the planet-to-star radius ratio, p = R p /R s (which defines the transit depth, δ = p 2 ). These two are natural parameters to extract and constrain as they usually have well defined limits: b is only physically meaningful on a transiting system for values 0 &lt; b &lt; 1 + p while p can usually be defined for values 0 &lt; p &lt; 1 (except, e.g., when looking for planets around white dwarfs; see Agol 2011). A common set of "uninformative" priors used for those two parameters are uniform priors. On one hand, the prior on p can be taken to be uniform over a lower and upper limit, p l and p u , while b can be taken to be uniform between its maximum possible range given the prior on p, (0, 1 + p u ). However, this poses a sampling problem especially important for grazing orbits. Given that we sample a value p i from the prior on p, the only physically plausible values for b to be sampled given p i are those that satisfy b &lt; 1 + p i (see <ref type="figure" target="#fig_0">Figure 1</ref>, left panel; black points). If we simply reject the sample if the sampled value of b is greater than 1 + p i (grey points in <ref type="figure" target="#fig_0">Figure 1</ref>), then we will reject points from a significant portion of the prior area (to the right of the blue dashed line in <ref type="figure" target="#fig_0">Figure 1</ref>; covering there 25% of the prior area). It is desirable, thus, to have an algorithm that efficiently samples values from the physically plausible zone in the (b, p) plane, which is the quadrilateral ABED sampled by the black points in <ref type="figure" target="#fig_0">Figure 1</ref>. Here we present such an algorithm.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>THE ALGORITHM</head><p>The basic idea of the algorithm is quite simple if one notes that the quadrilateral ABED in <ref type="figure" target="#fig_0">Figure 1</ref> can be decomposed into a rectangle (with vertices in the (b, p) plane at A = (0, p l ), B = (0, p u ), C = (1 + p l , p u ) and D = (1 + p l , p l )) and a triangle (with vertices C, D and E = (1 + p u , p u )). Given this decomposition, the idea is to first select either with probability equal to the fraction of area covered by them (A r = A CDE /(A CDE + A ABCD ) for the triangle and 1 − A r for the rectangle), sample random points inside the chosen geometric shape, and then repeat the process. Sampling uniform points in the ABCD rectangle is straightforward. To sample points from the CDE triangle, one can use the triangular sampling technique outlined in <ref type="bibr" target="#b3">Turk (1990)</ref>, and already used by <ref type="bibr" target="#b1">Kipping (2013b)</ref> in the context of sampling physically meaningful limb-darkening coefficients. With this idea in mind, the following algorithm requiring two random numbers r 1 ∼ U (0, 1) and r 2 ∼ U (0, 1), where U (a, b) stands for a uniform distribution between a and b, along with the value of A r = (p u − p l )/(2 + p l + p u ), can efficiently sample points from the quadrilateral ABED:</p><p>1. If r 1 &gt; A r go to step 2. If r 1 ≤ A r , go to step 3.</p><p>2. In this case we want to sample points uniformly inside the ABCD rectangle. To this end, we note that if we are in this step, then r 1 ∼ U (A r , 1). Sample then a (b, p) pair so that b, p ∈ ABCD using the transformations</p><formula xml:id="formula_0">b = [1 + p l ][1 + (r 1 − 1)/(1 − A r )] (1) p = (1 − r 2 )p l + r 2 p u .<label>(2)</label></formula><p>This will generate (b, p) random variates with b ∼ U (0, 1 + p l ) and p ∼ U (p l , p u ).</p><p>3. In this case we want to sample points from the CDE triangle. For this we use the technique outlined in <ref type="bibr" target="#b3">Turk (1990)</ref> and pedagogically explained in <ref type="bibr" target="#b1">Kipping (2013b)</ref>, in which a point b, p ∈ CDE can be sampled given two random variates q 1 ∼ U (0, 1) and q 2 ∼ U (0, 1). We already have one such random variate from our sampling of r 2 ; with this we have q 2 . To get a random variate with the properties of q 1 , we again note that if we are in this step, r 1 ∼ U (0, A r ). The transformation q 1 = r 1 /A r makes q 1 ∼ U (0, 1). With this, the transformations</p><formula xml:id="formula_1">b = (1 + p l ) + √ q 1 q 2 (p u − p l ) = (1 + p l ) + r 1 /A r r 2 (p u − p l ),<label>(3)</label></formula><formula xml:id="formula_2">p = p u + (p l − p u ) √ q 1 (1 − q 2 ) = p u + (p l − p u ) r 1 /A r (1 − r 2 ),<label>(4)</label></formula><p>sample points from the CDE triangle.</p><p>Points sampled with this new technique are presented in <ref type="figure" target="#fig_0">Figure 1</ref>, right panel: they sample the quadrilateral uniformly, as expected. Codes to reproduce those figures can be found at https://github.com/nespinoza/impact-radius. With this algorithm, in a transit fitting routine through, e.g., an MCMC, one can define the lower and upper limits of p, p l and p u , and simply use r 1 and r 2 as the parameters to be fitted instead of p and b. Once finished, the posterior distributions of r 1 and r 2 can be easily inverted using equations <ref type="formula">(1)</ref>- <ref type="formula" target="#formula_2">(4)</ref> in order to retrieve the posterior distribution of b and p: equations <ref type="formula">(1)</ref> and <ref type="formula" target="#formula_0">(2)</ref> for all r 1 &gt; A r and equations <ref type="formula" target="#formula_1">(3)</ref> and <ref type="formula" target="#formula_2">(4)</ref> for all r 1 ≤ A r . We do warn, however, that sometimes this could lead to bimodal distributions in the (r 1 ,r 2 ) plane -sampling algorithms thus should be able to cope with this possibility. </p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 .</head><label>1</label><figDesc>Figure 1. (Left) Samples generated for b and p using rejection sampling (black and grey points) for the case (pu, p l ) = (0, 1). Grey points denote the unphysical regime for the (b, p) pairs (see text), with the dashed blue line indicating the limit at which this happens (b = 1 + p). Blue dots with letters indicate the vertices of the geometry of the problem outlined in the text (Right) Samples generated with the algorithm outlined in this Research Note.</figDesc></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJL</title>
+		<imprint>
+			<biblScope unit="volume">731</biblScope>
+			<biblScope unit="page">31</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Kipping</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">434</biblScope>
+			<biblScope unit="page">1680</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+	<note>MNRAS</note>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Tak</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">K</forename><surname>Ghosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Ellis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">481</biblScope>
+			<biblScope unit="page">277</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<monogr>
+		<title level="m" type="main">Graphics Gems</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Turk</surname></persName>
+		</author>
+		<ptr target="http://dl.acm.org/citation.cfm?id=90767.90772" />
+		<editor>A. S. Glassner</editor>
+		<imprint>
+			<date type="published" when="1990" />
+			<publisher>Academic Press Professional, Inc</publisher>
+			<biblScope unit="page" from="24" to="28" />
+			<pubPlace>San Diego, CA, USA</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

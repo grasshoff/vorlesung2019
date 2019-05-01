@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-04T16:04+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Parallel Algorithm for Solving Kepler&apos;s Equation on Graphics Processing Units: Application to Analysis of Doppler Exoplanet Searches</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2008-12-16">16 Dec 2008</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Eric</forename><forename type="middle">B</forename><surname>Ford</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Astronomy</orgName>
+								<orgName type="institution">University of Florida</orgName>
+								<address>
+									<addrLine>211 Bryant Space Science Center</addrLine>
+									<postBox>PO Box 112055</postBox>
+									<postCode>32611-2055</postCode>
+									<settlement>Gainesville</settlement>
+									<region>FL</region>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Parallel Algorithm for Solving Kepler&apos;s Equation on Graphics Processing Units: Application to Analysis of Doppler Exoplanet Searches</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2008-12-16">16 Dec 2008</date>
+						</imprint>
+					</monogr>
+					<note type="submission">Preprint submitted to Elsevier 8 November 2018</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>gravitation -planetary systems -methods: numerical -techniques: radial velocities</keywords>
+			</textClass>
+			<abstract>
+				<p>We present the results of a highly parallel Kepler equation solver using the Graphics Processing Unit (GPU) on a commercial nVidia GeForce 280GTX and the &quot;Com-pute Unified Device Architecture&quot; (CUDA) programming environment. We apply this to evaluate a goodness-of-fit statistic (e.g., χ 2) for Doppler observations of stars potentially harboring multiple planetary companions (assuming negligible planet-planet interactions). Given the high-dimensionality of the model parameter space (at least five dimensions per planet), a global search is extremely computationally demanding. We expect that the underlying Kepler solver and model evaluator will be combined with a wide variety of more sophisticated algorithms to provide efficient global search, parameter estimation, model comparison, and adaptive experimental design for radial velocity and/or astrometric planet searches. We tested multiple implementations using single precision, double precision, pairs of single precision, and mixed precision arithmetic. We find that the vast majority of computations can be performed using single precision arithmetic, with selective use of compensated summation for increased precision. However, standard single precision is not adequate for calculating the mean anomaly from the time of observation and orbital period when evaluating the goodness-of-fit for real planetary systems and observational data sets. Using all double precision, our GPU code outperforms a similar code using a modern CPU by a factor of over 60. Using mixed-precision, our GPU code provides a speed-up factor of over 600, when evaluating n sys &gt; 1024 models planetary systems each containing n pl = 4 planets and assuming n obs =256 observations of each system. We conclude that modern GPUs also offer a powerful tool for repeatedly evaluating Kepler&apos;s equation and a goodness-of-fit statistic for orbital models when presented with a large parameter space.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>In the classical bound two-body problem, a body follows an elliptical orbit. While there are several possible parameterizations, one particularly useful parameterization identifies the instantaneous location of a body along its orbit by the eccentric anomaly, the angle between the pericenter direction and the current location, measured from the center of the ellipse. According to Kepler's second law, the body travels more quickly near the pericenter, so the eccentric anomaly does not increase uniformly. Instead, the mean anomaly is defined to increase uniformly in time, and Kepler's equation relates the eccentric anomaly, E, to the mean anomaly, M, by</p><formula xml:id="formula_0">M = E − e sin E,<label>(1)</label></formula><p>where e is the orbital eccentricity. As Kepler's equation is transcendental, there is no explicit solution in terms of elementary functions. Given the fundamental importance and extremely frequent application of Kepler's equation, numerous mathematicians and scientists have developed many methods for solving it numerically, typically involving infinite series or iterative solutions. In this paper we combine an existing iterative algorithm with the computing capabilities of a modern graphics processing unit (GPU) to develop an extremely efficient method for repeatedly solving Kepler's equation. While this method has many potential applications, we chose to focus on an application to modern searches for extrasolar planetary systems.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.1">Motivation for Research in GPU Computing</head><p>Modern GPUs are extremely powerful and capable processors. The peak computational capabilities of currently available graphics cards significantly exceeds that of top-of-the-line central processing units (CPUs). For example, a modern, high-end, quad-core CPU achieves roughly 81 billion floating point operations per second (FLOPS) on "linpack", a relatively easy benchmark for CPUs. In contrast, a single GT200 chip offers a theoretical peak performance of over 1 trillion FLOPS. However, harnessing this power poses a significant challenge, as numerical algorithms and memory access patterns that are well-suited for CPUs are typically highly inefficient on modern highly-parallel GPUs. The performance of GPUs already exceeds that of modern CPUs by one or two orders of magnitude for selected applications which are well suited to the architecture of GPUs. In addition to raw computing performance, GPUs offer similarly impressive metrics for performance per dollar and performance per watt. "Moore's law" describes the historical exponential increase in the number of transistors within an integrated circuit and is often used to extrapolate the performance of computers in coming years. During the past several decades, CPUs have made dramatic improvements in computational performance, both by reducing the size of etchings and increasing the clock speed. In recent years, CPU designers have shifted their attention from improving the speed of serial operations to making processors capable of performing more computations in parallel. High-end CPUs are now avaliable with four or eight processor "cores" and the trend towards multi-core computing is expected to accelerate in years to come. GPUs achieve their high performance by devoting a larger fraction of the microchip to processors and a smaller fraction of the chip to logic and caching. Current high-end GPUs include over a hundred floating point units that operate using the shared instruction multiple data (SIMD) paradigm. Clearly, this raises new issues for programming and not all algorithms can be implemented efficiently on such a highly parallel architecture. Yet, given the direction of computing hardware, we expect there will be a renewed focus on the development of algorithms for highly-parallel multi-core hardware.</p><p>With traditional CPUs, the speed of an numerical algorithm is largely determined by the number of FLOPS required. However, even the current generation of GPUs have such high compute throughput that they are often limited by memory access. Thus, traditional algorithms chosen to minimize floating point operations may be less efficient than alternative algorithms that are optimized to minimize memory requirements. For example, an iterative algorithm may require more floating point operations to converge to a desired precision than an explicit algorithm, causing it to run more slowly on a traditional CPU. Given the memory access patterns of GPUs, the iterative algorithm may be able to perform the extra computations at very little marginal cost, thereby providing higher performance. Recent developments among semi-conductor manufacturing companies suggest that highly-parallel multi-core processors will soon become the norm for scientific computation. Thus, we anticipate that our algorithms for highly-parallel solving of Kepler's equation and evaluating goodness-of-fit statistics will have enduring value for future generations of GPUs, CPUs, and other flavors of many-core processors (e.g., FPGAs).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.2">Recent Development in GPU Computing for Scientific Applications</head><p>Several developments have enabled GPUs to become a powerful tool for scientific applications. First, the performance of GPUs is increasing much more rapidly than that of CPUs, thanks to their highly parallel design of GPU. The mass production of GPUs for gamers results in very attractive prices, similar to the way that mass market PCs have led to the development of affordable high performance CPUs. Second, early generations of graphics cards were very specialized and not well suited for general purpose scientific computing. The two most recent generations of graphics use a unified architecture that is much more amenable to scientific computing. Our research is greatly aided by GPU manufactures developing programming languages that make it much easier to perform general-purpose floating point calculations with high-end GPUs.</p><p>In particular, nVidia has recently released a Compute Unified Device Architecture (CUDA) compiler and software development kit that makes it much easier to program GPUs using a programming language very much like C, but with some extensions and an additional library of functions to access the GPU. Importantly, nVidia promises CUDA code will be able to execute on future generations of GPUs with a simple recompiled (though some parameter optimization will be needed to achieve maximum performance; nVidia 2008). Indeed, the code developed for this project was originally written for a G80-based GPU. With only a trivial recompile, the code worked on the recently released GT200 GPU and provided an even more substantial speed-up. Finally, the most recent generation of GPUs contains hardware for performing double precision arithmetic. This facilitates the application to a much wider range of scientific problems. Unfortunately, the GT200 is only capable of performing an eighth as many operations at once when performing double precision calculations as compared to performing single precision arithmetic. Thus, the higher precision comes at a considerable cost. Therefore, we investigate the use of mixed precision arithmetic, as well as techniques such as compensated summation that use multiple single precision values to represent a number with increased precision.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.3">Relation to Previous Research</head><p>Recently, computer scientists have implemented efficient algorithms for a few common numerical methods (e.g., Fast Fourier Transform (FFT), Basic Linear Algebra Subprograms (BLAS)) and provided libraries of functions (or application programming interface; API) to facilitate scientists harnessing the power of GPUs to perform such computations much more rapidly by calling these routines from traditional high-level programming languages such as C/C++, Fortran, Matlab, python, and IDL.</p><p>Astrophysicists have also begun to harness the power of GPUs. For example, Portegies <ref type="bibr" target="#b13">Zwart et al. (2007)</ref> developed a GPU kernel to perform the force calculation step for an n-body system containing of N ∼ 10 4 -10 6 bodies and achieved speed-up factors of upto ∼ 20. <ref type="bibr" target="#b6">Hamada &amp; Iitaka (2007)</ref> and <ref type="bibr" target="#b0">Belleman et al. (2008)</ref> developed similar routines that achieved a speed-up factor of ∼ 100 for N ∼ 10 5 . <ref type="bibr" target="#b11">Nyland et al. (2007)</ref> have released an even faster demonstration code that performs both the force calculation and a direct nbody integration code as part of nVidia's CUDA SDK. While this results in impressive computer graphics, it not sufficient accuracy for scientific applications, since it uses an Euler integrator. <ref type="bibr" target="#b10">Moore &amp; Quillen (2008)</ref> have developed a science-grade n-body code optimized for planetary dynamics. Other astrophysics-related applications include FFTs and data processing for radio astronomy (e.g., <ref type="bibr" target="#b7">Harris et al. 2008</ref>).</p><p>Here we describe a simple code for solving Kepler's equation on a GPU using CUDA. The GPU kernel code can be applied to a variety of problems, and we choose to demonstrate it's application to evaluating orbital models for the radial velocity variations of a star perturbed by one or more planets. In this case, we implement the entire calculation on the GPU, providing for parallel data reduction and reducing the amount of data that needs to be transferred between the CPU and GPU.</p><p>We find that for our application, single precision arithmetic is sufficient when solving Kepler's equation and for most other calculations. However, higher precision is needed for at least one step to achieve science-grade accuracy. Thus, we implemented the model evaluation using a combination of single precision, double precision, and pair of single precision arithmetic. Our algorithm for evaluating χ 2 provides an impressive speed-up factor of over 600 relative to performing the same calculation on a top-of-the-line CPU (2.6GHz AMD Opteron 2218).</p><p>In §2 we describe the physical model and the equations to be solved. We provide a brief overview of the architecture and programming environment of a modern GPU in §3. We describe our basic implementation in §4 and discuss the accuracy and performance of our code with various optimizations in §5. Finally, we discuss the implications and future prospects in §6.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Basic Equations</head><p>We consider the problem of global search to identify plausible orbital solutions for an extrasolar planetary system based on radial velocity observations of the host star. We desire to evaluate a goodness-of-fit statistic (e.g., χ 2 ) for each of many orbital models.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Physics</head><p>We focus on planetary systems for which any planet-planet interactions are either small or occur on sufficiently long timescales that they can be ignored. In this case, the radial velocity perturbation on the host star (∆v(t k )) can be written as the linear sum of the perturbations due to each planet (∆v j (t k )) at time t k ,</p><formula xml:id="formula_1">∆v(t k ) = n pl j ∆v j (t k ).<label>(2)</label></formula><p>Since each planet is assumed to travel on a Keplerian orbit,</p><formula xml:id="formula_2">∆v j (t k ) = K ′ j 1 − e j cos E jk − cos ω j sin E jk + (1 − e j )(1 + e j ) sin ω j cos E jk (3)</formula><p>where e j is the planet's eccentricity, ω j is the planet's eccentric anomaly, E jk is the planet's eccentric anomaly, and K ′ j is closely related to the radial velocity amplitude of the planet's perturbation <ref type="bibr" target="#b1">(Danby 1988)</ref>. Note that for computationally purposes we use</p><formula xml:id="formula_3">K ′ ≡ K/ √ 1 − e 2 ,</formula><p>where K is the standard radial velocity amplitude and both are related to the planet's mass, orbital period, eccentricity, and inclination. The eccentric anomaly is related to the time of the observation via the mean anomaly (M jk ) and Kepler's equation (Eqn. 1). The mean anomaly (M j ) is given by</p><formula xml:id="formula_4">M j (t) = 2πt/P j + M 0,j ,<label>(4)</label></formula><p>where t is the time, P j is the orbital period, and M 0,j is the mean anomaly at the chosen epoch (t = 0).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Model Evaluation</head><p>We compute a goodness-of-fit statistic for each model and demonstrate our method using the common χ 2 statistic, defined by</p><formula xml:id="formula_5">χ 2 = n obs k (∆v(t k ) − v k ) 2 σ 2 j + σ 2 k ,<label>(5)</label></formula><p>where v k is the observed radial velocity perturbation at time t k , σ k is the associated measurement uncertainty, and σ j is the jitter parameter that can account for additional noise due to either astrophysical or observational effects. For simplicity, we set σ j = 0m s −1 , but we include it as a variable in our code to provide realistic benchmarks.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">nVidia Architecture &amp; CUDA</head><p>While GPU hardware is very powerful, they have more complicated memory hierarchies that make them more difficult to program and create a need for algorithms that are optimized for parallel execution. For example, on the nVidia GT200 GPU, there are 30 multi-processor units (MPUs), each containing 8 standard execution pipes (EPs) that perform simple numerical calculations (integer or single precision addition, multiplication, or multiple-and-add in one clock cycle). Each MPU contains two super function unit (SPU) pipes capable of performing single precision operations such as reciprocal, reciprocal square root, and trig functions, and one double precision EP. Each MPU can apply these three pipes by performing SIMD (shared instruction multiple data) operations, meaning that each EP must perform the same mathematical operations, but can perform them on many different sets of different numerical values. Each data set being operated is represented by a thread and each MPU can interleave the execution of upto 768 active threads to maximize performance. Fortunately, this design is well suited to solving Kepler's equation and/or evaluating a model goodness-of-fit statistics many times.</p><p>Due to the impressive computational capabilities of GPUs, real-world performance can be limited by the need to access memory. In particular, traditional algorithms that minimize computation at the expense of storing many values in memory may result in GPUs sitting idle while waiting for data to be read from memory. To ensure that the EPs are utilized efficiently, the threads are grouped in blocks (≥64 threads/block), each executed on a single MPU. The MPU can interleave operations for different threads in one or more execution blocks to keep each EP occupied with calculations. All threads can access a large amount (1GB) of device memory that is shared between all MPUs and threads. While this memory has a high latency (hundreds of clock cycles), it is still ∼5-10× faster than a CPU accessing non-cached memory using stateof-the-art DDR3 RAM. To reduce memory access latency, programmers can place some data in either a constant memory cache or a texture memory cache, each of which essentially provides a low latency read-only cache (optimized for different access patterns) that is shared between all the MPUs. Each MPU also has it's own low-latency read-write shared-memory that can be accessed by all threads within a thread block. In a simplistic parallelization scheme of one Kepler's equation per thread, there is no need for communication between threads, so the shared-memory can be used as additional low-latency memory cache that is divided evenly between all threads in a block (that are being executed on a single MPU). Finally, each EP has a set of low-latency read-write registers that can not be used to communicate between threads. We perform our calculations using an nVidia GT200 GPU that contains 30 MPUs, each with 16 kB of shared memory, 8kB of constant cache, and 8kb of texture cache. Each EP has 8kB of registers.</p><p>At the beginning and end of a scientific calculation, data must be transferred between the device global memory and standard memory connected to the host CPU. For some algorithms that require large amounts of input/output and a modest amount of computation, this transfer can become significant. Therefore, it is often advantageous to perform basic data reduction on the GPU. For example, if we were to transfer the every solution to Kepler's equation, then nearly two thirds of the total time would be devoted to the GPU to host transfer of results (see §4.1). In our case, we use the solutions to Kepler's equation to evaluate the predicted velocities of the orbital period, compare them to a set of observations, and evaluate χ 2 . Since we only need to return one value of χ 2 for each system, over 92% of the wall clock time is devoted to computation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Implementation</head><p>We describe a code that evaluates χ 2 for a set of radial velocity observations and a large number of orbital models. While the mathematical operations are straightforward, there are multiple possible mappings of the mathematical operations to the hardware and memory architecture of a GPU. We describe two basic implementations below.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">CPU-GPU Communications</head><p>In each implementation, the first step is to transfer the observational data and model parameters from the host to the GPU. This includes a list of n obs observation times (t k ), observed velocities (v k ), and measurement uncertainties (σ k ). We consider these values to be constants to be used for evaluating all models. In §5.0.3, we evaluate the potential benefits of caching this data. Second, we transfer the list of model parameters. The radial velocity perturbation of each planet is described by five parameters {P, K, e, ω, M 0 }, so we must transfer a list of n sys × n pl × 5 floating-point values from the host to the GPU, where n sys is the number of planetary system models to be evaluated and n pl is the number of planets per system. At the end of each calculation, we transfer the value of χ 2 for each of the n sys orbital models from the GPU to the host.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Mean Anomalies</head><p>Once the observational data and model parameters have been transferred to the GPU, the first step is to generate a list of n sys × n pl × n obs mean anomalies, one for each planet of each model at each observation time. In order to reduce the number of times the orbital periods are read from global memory, we use only n sys × n pl threads, where each thread solves for the mean anomaly of one planet at each of the n obs observations. If i indexes the systems, then the mean anomalies are given by</p><formula xml:id="formula_6">M ijk = 2π [t k /P ij − floor(t k /P ij )] − M 0,ij ,<label>(6)</label></formula><p>where floor(x) is the near integer less than or equal to x. We will show in §5.0.1 that single precision provides sufficient precision for most operations, with the notable exception of the calculation inside the square brackets. Therefore, we assign the computation in square brackets to a separate function to be executed in double precision. The multiplication by 2π and subtraction of the mean anomaly at epoch (as well as an if-add statement to ensure that the mean anomaly lies in [0,2π) ) can be performed in single precision just before solving Kepler's equation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3">Kepler's Equation</head><p>We solve Kepler's equation iteratively using the Newton-Raphson method generalized to provide quartic convergence. Following Danby (1988), we define</p><formula xml:id="formula_7">f (E) = E − e sin E − M<label>(7)</label></formula><p>and let E l+1 = E j + δ l3 , where</p><formula xml:id="formula_8">δ l1 = −f l /f ′ l<label>(8)</label></formula><formula xml:id="formula_9">δ l2 = − f l f ′ l + δ l1 f ′′ l /2<label>(9)</label></formula><formula xml:id="formula_10">δ l3 = − f l f ′ l + δ l1 (f ′′ l + δ 2 l2 f ′′′ l /3)/2 .<label>(10)</label></formula><p>We evaluate sin(E) and cos(E) simultaneously via the sincos function, so the derivatives of f (E) come at virtually no extra computational expense. An initial guess of E 0 = M + 0.85e × sign(sin M) results in excellent convergence within a few iterations for nearly all e and M. We assume that M ∈ [0, 2π), so we use a single if statement to decide the sign. We stop iterating once |f (E)| &lt; 10 −6 . We observe no significant effects of stopping the Kepler solver after five iterations, but also no significant performance penalty for allowing arbitrarily greater number of iterations. While removing the test for maximum number of iterations provides a slight performance boost (≃ 2.3%), we opt to maintain a guaranteed maximum number of iterations to ensure our code does not trap the GPU in an infinite loop. Five iterations provided acceptable accuracy for eccentricities e &lt; 0.99, but we found allowing for a maximum of ten iterations resulted in no noticeable performance penalty. When calculating E ijk , we use one thread per planet, where each thread loops over n obs observations, so as to avoid repeatedly reading the eccentricities from global memory.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.4">Radial Velocity &amp; Model Evaluation</head><p>We evaluate the radial velocity perturbation of each planet at each time (∆v ijk ) according to Eqn. 3. We use the fast version of the reciprocal square root and calculate the argument as 1 − e 2 = (1 + e)(1 − e) to limit round-off error for low e.</p><p>We evaluate χ 2 i for each of n sys sets of model parameters using Eqn. 5. We find that for the vast majority of data sets and model parameters, standard single precision arithmetic is sufficient. However, to provide more generality, we use a pair of single precision floating point values and compensated summary in order to improve the precision of ∆v ik and χ 2 . That is the value of χ 2 is represented by the sum of χ 2 big and χ 2 small . We calculate χ 2 = k χ 2 k by accumulating the single precision values χ 2 k . For each k, we first calculate temporary variables u = χ 2 k − χ 2 small and w = χ 2 big + u. Then, we update χ 2 small = (w − χ 2 big ) − χ 2 k and χ 2 big = u (Kahan 1965).</p><p>We consider two implementations of the radial velocity and model evaluation: 1) the radial velocity perturbation is evaluated by one function (one thread per planet) that writes each ∆v ijk to global device memory while the model evaluation is calculated by a separate function (one thread per system), and 2) both the radial velocity perturbations and the model evaluation are performed by a single function (one thread per system). In the first implementation, evaluating the radial velocity perturbations requires n sys × n pl × (4 + n obs ) values to be read from device memory and n sys × n obs × n pl values of the radial velocity perturbation from each planet to be written to device memory and then read back from device memory by the model evaluation function. The second implementation requires 5 × n sys × n obs × n pl values to be read from device memory to calculate the radial velocity perturbations. The above numbers do not include the observation times, observed radial velocities or measurement errors, which are the each implementation. These memory accesses are negligible since they can be amortized over all threads within a block via cooperative loading and cached in either constant cache or shared memory (see §5.0.3).</p><p>The memory requirements of each function are summarized in <ref type="table">Table 1</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Optimizations</head><p>We have attempted a number of optimizations in order to improve performance. As a benchmark, we evaluate 122,800 models, each containing 4-planets and using 256 observations. The values of the eccentricity and mean anomaly at epoch are drawn from uniform distributions over the intervals [0,0.99) and [0,2π). The accuracy and performance benchmarks are summarized in <ref type="table">Table 2</ref>. We discuss each of several optimizations below.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.0.1">Mixed Precision Arithmetic</head><p>We found the biggest performance increase to come from replacing double precision arithmetic with single or mixed precision arithmetic. If all calculations are performed in double precision, then the GPU can only use one eighth as many EPs and most arithmetic operations take multiple clock cycles. We found that a purely double precision GPU outperformed a single-threaded CPU implementation by a factor of roughly 20. In the double precision implementation,the GPU spent 90% of the time solving Kepler's equation. However, many applications do not need to solve Kepler's equation to double precision. Indeed, for the purposes of comparing orbital models to radial velocity observations, we can use single precision for solving Kepler's equation, calculating radial velocity perturbations, and evaluating χ 2 . The operation most sensitive to round-off error is determining the orbital phase. Therefore, we store the observation times and orbital periods as double precision values and calculate the term in the square brackets of Eqn. 6 using full double precision. However, we store the resulting mean anomaly in single precision and perform the remainder of the calculations using single precision arithmetic. This reduced the worst case fractional error in χ 2 from one part in ten (using pure single precision) to one part in 10 4 (using mixed precision). We found that using mixed precision accelerated the solving of Kepler's equation by a factor of ≃ 23 and provided an overall performance speed-up of ≃ 11 when calculating χ 2 (relative to the same calculation using purely double precision arithmetic on the GPU; see §5.0.2).</p><p>The other arithmetic operations where roundoff error could be significant are the summation of the radial velocity perturbations from multiple bodies and the summation of χ 2 . The first is not an issue for the planetary case, since even very-short-period giant planets result in a radial velocity perturbation of only hundreds of meters per second and the Doppler measurement precision is of order a meter per second or more. However, single precision (≃ 2 × 10 −7 ) might be limiting for planets in binary star system and/or other planet detection techniques with larger dynamic range (e.g., astrometry, pulsar timing, transit timing variations). Thus, we accumulate the radial velocity perturbations using a pair of single precision numbers and the Kahan algorithm for compensated summation (see §4.4). Similarly, we found that the roundoff error in χ 2 can become significant (of order unity) for extremely poor orbital models. Since such models are typically discarded or given an extremely small weight, this is not a serious issue for our applications. However, we recognize that this could become significant for future very large data sets. Applying compensated summation for the radial velocities and χ 2 values results in less than a 0.1% performance penalty. Therefore, we use a pair of single precision values and compensated summation to calculate ∆v ik and χ 2 i (see §4.4).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.0.2">CPU-GPU Memory Transfer</head><p>The second very significant performance enhancement came from increasing the amount of work assigned to the GPU (i.e., evaluating predicted radial velocities at each time and χ 2 for each model), so that only one value (χ 2 ) per system needed to be transferred back to the CPU's host memory. In our initial mixed-precision implementation, we applied the GPU to solving Kepler's equation only, in which case over two thirds of the total wall clock time was dominated by the transfer of n sys × n pl × n obs solutions of Kepler's equation from the GPU to the host memory. By implementing the radial velocity evaluation and χ 2 calculation on the GPU, we reduced the transfer time to ≃ 9% of the wall clock time. We further reduced transfer time using pinned memory buffers on the host, so that the total transfer time was less than ≃ 7% of the wall clock time. Finally, we note that our GPU is connected to the motherboard by a PCI Express 4x slot (maximum one-way bandwidth of 1000 MB/s), while the graphics card contains a PCI Express 16x interface. Thus, we expect that the transfer time could be significantly reduced if the graphics card were connected to the motherboard using PCI Express 16x.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.0.3">Device Memory Caching</head><p>As a third optimization, we placing the observation times, observed radial velocities and uncertainties in the constant memory cache and/or shared memory. When using the shared memory, we make use of the cooperative load strategy described in the CUDA SDK (nVidia 2008). For our first implementation (separate functions for radial velocities and χ 2 ), we find modest performance gains of 1.5% by placing the observed velocities and uncertainties in either the constant chance or the shared memory. Using the constant cache for the observation times was not advantagous, but placing them in shared memory provided a 0.8% speed up. Finally, we note that it is important for the array of mean anomalies at each time to be stored so that different planets at the same time are adjacent in memory, as this allows reads from device memory to be coalesced. Using the reverse ordering resulted in over four times worse performance.</p><p>For our second implementation (single function for evaluating radial velocities and χ 2 ), we again find a 0.8% speed up by placing the observed times in shared memory, and a slightly greater benefit (2.5% speedup) by placing observed velocities and uncertainties in the constant cache or shared memory. The first implementation is ≃ 20% faster, but requires using a significant amount of global memory (16 × n sys × n pl × n obs bytes).</p><p>For the number of observations that we considered (256), the number of active threads per MPU is limited by the number of registers per MPU, and not by shared memory, even when all observations are cached into the shared memory.</p><p>As long as this is the case, it is slightly advantageous to use the shared memory as a cache for the observational data rather than the constant cache. If the number of observations were to increase significantly, then it would likely become preferable to use the constant cache, so as not to limit the number of blocks and hence threads per MPU. Similarly, if one were to implement a more complex algorithm on the GPU (e.g., genetic algorithm, Markov chain Monte Carlo), then the other code might easily score a greater benefit by utilizing the shared memory, so that the combined code would be more efficient if the observational data were placed in the constant cache.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1">Texture Memory for Initial Eccentricity Guess</head><p>Next, we attempted to improve performance by using the texture memory cache to provide a superior initial guess for the Kepler solver. We solved Kepler's equation using the CPU at each point on a 2-d grid (16 eccentricities and 96 mean anomalies requiring 6kB of texture cache) and the results were written to the texture cache. The initial guess for the GPU's Kepler solver was based on bilinear interpolation. We found a slight decrease in performance for our benchmark case (random distribution of eccentricities and mean anomalies) and a slight increase in performance if we used large eccentricities and mean anomalies that were tightly clustered. Given the differences were only ≃ 0.2%, we do not consider this to have been a worthwhile optimization.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1.1">GPU Occupancy &amp; Hiding Memory Latency</head><p>The GT200 GPU contains 240 single precision EPs. In light of the latency incurred upon requests to access to the GPU's global memory, it is important to run many more threads in parallel in order to maintain a high occupancy of the GPU's EPs. While CPUs generally hide memory latency be clever caching, GPUs hide memory latency by having a large number of active threads that can execute while waiting for memory reads. We found that performance generally maximized for the 256 threads per block and 120 or 60 blocks for GPU functions that calculate the mean anomaly and the radial velocity perturbation by each planet. However, performance nearly plateaus once we reach a size of 128 threads and 60 blocks. For the function that calculates both the radial velocity perturbations and the model χ 2 or the function calculates χ 2 using the previously calculated list of radial velocity perturbations from each planet, it was advantageous to use only 15 blocks (one per MPU) and 512 threads per block (the maximum number of threads currently allowed). Since this function performs relatively little arithmetic, the large number of active threads helps minimize the effects of memory latency and only using a single block avoids repeatedly caching the observational data.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">Discussion</head><p>We have implemented a highly parallel Kepler equation solver for GPUs using the CUDA programming environment. The nVidia GT200 GPU offers an impressive speed-up factor of ≃ 1200 (55) for solving Kepler's equation in single (double) precision, relative to a similar single-threaded algorithm running on a 2.6 GHz AMD Opteron CPU. However, the time required to transfer data between the CPU and GPU is quite significant. Therefore, we recommend implementing further data reduction on the GPU when practical.</p><p>To demonstrate this technique, we considered the case of evaluating the χ 2 goodness-of-fit statistic for four planet orbital models using an actual set of radial velocity observations. By implementing the Kepler equation solver, radial velocity evaluation, and model evaluation steps on the GPU, we significantly reduce the communications overhead to less than 8% of the wall clock time. We find that the vast majority of computations can be performed in single precision while maintaining an accuracy of one part in ≃ 10 4 in χ 2 . However, the calculation of the mean anomaly of each planet at each observation time must be performed in double precision to maintain accuracy. Therefore, we implement our GPU-based model evaluation using mixed-precision.</p><p>We find that using the GT200 the full model evaluation can be accelerated by a factor of ≃ 625 (68) relative to a CPU implementation using mixed (all double) precision, for n pl = 4, n obs = 256, and large n sys . We also provide a second implementation that requires much less memory and still achieves 86% of the performance of our leading implementation. This low-memory version may prove useful when combined with more sophisticated algorithms that may need significant device memory themselves.</p><p>The use of GPUs for comparing orbital models to radial velocity observations has the potential to significantly accelerate global searches for multiple planet solutions. A demonstration version of our code is avaliable online at http://www.astro.ufl.edu/~eford/code/cuda_kepler/. For the sake of clarity, we present only a simple Monte Carlo code for χ 2 evaluation. Clearly, we intended for this GPU kernel to be combined with more sophisticated algorithms, most likely implemented in traditional programming languages on the CPU. Obviously, brute force search and genetic algorithms are extremely well suited for highly parallel model evaluation. Iterative algorithms that require values of the first and/or second derivatives of the goodness-of-fit statistics might benefit from a similar algorithm to evaluate partial derivatives in parallel.</p><p>We expect that our GPU-based algorithms will be particularly advantageous for Bayesian algorithms that are increasingly being used to analyze exoplanet observations. With standard Markov chain Monte Carlo (MCMC), one generates several long chains <ref type="bibr" target="#b2">(Ford 2005)</ref>, making efficiently parallelization on many-core architectures challenging. The situation improves somewhat, when one considers parallel tempering MCMC, as one typically uses several dozen Markov chains for a single system (Gregory 2007). We expect that the availability of GPUs for rapidly evaluating tens of thousands of models will shift attention to population MCMC algorithms that are naturally suited for highly parallel architectures. For example, differential evolution MCMC (DEMCMC) can apply hundreds or thousands of chains to efficiently sample from complex and high-dimensional posterior densities <ref type="bibr" target="#b14">(ter Braak 2006</ref>). Indeed, we have recently implemented a simple DEMCMC code and found that this can significantly accelerate converge relative to standard MCMC algorithms, even on CPUs. We expect that the combination of DEMCMC and our GPU kernels will be particularly powerful for efficiently performing Bayesian parameter estimation. In principle, this could also be combined with parallel tempering to empower Bayesian model comparison. GPU-based model evaluation could also significantly accelerate other algorithms for Bayesian model comparison, such as importance sampling or the ratio estimator <ref type="bibr" target="#b4">(Ford &amp; Gregory 2006</ref>). Finally, our algorithms could be easily extended to calculate predictive distributions to be enable practical Bayesian adaptive experimental design <ref type="bibr" target="#b9">(Loredo 2004;</ref><ref type="bibr" target="#b3">Ford 2008)</ref>. Such algorithms may be particularly relevant for the efficient scheduling of observations by large space missions, such as the Space Interferometry Mission and/or Terrestrial Planet Finder, as they search for terrestrial-mass planets in the habitable zone of nearby stars.  <ref type="table">Table 2</ref> Performance and accuracey for different implementations. We set n obs = 256 and n pl = 4, and draw both the orbital period and the velocity amplitude from distributions uniform in the log of the period and velocity over the intervals P ∈ [2d, 10yr) and K ∈ [1, 500)m s −1 . The remaining model parameters were drawn from uniform distributions: </p><formula xml:id="formula_11">e ∼ U [0, 99), ω ∼ U [0, 2π), M 0 ∼ U [0, 2π</formula></div>		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Acknowledgments</head><p>This research was supported by UF, the Research Opportunity Incentive Seed Fund, and NASA JPL subcontract #1349281. We thank Jainwei Gao, Mario Juric, Jorg Peters, Alice Quillen, and Young In Yeo for helpful discussions about implementing and optimizing CUDA code. We thank Tom Loredo for bringing DEMCMC to our attention. Finally, we thank nVidia Corp. for sponsoring AstroGPU 2007 and particularly Mark Harris and David Luebke for their contributions to training astronomers in GPU programming.</p></div>
+			</div>
+
+			<div type="annex">
+			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">High performance direct gravitational N-body simulations on graphics processing units II: An implementation in CUDA</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">G</forename><surname>Belleman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Bedorf</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">F</forename><surname>Portegies Zwart</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">New Astronomy</title>
+		<imprint>
+			<biblScope unit="volume">13</biblScope>
+			<biblScope unit="page" from="103" to="112" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<monogr>
+		<title level="m" type="main">Fundamentals of celestial mechanics</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Danby</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1988" />
+			<publisher>Willman-Bell</publisher>
+		</imprint>
+	</monogr>
+	<note>Richmond</note>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">Quantifying the Uncertainty in the Orbits of Extrasolar Planets</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Ford</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">129</biblScope>
+			<biblScope unit="page" from="1706" to="1717" />
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Adaptive Scheduling Algorithms for Planet Searches</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Ford</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">135</biblScope>
+			<biblScope unit="page" from="1008" to="1020" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Ford</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">C</forename><surname>Gregory</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:astro-ph/0608328</idno>
+		<title level="m">Bayesian Model Selection and Extrasolar Planet Detection</title>
+		<imprint>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">A Bayesian Kepler periodogram detects a second planet in HD208487</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">C</forename><surname>Gregory</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">374</biblScope>
+			<biblScope unit="page" from="1321" to="1333" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Hamada</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Iitaka</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:astro-ph/0703100</idno>
+		<title level="m">The Chamomile Scheme: An Optimized Algorithm for N-body simulations on Programmable Graphics Processing Units</title>
+		<imprint>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">GPU accelerated radio astronomy signal convolution</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Harris</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Haines</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Staveley-Smith</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Experimental Astronomy</title>
+		<imprint>
+			<biblScope unit="volume">22</biblScope>
+			<biblScope unit="page" from="129" to="141" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">Pracniques: further remarks on reducing truncation errors</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Kahan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Communications of the ACM</title>
+		<imprint>
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="page">40</biblScope>
+			<date type="published" when="1965" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">J</forename><surname>Loredo</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Bayesian Adaptive Exploration. Bayesian Inference and Maximum Entropy Methods in Science and Engineering</title>
+		<imprint>
+			<biblScope unit="volume">707</biblScope>
+			<biblScope unit="page" from="330" to="346" />
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">J</forename><surname>Moore</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">C</forename><surname>Quillen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">G</forename><surname>Edgar</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:0809.2855</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Planet Migration through a Self-Gravitating Planetesimal Disk</title>
+		<imprint>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<monogr>
+		<title level="m" type="main">Fast N-Body Simulation with CUDA in GPU Gems 3</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Nyland</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Harris</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Prins</surname></persName>
+		</author>
+		<editor>H. Nguyen</editor>
+		<imprint>
+			<date type="published" when="2007" />
+			<publisher>Addison-Wesley</publisher>
+			<biblScope unit="volume">31</biblScope>
+			<biblScope unit="page" from="677" to="695" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title level="a" type="main">NVIDIA CUDA Compute Unified Device Architecture Programming Guide</title>
+		<ptr target="http://www.nvidia.com/cuda" />
+	</analytic>
+	<monogr>
+		<title level="m">nVidia Corporation</title>
+		<imprint>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">High-performance direct gravitational N-body simulations on graphics processing units</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">F</forename><surname>Portegies Zwart</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">G</forename><surname>Belleman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">M</forename><surname>Geldof</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">New Astronomy</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="page" from="641" to="650" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">A Markov Chain Monte Carlo version of the genetic algorithm Differential Evolution: easy Bayesian computing for real parameter spaces</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">J F</forename><surname>Ter Braak</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Statistics and Computing</title>
+		<imprint>
+			<biblScope unit="volume">16</biblScope>
+			<biblScope unit="page" from="239" to="249" />
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

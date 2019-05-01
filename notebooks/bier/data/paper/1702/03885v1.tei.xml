@@ -1,0 +1,1018 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-04T16:30+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Stacked Bayesian general Lomb-Scargle periodogram: Identifying stellar activity signals</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2018-09-11">September 11, 2018</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Mortier</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department" key="dep1">Centre for Exoplanet Science</orgName>
+								<orgName type="department" key="dep2">School of Physics and Astronomy</orgName>
+								<orgName type="institution" key="instit1">SUPA</orgName>
+								<orgName type="institution" key="instit2">University of St Andrews</orgName>
+								<address>
+									<postCode>KY16 9SS</postCode>
+									<settlement>St Andrews</settlement>
+									<country key="GB">UK</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">Collier</forename><surname>Cameron</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department" key="dep1">Centre for Exoplanet Science</orgName>
+								<orgName type="department" key="dep2">School of Physics and Astronomy</orgName>
+								<orgName type="institution" key="instit1">SUPA</orgName>
+								<orgName type="institution" key="instit2">University of St Andrews</orgName>
+								<address>
+									<postCode>KY16 9SS</postCode>
+									<settlement>St Andrews</settlement>
+									<country key="GB">UK</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Stacked Bayesian general Lomb-Scargle periodogram: Identifying stellar activity signals</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2018-09-11">September 11, 2018</date>
+						</imprint>
+					</monogr>
+					<note type="submission">Received ; accepted</note>
+					<note>Astronomy &amp; Astrophysics manuscript no. 30201_arxiv c ESO 2018</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>Methods: data analysis -Methods: statistical -Planetary systems -Stars: activity</keywords>
+			</textClass>
+			<abstract>
+				<p>Context. Distinguishing between a signal induced by either stellar activity or a planet is currently the main challenge in radial velocity searches for low-mass exoplanets. Even when the presence of a transiting planet and hence its period are known, stellar activity can be the main barrier to measuring the correct amplitude of the radial velocity signal. Several tools are being used to help understand which signals come from stellar activity in the data. Aims. We aim to present a new tool that can be used for the purpose of identifying periodicities caused by stellar activity, and show how it can be used to track the signal-to-noise ratio (SNR) of the detection over time. The tool is based on the principle that stellar activity signals are variable and incoherent. Methods. We calculate the Bayesian general Lomb-Scargle periodogram for subsets of data and by adding one extra data point we track what happens to the presence and significance of periodicities in the data. Publicly available datasets from HARPS and HARPS-N were used for this purpose. Additionally, we analysed a synthetic dataset that we created with SOAP2.0 to simulate pure stellar activity and a mixture of stellar activity and a planet. Results. We find that this tool can easily be used to identify unstable and incoherent signals, such as those introduced by stellar activity. The SNR of the detection grows approximately as the square root of the number of data points, in the case of a stable signal. This can then be used to make decisions on whether it is useful to keep observing a specific object. The tool is relatively fast and easy to use, and thus lends itself perfectly to a quick analysis of the data.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>The radial velocity (RV) technique is the second most successful method for discovering exoplanets, accounting for about 20% of the discoveries <ref type="bibr">1</ref> . Furthermore, RV measurements are being used to follow up planets discovered by the transit method to determine the bulk densities of transiting planets and to look for more non-transiting planets in the system (see for example <ref type="bibr" target="#b7">Buchhave et al. 2016)</ref>.</p><p>Periodic changes in the RV of a star can provide information on the planets orbiting that star, such as their period and mass. However, there are other effects that may introduce periodic variations in the measured RV of a star, of which the most common ones are instrumental effects, time sampling effects, and the intrinsic variability of the star. Although we can improve instrument stability and optimise observing schedules, we cannot control the behaviour of the stars we observe. Stellar variability is currently the main barrier to detecting true Earth-like planets. Determining the significance and nature of the signals seen in the data is key to finding and characterising exoplanets with the RV method.</p><p>Several techniques exist to try and distinguish whether a periodic signal comes from stellar activity or from planets. These techniques are often based on the fact that periodic RV variability induced by a planet is stable and coherent over time and across all wavelengths whereas stellar-activity-induced variations are not. These variations could have a single underlying <ref type="bibr">1</ref> For accurate numbers, see www.exoplanet.eu period, such as the stellar rotation period, but its phase, amplitude, and shape may evolve with time owing to the transient nature of stellar activity (for an overview of different stellar activity signals see e.g. <ref type="bibr" target="#b13">Dumusque et al. 2012</ref>).</p><p>Spectroscopic observations of the same star can be made in multiple wavelengths. If the RV amplitude is not the same in all wavelengths, the variation is not caused by a planet but rather by a stellar spot (e.g. TW <ref type="bibr">Hya -Huélamo et al. 2008)</ref>. Because a spot is cooler than the photosphere, and assuming black body radiation, a spot peaks in longer wavelengths than the photosphere. This makes the flux contrast between spot and photosphere smaller for longer wavelengths. A spot thus blocks less light in longer wavelengths, decreasing the RV variability.</p><p>Spots and faculae have a different brightness. Photometry of the star made simultaneously with spectroscopic observations can then shed light on the amount of stellar variability and its periodicity during the observations. This has already been done in some cases, for example for HD166435 ( <ref type="bibr" target="#b28">Queloz et al. 2001</ref>). Recently, <ref type="bibr" target="#b0">Aigrain et al. (2012)</ref> and <ref type="bibr" target="#b18">Haywood et al. (2014)</ref> went a step further and used photometric information in the analysis of the RVs of HD189733 and CoRoT-7.</p><p>Another standard practice is to use activity indicators by investigating the presence of any correlations of the indicators with the RV . If the RV variations are caused by the presence of a planet, they should not correlate with activity-sensitive measurements. If the RVs are determined using a cross correlation function (CCF), the properties of the CCF can be used as activity tracers, such as the bisector span or full width at half maximum (e.g. <ref type="bibr" target="#b28">Queloz et al. 2001;</ref><ref type="bibr" target="#b35">Santos et al. 2014;</ref><ref type="bibr" target="#b29">Rajpaul et al. 2015</ref>). Specific lines in the spectrum could also be used to trace activity, such as the Ca ii H&amp;K emission or the Hα line (e.g. <ref type="bibr" target="#b35">Santos et al. 2014;</ref><ref type="bibr" target="#b34">Robertson et al. 2015;</ref><ref type="bibr" target="#b29">Rajpaul et al. 2015)</ref>.</p><p>In this paper we explore another tool to distinguish between coherent and incoherent periodic signals. We describe the principle in Sect. 2 and test it on some existing data in Sect. 3. In Sect.4, we show how white noise, data sampling, and alias signals affect the results. Section 5 details how this tool can be used to track the significance of the detection and we conclude in Sect. 6.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Stacking periodograms</head><p>Because the RV variations induced by a planet are periodic, it is standard practice to first run a periodicity analysis on the data when looking for planetary signals. Several tools are available to perform this sort of an analysis, such as a Fourier transform, the Lomb-Scargle periodogram <ref type="bibr">(LS -Lomb 1976;</ref><ref type="bibr" target="#b36">Scargle 1982)</ref>, or the general Lomb-Scargle periodogram <ref type="bibr">(GLS -Zechmeister &amp; Kürster 2009)</ref>. In this work, we make use of the Bayesian GLS periodogram <ref type="bibr">(BGLS -Mortier et al. 2015</ref>).</p><p>In theory, the power or probability of a coherent long-lived signal in the data should increase by adding more observations (e.g. <ref type="bibr" target="#b19">Howard et al. 2011;</ref><ref type="bibr" target="#b16">Hatzes 2013;</ref><ref type="bibr" target="#b37">Suárez Mascareño et al. 2016</ref>). On the other hand, if there is a quasi-periodic signal with varying amplitude and phase (an incoherent signal) present in the data, as is the case for activity-induced signals, the power or probability can either increase or decrease at different epochs as more data are added. We would like to caution the reader that whilst a signal whose significance fluctuates is a sign of activity, an increasing signal is not necessarily a sign of a planet. Additional tests should always be performed to establish the planetary nature of a signal.</p><p>We designed a tool to make the BGLS periodogram from the first n points of the data. We then add the next data point, recalculate the BGLS periodogram, and repeat multiple times. We normalise all BGLS periodograms with their respective minimum values. In this way we can compare how a signal gets stronger (or weaker) over time.</p><p>We can then plot the number of data points versus the period (or frequency), and colour code the points with the probability of the BGLS periodogram. The x-axis is then the same as we see for any periodicity tool. The y-axis can be seen as a time axis and a signal is tracked vertically in the diagram. It is worth noting that calculating periodograms for subsets of data has been used before by other authors to check the presence and significance of signal periodicities over time (e.g. Bruch 2014; <ref type="bibr" target="#b31">Ramsay et al. 2016</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Testing the tool</head><p>To test this tool, we looked for stars where it has been shown that there is significant RV variation due to the stellar activity. For this reason we chose to use RV data from the Sun and CoRoT-7. Furthermore, we used data for Gl 581 where planet b is very well detected. As a final proof of concept we used a purely synthetic dataset.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Gl 581</head><p>Gliese 581 is a close M dwarf that has been studied extensively over the years. In 2005, it was announced that this star was orbited by a Neptune-mass planet at an orbit of about 5.35 days ( <ref type="bibr" target="#b6">Bonfils et al. 2005</ref>). This result was based on data from HARPS at the 3.6m telescope in La Silla, Chile ( <ref type="bibr" target="#b23">Mayor et al. 2003</ref>). The same survey team subsequently announced the discovery of three additional planets in the system ( <ref type="bibr" target="#b38">Udry et al. 2007;</ref><ref type="bibr" target="#b22">Mayor et al. 2009</ref>). In 2010, <ref type="bibr" target="#b40">Vogt et al. (2010)</ref> announced the presence of six planets in the system using the HARPS data and additional data from HIRES at Keck I in <ref type="bibr">Hawaii (Vogt et al. 1994)</ref>. This announcement was particularly interesting because it placed Gl581g in the habitable zone of the planet.</p><p>Several of the announced signals are now suspected to be related to stellar activity rather than planets (e.g. <ref type="bibr" target="#b14">Forveille et al. 2011;</ref><ref type="bibr" target="#b33">Robertson et al. 2014</ref>) and we discuss this in Sect. 5. The signal from Gl581b, however, is a very clear and stronglydetected signal. This makes it a good test case for our tool to show how a signal from a planet should behave as more observations are added. In this paper we used the HARPS data that was published in <ref type="bibr" target="#b14">Forveille et al. (2011)</ref> which has 240 data points, spanning about seven years of observations. <ref type="figure" target="#fig_0">Figure 1</ref> shows the data and the stacked BGLS periodogram. The signal at 5.37 days is very well-detected. With all observations included, this signal has a probability of more than 10 3000 (with the minimum probability set to 1). Furthermore, the signal steadily becomes more significant by adding observations. This is exactly what we expect for a signal that arises from the presence of a planet.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">The Sun</head><p>The Sun is an ideal test case for studying stellar activity. Not only is it the only star we can resolve, but the orbits of the Solar System planets are also well defined. As such, we can predict the orbital reflex motion of the Sun, which is induced by the planets, at any given time . By subtracting this, we are left with RV data of a G-type star of which we are certain that all the variations are caused by the star itself. We used the data from <ref type="bibr" target="#b26">Phillips et al. (2017)</ref>. These RVs were taken via a solar telescope connected with HARPS-N at the TNG in La Palma ( <ref type="bibr" target="#b8">Cosentino et al. 2012;</ref><ref type="bibr" target="#b12">Dumusque et al. 2015;</ref><ref type="bibr" target="#b25">Phillips et al. 2016</ref>). Data were taken with exposures of five minutes during daylight. Details on the data reduction can be found in <ref type="bibr" target="#b26">Phillips et al. (2017)</ref>. Because we are interested in signals around the solar rotation period (approximately 27 days), we binned the data per day. This left us with 215 data points. <ref type="figure" target="#fig_1">Figure 2</ref> shows the RV data and the stacked BGLS. A significant signal can be seen growing stronger and weaker over time, corresponding to an unstable quasi-periodic signal such as stellar activity variations. The main signal is seen around 27 days, corresponding to the solar rotation period. When this signal becomes weaker, another signal at around 13.5 days becomes stronger. The latter signal is the harmonic of the solar rotation period, P rot /2.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.">CoRoT-7</head><p>CoRoT-7 is another star that has been debated in the literature. This G dwarf is orbited by a transiting planet at 0.85 days and a non-transiting planet at 3.7 days and exhibits significant activity signals, as is obvious from the light curves ( <ref type="bibr" target="#b27">Queloz et al. 2009</ref>). <ref type="bibr" target="#b17">Hatzes et al. (2010)</ref> claimed that there was a third planet, CoRoT7d, with a period of 9.02 days. <ref type="bibr" target="#b18">Haywood et al. (2014)</ref> showed that the 9-day signal arose most likely from stellar activity. They used spectroscopy data from HARPS and a Gaussian-process regression model of the stellar activity based on simultaneous photometry from the CoRoT spacecraft ( <ref type="bibr" target="#b3">Barros et al. 2014</ref>) in their analysis.</p><p>We use the available HARPS RVs from Queloz et al. (2009) and <ref type="bibr" target="#b18">Haywood et al. (2014)</ref>. <ref type="figure" target="#fig_2">Figure 3</ref> shows that the 9-day signal was already unstable in the original dataset from <ref type="bibr" target="#b27">Queloz et al. (2009)</ref>, seen in the top plot. The second dataset, from <ref type="bibr" target="#b18">Haywood et al. (2014)</ref>, also shows the unstable nature of this signal around 9 days (middle plot). It is interesting to point out that the 9-day signal is a lot broader for the second dataset than for the first one. This is due to the limited timespan of the data (25 days versus 109 days).</p><p>The combined dataset again shows that the 9-day signal is not stable over time, making its origin more likely to be stellar activity than a third planet. The fringes that appear in the stacked BGLS periodogram of the combined dataset arise from uncertainty in the cycle count across the three-year gap separating the 2009 and 2012 RV campaigns.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4.">Synthetic data</head><p>As a proof of concept, we also created and analysed a synthetic dataset. To generate RVs related to stellar activity, we used SOAP2.0 (Spot Oscillation and Planet <ref type="bibr" target="#b10">Dumusque et al. 2014</ref>). This tool estimates photometric and RV variations induced by stellar spots and plages. It is an upgrade from its older version SOAP ( <ref type="bibr" target="#b5">Boisse et al. 2012</ref>) and includes convective blueshift, limb brightening of plages, and more realistic stellar physics. SOAP2.0 does not allow for spot evolution, therefore we created three separate sets of spot configurations that we then concatenated to create a dataset of a star with evolving active regions. The star we simulated has properties like the Sun, with a radius of one Solar radius, an effective temperature of 5778 K, a spot temperature of 5115 K, quadratic-law limb-darkening coefficients c 1 = 0.29 and c 2 = 0.34, and a rotation period of 25.05 days. We observed the star equator-on (inclination i = 90 • ) with a simulated spectrograph of resolution comparable to HARPS(-N), 115000.</p><p>Article number, page 3 of 8 A&amp;A proofs: manuscript no. 30201_arxiv • . We used each configuration for two full rotation periods and sampled 50 points per rotation period. In total we ended up with a dataset of 300 points with a timespan of 150.3 days. We used no additional noise model and assumed uniform errorbars in our analysis.</p><p>The left panel of <ref type="figure" target="#fig_3">Fig. 4</ref> shows the synthetic data and its stacked BGLS periodogram. Two periodicities show up at about 12.5 days and 8.35 days, respectively P rot /2 and P rot /3. Both signals grow stronger and weaker over time as expected.</p><p>We added a sinusoid to the data, simulating a planet on a circular six-day orbit with a semi-amplitude of 2 m/s. This combined dataset is plotted in the top right panel of <ref type="figure" target="#fig_3">Fig. 4</ref>. The stacked BGLS periodograms still pick up the varying periodicities at 12.5 and 8.35 days. At the same time, there is a periodicity that steadily becomes more significant over time at 6 days. This shows that the stable and coherent signal is still picked up even if the stellar activity signal has similar amplitudes as the planetary signal.</p><p>The most difficult form of stellar activity signals to analyse are the ones that arise from long-lived active regions. Because these signals stay coherent over long timescales, it is easier to confuse them for real planetary signals. To see the effect of longlived active regions, we simulated a spot on the same star as before, with a radius of 14% the stellar radius at a latitude of 45 • . We ran SOAP2.0 for five rotation periods, changing neither the amplitude nor phase of the active region. All other input parameters stayed the same as the first simulation. <ref type="figure" target="#fig_4">Figure 5</ref> shows the resulting RV data and its corresponding stacked BGLS periodogram. The three periodicities related to the rotational period clearly show up. Although it is not as clearcut as in other examples, we can still see the main periodicity (at 12.5 days) varying in significance over time, distinguishing itself from a truly coherent sinusoid.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Exploring the possibilities</head><p>In this section we demonstrate that periodicity analysis tools can identify periods that are solely due to the sampling of a dataset (e.g. <ref type="bibr" target="#b30">Rajpaul et al. 2016</ref>). Significant peaks can arise at periods that are also present in the window function. Signals also have alias signals due to the observation schedule.  </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">Effect of data sampling</head><p>Ground-based observations suffer from having gaps in the data due to reasons such as the telescope not being available and the weather. Even with continuous access to a telescope and an instrument, and perfect weather, there is still be a day-night cycle that automatically creates gaps in the data. Furthermore, observations have finite exposure times and a data point is thus always an average over a small time frame. These gaps and finite exposure times introduce periodicities in the data that are only due to these effects.</p><p>It is thus important that the window function of the data is also explored. Significant periodicities in the window function will most likely also show up in the periodicity analysis of the data although they are not caused by any stellar or planetary effect. We can show this fairly clearly by using the solar data. Observations were taken with an exposure time of 5 minutes. Including the time for read out and starting the new observation, the data points were eventually spaced by 5.4 minutes.</p><p>We used thirteen consecutive days of data from <ref type="bibr" target="#b26">Phillips et al. (2017)</ref>, shown in the top plot of <ref type="figure" target="#fig_6">Fig. 6</ref>. For calculating the window function, we used Equation 8 in <ref type="bibr" target="#b32">Roberts et al. (1987)</ref>. When zoomed in around 5 minutes, the window function shows two peaks at 5.4 and 2.7 minutes, the latter being half the period of the first. These peaks are solely due to the spacing of the data and the finite exposure time. When we calculate the stacked BGLS periodogram, as shown in the bottom plot of <ref type="figure" target="#fig_6">Fig. 6</ref>, we see that these periods also arise. They are not stable, most likely because there are other time spacings in the data as well.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.">Effect of alias signals</head><p>Alias signals arise very often in RV datasets due to the way our data is sampled and the typical properties of ground-based observations. In most cases, telescopes are shared between several groups and there is no continuous access to take the data one needs. Furthermore, there are the natural cycles we deal with such as the day-night cycle, the seasonal cycle of visible stars in the sky, or the lunar cycle. Recognising the signals that are aliased is thus an important step in the data analysis (e.g. <ref type="bibr">Daw- son &amp; Fabrycky 2010)</ref>.</p><p>Because aliased signals are linked to the true signal and often come from the same natural constraints of our observations, they behave similarly in terms of significance. In the stacked BGLS periodogram, we can then see if there are periodicities that behave similarly. We used the CoRoT-7 data from <ref type="bibr" target="#b18">Haywood et al. (2014)</ref> for this purpose.</p><p>We show the results in <ref type="figure" target="#fig_7">Fig. 7</ref>. There is an increasing signal around 3.7 days (coming from CoRoT-7c) and the activity signal around 9 days. These signals are aliased due to the 1-day sampling frequency of ground-based observations. The alias periods are then calculated with P alias = 1/|1/P real ± 1| ( <ref type="bibr" target="#b13">Dumusque et al. 2012</ref>). <ref type="figure" target="#fig_7">Figure 7</ref> shows that both the signal from 3.7 days and the 9-day signal appear around 1 day as well. They are slightly less significant than the true signal 2 , but more importantly they exhibit a similar behaviour overall.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Tracking the significance of detection</head><p>Stacking periodograms can be used for more than tracking the significance of a periodicity. It can also track the significance (or SNR) of the semi-amplitude for a sinusoid at a particular period .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1.">Principle</head><p>A periodogram essentially finds the best solution for fitting a sine curve at every period, by using a maximum likelihood estimation or least squares minimisation . Alongside the probability (or power) of each period, it thus also provides the best-A&amp;A proofs: manuscript no. 30201_arxiv <ref type="figure">Fig. 8</ref>. Top: Stacked BGLS periodograms of Gl581, colours as in <ref type="figure" target="#fig_0">Fig. 1</ref>. The same data as <ref type="figure" target="#fig_0">Fig. 1</ref> was used. Bottom: S NR K versus amount of observations for the most significant periodicity. Left to right: Full dataset, subtracted best fit at 5.37 days, subtracted best fit at 12.9 days. fitted semi-amplitude K and phase φ for each period. The significance of a detection at a particular period can be expressed as K/σ K = S NR K with σ K being the error bar on the fitted parameter. This error bar can be estimated using optimal scaling.</p><p>We assume the data is fitted by a sine curve 3 :</p><formula xml:id="formula_0">d(t i ) = K sin 2π P t i + φ = K sin(ϕ i ),<label>(1)</label></formula><p>where K is the semi-amplitude, P the orbital period, and φ the phase. Each data point d i taken at time t i has an associated error bar σ i . Through minimisation of chi-squared, weighted by the inverse variance, we can then find that</p><formula xml:id="formula_1">K = i w i d i sin ϕ i i w i sin 2 ϕ i<label>(2)</label></formula><p>and</p><formula xml:id="formula_2">σ K = 1 i w i sin 2 ϕ i ,<label>(3)</label></formula><p>where w i = 1/σ 2 i are the weights assigned to the data points. For a particular period, we can thus calculate this detection significance S NR K for each set of observations and track how this significance evolves. At the same time, the value for K can be followed. This value should stabilise by adding more observations, if the periodic signal is induced by a planet.</p><p>Most radial velocity time series contain more variation than just one sine curve, either through additional planetary signals or through stellar-induced signals. To account for this extra variation, we include a white noise term s in our modelling so that w i = 1/(σ 2 i + s 2 ). For each set of observations we determine the best white noise s by calculating the BGLS likelihood for a range of different values of s and choosing the s of the maximum likelihood.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2.">Test on Gl 581</head><p>To test the tracking of the semi-amplitude, we used the HARPS data of Gl 581, as described in Sect. 3.1. <ref type="figure">Figure 8</ref> shows the stacked BGLS periodogram on the top, and the semi-amplitude K and its detection significance S NR K on the bottom. Additionally, we pre-whitened the data to examine the remaining signals in the data. Using all observations, the best-fitted model for one planet on a circular orbit is selected, including its white noise s. This model is then subtracted from the data.</p><p>Planets b and c at periods 5.37 days and 12.9 days show strong and increasing signals . The SNR of the detection steadily grows by adding more observations, reaching a 40σ and 13σ detection respectively. This is in good agreement with the values found in the literature. The next significant periodicity is at about 66.8 days. The nature of this signal is being disputed in the literature, with some authors attributing the signal to a planet (e.g. <ref type="bibr" target="#b22">Mayor et al. 2009;</ref><ref type="bibr" target="#b40">Vogt et al. 2010;</ref><ref type="bibr" target="#b1">Anglada-Escudé &amp; Tuomi 2015</ref>) and other authors attributing it to stellar activity (e.g. <ref type="bibr" target="#b2">Baluev 2013;</ref><ref type="bibr" target="#b33">Robertson et al. 2014</ref>). <ref type="figure">Figure 8</ref> shows that although the signal strength grows by adding more observations, it is not doing so in a steady manner. The signal detection significance varies between a 6σ and 8σ detection. This shows that there is some variation in the signal over time despite it being a fairly significant detection. Ascertaining the true nature of this signal will require more testing and better modelling techniques, but it is clear from this straightforward analysis that the signal should be modelled with care.</p><p>Article number, page 6 of 8 A. Mortier and A. Collier Cameron: Stacked Bayesian general Lomb-Scargle periodogram: Identifying stellar activity signals <ref type="figure">Fig. 9</ref>. Left: S NR K versus amount of observations for the most significant periodicity in the synthetic dataset plotted top right in <ref type="figure" target="#fig_3">Fig. 4</ref>. Right: Same figure as the left panel, but the best-fitted signal at 5.973 days has been subtracted from the data.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.3.">Test on synthetic data</head><p>We also used the synthetic dataset from Sect. 3.4, with the planet signal included, to showcase how the detection significance S NR K changes for a true coherent and true uncoherent signal. Results are shown in <ref type="figure">Fig. 9</ref>.</p><p>The best period in the complete dataset is found to be 5.973 days, very close to the true period of 6 days. The S NR K grows steadily by adding more simulated observations as expected for a coherent stable signal. The best circular fit for the complete dataset was found with a semi-amplitude of 1.87 ± 0.18 m/s and white noise of 1.9 m/s. This is, within error bars, the same as the true semi-amplitude of 2 m/s.</p><p>After subtracting the best fit from the data, we did the analysis again. The most significant periodicity is now 8.417 days, relating to one third of the rotation period. The detection significance S NR K first grows steadily but then flattens off and even begins to drop when more observations are added. This is a clear sign of an incoherent signal, which is the true nature of this simulated signal.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">Discussion and conclusions</head><p>In this paper we present a new tool that can be used for the purpose of identifying periodicities caused by stellar activity. The tool is based on the BGLS periodogram and the principle that planetary signals are stable and coherent whereas stellar activity signals are not. We stack the periodograms by subsequently adding observations and recalculating the periodogram.</p><p>We used public datasets from Gl 581, CoRoT-7, and the Sun taken with HARPS and HARPS-N, and synthetic datasets using SOAP2.0. We show that the signals attributed to planets are coherent and grow steadily more significant with time. Signals that are known to come from stellar activity (the Sun, and the synthetic data), or found to be activity-related through other methods (CoRoT-7), clearly show up as being unstable over time in our analysis. On the other hand, a true coherent sinusoid injected in the synthetic data is easily picked up as becoming more significant by adding observations. Stacking periodograms reveals that aliased signals behave similarly to their true signals, making it easier to spot related periodicities.</p><p>Because the BGLS periodogram fits a sinusoid for each period, it provides a semi-amplitude as well. We estimated the error bar on the semi-amplitude through optimal scaling. We used this to calculate the significance of detection for a chosen periodicity. Tracking this detection significance S NR K could, for example, be useful for deciding if it is worth spending more precious telescope time on an object.</p><p>Determining the nature and origin of periodic signals in radial velocity datasets has become more important in our hunt for a true Earth-like exoplanet. Many different techniques exist for these types of analyses, including Gaussian process regression and apodised Kepler periodograms (e.g. <ref type="bibr" target="#b18">Haywood et al. 2014;</ref><ref type="bibr" target="#b29">Rajpaul et al. 2015;</ref><ref type="bibr" target="#b15">Gregory 2016;</ref><ref type="bibr" target="#b11">Dumusque et al. 2016</ref>, and references therein). This tool complements these existing techniques and can be used as an additional test in the data analysis. Stacking periodograms is a fast and intuitive way to visualise how the data and its underlying periodicities are behaving over time.</p><p>Given that we only assume one sinusoid in our underlying model, there could be cases where this tool will have difficulties. As noted in Sect. 3.4, long-lived active regions will appear to be coherent if the time span of the data is not long enough. Another difficult case could be when the planet period is very close to the rotation period or its corresponding harmonics. These cases are amongst the trickiest of all. Good activity tracers and/or photometric data combined with an extensive Gaussian process regression analysis (e.g. <ref type="bibr" target="#b18">Haywood et al. 2014;</ref><ref type="bibr" target="#b29">Rajpaul et al. 2015</ref>) will be required in those cases to distinguish between the periodic and quasi-periodic signals.</p><p>Analysing large amounts of data takes time. The relative speed of this tool helps to get a quick look before undertaking a computationally heavy analysis. The speed of the tool depends on many variables, such as the amount of observations, the number of scanned frequencies, the timespan of the data, and the number of trial values chosen to represent the white noise . Still, our tool is able to provide quick results. As an example, the figures in this paper were made on an Intel Core i5-480M CPU. It took respectively 23 and 26 seconds to create Figs. 4 and 9.</p><p>The visualisation and speed are key benefits for the tool we present here. It will be useful as an additional test to determine the nature of periodic signals in radial velocity datasets. This way we will be able to find and characterise the smallest planets.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Fig. 1 .</head><label>1</label><figDesc>Fig. 1. Top: RVs from Gl581, taken by HARPS. Bottom: Stacked BGLS periodogram for the data in the top plot, zoomed around 5.4 days. Amount of observations is plotted against period, with the colour scale indicating the logarithm of the probability, where darker is more likely.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Fig. 2 .</head><label>2</label><figDesc>Fig. 2. Top: RVs from the Sun, taken by HARPS-N. The data was binned per day. Bottom: Stacked BGLS periodogram for the data in the top plot, colours as in Fig. 1.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Fig. 3 .</head><label>3</label><figDesc>Fig. 3. Stacked BGLS periodograms for CoRoT-7, colours as in Fig. 1. Top: using RVs from HARPS by Queloz et al. (2009), middle: using RVs from HARPS by Haywood et al. (2014), bottom: using the combined dataset.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Fig. 4 .</head><label>4</label><figDesc>Fig. 4. Top left: Synthetic RVs generated by SOAP2.0. Top right: Black points are the combination of a stellar-activity signal generated by SOAP2.0 (red curve) and a signal of a planet on a six-day circular orbit (blue curve). Bottom: Stacked BGLS periodogram for the data in the top plots, colours as in Fig. 1.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Fig. 5 .</head><label>5</label><figDesc>Fig. 5. Top: Synthetic RVs generated by SOAP2.0. Bottom: Stacked BGLS periodogram for the data in the top plot, colours as in Fig. 1.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Fig. 6 .</head><label>6</label><figDesc>Fig. 6. Top: RVs from the Sun, taken by HARPS-N. Middle: Window function of the data, zoomed around 4 minutes. Bottom: Stacked BGLS periodogram for the data in the top plot, zoomed around 4 minutes, colours as in Fig. 1.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Fig. 7 .</head><label>7</label><figDesc>Fig. 7. Stacked BGLS periodogram for CoRoT-7, colours as in Fig. 1. The same data is used as for the middle plot of Fig. 3.</figDesc></figure>
+
+			<note place="foot" n="2"> Note that is not always the case for alias signals.</note>
+
+			<note place="foot" n="3"> Note that we set the offset to zero here for simplicity. It is straightforward to include it.</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pont</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Zucker</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">419</biblScope>
+			<biblScope unit="page">3147</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Anglada-Escudé</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Tuomi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">347</biblScope>
+			<biblScope unit="page">1080</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">V</forename><surname>Baluev</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">429</biblScope>
+			<biblScope unit="page">2052</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">C C</forename><surname>Barros</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Almenara</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Deleuil</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">A74 Article number</title>
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="volume">569</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<monogr>
+		<title level="m" type="main">A&amp;A proofs: manuscript no</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Boisse</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Bonfils</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">C</forename><surname>Santos</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">545</biblScope>
+			<biblScope unit="page">109</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Bonfils</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Forveille</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Delfosse</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">443</biblScope>
+			<biblScope unit="page">101</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+	<note>A&amp;A</note>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">A</forename><surname>Buchhave</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">D</forename><surname>Dressing</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Dumusque</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">152</biblScope>
+			<biblScope unit="page">160</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">Groundbased and Airborne Instrumentation for</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Cosentino</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Lovis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pepe</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proc. SPIE</title>
+		<meeting>SPIE</meeting>
+		<imprint>
+			<date type="published" when="2012" />
+			<biblScope unit="volume">8446</biblScope>
+			<biblScope unit="page">84461</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">I</forename><surname>Dawson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">C</forename><surname>Fabrycky</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">722</biblScope>
+			<biblScope unit="page">937</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Dumusque</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Boisse</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">C</forename><surname>Santos</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">796</biblScope>
+			<biblScope unit="page">132</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Dumusque</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Borsa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Damasso</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1609.03674</idno>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+<note type="report_type">ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Dumusque</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Glenday</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">F</forename><surname>Phillips</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">814</biblScope>
+			<biblScope unit="page">21</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Dumusque</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pepe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Lovis</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">491</biblScope>
+			<biblScope unit="page">207</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Forveille</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Bonfils</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Delfosse</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1109.2505</idno>
+		<imprint>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+<note type="report_type">ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">C</forename><surname>Gregory</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">458</biblScope>
+			<biblScope unit="page">2604</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">P</forename><surname>Hatzes</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astronomische Nachrichten</title>
+		<imprint>
+			<biblScope unit="volume">334</biblScope>
+			<biblScope unit="page">616</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">P</forename><surname>Hatzes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Dvorak</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Wuchterl</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">520</biblScope>
+			<biblScope unit="page">93</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">D</forename><surname>Haywood</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Collier Cameron</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Queloz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">443</biblScope>
+			<biblScope unit="page">2517</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Howard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Marcy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">726</biblScope>
+			<biblScope unit="page">73</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Huélamo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Figueira</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Bonfils</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">489</biblScope>
+			<biblScope unit="page">9</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">R</forename><surname>Lomb</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Ap&amp;SS</title>
+		<imprint>
+			<biblScope unit="volume">39</biblScope>
+			<biblScope unit="page">447</biblScope>
+			<date type="published" when="1976" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Mayor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Bonfils</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Forveille</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">507</biblScope>
+			<biblScope unit="page">487</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Mayor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pepe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Queloz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Messenger</title>
+		<imprint>
+			<biblScope unit="volume">114</biblScope>
+			<biblScope unit="page">20</biblScope>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Mortier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Faria</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">M</forename><surname>Correia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Santerne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">C</forename><surname>Santos</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">573</biblScope>
+			<biblScope unit="page">101</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">F</forename><surname>Phillips</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G</forename><surname>Glenday</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Dumusque</surname></persName>
+		</author>
+		<title level="m">Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</title>
+		<imprint>
+			<date type="published" when="2016" />
+			<biblScope unit="volume">9912</biblScope>
+			<biblScope unit="page">99126</biblScope>
+		</imprint>
+	</monogr>
+	<note>Proc. SPIE</note>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Phillips</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+	<note>in prep., in prep</note>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Queloz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Bouchy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Moutou</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">506</biblScope>
+			<biblScope unit="page">303</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Queloz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Henry</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Sivan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">379</biblScope>
+			<biblScope unit="page">279</biblScope>
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Rajpaul</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Osborne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Reece</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Roberts</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2015" />
+			<biblScope unit="volume">452</biblScope>
+			<biblScope unit="page">2269</biblScope>
+			<pubPlace>MN-RAS</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Rajpaul</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Roberts</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">456</biblScope>
+			<biblScope unit="page">6</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Ramsay</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Hakala</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Wood</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">455</biblScope>
+			<biblScope unit="page">2772</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">H</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Lehar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Dreher</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">93</biblScope>
+			<biblScope unit="page">968</biblScope>
+			<date type="published" when="1987" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Robertson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Mahadevan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Endl</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Roy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">345</biblScope>
+			<biblScope unit="page">440</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Robertson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Roy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Mahadevan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">805</biblScope>
+			<biblScope unit="page">22</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">C</forename><surname>Santos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Mortier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Faria</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">566</biblScope>
+			<biblScope unit="page">35</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Scargle</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">263</biblScope>
+			<biblScope unit="page">835</biblScope>
+			<date type="published" when="1982" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Suárez Mascareño</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">I</forename><surname>González Hernández</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Rebolo</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1611.02122</idno>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+<note type="report_type">ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Udry</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Bonfils</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Delfosse</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">469</biblScope>
+			<biblScope unit="page">43</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">S</forename><surname>Vogt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">L</forename><surname>Allen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">C</forename><surname>Bigelow</surname></persName>
+		</author>
+		<title level="m">Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</title>
+		<editor>D. L. Crawford &amp; E. R. Craine</editor>
+		<imprint>
+			<date type="published" when="1994" />
+			<biblScope unit="volume">2198</biblScope>
+			<biblScope unit="page">362</biblScope>
+		</imprint>
+	</monogr>
+	<note>Society of PhotoOptical Instrumentation Engineers (SPIE) Conference Series</note>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">S</forename><surname>Vogt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P</forename><surname>Butler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Rivera</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">723</biblScope>
+			<biblScope unit="page">954</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Zechmeister</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Kürster</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">496</biblScope>
+			<biblScope unit="page">577</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

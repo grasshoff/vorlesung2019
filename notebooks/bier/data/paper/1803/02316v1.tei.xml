@@ -1,0 +1,827 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-11T13:19+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Vanderbilt Initiative in Data-Intensive Astrophysics (VIDA)</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="20186-03-07">March 7, 2018 6 Mar 2018</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ryan</forename><forename type="middle">J</forename><surname>Oelkers</surname></persName>
+							<email>ryan.j.oelkers@vanderbilt.edu</email>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Physics and Astronomy</orgName>
+								<orgName type="institution">Vanderbilt University</orgName>
+								<address>
+									<postCode>37235</postCode>
+									<settlement>Nashville</settlement>
+									<region>TN</region>
+								</address>
+							</affiliation>
+							<affiliation key="aff1">
+								<orgName type="department">Vanderbilt Data Science Fellow</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Keivan</forename><forename type="middle">G</forename><surname>Stassun</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Physics and Astronomy</orgName>
+								<orgName type="institution">Vanderbilt University</orgName>
+								<address>
+									<postCode>37235</postCode>
+									<settlement>Nashville</settlement>
+									<region>TN</region>
+								</address>
+							</affiliation>
+							<affiliation key="aff2">
+								<orgName type="department">Department of Physics</orgName>
+								<orgName type="institution">Fisk University</orgName>
+								<address>
+									<postCode>37208</postCode>
+									<settlement>Nashville</settlement>
+									<region>TN</region>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Vanderbilt Initiative in Data-Intensive Astrophysics (VIDA)</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="20186-03-07">March 7, 2018 6 Mar 2018</date>
+						</imprint>
+					</monogr>
+					<note>Draft version Typeset using L A T E X default style in AASTeX61 3/ryanoelkers/DIA in both IDL and PYTHON. We intend to extract light curves for all point sources in the TESS FFIs as soon as they become publicly available, and will provide the light curves through the Filtergraph data visualization service. An example data portal based on the simulated FFIs is available for inspection at https://filtergraph.com/tess_ffi. Corresponding author: Ryan J. Oelkers 2 Oelkers &amp; Stassun</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<abstract>
+				<p>The Transiting Exoplanet Survey Satellite (TESS) will observe ∼150 million stars brighter than T mag ≈ 16, with photometric precision from 60 ppm to 3 percent, enabling an array of exoplanet and stellar astrophysics investigations .While light curves will be provided for ∼400,000 targets observed at 2-min cadence, observations of most stars will only be provided as full-frame images (FFIs) at 30 min cadence. The TESS image scale of ∼ 21&quot;/pix is highly susceptible to crowding, blending, and source confusion, and the highly spatially variable point spread function (PSF) will challenge traditional techniques, such as aperture and Gaussian-kernel PSF photometry. We use official &quot;End-to-End 6&quot; TESS simulated FFIs to demonstrate a difference image analysis pipeline, using a δ-function kernel,that achieves the mission specification noise floor of 60 ppm hr −1/2. We show that the pipeline performance does not depend on position across the field, and only ∼2% of stars appear to exhibit residual systematics at the level of ∼5 ppt. We also demonstrate recoverability of planet transits, eclipsing binaries, and other variables. We provide the pipeline as an open-source tool at https://github.com</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">INTRODUCTION</head><p>The dramatic increase in efforts to search for transiting exoplanets at the turn of the millennium motivated the use of small-aperture, wide-field surveys to simultaneously monitor as many stars as possible (e.g., <ref type="bibr" target="#b20">Pollacco et al. 2006;</ref><ref type="bibr" target="#b17">Pepper et al. 2003;</ref><ref type="bibr" target="#b3">Bakos et al. 2002)</ref>. Coupled with technological and computing advances, which provided pathways to rapid reduction of large data sets, the resulting massive influx of time-series photometry has also helped to guide astronomy into an era of "big-data". The next wave of large astronomical surveys is expected to further drive the astronomy community's need for powerful data reduction tools capable of providing large-scale data products with high precision and on a rapid timescale.</p><p>Once such upcoming survey is the Transiting Exoplanet Survey Satellite (TESS ; <ref type="bibr" target="#b21">Ricker et al. 2014</ref>), which will be conducting a nearly all-sky photometric survey for two years, with a core mission goal to discover small transiting exoplanets orbiting nearby bright stars. One major consequence of the TESS survey will be the enormous amount of time-series data collected at high cadence and for a very large number of stars. While only the ≈400,000 highest priority transiting-planet host stars will be observed with 2-min cadence, nearly every star outside ±6 deg of the ecliptic plane will be observed with at least 30-min cadence-a total of ∼ 423, 000, 000 stars in the TESS Input Catalog (TIC; <ref type="bibr" target="#b25">Stassun et al. 2017</ref>)-whose data will be released not as extracted light curves but in the form of full-frame images (hereafter, FFIs; <ref type="bibr" target="#b27">Sullivan et al. 2015</ref>).</p><p>TESS is equipped with four 10-cm telescopes, each containing four charged couple devices (CCDs), with a total field of view of 24 deg 2 on the celestial sphere during a single pointing. Each telescope is aligned to cover different areas of a longitudinal strip (called a sector), thus the 4 CCDs together in a given camera observe a total coverage of 96 • × 24 • . The satellite will observe each ecliptic hemisphere with 13 sectors over the course of a year, each sector observed continuously for 27 d. Additionally, the increasing areal overlap of sectors at higher ecliptic latitudes will combine in a way to create continuous viewing zones around the ecliptic poles, designed to: (1) match the James Webb Space Telescope continuous viewing zone, to facilitate potential follow up; and (2) avoid the ecliptic plane to minimize contamination from solar system objects. Of particular consequence for handling the FFIs, the telescope is capable of observing such large areas of the sky because of the optical design, which maps a large 21 arcsec 2 area onto a single TESS pixel ( <ref type="bibr" target="#b21">Ricker et al. 2014</ref>).</p><p>The extraction of light curves from wide-field images with such large pixel scales is highly non-trivial. The effects of crowding and blending hinder methods such as aperture photometry, because contamination from nearby stars cannot be easily removed from even a small photometric aperture ( <ref type="bibr" target="#b29">Wang, L. et al. 2011</ref>). Similarly, the point spread functions (PSFs) of such large fields of view are notoriously highly spatially variable, which makes photometric extraction based on PSF-fitting extremely laborious, as individual PSFs need to be constructed for different parts of the imageparticularly near the edges of the frame. Wide-field images are also typically under-sampled, which has the tendency of causing the measured flux of a given star to be correlated with its position on the frame. This can introduce systematics in the light curves which are difficult to interpret and correct, and can even mimic some astrophysical signals of interest, leading to false positives <ref type="bibr" target="#b1">(Alard &amp; Lupton 1998;</ref><ref type="bibr" target="#b0">Alard 2000;</ref><ref type="bibr" target="#b13">Miller et al. 2008)</ref>.</p><p>Light curve extraction via difference imaging analysis (hereafter, DIA) is one approach used by some wide-field surveys because it mitigates many of the effects of crowded fields <ref type="bibr" target="#b1">(Alard &amp; Lupton 1998;</ref><ref type="bibr" target="#b0">Alard 2000;</ref><ref type="bibr" target="#b13">Miller et al. 2008;</ref><ref type="bibr" target="#b15">Oelkers et al. 2015</ref>). DIA involves the subtraction of two frames: one frame, typically the one with the higher signal-to-noise ratio (SNR), is blurred to appropriately match the seeing conditions of the other frame; then the two are subtracted to reveal any pixels whose flux has changed between the two frames. Stars with no inherent astrophysical variation in their flux will subtract to their Poisson noise level, while stars with true variations will leave a significant residual on the frame involving multiple correlated pixels within the PSF. DIA is useful in crowded environments because the majority of the stars on a given frame should subtract cleanly, and then simple aperture or PSF photometry can extract the residuals from the differenced frame without contamination from neighboring stars.</p><p>Such an approach has already proven successful with ground-based surveys such as the Kilodegree Extremely Little Telescope (KELT), whose imaging field of view and pixel scale are very similar to that of TESS ( <ref type="bibr" target="#b19">Pepper et al. 2007</ref><ref type="bibr" target="#b18">Pepper et al. , 2012</ref>. Indeed, KELT light curves extracted via a customized DIA-based pipeline ( <ref type="bibr" target="#b24">Siverd et al. 2012</ref>) typically achieve a precision of 10 mmag (e.g., <ref type="bibr" target="#b16">Oelkers et al. 2018</ref>).</p><p>However, most DIA pipelines, including that used by KELT, utilize a Gaussian basis to solve for the kernel that is used to blur the reference frame before subtraction. These kernels are advantageous because they require a solution for only a small number of basis vectors, and in general, the PSFs of many astronomical images are approximately Gaussian in shape. However, when the PSF of the image deviates significantly from Gaussian, as in very wide-field images like the TESS FFIs, these methods tend to produce low-quality subtractions and begin to suffer from the similar problems of standard PSF photometry when the model PSF is poorly matched to the true PSF (see, e.g., <ref type="bibr" target="#b13">Miller et al. 2008;</ref><ref type="bibr" target="#b15">Oelkers et al. 2015</ref>).</p><p>This Letter describes an alternative DIA approach, which uses a Dirac δ-function kernel to solve for non-Gaussian, arbitrarily-shaped PSFs. It is a heavily modified version of the pipeline from <ref type="bibr" target="#b15">Oelkers et al. (2015)</ref>, optimized for TESS FFIs. We apply the adapted pipeline to official NASA "End-to-End 6" ( <ref type="bibr" target="#b9">Jenkins et al. 2004;</ref><ref type="bibr" target="#b5">Bryson et al. 2010</ref><ref type="bibr">, Tenebaum et al. 2018</ref>) TESS simulated FFIs to analyze its performance relative to nominal TESS specifications.</p><p>The remainder of this Letter is organized as follows: § 2 describes the simulated data; § 3 details our data reduction pipeline; § 4 presents the performance of the pipeline in terms of photometric precision relative to the expected TESS noise model; and § 5 summarizes our results, including intended improvements to the pipeline prior to the first official TESS data release near the end of 2018.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">DATA: SIMULATED TESS FULL FRAME IMAGES</head><p>We tested our pipeline using the ETE-6 FFIs provided by NASA ( <ref type="bibr" target="#b9">Jenkins et al. 2004;</ref><ref type="bibr" target="#b5">Bryson et al. 2010</ref><ref type="bibr">, Tenebaum et al. 2018</ref>. These images were built using the expected photometric precision of the satellite, PSF shapes from lab testing (with typical full-width at half-maximum of 1.88 pixels), and were designed to have a cadence similar to that expected for the mission. The location and intensity of stars on each frame were modeled after real stars found in the TESS Input Catalog ( <ref type="bibr">Stassun et al. 2017, TIC)</ref>, and several hundred of the stars were injected with signals mimicking real astrophysical variations observed by the Kepler satellite ( <ref type="bibr" target="#b4">Borucki et al. 2010</ref>). Spacecraft jitter was also introduced into the data to simulate systematics not yet included in the official noise model (see <ref type="bibr" target="#b27">Sullivan et al. 2015</ref><ref type="bibr">, updated by Pepper et al. (2018</ref>, but which are expected to occur during the mission.</p><p>NASA released the ETE-6 FFIs on the Mikulski Archive for Space Telescopes (MAST) on 2018 February 20 in both uncalibrated and calibrated form. Currently, the FFIs are available for all 16 CCDs and simulate a single observing sector for 27 d. To simplify the testing process, we selected the calibrated FFIs from a single CCD camera (in this case, CCD #2 on Camera 2, centered on α ∼ 16.1, δ ∼ +28).</p><p>The reduction of all 1,348 images completed in ∼4.5 d and 106,399 light curves were extracted with TESS magnitudes 7 &lt; T &lt; 16. The tested pipeline can later be applied to all 16 CCDs in parallel, thus we expect to be able to extract light curves from the eventual real FFI stars of a given sector within ∼1 week of their public release.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">METHODS: A DIFFERENCE IMAGING PIPELINE FOR WIDE-FIELD IMAGES</head><p>The pipeline presented in this paper is a heavily modified version of the pipeline from <ref type="bibr" target="#b15">Oelkers et al. (2015)</ref>, which uses the mathematical precepts of <ref type="bibr" target="#b1">Alard &amp; Lupton (1998)</ref>; <ref type="bibr" target="#b13">Miller et al. (2008)</ref>, and has already been tested on numerous wide-field telescope systems during the past five years. The pipeline has met the nominal precision floor for each system from which data have been fully reduced and published (see <ref type="figure" target="#fig_0">Figure 1</ref>, top). These systems have ranged in pixel scales from 0. <ref type="bibr">24 /pix (Díaz et al. 2016</ref>) to 15 /pix ( <ref type="bibr" target="#b15">Oelkers et al. 2015</ref>) for published data, and up to 21 /pix in private testing with unofficial TESS FFIs (Berta-Thompson, 2016 private communication, SPyFFI pipeline).</p><p>The pipeline was originally designed to reduce data from the Chinese Small Telescope ARray (hereafter, CSTAR) ( <ref type="bibr" target="#b31">Zhou et al. 2010;</ref><ref type="bibr" target="#b15">Oelkers et al. 2015</ref>). CSTAR was a small-aperture (∼ 14.5 cm), wide-field (∼20 deg 2 ) telescope that was deployed to Dome-A in Antarctica during the Antarctic winters of <ref type="bibr">2008, 2009, and 2010</ref>. The telescope collected more than 10 6 images of nearly continuous time-series photometry of the south celestial pole during each ∼ 6 month observing season. Data reductions of each season identified more than 100 new variable stars and transiting planet candidates ( <ref type="bibr" target="#b31">Zhou et al. 2010;</ref><ref type="bibr" target="#b29">Wang, L. et al. 2011</ref><ref type="bibr" target="#b30">Wang, L. et al. , 2013</ref><ref type="bibr" target="#b15">Oelkers et al. 2015</ref><ref type="bibr" target="#b15">Oelkers et al. , 2016b</ref>. While CSTAR represented a number of advances in its design and scientific results, the system was not without its limitations. The 2009 observing season had a number of technical issues that greatly stressed the data reduction ( <ref type="bibr" target="#b15">Oelkers et al. 2015</ref>). The most prominent feature of the data set was the defocused PSF that persisted through all three working cameras, which led We describe the basic routines below and identify specific IDL and PYTHON routines where appropriate. The pipeline typically fully reduces a single TESS FFI (from background subtraction to light curve extraction) in 3 min using Intel Quad-Core Xeon 2.33GHz/2.8GHz processors, and the parameters described in this work.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Background Subtraction and Image Alignment</head><p>The fully calibrated FFIs exhibited a low-frequency residual sky background, which is meant to represent the zodiacal background and faint contamination from galaxies and unresolved stars ( <ref type="bibr" target="#b25">Stassun et al. 2017</ref>). We applied a residual background subtraction following the approach of <ref type="bibr" target="#b30">Wang, L. et al. (2013)</ref>; <ref type="bibr" target="#b15">Oelkers et al. (2015)</ref>. The residual background model is constructed by sampling the sky background every 32 × 32 pixels over the entire CCD, excluding bad or saturated pixels. A model sky is then fit inside each box and interpolated between all boxes to make a "thin plate spline" <ref type="bibr" target="#b8">(Duchon 1976)</ref>. We used the IDL implementation GRID TPS and the PYTHON implementation of Rbf to make the splines that are then subtracted from every frame.</p><p>Difference imaging requires precise frame alignment in order to produce a proper subtraction. Slight variations caused by improperly aligned frames can contribute to poorly measured fluxes, which will introduce additional dispersion in the extracted light curves. While the TESS pointing is expected to be much better than 1 pixel, spacecraft jitter is likely and has been introduced into the simulated FFIs. We use the world coordinate solution (WCS) from the image headers to align the images using the IDL implementation of HASTROM and PYTHON implementation of HCONGRID with cubic-spline interpolation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">Master Frame Combination</head><p>A high-quality master frame is required to preserve the precision of the extracted photometry. Typically this frame is generated by median-combining many individual frames with high SNR and the best seeing, obtained throughout the observing campaign. We created our master frame by median combining all 1,348 images. To save machine memory, images are combined in sets of 50, producing 26 temporary master frames, which are then combined into a single final master frame.</p><p>Next, we identified all 106,399 stars in the TIC with TESS magnitude (T ) T &lt; 16 that were within the master frame field of view. We then calculated the curve of growth for a variety of aperture sizes, and selected the aperture radius that optimizes the flux calculation for the majority of the stars on the frame. We found this aperture size to be 2.5 pixels.</p><p>Fluxes for all stars were then extracted from the master frame using fixed-aperture photometry. We defined the zeropoint offset between the instrumental magnitude scale and the TIC magnitude scale as the median difference between the instrumental magnitude and the TIC T magnitude for all stars. We found the zeropoint to be 4.825 mag 1 .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.">Image Subtraction and Aperture Photometry</head><p>Typically, DIA routines use an adaptive kernel, K(x, y), defined as the combination of 2 or more Gaussians. While effective at modeling well-defined, circular PSFs, this kernel has difficulty properly fitting other PSF shapes, particularly for highly distorted stars near the edge of the frame ( <ref type="bibr" target="#b13">Miller et al. 2008</ref>). The TESS PSF varies quite significantly across the frame. Therefore, we used a Dirac δ-function kernel to compensate for the non-circular, irregular PSF shape. We defined the kernel as</p><formula xml:id="formula_0">K(x, y) = w α=−w w β=−w c α,β (x, y)K α,β (u, v)<label>(1)</label></formula><p>where K α,β is a combination of (2w + 1) 2 δ-function basis vectors and K 0,0 is the centered δ function ( <ref type="bibr" target="#b13">Miller et al. 2008</ref>). We defined our basis vectors to ensure a constant photometric flux ratio between images (Alard 2000; <ref type="bibr" target="#b13">Miller et al. 2008</ref>). In the case of α = 0 and β = 0,</p><formula xml:id="formula_1">K α,β (u, v) = δ(u − α, v − β) − δ(u, v)<label>(2)</label></formula><p>while for α = 0 and β = 0,</p><formula xml:id="formula_2">K 0,0 (u, v) = δ(u, v).<label>(3)</label></formula><p>Stamps are taken around at most 500 bright, isolated stars to solve for the coefficients c α,β (x, y) using the leastsquares method. We allowed c 0,0 (x, y) to be spatially variable to compensate for imperfect flat-field corrections. Stars are identified as suitable candidates for stamps provided their measured photometric error was &lt; 50 mmag and there were no other, brighter stars within 3 pixels of the target star. We found that we could use a 5 × 5 pixel kernel across the frame without appreciably affecting the quality of the subtraction, but significantly reducing the runtime.</p><p>We set the photometric extraction aperture at a 2.5 pixel radius (52.5 ) and set the image background to be the value determined in § 3.1. The differential flux was then combined with the flux from the reference frame, and zero-pointed using the offset described above. Finally, the photometric errors were re-scaled following a methodology similar to <ref type="bibr" target="#b10">Kaluzny et al. (1998)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4.">Light Curve Detrending</head><p>Some low-level systematics persisted in the extracted light curves, even with the care taken to properly pre-process and difference the images. While the exact source of these systematics is unknown, the likely explanations include improper image alignment, imperfect stellar stamp selection, minor variations in the calibration process, or a combination of these and other factors.</p><p>We opted to remove (detrend) these systematics from the photometry using an ensemble of light curves to craft a model of non-astrophysical signals. First, for each star, we identified the 1,000 closest stars of similar magnitude (∼ ±0.1 mag). Then we identify a subset of stars which, when subtracted from the light curve, decrease the rootmean-square (rms) variations of the light curve by at least 10%. Stars that do not decrease the rms are discarded from the model. If no comparison stars were found to decrease the rms of the target star, then no detrending was applied. If multiple trend stars were found to decrease the rms of the target light curve, then they were median combined into a master model. During this process, we noticed that many stars exhibited abrupt changes in magnitude, typically after 48 observations-which is 1 d given the 30-min FFI candence. These changes in magnitude may represent the jitter that was added to the images to simulate mechanical effects. We removed these offsets by subtracting subsequent data points in a given trend model, and identifying observations where the deviation between data points was larger than 5σ of the mean deviation between data points. Each subsection of the trend model was then scaled to match the median magnitude of the light curve during this subset. However, if subtracting the scaled trend did not improve the rms by more than 5%, the trend during this subsection of the light curve was not scaled. This was done to ensure that true astrophysical signals would not be removed in the detrending routine. <ref type="figure">Figure 2</ref> shows an example of this detrending and its proficiency at removing non-astrophysical signals. While the detrending routine was proficient at reducing the rms of many stars, there were still stars that failed the detrending process (see <ref type="figure">Figure 2</ref>, right). We mention these artifact signals as a caution, but note that these events are uncommon in our tests and likely affect ∼2% of stars. TIC-ID: 458491215 <ref type="figure">Figure 2</ref>. Two light curves from the simulated data set, before (top) and after (bottom) undergoing the detrending process. Typical photometric uncertainties are shown on the bottom right of each bottom panel. The model trend (red line) is built from a set of stars with similar magnitude that produce at least a 10% improvement in the star's rms. While the star on the left is visibly cleaned by the detrending process, the star on the right still suffers from systematics; we estimate such systematics persist in ∼2% of light curves.</p><p>Of course, systematics typically vary greatly between systems, and the systematics of the simulated FFIs analyzed here may not fully capture the full systematics of the final, true FFIs after TESS launch. Therefore, we propose several methods that users can implement, and which we plan to include with the final release of the FFI data products. These methods include:</p><p>• Position based detrending: While the pointing of the telescope is expected to be exceptional, it will not be immune to slight corrections for drift. One can use the correlation of time and a star's x, y position to remove trends which appear as the star's centroid shifts from pixel to pixel. This can also be done for sub-pixel movement ( <ref type="bibr" target="#b30">Wang, L. et al. 2013;</ref><ref type="bibr" target="#b28">Vanderburg &amp; Johnson 2014</ref>).</p><p>• Magnitude-based detrending: This method loosely follows the plan we outline above. Stars of similar magnitude can be combined to make a model of variations that are not astrophysical in nature. Typically, two stars of similar magnitude should not vary in identical astrophysical patterns between images, even if they were the same spectral type or variable type.</p><p>• Fourier-based detrending: By investigating the power spectrum of the light curve, multiple stars may show similar periods, or aliases of similar periods. These stars could be combined to create a trend pattern, if the period is known a priori to be spurious.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">RESULTS: PIPELINE DEMONSTRATION WITH THE SIMULATED FULL FRAME IMAGES</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">Performance of the δ Function Kernel</head><p>The quality of a differenced image can be quantified using stars that cleanly subtract in an image. Specifically, the quality of a differenced frame can be described by assessing the degree to which the deviations left in the differenced frame match the expectations for the noise from the science frame and the master frame <ref type="bibr" target="#b0">(Alard 2000)</ref>.</p><p>To show that our differenced frames match the expectations for the noise, we select a frame and normalize each pixel value by the combination of the noise from the science frame and the master frame. We defined the expected noise 2 as: δ = (I N + R N ), where I N is the photon counts in the science image and R N are the photon counts in the master frame. If the subtraction generally matches the expectations from Poisson noise, the normalized pixels should show a Gaussian distribution centered at 0 with a standard deviation of 1. <ref type="figure" target="#fig_1">Figure 3</ref> shows the histogram of pixel values for a typical differenced frame normalized by δ. The normalized residuals show a mean of 0.122 and a standard deviation of 0.98. We accept this as sufficient evidence that the residuals in the differenced frame is closely matching the expected Poisson noise. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.">Light Curve Precision</head><p>Next, we compared our resulting light curves to the current models of expected TESS precision as a function of stellar magnitude. In particular, we use the original noise model from <ref type="bibr" target="#b21">Ricker et al. (2014)</ref>; <ref type="bibr" target="#b27">Sullivan et al. (2015)</ref> and the updated noise model from <ref type="bibr">Pepper et al. (2018, in preparation)</ref>. These models incorporate shot noise from the star, sky background (in the case of TESS, contamination from zodiacal light, unresolved stars, and background galaxies), the read noise of the detector, and a mission-specified noise floor of 60 ppm on 1-hr timescales. <ref type="bibr">Pepper et al. (2018, in preparation)</ref> included an additional estimation of the contamination by nearby stars, which we have excluded from our model because this effect is present in the simulated FFI data through physical contamination, and is manifested in our analysis by stars that deviate from the expected noise floor. These noise models differ quite substantially, particularly in the sky-dominated regime. This is principally because <ref type="bibr" target="#b21">Ricker et al. (2014)</ref>; <ref type="bibr" target="#b27">Sullivan et al. (2015)</ref> used an initial optimal-aperture size estimate, while <ref type="bibr">Pepper et al. (2018, in preparation)</ref> uses an updated optimal aperture model based on lab testing of the cameras. We adopt the <ref type="bibr">Pepper et al. (2018, in preparation)</ref> model as a more up-to-date estimation of the photometric precision 3 , but we include both models for comparison.</p><p>As shown in <ref type="figure" target="#fig_0">Figure 1</ref> (bottom left), our pipeline very satisfactorily reproduces the expected noise floor of <ref type="bibr">Pepper et al. (2018, in preparation)</ref>; the noise floor model matches the lower envelope of stars, representing non-variable objects. Stars above the lower envelope noise floor are interpreted to represent variable objects of various types (see below).</p><p>Wide-field imagers typically have a PSF that is largely dependent on the location of the stars on the detector, and the severity of the non-circular PSF shape can be exacerbated near the edges of the frame ( <ref type="bibr" target="#b19">Pepper et al. 2007</ref>). Since the shape of the PSF is largely position-dependent on the simulated FFIs, we checked 1024 × 1024 pixel subimages in the four CCD corners to see if the precision changed as a function of detector position. As shown in <ref type="figure" target="#fig_0">Figure 1</ref> (lower right) there is no appreciable difference on any part of the frame.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3.">Identifying Variable Stars and Transiting Planet Candidates</head><p>The data release notes for the simulated FFIs indicate that several hundred variable-star and planet-transit signatures were injected into the FFIs to enable checks of signal recoverability. We searched for stars in the simulated data that showed stellar variability and/or transit candidates using the variability metrics of ( <ref type="bibr" target="#b16">Oelkers et al. 2018</ref>), a basic Lomb-Scargle periodicity search <ref type="bibr" target="#b12">(Lomb 1976;</ref><ref type="bibr">Scargle 1982, LS;</ref><ref type="bibr">)</ref>, and the box-least-square (BLS; <ref type="bibr" target="#b11">Kovács et al. 2002)</ref> algorithm to identify transit-like events.</p><p>The variability metrics of <ref type="bibr" target="#b16">Oelkers et al. (2018)</ref> were shown to work well to identify stars with large amplitude variability in time-series data. We calculated the metrics <ref type="bibr" target="#b26">(Stetson 1996;</ref><ref type="bibr" target="#b30">Wang, L. et al. 2013</ref>, rms, ∆90, Welch-Stetson J and L;) for every star in the frame, and each star has their specific metric values compared to stars of similar magnitude (for rms and ∆90 metrics) or to the entire field (for J and L metrics). Stars that have metric values larger than a threshold (typically +2σ for rms and ∆90; and +3sσ for J and L) are considered variable. We visually inspected light curves that passed these thresholds and have plotted example stars that appear to have had variability injected into their light curves in <ref type="figure">Figure 4</ref>. The metric values calculated for every star are included in our data release.</p><p>We identified periodic signals using two methods. First, we ran a basic LS search <ref type="bibr" target="#b12">(Lomb 1976;</ref><ref type="bibr" target="#b23">Scargle 1982)</ref> for periods between 0.01 d and 27 d. We then visually inspected light curves of stars with unique periods, and an SNR for the LS period of &gt; +3σ greater than the mean SNR for the entire field. Second, we ran a BLS search ( <ref type="bibr" target="#b11">Kovács et al. 2002)</ref> for periods between 0.3 d and 27 d with 10000 frequency steps and 100 phase bins. We selected stars for visual inspection if their signal-detection-efficiency (SDE) values were larger than &gt; +2σ of the mean SDE value for the field, and if the target period has less than 50 stars with an identical period. Typically, heuristic cutoffs will be identified using the data from the entire frame to identify the most likely astrophysical events. However, because events were injected into a small number of stars (&lt; 15, 000 over all 16 CCDs), and we currently do not have a list of all objects with injected signals, we settled for a basic cut on period and visual identification for quality testing purposes. In the future, we plan to detect events using a methodology similar to previous work ( <ref type="bibr" target="#b29">Wang, L. et al. 2011</ref><ref type="bibr" target="#b30">Wang, L. et al. , 2013</ref><ref type="bibr" target="#b22">Rodriguez et al. 2017;</ref><ref type="bibr" target="#b2">Ansdell et al. 2018;</ref><ref type="bibr" target="#b16">Oelkers et al. 2018</ref>). We identified several possible planet-transit candidates, and have plotted two such candidates in <ref type="figure">Figure 4</ref>.</p><p>Using the metric above, we identified 2,275 stars with a possible variable signal, 64 stars with significant LS periods, and 64 stars with significant BLS periods based on the above metrics. Some objects found with the variability search were also identified as poorly detrended stars. We caution that until we know for certain which stars were actually injected with the variable and transit-like signals, some of the identified events could be spurious. In any case, we include all calculated metrics in our data release portal (see below) to allow users to experiment with the data using different significance thresholds.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">SUMMARY</head><p>We have presented a data reduction pipeline that has been adapted for TESS FFIs. The pipeline includes routines for background subtraction, image alignment, master frame combination, difference imaging, aperture photometry, and magnitude-based trend removal. The final precision of the produced light curves has been shown to match the expected photometric precision of the detector. Finally, a variety of injected astrophysical variables and transit signatures have been identified.</p><p>The full pipeline described in this paper is currently available for download through a GITHUB repository at the URL https://github.com/ryanoelkers/DIA/. We have tested the routines on multiple computers with multiple data sets, and we believe the code can be readily used as is or adapted. Some external libraries are required, and we list them with the README file at the repository. The pipeline is currently in a 'version zero' state, and users should expect the pipeline to be updated and improved prior to the public release of TESS data from the first observed sector, expected for late 2018.</p><p>We encourage adaptation of the code, and we encourage users to cite this work as well as Alard <ref type="formula" target="#formula_1">(2000)</ref>; <ref type="bibr" target="#b1">Alard &amp; Lupton (1998);</ref><ref type="bibr" target="#b13">Miller et al. (2008)</ref>; <ref type="bibr" target="#b15">Oelkers et al. (2015)</ref> given the large contributions of those works to the formulation of the pipeline presented here.</p><p>We plan to use our pipeline to reduce TESS FFIs and we will release all data products to the public on a rapid timescale 4 . All data products will be released through the Filtergraph visualization portal at the URL https:// filtergraph.com/tess_ffi. Users will be able to use the portal to access TIC information for the extracted stars, light curve data files, image files of light curves, and links to Simbad and Aladin for each star. We will also provide basic variability information calculated for each light curve using the metrics from ( <ref type="bibr" target="#b16">Oelkers et al. 2018)</ref>, and periodicity information using a Lomb-Scargle analysis <ref type="bibr" target="#b12">(Lomb 1976;</ref><ref type="bibr" target="#b23">Scargle 1982)</ref>, as well as a best fit box-least-square period ( <ref type="bibr" target="#b11">Kovács et al. 2002)</ref>. We encourage readers to visit the Filtergraph URL even in advance of the first sector data release to see an example of the data release using the data from this work, and welcome suggestions for how the data release can be improved in the future.   <ref type="figure">Figure 4</ref>. Nine representative light curves from the simulated data set: three likely simulated periodic variable stars (top row ); three likely simulated transit and detached binary candidates (middle row ); and three simulated large amplitude variable stars (bottom row ). We caution that until we know which stars were indeed injected with variable and transit like signatures some of our identified variable objects may later be determined to be spurious. Phase light curves have been phase-folded and plotted twice for clarity, but not binned. If the recovered period was shown to be an alias of the true period, we phased the light curve on the true period, and not the alias. Representative photometric error bars can be seen at the bottom right of each panel.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 .</head><label>1</label><figDesc>Figure 1. (Top:) The achieved rms with the pipeline for 6.4 /pix (Oelkers et al. 2016a); the 2009-CSTAR data set with a 15 /pix with a de-focused PSF Oelkers et al. (2015, 2016b); and initial testing with the SPyFFI images with ∼ 21 /pix (Berta-Thompson, 2016 private communication, SPyFFI data).(Bottom Left:) The achieved rms for the pipeline described in this work with ETE-6 simulated TESS data. The red line shows the expected TESS photometric precision from Pepper et al. (2018, in preparation) and the dashed line shows the expected TESS photometric precision from Sullivan et al. (2015). A small fraction (∼2%) of stars, which were over-fit by the detrending routine, are plotted as small black dots under the red line (Bottom Right:) The achieved rms as a function of position on the detector. An example PSF is shown in the inset of each panel to demonstrate the changing PSF shape. No discernible difference can be seen between the precision of the light curves as a function of position on the frame.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 3 .</head><label>3</label><figDesc>Figure 3. 150 × 150 pixel (52.5 × 52.5 ) cutouts of a typical science frame (left) and differenced frame (center ). The color has been inverted on each frame for clarity. The majority of the stars on the differenced frame either subtract cleanly or show uncorrelated residuals. The red arrows point to an area of correlated positive residuals suggesting a possible variable object. (Right:) The normalized histogram of differenced pixel values on the differenced frame (black line) with an over-plotted Gaussian of σ = 1 (red line). The normalized distribution and Gaussian match quite well, suggesting the noise in the differenced frame is meeting the expectation.</figDesc></figure>
+
+			<note place="foot" n="1"> We note that for a small number of stars we found a different median zeropoint offset that was ∼0.75 mag brighter than the offset above. This suggests a second star of roughly equal brightness is present in the simulated FFIs at the same location, even though only one TIC object exists at that location. This 0.75 mag different offset was found only around some, but not all, bright stars, T &lt; 11. Therefore, we accepted the zeropoint offset that was consistent with the majority of stars (Stassun et al. 2017).</note>
+
+			<note place="foot" n="2"> This definition differs slightly from the (Alard 2000) model, which uses the convolved master frame noise. We found the two models do not produce significantly different results and therefore accepted the simpler of the two for our analysis.</note>
+
+			<note place="foot" n="3"> We note that we smoothed the fourth-order estimate of the optimal aperture from Pepper et al. (2018, in preparation) for our analysis, because we wanted to remove the structure it created in the final model.</note>
+
+			<note place="foot" n="4"> Currently, we estimate this will be approximately 1-2 weeks after a TESS public data release given our current computing resources.</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Alard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;AS</title>
+		<imprint>
+			<biblScope unit="volume">144</biblScope>
+			<biblScope unit="page">363</biblScope>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Alard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">H</forename><surname>Lupton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">503</biblScope>
+			<biblScope unit="page">325</biblScope>
+			<date type="published" when="1998" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Ansdell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Oelkers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">E</forename><surname>Rodriguez</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">473</biblScope>
+			<biblScope unit="page">1231</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">´ A</forename><surname>Bakos</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Lázár</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Papp</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Sári</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">M</forename><surname>Green</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">114</biblScope>
+			<biblScope unit="page">974</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Borucki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Koch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Basri</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">327</biblScope>
+			<biblScope unit="page">977</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">T</forename><surname>Bryson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Jenkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J</forename><surname>Peters</surname></persName>
+		</author>
+		<title level="m">Proc. SPIE</title>
+		<meeting>SPIE</meeting>
+		<imprint>
+			<date type="published" when="2010" />
+			<biblScope unit="volume">7738</biblScope>
+			<biblScope unit="page">773808</biblScope>
+		</imprint>
+		<respStmt>
+			<orgName>Modeling, Systems Engineering, and Project Management for Astronomy IV</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Burger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">G</forename><surname>Stassun</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Pepper</surname></persName>
+		</author>
+		<title level="m">Astronomical Society of the Pacific Conference Series</title>
+		<editor>D. N. Friedel</editor>
+		<imprint>
+			<date type="published" when="2013" />
+			<biblScope unit="volume">475</biblScope>
+			<biblScope unit="page">399</biblScope>
+		</imprint>
+	</monogr>
+	<note>Astronomical Data Analysis Software and Systems XXII</note>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">C</forename><surname>Díaz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Beroiz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Peñuela</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJL</title>
+		<imprint>
+			<biblScope unit="volume">828</biblScope>
+			<biblScope unit="page">16</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Duchon</surname></persName>
+		</author>
+		<title level="m">ESAIM: Mathematical Modelling and Numerical Analysis -Modélisation Mathématique et Analyse Numérique</title>
+		<imprint>
+			<date type="published" when="1976" />
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="page">5</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Modeling and Systems Engineering for</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Jenkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J</forename><surname>Peters</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Murphy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proc. SPIE</title>
+		<editor>S. C. Craig &amp; M. J. Cullum</editor>
+		<meeting>SPIE</meeting>
+		<imprint>
+			<date type="published" when="2004" />
+			<biblScope unit="volume">5497</biblScope>
+			<biblScope unit="page" from="202" to="212" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Kaluzny</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">Z</forename><surname>Stanek</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Krockenberger</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">115</biblScope>
+			<biblScope unit="page">1016</biblScope>
+			<date type="published" when="1998" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Kovács</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Zucker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Mazeh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">391</biblScope>
+			<biblScope unit="page">369</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">R</forename><surname>Lomb</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Ap&amp;SS</title>
+		<imprint>
+			<biblScope unit="volume">39</biblScope>
+			<biblScope unit="page">447</biblScope>
+			<date type="published" when="1976" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Miller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">R</forename><surname>Pennypacker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">L</forename><surname>White</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">120</biblScope>
+			<biblScope unit="page">449</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Oelkers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">M</forename><surname>Macri</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Marshall</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">152</biblScope>
+			<biblScope unit="page">75</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Oelkers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">M</forename><surname>Macri</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Wang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">151</biblScope>
+			<biblScope unit="page">166</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+	<note>AJ</note>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Oelkers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">E</forename><surname>Rodriguez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">G</forename><surname>Stassun</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">155</biblScope>
+			<biblScope unit="page">39</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Pepper</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gould</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">L</forename><surname>Depoy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AcA</title>
+		<imprint>
+			<biblScope unit="volume">53</biblScope>
+			<biblScope unit="page">213</biblScope>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Pepper</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">B</forename><surname>Kuhn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Siverd</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>James</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Stassun</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">124</biblScope>
+			<biblScope unit="page">230</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Pepper</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">W</forename><surname>Pogge</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">L</forename><surname>Depoy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">119</biblScope>
+			<biblScope unit="page">923</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">L</forename><surname>Pollacco</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Skillen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Collier Cameron</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">118</biblScope>
+			<biblScope unit="page">1407</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">R</forename><surname>Ricker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">N</forename><surname>Winn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Vanderspek</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proc. SPIE</title>
+		<meeting>SPIE</meeting>
+		<imprint>
+			<publisher>Optical, Infrared, and Millimeter Wave</publisher>
+			<date type="published" when="2014" />
+			<biblScope unit="volume">9143</biblScope>
+			<biblScope unit="page">914320</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">E</forename><surname>Rodriguez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Ansdell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Oelkers</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">848</biblScope>
+			<biblScope unit="page">97</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Scargle</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">263</biblScope>
+			<biblScope unit="page">835</biblScope>
+			<date type="published" when="1982" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Siverd</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">G</forename><surname>Beatty</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Pepper</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">761</biblScope>
+			<biblScope unit="page">123</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">G</forename><surname>Stassun</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Oelkers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Pepper</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1706.00495</idno>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+<note type="report_type">ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">B</forename><surname>Stetson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">108</biblScope>
+			<biblScope unit="page">851</biblScope>
+			<date type="published" when="1996" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">W</forename><surname>Sullivan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">N</forename><surname>Winn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><forename type="middle">K</forename><surname>Berta-Thompson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">809</biblScope>
+			<biblScope unit="page">77</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vanderburg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Johnson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">126</biblScope>
+			<biblScope unit="page">948</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">M</forename><surname>Macri</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Krisciunas</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">142</biblScope>
+			<biblScope unit="page">155</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">M</forename><surname>Macri</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Wang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">146</biblScope>
+			<biblScope unit="page">139</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Zhou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Fan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Jiang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">122</biblScope>
+			<biblScope unit="page">347</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

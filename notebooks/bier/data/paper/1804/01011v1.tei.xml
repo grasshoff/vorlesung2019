@@ -1,0 +1,1131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2019-01-22T13:35+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Efficient, Nonlinear Phase Estimation with the Non-Modulated Pyramid Wavefront Sensor</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2018-04-02">2 Apr 2018</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Richard</forename><forename type="middle">A</forename><surname>Frazin</surname></persName>
+							<email>rfrazin@umich.edu</email>
+							<affiliation key="aff0">
+								<orgName type="department">Dept. of Climate and Space Sciences and Engineering</orgName>
+								<orgName type="institution">University of Michigan</orgName>
+								<address>
+									<postCode>48109</postCode>
+									<settlement>Ann Arbor</settlement>
+									<region>MI</region>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Efficient, Nonlinear Phase Estimation with the Non-Modulated Pyramid Wavefront Sensor</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2018-04-02">2 Apr 2018</date>
+						</imprint>
+					</monogr>
+					<idno type="DOI">10.1364/ao.XX.XXXXXX</idno>
+					<note type="submission">Compiled April 4, 2018</note>
+					<note>Research Article Journal of the Optical Society of America A 1</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>OCIS codes: 0101080 Adaptive Optics, 0107350 Wavefront Sensing</keywords>
+			</textClass>
+			<abstract>
+				<p>The sensitivity of the the pyramid wavefront sensor (PyWFS) has made it a popular choice for astronomical adaptive optics (AAO) systems. The PyWFS is at its most sensitive when it is used without modulation of the input beam. In non-modulated mode, the device is highly nonlinear. Hence, all PyWFS implementations on current AAO systems employ modulation to make the device more linear. The upcoming era of 30-m class telescopes and the demand for ultra-precise wavefront control stemming from science objectives that include direct imaging of exoplanets make using the PyWFS without modulation desirable. This article argues that nonlinear estimation based on Newton&apos;s method for nonlinear optimization can be useful for mitigating the effects of nonlinearity in the non-modulated PyWFS. The proposed approach requires all optical modeling to be pre-computed, which has the advantage of avoiding real-time simulations of beam propagation. Further, the required real-time calculations are amenable to massively parallel computation. Numerical experiments simulate a PyWFS with faces sloped 3.7 • to the horizontal, operating at a wavelength of 0.85 µm, and with an index of refraction of 1.45. A singular value analysis shows that the common practice of calculating two &quot;slope&quot; images from the four PyWFS pupil images discards critical information and is unsuitable for the non-modulated PyWFS simulated here. Instead, this article advocates estimators that use the raw pixel values not only from the four geometrical images of the pupil, but from surrounding pixels as well. The simulations indicate that nonlinear estimation can be effective when the Strehl ratio of the input beam is greater than 0.3, and the improvement relative to linear estimation tends to increase at larger Strehl ratios. At Strehl ratios less than about 0.5, the performances of both the nonlinear and linear estimators are relatively insensitive to noise, since they are dominated by nonlinearity error.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">INTRODUCTION</head><p>The concept of creating a wavefront sensor for adaptive optics (AO) by focusing a telescope beam onto the vertex of a glass pyramid and then re-imaging the pupil with the light exiting the bottom of the pyramid is due to Ragazzoni. <ref type="bibr" target="#b0">[1]</ref> This has come to be known as the pyramid wavefront sensor (PyWFS), and its design is shown schematically in <ref type="figure" target="#fig_0">Fig. 1</ref>. In the standard configuration, the beam passes through a four-sided pyramid, and then a relay lens re-images the pupil, creating four images that carry information about the wavefront. Usually, the pyramid is a square pyramid, but other configurations have been considered. <ref type="bibr" target="#b1">[2]</ref><ref type="bibr" target="#b2">[3]</ref><ref type="bibr" target="#b3">[4]</ref><ref type="bibr" target="#b4">[5]</ref> The desirability of the PyWFS is due to the fact that it is much more sensitive (in terms of performance for a given guide-star magnitude) than the Shack-Hartmann array for low-order modes, and for high-order modes, it is equally sensitive. <ref type="bibr" target="#b5">[6]</ref><ref type="bibr" target="#b6">[7]</ref><ref type="bibr" target="#b7">[8]</ref><ref type="bibr" target="#b8">[9]</ref> The PyWFS' current status as the most promising and powerful type of wavefront sensor for AO was achieved with release of the unprecedented results produced by the First Light AO system on the Large Binocular Telescope, which routinely delivers Strehl ratios greater than 0.8 in the H-band. <ref type="bibr" target="#b9">[10,</ref><ref type="bibr" target="#b10">11]</ref> The PyWFS has become the wavefront sensor of choice in much of the AO community, and is currently employed by MagAO, SCExAO, and the First Light Adaptive Optics (FLAO) system, among others. <ref type="bibr" target="#b10">[11]</ref><ref type="bibr" target="#b11">[12]</ref><ref type="bibr" target="#b12">[13]</ref> Development of PyWFS technology continues to be high priority research, as the European Extremely Large Telescope (E-ELT), the Giant Magellan Telescope (GMT) and the Thirty Meter Telescope (TMT), all members of the coming generation of 30-meter class telescopes, plan to utilize the PyWFS for their AO programs. <ref type="bibr" target="#b13">[14]</ref><ref type="bibr" target="#b14">[15]</ref><ref type="bibr" target="#b15">[16]</ref> A necessary consequence of the high sensitivity of the Py-WFS is nonlinearity, meaning the intensity seen by the PyWFS detector is nonlinear in the phase of the wavefront. In order to reduce the nonlinearity, all current implementations of the PyWFS use dynamic modulation of the input beam, in which the focal point is steered around the tip of the pyramid with a period at least several times shorter than the exposure time. <ref type="bibr" target="#b0">[1]</ref> This practice indeed improves the linearity range of the device, but at the expense of sensitivity. <ref type="bibr" target="#b17">[18,</ref><ref type="bibr" target="#b18">19]</ref> In the context of multiconjugate AO, Ref. <ref type="bibr" target="#b19">[20]</ref> proposes the Very Linear Wavefront Sensor, which operates on a locally closed loop to bring the signal into the linear regime. Ref. <ref type="bibr" target="#b20">[21]</ref> proposes treating nonlinearity by measuring the nonlinear response to various wavefront modes deliberately imposed on the beam via DM commands. This scheme cannot treat the fact that the nonlinear response will depend on the instantaneous shape of the wavefront and this effect must be negligible for it to be successful. We note that several groups have proposed using spatial light modulators in lieu of mechanical beam steering. <ref type="bibr" target="#b21">[22,</ref><ref type="bibr" target="#b22">23]</ref> The loss in sensitivity caused by the modulation may not be acceptable for the needs of so-called "extreme AO" (ExAO). <ref type="bibr" target="#b23">[24]</ref> That is why several groups, including the GMT team, hope to use the PyWFS without modulation, using a scheme in which the control loop is first closed while employing modulation, and then the modulation would be turned off. <ref type="bibr" target="#b24">[25]</ref> In these applications, it is likely that the PyWFS will receive a beam that has been partially corrected by atmospheric distortion by a first-stage AO system. The two-stage AO scheme is currently employed by several extreme AO systems including SCExAO, which takes the beam after it has passed through the Subaru telescope's AO188 system. <ref type="bibr" target="#b12">[13]</ref> This article argues that nonlinear estimation of the phase of the wavefront measured by the non-modulated PyWFS has the potential to be a useful component of such a scheme for ExAO, and that it is worthy of more detailed study.</p><p>The PyWFS is intractable analytically, and analytical results have relied on various simplifications and assumptions, including treating the pyramid faces as Foucault knife-edges and neglecting interference between the pupil images [e.g., <ref type="bibr" target="#b7">8,</ref><ref type="bibr" target="#b16">17,</ref><ref type="bibr" target="#b17">18]</ref>. Perhaps as a result of such studies, the PyWFS is often considered to be essentially a slope-sensor that can be treated as a Shack-Hartmann array, once the sum of one pair of images has been subtracted from the sum of the other pair. <ref type="bibr" target="#b16">[17]</ref> Later literature has discussed the fact that PyWFS is not simply a slope sensor. <ref type="bibr" target="#b1">[2,</ref><ref type="bibr" target="#b3">4]</ref> The first attempt (that we know of) to treat the nonlinearity in the PyWFS computationally was published by <ref type="bibr">Korkiakoski et al.[26]</ref> That paper is similar to the one here in that a forward model of the PyWFS based on Fourier optics is used to find a relationship between the measurements and the unknown phases, but it neglects interference between the beams exiting the pyramid; this interference effect is not negligible for the simulations presented below. The nonlinear estimation method in that article utilizes only the gradients of the PyWFS intensities, whereas one of the algorithms in this article utilizes a more powerful nonlinear solution method enabled by calculation of the Hessians of the intensities. Crucially, the paper by Korkiakoski et al. does not show how the gradient computations can be dramatically accelerated by pre-computation of the modeling calculations and efficient representation of the field in the pupil plane, as is done here.</p><p>Ref. <ref type="bibr" target="#b26">[27]</ref> provides a comprehensive review of reconstruction methods for the PyWFS and it also introduces two new reconstruction algorithms. The standard method for reconstruction is called matrix-vector multiplication, in which one pre-computes the (possibly regularized) inverse of a matrix that maps the deformable mirror (DM) commands to the intensity changes. All of the current reconstruction methods use a linear relationship between the sought-after quantities (i.e., phases or deformable mirror commands) and the intensity measurements. Almost all (closed-loop) implementations of the PyWFS employ a scheme in which the DM and PyWFS are calibrated only in reference to each other, i.e., the calibration measurements use intensity changes seen by the PyWFS detector in response to known DM commands. In contrast, the methods described here are enabled by a pre-computed and independently calibrated model of the PyWFS. One advantage of using such a pre-computed model is that no propagation computations are performed in real time, allowing time-consuming numerical methods for optical modeling to be employed. Specifically, we will show that the gradients and/or Hessians required by standard methods for nonlinear optimization can be implemented efficiently in a massively parallel fashion, making deployment on real-time AO control systems a realistic possibility.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">FOURIER OPTICS MODEL</head><p>One crucial feature of the wavefront estimation method presented here is that it can work with any numerical model used to simulate the pyramid wavefront sensor, with no consequences for the amount of real-time computation required. Indeed, the validity of the estimation method relies only on the linear relationship between the electric field at the detector and the electric field in the pupil plane, and this linearity will hold for any wavefront sensor so-far ever considered for AO. (Non- intensity (normalized units) image. bottom: A representation of the error due to neglecting interference between the beams in the simulation. The quantity displayed is log 10 [|I t − I a |/I t ], where I t is the true intensity calculated by the full simulation, and I a is an approximate intensity obtained by neglecting interference between the beams. Off of the four pupil images, one can see the effects of aliasing in the FFT-based propagation (as explained in the text, more sophisticated modeling is not a barrier to on-sky implementation). linear devices, such as optical parametric amplifiers, would violate the linearity assumption.) The numerical model employed here for the purpose of algorithm development is based on Fourier optics. <ref type="bibr" target="#b27">[28]</ref> In these simulations, the lenses are treated as thin phase-screens that act mathematically as Fourier transform operators. The required transforms are implemented numerically with discrete Fourier transforms (via an FFT algorithm). A Fourier optics treatment of the PyWFS was first published in Ref. <ref type="bibr" target="#b25">[26]</ref> and was later placed into a generalized framework in Refs. <ref type="bibr" target="#b3">[4,</ref><ref type="bibr" target="#b18">19]</ref>. A sophisticated ray-tracing tool for the PyWFS was presented in Ref. <ref type="bibr" target="#b28">[29]</ref>.</p><p>Consider quasi-monochromatic light at wavelength λ (wavenumber k = 2π/λ) impinging on the PyWFS entrance pupil A, and let the electric field in that pupil be represented by u 0 (r) where r is the two-dimensional (2D) spatial coordinate. This complex-valued field can be written in terms of its real-valued amplitude a 0 (r) and real-valued phase φ 0 (r) as u 0 (r) = a 0 (r) exp[jφ 0 (r)]. In a PyWFS, the entrance pupil light is brought to a focus with a lens of focal length f , and the field in the focal plane u f (r), apart from an inconsequential phase factor and a multiplicative constant, is given by <ref type="bibr" target="#b27">[28]</ref>:</p><formula xml:id="formula_0">u f (r) = A dr ′ u 0 (r ′ ) exp j − k f r ′ · r .<label>(1)</label></formula><p>The slope of the pyramid faces imparts a spatially variant phase shift to the field in the focal plane. Let us call this effect the phase ramp, denoted as ramp i (r), where i is the face index [so, for a square pyramid i = (0, 1, 2, 3)], and it is given by</p><formula xml:id="formula_1">ramp i (r) = exp −j2π(n − 1) ζ i (r) λ ,<label>(2)</label></formula><p>where n is the index of refraction of the pyramid glass, and ζ i (r) ≤ 0 is the height of the ith pyramid face relative to the horizontal. After the phase ramp is applied, the light propagates through the rest of the pyramid, exits the prism's bottom, and then encounters the collimator lens. The collimator lens re-images the pupil, but now there is one image of the pupil corresponding to each face of the pyramid (assuming the slope of the pyramid is great enough to separate them; see Ref.</p><p>[3] for a counter-example). The collimator lens essentially takes a second Fourier transform of the light, and the field on the detector is given by:</p><formula xml:id="formula_2">u d (s) = dr ramp(r)u f (r) exp j − k f r · s (3)</formula><p>where s is the 2D spatial coordinate in the detector plane, ramp(r ′ ) (without the index subscript) is the collection of all of the pyramid faces, and the focal length of the collimator lens is also taken to be f . The spatial limits of integration are taken to be infinite (since the field in the focal plane is essentially contained within any physical boundary of the apparatus). Combining Eqs.</p><p>(1) and <ref type="formula" target="#formula_35">(3)</ref> gives an expression for the pyramid operator P:</p><formula xml:id="formula_3">P u 0 (r), s = dr ′ ramp(r ′ ) exp j − k f r ′ · s × A dr u 0 (r) exp j − k f r · r ′ .<label>(4)</label></formula><p>Note that the pyramid operator is linear in u 0 (r), a fact that will prove critical in designing efficient estimation algorithms. Eq. (4) shows that the pyramid operator essentially takes two Fourier transforms of the pupil field (applying the phase ramp in between), thereby creating inverted images of the pupil. Then, the field impinging on the detector is conveniently reexpressed as:</p><formula xml:id="formula_4">u d (s) = P u 0 (r), s<label>(5)</label></formula><p>The intensity of the light on the detector surface is:</p><formula xml:id="formula_5">I d (s) = u d (s)u * d (s) = P u 0 (r), s P * u 0 (r), s ,<label>(6)</label></formula><p>where the superscript * signifies complex conjugation. The goal of wavefront sensing is, of course, to obtain information about the pupil field u 0 (r) from the measurements of the intensity I d (s). The sought-after information is usually the phase φ 0 (r), but the device is also sensitive to the amplitude a 0 (r), which also can be estimated under favorable conditions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">DISCRETIZATION OF THE MODEL</head><p>Any numerical model must relate the pupil field u 0 (r) at a discrete set of points {r k }, 0 ≤ k &lt; K − 1 to the detector field u d (s) at another discrete set of points {s l }, 0 ≤ l &lt; L − 1, where {r k } and {s l } are the sets of all such points in the model and K and L are the numbers of points in each set. Thus, the detector field at the point s l , u d (s l ), can be considered to be a function of the pupil field at each point in the set {r k }, and, using the pyramid operator Eq. (4), this can be expressed as:</p><formula xml:id="formula_6">u d (s l ) = P u 0 (r 0 ), . . . , u 0 (r K−1 ); s l ,<label>(7)</label></formula><p>where the pyramid operator has been taken to have a discrete implementation via some numerical model. It is useful to define a basis set on the points in the pupil {r k }. The basis vectors {e k }, 0 ≤ k &lt; K − 1 are defined as:</p><formula xml:id="formula_7">e k = (0, . . . , 0, 1, 0, . . . , 0) (8)</formula><p>where only the kth of K entries is nonzero. Then, via the linearity property of the pyramid operator, Eq. <ref type="formula" target="#formula_6">(7)</ref> can be written in terms of the basis vectors {e k } as:</p><formula xml:id="formula_8">u d (s l ) = K−1 ∑ k=0 u 0 (r k )P e k ; s l .<label>(9)</label></formula><p>Eq. <ref type="formula" target="#formula_8">(9)</ref> shows that once the pyramid operator has been evaluated for each of the basis vectors {e k }, the detector field can be calculated with very few operations, independently of the complexity of the optical model used to calculate the pyramid operator. Indeed, {P e k ; s l } can be stored as a L × K matrix, and then Eq. (9) can be carried out with a single (complexvalued) matrix-vector multiplication for any desired entrance pupil field represented as {u 0 (r k )}. For the purposes of discussing the algorithms in the remainder of this article, it will be assumed that the values of {P e k ; s l } have been stored and therefore require no computation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A. Pupil Field Representations</head><p>We have not specified how the pupil field {u 0 (r k )} will itself be represented, and below we present several options. Each representation expresses the set of field values {u 0 (r k )} in terms of N real-valued parameters {c n }. The first option is called the "PolarPixel" representation:</p><formula xml:id="formula_9">PolarPixel u 0 (r k ) = c k+K exp[j(c k )] , 0 ≤ k &lt; K − 1 ,<label>(10)</label></formula><p>in which c 0 through c K−1 represent the phases of the pupil field at each point in the set {r k } and c K through c 2K−1 represent the amplitudes, so the number of parameters is twice the number of pupil plane pixels, i.e., N = 2K. If the amplitude of the field is known (or perhaps measured by a scintillation monitor), or amplitude effects are ignored, then Eq. (10) can be simplified to produce the "PhasePixel" representation:</p><formula xml:id="formula_10">PhasePixel u 0 (r k ) = a k exp[j(c k )] , 0 ≤ k &lt; K − 1 ,<label>(11)</label></formula><p>where the (positive, real-valued) amplitudes a k are assumed to be known. If amplitude effects are ignored, then the a k can be set to the expected value of the magnitude of the pupil field, which can be estimated by summing up all of the counts on the detector to get a mean modulus of the pupil field and applying the appropriate calibrations. In the PhasePixel representation N = K (so, there is one parameter for each pupil plane pixel).</p><p>Another representation with similar efficiency advantages (to be described later) is called the "ReImPixel" representation, in which one models the real and imaginary parts of the field directly:</p><formula xml:id="formula_11">ReImPixel u 0 (r k ) = c k + jc k+K , 0 ≤ k &lt; K − 1 ,<label>(12)</label></formula><p>where the number of parameters is twice the number of pupil plane pixels, i.e., N = 2K. Thus, in the ReImPixel representation, the amplitude of the pupil plane field at point k is given by c 2 k + c 2 k+K and its phase is given by tan −1 (c k+K /c k ). In contrast to the pixel basis functions above, consider a modal representation of the phase (ignoring amplitude effects for simplicity), called "ModalPhase." In the ModalPhase representation, the phase is taken to be a linear combination of N modal functions {ψ n (r)}, such as Zernike polynomials, and the pupil plane field is given by:</p><formula xml:id="formula_12">ModalPhase u 0 (r k ) = a k exp j N−1 ∑ n=0 c n ψ n (r k ) (13)</formula><p>where the amplitudes {a k } are taken to be known as in the PhasePixel representation. Below, we will see that the ModalPhase representation carries a significant computational cost burden that the other representations described above do not share.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>B. Detector Intensity and its Derivatives</head><p>The estimation algorithms will require expressions for the derivatives of the intensity in the detector plane with respect to the parameters {c k }. The first step in calculating the intensity derivatives is to calculate the "field Jacobian," which is the derivative with respect to the parameters {c k } of the complexvalued electric field in the detector plane. Unless otherwise stated, all formulae given in the remainder of this article assume the PhasePixel representation, but corresponding expressions for the other representations can be derived similarly. The field and the field Jacobian are given by Eqs. (9) and (11), resulting in:</p><formula xml:id="formula_13">u d (s l ; c) = K−1 ∑ k=0 a k e jc k P e k ; s l , and<label>(14)</label></formula><formula xml:id="formula_14">∂ ∂c m u d (s l ; c) = ja m e jc m P e m ; s l .<label>(15)</label></formula><p>Thus, the field Jacobian can be calculated with only several times LN floating-point operations (FLOPs), where the reader will recall that K = N for the PhasePixel representation and the {a k } are taken to be known amplitudes. The most efficient way to calculate the field values in Eq. <ref type="formula" target="#formula_0">(14)</ref> is to calculate the field Jacobian from Eq. (15) first. Then, for each position s l , sum the corresponding N values of the gradient (multiplied by −j). Since elements of the field Jacobian can be calculated completely independently from each other, this can be implemented in parallel. The field Hessian, i.e., the second derivative matrix of the field at a given point in the detector plane s l , has a convenient property that follows directly from Eq. <ref type="formula" target="#formula_0">(15)</ref>:</p><formula xml:id="formula_15">∂ 2 ∂c n ∂c m u d (s l ; c) = 0 (m = n) .<label>(16)</label></formula><p>In order to appreciate the computational simplicity of the PhasePixel representation compared to the ModalPhase representation, consider the expressions equivalent to Eqs. <ref type="formula" target="#formula_0">(14)</ref> and <ref type="formula" target="#formula_0">(15)</ref> under the ModalPhase representation:</p><formula xml:id="formula_16">ModalPhase u d (s l ; c) = K−1 ∑ k=0 a k P e k ; s l exp j N−1 ∑ n=0 c n ψ n (r k ) (17) ModalPhase ∂ ∂c m u d (s l ; c) = j K−1 ∑ k=0 a k P e k ; s l × ψ m (r k ) exp j N−1 ∑ n=0 c n ψ n (r k ) .<label>(18)</label></formula><p>In particular, one should note the double summation in Eq. <ref type="formula" target="#formula_0">(18)</ref>, as opposed to no summations in Eq. <ref type="formula" target="#formula_0">(15)</ref>. Unlike the PhasePixel representation [see Eq. <ref type="formula" target="#formula_0">(16)</ref>], the off-diagonal elements of the field Hessian under the ModalPhase representation are nonzero, and their cumbersome formula is not given here. Next, we derive expressions for the derivatives of the intensity in the detector plane with respect to the unknown parameters {c k } under the PhasePixel representation. The intensity at the detector is given by</p><formula xml:id="formula_17">u d (s l ; c)u * d (s l ; c)</formula><p>, and the intensity Jacobian is calculated easily with the help of Eq. <ref type="formula" target="#formula_0">(15)</ref>:</p><formula xml:id="formula_18">∂ ∂c m I d (s l ; c) = ∂ ∂c m u d (s l ; c) u * d (s l ; c) + c.c. ,<label>(19)</label></formula><p>where "c.c." indicates the complex conjugate of all preceding terms. Note that for any quantity h, h + c.c. = 2ℜ(h), where ℜ(h) is the real part of h [the imaginary part of h is denoted by ℑ(h)]. This shows that calculating the L × M intensity Jacobian requires little more computation, once the field Jacobian has been calculated from Eq. (15). The Hessian matrix of the intensity at the point s k is given by differentiating Eq. <ref type="formula" target="#formula_0">(19)</ref> with the help of Eqs. <ref type="formula" target="#formula_0">(14)</ref> through <ref type="formula" target="#formula_0">(16)</ref>:</p><formula xml:id="formula_19">∂ 2 ∂c n ∂c m I d (s l ; c) = ∂ ∂c m u d (s l ; c) ∂ ∂c n u d (s l ; c) * + c.c. (m = n) (20) ∂ 2 ∂c 2 m I d (s l ; c) = ∂ ∂c m u d (s l ; c) 2 + ∂ 2 ∂c 2 m u d (s l ; c) u * d (s l ; c) + c.c.<label>(21)</label></formula><p>Note that the intensity Hessian in Eqs. <ref type="formula" target="#formula_1">(20)</ref> and <ref type="formula" target="#formula_0">(21)</ref> is calculated with little more effort, given the already determined values of the field Jacobian in Eq. <ref type="formula" target="#formula_0">(15)</ref>. Each of the L detector plane positions {s k } has a N × N Hessian matrix associated with it, each of which has (N 2 + N)/2 unique elements (due to symmetry), for a total of L(N 2 + N)/2 elements needed to specify the Hessian at every position in the detector plane. According to <ref type="bibr">Eq. (20)</ref>, each of these L(N 2 + N)/2 quantities can be calculated with only a few FLOPs, and it is clear that this task can be achieved in a massively parallel manner, since the computation of these elements can be performed independently. It is worth remarking that much more computation would be required to calculate the Hessian in the ModalPhase representation for a comparable value of N, as can be seen by Eq. <ref type="formula" target="#formula_0">(17)</ref> and considering the steps needed to derive the equations corresponding to Eqs. <ref type="formula" target="#formula_0">(19)</ref> through <ref type="formula" target="#formula_0">(21)</ref>. In contrast, the PolarPixel and ReImPixel representations have N = 2K (instead of N = K), but otherwise have similar computational complexity to the PhasePixel representation. </p><formula xml:id="formula_20">item size × + exp P e k ; s l NL p p p ∂ ∂c m u d (s l ; c) NL 2NL 0 N u d (s l , c) L NL NL 0 I d (s l , c) L L 0 0 ∂ ∂c m I d (s l ; c) NL NL 0 0 ∂ 2 ∂c n ∂c m I d (s l ; c) N 2 L/2 N 2 L/2 † 0 0</formula><formula xml:id="formula_21">= 1).</formula><p>There are L pixels in the detector plane and N phases to be estimated, and typical numbers may be L ≈ 10 4 and N ≈ 10 3 . The symbol "p" means "pre-computed," so that real-time constraints do not apply. The operations counts for an item assume that computations for any items listed above it are re-used where possible. For example, the second item in the table is u d (s l , c), and the values given are for the entire set {u d (s l , c)}. In this case, the quantities given would be L times that required for evaluating it only at the point s l . This table gives arithmetic operations on complex numbers the same weight as real-valued numbers. † Does not include the possible benefit of sparsity in the intensity Hessian discussed in Section 3.C.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>C. Effective Sparsity of the Hessian Matrices</head><p>Nonlinear estimation based on Newton's method for optimization requires the Hessian of the cost function, which will require calculations of the Hessians of the intensities at the individual detector pixels. Calculating the Hessian matrix for each of the L locations {s l } on the detector requires determining L(N 2 + N)/2 quantities. Even though the matrix elements in Eqs. <ref type="formula" target="#formula_1">(20)</ref> and <ref type="formula" target="#formula_0">(21)</ref> can be calculated with only a few FLOPs (once the field Jacobian has been calculated), nevertheless, this could be a daunting task under real-time constraints. Approximation of the Hessian of the intensity at a given pixel by a sparse matrix may be a useful strategy to speed real-time computation.</p><p>The sparsity pattern will depend on the pixel index l, but it can be pre-computed, since the particular values of the parameters {c k } only serve to rotate the field Jacobian values in the complex plane <ref type="bibr">[see Eqs. (15)</ref> and <ref type="formula" target="#formula_1">(20)</ref>]. In order to gain a first look at the effective sparsity of one of these Hessian matrices, we used the PyWFS simulations described later to examine the Hessian matrix associated with the intensity at the central pixel in the upper-left pupil image (see <ref type="figure" target="#fig_1">Fig. 2</ref>). Let us denote that pixel with the index l. The sparsity was evaluated on the matrix &lt; |H l | &gt;, which is the absolute value of each matrix element averaged over 100 random realizations of the parameters {c k }. In each of the 100 random realizations, all of the N values of {c k } were given (independent) random values between 0 and 2π. If h max l represents the largest entry in &lt; |H l | &gt;, we found that about 0.51% of the matrix elements are greater than 0.01h max l and 5.7% of them are greater than 0.001h max l .</p><p>Determining the utility of sparse approximations to these Hessians is beyond the scope of this article, as it must be done within the context of a detailed study of massively parallel implementations of the various estimation algorithms on a realtime system. We only mention it because it may be useful in the future.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">ESTIMATION PROCEDURES</head><p>The goal of the inference procedure is to estimate the parameters c from the intensity measurements. The intensity values measured by the detector are noisy versions of the true intensities and can be modeled as:</p><formula xml:id="formula_22">z l = I d (s l ; c) + ν l ,<label>(22)</label></formula><p>where l is the detector pixel index, {z l } are the L measured intensity values and {ν l } represents the (unknown) contribution of noise to the measurement, e.g., from photon counting (shot) noise and detector readout noise. It will be assumed that the {ν l } are samples from zero-mean random process so that E(ν l ) = 0, where E is the expectation operator. In this section, two estimation paradigms will be considered, linear least-squares and nonlinear least-squares. Linear leastsquares is representative of control algorithms that use a linear response matrix to estimate the wavefront. Nonlinear leastsquares can be more accurate than linear least-squares because the model I d (s l ; c) is nonlinear in c.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A. Preprocessing and Amplification of Nonlinearity Error</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.1. Preprocessing Options</head><p>There are a number of options for pre-preprocessing the measured intensities before applying an estimation algorithm. After this choice has been made, one can generate the vector of preprocessed measurements y, where y is used as input into a regression scheme. Let P be the number of detector pixels within a single pupil image, so that geometrical optics would predict a total of 4P illuminated pixels. Here, we will cover four preprocessing choices. Two of these choices are slope preprocessing, which is common in the PyWFS community, and two are non-slope preprocessing. Each preprocessing option is given a name:</p><p>1. "FourImages" is simply the raw intensity values of the pixels within the four geometrical images of the pupil. It is an example of non-slope preprocessing. In this case, the y vector has 4P components.</p><p>2. "AllPixels" is the raw intensity values of all of the pixels on the detector, whether or not they are within one of the four geometrical images of the pupil, and it is also non-slope preprocessing. In this case, y has L components where L is the total number of detector pixels.</p><p>3. "NomalizedSlope" is the most common in the AO community, in which the 4 pupil images are reduced to two "slope" images.</p><p>[18] These images are produced by adding and subtracting pairs of images, and dividing by the mean image. This results in a y having 2P components.</p><p>4. "UnnormalizedSlope" is the same NormalizedSlope, except there is no division by the mean of the four pupil images. Here, y also has 2P components.</p><p>Thus, with FourImages and AllPixels, the components of y have a very simple relationship to the values of detector intensities in Eq. <ref type="formula" target="#formula_1">(22)</ref>, namely, FourImages, AllPixels</p><formula xml:id="formula_23">y l = z l .<label>(23)</label></formula><p>Under the UnnormalizedSlope preprocessing, y represents two slope images, so y can be split into a vertical slope image y v and a horizontal slope image y h , in which the elements are given by:</p><formula xml:id="formula_24">UnnormalizedSlope y v l = z ++ l + z −+ l − z −− l − z +− l UnnormalizedSlope y h l = z ++ l + z +− l − z −+ l − z −− l ,<label>(24)</label></formula><p>where z ++ l is the intensity measured in the lth pixel in the upper-right pupil image, and</p><formula xml:id="formula_25">z −+ l , z −− l , z +− l</formula><p>are the corresponding values in the upper-left, lower-left and lower-right pupil images, respectively. NormalizedSlope preprocessing is similar, except that the horizontal slopes are divided by the mean of the four pupil images, so:</p><formula xml:id="formula_26">NormalizedSlope y v l + z −+ l + z −− l + z +− l .<label>(25)</label></formula><p>Note that if the noise in the z l values is modeled by a zero-mean random process ν l as in Eq. <ref type="formula" target="#formula_1">(22)</ref>, then the division in Eq. <ref type="formula" target="#formula_1">(25)</ref> implies that NormalizedSlope values will have noise statistics that are not given by a zero-mean random process, whereas the other three representations have noise statistics that are straightforward (given the processes {ν l }).</p><p>One fact that should be appreciated is that a signficant fraction of the light can fall outside of the 4 four geometrical pupil images. The amount of light lost by only collecting the light within the four geometrical pupil images increases with Strehl ratio. This effect is shown in <ref type="figure" target="#fig_2">Fig. 3</ref> for the simulation experiments described in detail later. The figure shows that when the Strehl ratio is 0.1 only about 10% of the light is lost, but that fraction increases to about 56% at a Strehl ratio of 1.0.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A.2. Information Loss in Slope Sensing</head><p>Besides discarding some of the light, as shown in <ref type="figure" target="#fig_2">Fig. 3</ref>, there is a more subtle, yet far more detrimental problem associated with slope sensing with the non-modulated PyWFS. This is the error caused by amplification of the nonlinearity by the inversion used to obtain the phases. Developing these arguments will require a bit of detailed treatment of the error incurred by first order Taylor expansions (nonlinearity error) and its consequences for linear regression. Consider the following generic nonlinear regression model:</p><formula xml:id="formula_27">y = A(c) + ν ,<label>(26)</label></formula><p>where y has L components (the number measurements), c is a vector of unknown values with N components that we wish to determine, A(c) is a vector of L nonlinear functions of c, and ν is a vector of zero-mean random processes representing noise. Sometimes A(c) is called the measurement function, since it relates c to the measured values. The use of y, c, N and L is consistent with our previous uses of these symbols above, but for this section, they are intended only to describe the generic nonlinear regression model shown in Eq. (26). The Taylor expansion of A(c) about the point c 0 can be written in terms of A's Jacobian L × N matrix G, so that the measurement function can be rewritten as:</p><formula xml:id="formula_28">A(c) = A(c 0 ) + G[c − c 0 ] + B(c − c 0 ) ,<label>(27)</label></formula><p>where <ref type="formula">G</ref>  </p><formula xml:id="formula_29">y = Gc + B(c) + ν ,<label>(28)</label></formula><p>If we ignore the nonlinearity error B(c), which is necessary for linear regression, it can be shown that the least-squares estimate of minimum norm is provided by the pseudo-inverse of the matrix G, written as G + , via the equation:</p><formula xml:id="formula_30">ˆ c = G + y .<label>(29)</label></formula><p>In order find G + , first perform the singular value decomposition (SVD) of G as G = </p><formula xml:id="formula_31">ˆ c = G + Gc + G + B(c) + ν = VΣ + ΣV T c + VΣ + U T B(c) + ν<label>(30)</label></formula><p>where the unitary property of U (i.e.,  <ref type="formula" target="#formula_1">(23)</ref> through <ref type="formula" target="#formula_1">(25)</ref>, each of which relates to the computational model of the detector intensity via Eq. <ref type="bibr" target="#b21">(22)</ref>. Then, the calculation of the Jacobian matrix G for each preprocessing option can be calculated using Eq. <ref type="bibr" target="#b18">(19)</ref>. <ref type="figure" target="#fig_3">Fig. 4</ref> shows the resulting singular values of G, where it can be seen that the singular values obtained using slope preprocessing (NormalizedSlope and UnnormalizedSlope) decline more steeply than they do for non-slope preprocessing (FourImages and AllPixels). For each case (NormalizedSlope, UnnormalizedSlope, FourImages and AllPixels), the relevant Jacobian was evaluated for a flat wavefront, i.e., c 0 = 0, and the singular values were calculated with a standard SVD algorithm. Each curve in <ref type="figure" target="#fig_3">Fig. 4</ref> is normalized by its first singular value, which is the largest one. In all cases, the final singular value is 0, corresponding to the piston term, which cannot be determined from a WFS. (The simulations showed that the final column of the V matrix is a vector in which all values are the same, confirming that the final singular value does indeed correspond to the piston term.)</p><formula xml:id="formula_32">U T U = 1,</formula><p>The more rapid decline in singular values for the slope preprocessing has dramatic consequences for estimation of the wavefront. <ref type="figure" target="#fig_8">Fig. 5</ref> shows RMS phase error obtained by applying the pseudo-inverse formula <ref type="bibr">[Eq. (29)</ref>], as a function of the input Strehl ratio of the input beam. Each data point in <ref type="figure" target="#fig_8">Fig. 5</ref> is a result of 60 trials in which the 797 phase values were sampled independently from a normal distribution with a standard deviation given by by √ − ln S (Ruze formula), where S is the Strehl ratio of the input beam. The error bars (at least those large enough to be visible) indicate the standard deviation of the RMS error over the 60 trials. The piston term (i.e., the mean) of these randomly generated phase values was subtracted in each trial, so no error was caused by the final zero on the diagonal of Σ + , which forces the piston term of the estimate to be zero. All of the trials used to create this figure had no noise, so ν = 0. Therefore, all of the errors in the estimatesˆcestimatesˆ estimatesˆc shown in the figure were caused by the nonlinearity error B(c). The figure shows that the inversions corresponding to FourImages and AllPixels far outperform the inversions corresponding to NormalizedSlope and UnnormalizedSlope, with UnnormalizedSlope being the slightly better of the two.</p><p>The black curve labeled "no gain" in <ref type="figure" target="#fig_8">Fig. 5</ref> corresponds to an RMS error equal to √ − ln S. Whenever an estimator is below this curve it is providing some information about the wavefront, but when an estimator is above this curve, it is performing more poorly than simply usingˆcusingˆ usingˆc = 0 as the estimator. The figure shows that NormalizedSlope and UnnormalizedSlope only provide gain for Strehl ratios greater than about 0.9, and actually provide negative gain for lower Strehl ratios. In contrast, the estimators corresponding to FourImages and AllPixels provide gain for all Strehl ratios in the figure, down to a Strehl ratio of about 0.1. In order for the slope preprocessing to provide gain at lower Strehl ratios, it would be necessary to either apply SVD truncation as explained above, and/or use a ModalPhase representation with a number of modes that is small enough to avoid problematic singular values. Both of these approaches effectively trade numerical stability for decreasing the spatial resolution of the estimated wavefront.</p><p>Thus, this analysis indicates that the traditional slope preprocessing is likely to prove suboptimal for the non-modulated PyWFS and it will not be considered further in the remainder of this article. In addition, from this point forward, we will only consider the AllPixels preprocessing option, since the FourImages discards some of the light at high Strehl ratio, as <ref type="figure" target="#fig_2">Fig. 3</ref> shows.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>B. Linearized Least-Squares with Regularization</head><p>The pseudo-inverse was introduced above in order to show how inversion can amplify noise and error due to nonlinearity. While one could perform least-squares estimation from noisy data by employing a truncated pseudo-inverse, this method does not generalize to nonlinear estimation. Instead, here we introduce a regularization term that mitigates the effects of small singular values in the Jacobian matrix. The same term can be included in nonlinear estimation procedures, as we demonstrate later.</p><p>Going forward under the AllPixels preprocessing for the reasons given above, the vector of intensity measurements y has components defined by Eqs. </p><formula xml:id="formula_33">G ≡ ∂ ∂c I d (s l ; c) c 0 ,<label>(31)</label></formula><p>which is the Jacobian evaluated at c 0 . In practice, c 0 would correspond to a flat wavefront (zero phase) or take into account known static aberration. The Jacobian can be calculated from Eq. <ref type="figure" target="#fig_0">(19)</ref> for the PhasePixel representation.The linearized leastsquares solution is a minimizer of the (scalar) cost function:</p><formula xml:id="formula_34">C l (c) = 1 2 [Gc − y] T W[Gc − y] + 1 2 αc T Rc ,<label>(32)</label></formula><p>where W is a matrix of the measurement weights (W is diagonal for uncorrelated noise), R is a regularization matrix and α (≥ 0) is a regularization parameter that controls the strength of the regularization. Taking the measurement weight W to be the inverse of the measurement noise covariance matrix corresponds to the maximum-likelihood cost function for Gaussian noise statistics. The minimizer of Eq. <ref type="formula" target="#formula_1">(32)</ref> is easily shown to be: Matrices of this type have a largest singular value on the order of unity, so that a baseline value for α can be calculated by α 0 = y T 0 Wy 0 where y 0 is the vector of synthetic intensity values associated with a flat wavefront (i.e., y 0 = {I d (s l ; c 0 )} in the PhasePixel representation). Then, α = α 0 would correspond to a solution dominated by regularization, and we would expect optimal values of α to correspond to α = qα 0 , where 0 ≤ q &lt; 1.</p><formula xml:id="formula_35">ˆ c = [G T WG + αR] −1 G T Wy<label>(</label></formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>C. Nonlinear Least-Squares</head><p>The purpose of the nonlinear least-squares is to account for the fact that the measurement function I d (s l ; c) is nonlinear in the parameters c. The nonlinear cost function corresponding to Eq. <ref type="formula" target="#formula_1">(32)</ref> is:</p><formula xml:id="formula_36">C nl (c) = 1 2 I d (s; c) − y T W I d (s; c) − y + 1 2 αc T Rc .<label>(34)</label></formula><p>Eq. <ref type="formula" target="#formula_3">(34)</ref> does not have y defined with I d (s; c 0 ) subtracted, nor is c defined with c 0 subtracted, as they were in Eq. <ref type="formula" target="#formula_1">(32)</ref>, since Eq. <ref type="formula" target="#formula_3">(34)</ref> is not a linearization. The discussion below will require the gradient and Hessian of the cost function:</p><formula xml:id="formula_37">∂ ∂c m C nl (c) = L−1 ∑ l=0 W ll I d (s l ; c) − y ∂ ∂c m I d (s l ; c) + αR ml c l<label>(35)</label></formula><formula xml:id="formula_38">∂ 2 ∂c n ∂c m C nl (c) = L−1 ∑ l=0 W ll ∂ ∂c n I d (s l ; c) ∂ ∂c m I d (s l ; c) + W ll I d (s l ; c) − y ∂ 2 ∂c n ∂c m I d (s l ; c) + αR mn ,<label>(36)</label></formula><p>where W ll is the lth element on the diagonal of W and R ml is an element of the regularization matrix R. Note that Eq. <ref type="formula" target="#formula_4">(35)</ref> and Eq. (36) assume that the weight matrix W is diagonal.</p><p>The needed derivatives of the intensity are shown in Eqs. <ref type="formula" target="#formula_0">(19)</ref> through <ref type="formula" target="#formula_0">(21)</ref>   <ref type="formula" target="#formula_3">(34)</ref> represents an unconstrained nonlinear optimization problem, in which one attempts to find the value of the parameter vector c that minimizes C nl (c). Unconstrained nonlinear optimization has two goals that often oppose each other: finding a minimum with minimal computational cost and avoiding local minima. In some optimization problems (e.g., nonsingular quadratic cost functions), there is only one local minimum that is the global minimum. Otherwise, avoiding local minima requires global minimization methods, such as simulated annealing, that involve stochastic searching of the parameter space. These methods are very slow and are not suited for the needs of control systems or large batch estimation. Local optimization methods, on the other hand, do not attempt to find a global minimum. Instead they find the local minimum corresponding to the initial guess; one could say "they just go down the hill" <ref type="bibr" target="#b30">[31]</ref>. As nonlinear optimization is always iterative, it requires an initial guess. One choice for this guess is the linear least-squares solution c 1 , given above, and that is what has been used for the numerical examples shown later.</p><p>In terms of iteration counts, the most efficient local optimization method is often Newton's method, and it almost always converges in many fewer iterations than gradient descent. This is because Newton's method is based on successively approximating the cost function with quadratic functions, as opposed to gradient descent, which does not account for the local curvature of the cost function. Newton's method requires the gradient and Hessian of the cost function, shown here in Eqs. <ref type="formula" target="#formula_4">(35)</ref> and <ref type="formula" target="#formula_5">(36)</ref> for the PhasePixel representation. In its purest form, the Hessian matrix needs to be inverted, but in practice this is avoided by solving a system of equations iteratively with the conjugate gradient algorithm. Thus, the cost of a single Newton iteration is often dominated by calculating the Hessian and performing the multiple iterations of the conjugate gradient algorithm. Calculating the Hessian matrix is sometimes prohibitive and this has given rise to a variety of "quasi-Newton" methods that only require the gradient of the cost function, avoiding explicit calculation of the Hessian. One widely popular quasi-Newton method is the Broyden-Fletcher-Goldfarb-Shanno (BFGS) algorithm, and that is the algorithm we discuss here and implement in the simulation experiments below. The BFGS algorithm updates an approximation to the inverse of the Hessian of the cost function with every iteration, so it almost always takes multiple BFGS iterations to achieve the minimization attained by a single Newton iteration. The cost of a single BFGS iteration has three primary contributors: a line search requiring multiple function and gradient evaluations, and a matrix-matrix multiplication required to update the approximation to the inverse Hessian. <ref type="bibr" target="#b30">[31]</ref> Whether an implementation of Newton's method or a quasiNewton method would be more efficient for real-time nonlinear estimation for a PyWFS depends on the details of how the parallelization is implemented and how much sparsity can reduce the cost of calculating an approximate Hessian (see Sec. 3C). A detailed comparison of Newton and quasi-Newton methods for nonlinear PyWFS estimation under different parallelization schemes is beyond the scope of this article. Instead, this article argues that the nonlinear cost function, its gradient and its Hessian can be implemented efficiently and in parallel, thus enabling, in principle, both Newton and quasi-Newton methods.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>D. Enforcing Zero-Mean Phase</head><p>The WFS has no response to the piston term, causing a zero singular value in the Jacobian matrix of the measurement function (see <ref type="figure" target="#fig_3">Fig. 4</ref>). Depending which representation of the wavefront is being used, there are several ways to force the piston term to be zero and resolve the issue of the zero singular value. If one is using ModalPhase, simply remove the piston term from the expansion in Eq. <ref type="bibr" target="#b12">(13)</ref>. In this way, the singular value of 0 never arises. This approach assumes the remaining modes have no piston component. In the PhasePixel representation when using linearized least-squares, augmenting the Jacobian G with a row of 1/N and appending y with 0 (a weight value, β, should also be appended to the diagonal of W) explicitly forces the mean of the estimated phasesˆcphasesˆ phasesˆc to be 0. This makes the singular value corresponding to the piston term finite. When using nonlinear least-squares with the PhasePixel representation, adding a another term, β(∑ n c n ) 2 /N 2 (where β is a weight), to the cost function in Eq. <ref type="formula" target="#formula_3">(34)</ref> achieves the same end. In practice, the weight value β should be large enough that the mean phase is quite close to zero in the final solution, but not large enough to cause numerical difficulties due to finite floating-point precision.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>E. Application to Time-Series</head><p>So far, we only addressed the problem of estimating a single wavefront, not a time-series of wavefronts. The problems should be treated differently since the wavefront at t is highly correlated with the wavefront at time t + ∆t, where ∆t is the time-step of the AO loop, typically on the order of 1 ms. Thus, an optimal estimation method would take advantage of this information. The typical solution in linear estimation is Kalman filtering, and there are standard extensions to treat nonlinearities. Kalman filtering can become computationally expensive due a certain matrix inversion, and there is a large literature devoted to dealing with this difficulty. <ref type="bibr" target="#b31">[32]</ref> One way to account for the temporal correlation in the wavefront within the framework already presented is to add the following term to the cost function when calculating the solution for t + ∆t:</p><formula xml:id="formula_39">∆C(c) = 1 2 γ[c − ˆ c t ] T C[c − ˆ c t ] ,<label>(37)</label></formula><p>wherê c t is the estimate from the previous time-step, γ is a weight, and C is an N × N matrix. Note that if C is taken to be the identity matrix, then the penalty term in Eq. (37) has a form that is similar to the regularization penalty in Eqs. <ref type="formula" target="#formula_1">(32)</ref> and <ref type="formula" target="#formula_3">(34)</ref>, and it can be used to mitigate the effects of singularity or near-singularity in the intensity Jacobian <ref type="bibr">[Eq. (19)]</ref>.</p><p>Another important aspect of applying the linear and nonlinear least-squares algorithms to time-series concerns the choice of the starting guess. The estimate at the previous time-step, ˆ c t , is an obvious choice; another choice would be µˆcµˆc t , where 0 ≤ µ &lt; 1 in order to improve stability.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">SIMULATION EXPERIMENTS</head><p>A numerical simulation of the PyWFS with geometrical parameters similar to the PyWFS on the SCExAO/Subaru generated the results shown in this article. <ref type="bibr" target="#b12">[13]</ref> The prism is taken to be a square pyramid with each face making an angle to the horizontal of 3.73 • and an index of refraction of 1.452 at the operating wavelength of 0.85 µm. The telescope optics reduce the D ≈ 8 m diameter beam down to a diameter of d = 7.2 mm, and a lens with focal length f = 40d focuses the beam onto the tip of the pyramid.</p><p>Numerically, the beam in the entrance pupil was sampled with 33 pixels across, resulting in 797 pixels in the circular pupil (no "spiders" or other obscurations were included). In order to simulate a wavefront under the PhasePixel representation, each of the N = 797 entrance pupil pixels had a phase c k (thereby creating the c vector) assigned. The 797 amplitude values, i.e., {a k } in Eq. (11), were taken to be unity. We did not consider scintillation effects. In order to perform the Fourier transforms in Eq. (4), these 797 pixels (forming a disk) were embedded into the center of a 1024 × 1024 array of zeros. To calculate the field at the focal plane (at the tip of the pyramid), a fast Fourier transform (FFT) was applied to the field values, resulting in a 1024 × 1024 array that represents the field values in the focal plane. Then, these 1024 × 1024 field values were multiplied by the phase ramp induced by the pyramid faces. Finally, the four pupil images were formed by taking another FFT, resulting in a 1024 × 1024 array of field values in the detector plane, as per Eq. (3). The "entire detector" was taken to be the 125 × 125 = 15625 pixels in the center of the 1024 × 1024 array that represents the detector plane, and the AllPixels preprocessing refers to this set of pixels as input into the regression calculations.</p><p>We made the choice to create the phases from a white noise process in lieu of a turbulence power-law, since a PyWFS without modulation is likely to see a beam that has already passed through a first-stage AO system, as explained in the introduction. A first-stage AO system would remove much of the loworder aberration, so, white noise seemed a reasonable choice that avoids the rigors of end-to-end simulation. To simulate wavefronts corresponding to a given Strehl ratio S, the 797 "truth" values of c were drawn independently from a normal distribution with a standard deviation σ = √ − ln S (the Ruze formula). By taking the phases in each pupil plane pixel to be statistically independent, we implicitly assume that the Fried parameter r 0 roughly corresponds to the length of an entrance pupil pixel (scaled up to the telescope diameter), in this case: r 0 ≈ D/33 ≈ 24 cm. (In fact, since the RMS variation of the phase over a circle of diameter r 0 is about one radian, this is an under-estimate of the implied r 0 .)</p><p>The regression tests used to evaluate the linearized and nonlinear estimators included noise from two sources: Poisson counting noise (shot noise) and detector readout noise. The shot noise was approximated by a normal distribution with the standard deviation set to intensity (which was known from the noise-free simulation). The readout noise was modeled by a normal distribution with the standard deviation set equal to the detector noise level. The noise from both of these sources was sampled independently for each detector pixel.</p><p>These simulations were not optimized for speed and no computations were implemented in parallel. In this context, calculating the Hessian of the cost function made Newton's algorithm orders of magnitude slower than the BFGS algorithm, as implemented in the "optimize.minimize" module of SciPy (see http://www.SciPy.org). The BFGS algorithm was set to exit when the norm of the cost function gradient (normalized) dropped below 10 −7 , which usually required roughly 100 function and gradient evaluations. Similar results were achieved by 10 or fewer Newton iterations, each of which requires one Hessian evaluation and one gradient evaluation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>A. Results: Interference Effects</head><p>The previously cited work by <ref type="bibr">Korkiakoski et al. [26]</ref> neglects interference effects when calculating the four pupil images. In the Fourier optics model presented here, the interference is treated automatically since all four beams are propagated simultaneously. In order to gain some understanding of the error due to neglecting interference between the two beams, we performed two simulations: In the first simulation, we utilized the full Fourier optics model, thereby creating I t (the "true" image). In the second simulation, we neglected interference, thereby creating I a (the "approximate" image). We produced the interferencefree simulation by blocking transmission in 3 of the 4 pyramid faces and recording the intensity (which only had a single pupil image). One such image was created for each of the 4 pyramid surfaces, each in a different quadrant of the detector. Then, the 4 images were added to create the final, interference-free image I a . For this example, the Strehl ratio of the input beam was 0.3, and no noise was included.</p><p>The resulting images I t and I a were visually similar, but the mean of the ratio η ≡ |I t − I a |/I t inside the pupil images was about 0.37. The results of this calculation are displayed in <ref type="figure" target="#fig_1">Fig. 2</ref>. The upper panel of <ref type="figure" target="#fig_1">Fig. 2</ref> shows √ I t (normalized intensity units), and the lower panel displays the image of the logratio (log 10 η). This result suggests that interference effects can be important and should not be neglected without justification.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>B. Results: Regression Tests</head><p>The regressions were designed to compare the accuracy of the linear least-squares estimate of the phase of the field in the entrance pupil to the estimate made by nonlinear leastsquares. The parameters varied for the different simulations runs were: the Strehl ratio of the input beam, the total number of photons entering the PyWFS, and the detector readout noise. The Strehl ratios for the input beam values were: 0.05, 0.1, 0.2, 0.3, 0.4, 05, 0.6, 0.7, 0.8, 0.9, the total photon counts were 10 4 , 10 5 , 10 7 , and the detector readout noise standard deviations σ r were 0 and 4 counts/pixel. For each of these 60 parameter combinations, we performed 24 trials, each with randomly chosen input phases, shot noise and readout noise.</p><p>For the linearized least-squares estimator, the linearization point was taken to be a flat wavefront, so c 0 = 0, resulting in an estimate c LLS . The starting point for the nonlinear estimator was c LLS , resulting in a new estimator c NLS . Both the linearized and nonlinear estimations forced the estimated phases to have zero-mean, as explained in Sec. 4.D. The enforcement of zeromean removed the only zero (or small) singular value in the inversion problem (see <ref type="figure" target="#fig_3">Fig. 4</ref>), hence, there was no benefit to having a regularization parameter α &gt; 0, and all of the estimators employed no regularization. Simulations not shown here confirmed that regularization (with the regularization matrix set to the identity, so R = 1) provided no benefit to the accuracy of the estimators. (The only exception to this was cases at low Strehl ratio in which the unregularized estimator gain was negative. In these cases, a large regularization parameter drove the estimate towards 0, making the gain less negative.) The weight matrix W in the cost functions, Eqs. <ref type="formula" target="#formula_1">(32)</ref> and <ref type="formula" target="#formula_3">(34)</ref>, was set to the identity matrix. (Due to the very low intensity levels in some pixels of the detector, weighting of the measurements by the inverse of the variance noise caused poor performance of the algorithms. Finding an optimal weighting procedure was not explored.) <ref type="figure">Fig. 6</ref> shows the results of the various runs. The y-axis of plots displays the RMS error of the estimates calculated as:</p><formula xml:id="formula_40">RMS error = std(estimated phase − true phase) ,<label>(38)</label></formula><p>where "std" signifies standard deviation, where standard deviation is carried out over the 797 phase values. In each plot, the heavy black curve represents no gain, which is the error achieved by setting "estimated phase" to 0 in Eq. <ref type="formula" target="#formula_35">(38)</ref>, thus any estimator below the curve is providing some information. Each data point shows the estimator error, according to Eq. (38), averaged over the 24 trials for a given parameter set. The data points have small horizontal offsets to alleviate visual over-crowding.</p><p>The error bars, when large enough to be visible, indicate the standard deviation of this error over the 24 trials.</p><p>No estimator we used provided gain below a Strehl ratio of 0.1, due to the large nonlinearity error. This can be understood in terms of the amplification of nonlinear error upon inversion as explained in 4A.2 and <ref type="figure" target="#fig_8">Fig. 5</ref>. For example, with a Strehl ratio of 0.1, 10 7 photon counts and σ r = 0, the linearized estimator only provided a gain of ≈ 1.5%. In this case, subsequently applying the BFGS algorithm resulted in a greatly decreased cost function. [In this case C l (c LLS )/C nl (c NLS ) ≈ 6, but the gain achieved by the nonlinear estimate was ≈ −18%.]</p><p>Varying the number of photons showed that 10 4 photons is the lowest intensity level in which the regressions provided any gain (with zero readout noise) and represents something close to the lower limit at which the PyWFS simulated here can hope to operate. This seems reasonable, since (10 4 photons)/(797 pupil pixels) ≈ 12.5 photons/pixel corresponds to a signal-tonoise ratio of about 12.5/ √ 12.5 = √ 12.5 ≈ 3.5. With a photon count of 10 4 and σ r = 4 counts/pixel, neither the linearized nor nonlinear estimator showed gain, and the results for these runs are not displayed.</p><p>The top panels in <ref type="figure">Fig. 6</ref> show the results for photon counts of 10 7 and 10 4 , which are the lowest and the highest count rates we evaluated. For 10 7 photon counts, the curves for readout noise levels of σ r = 4 and 0 counts/pixel are visually indistinguishable, so only the results for 4 counts/pixels are displayed. For the case of the 10 7 photons, σ r = 4, the RMS error of the nonlinear estimator is too small to be seen on the plot at Strehl ratios of 0.7, 0.8 and 0.9. These values are 0.6 • , 0.55 • , and 0.49 • , respectively, and the standard deviations of the RMS errors over the 24 runs are all about 0.02 • . These plots show that for 10 7 photons, the nonlinear estimator begins to have an advantage over the linear estimator at a Strehl ratio of 0.3. The advantage continues to grow (the ratio of linear estimator error to the nonlinear estimator error increases) as the Strehl ratio increases. In contrast, the case of 10 4 photons has such poor signal-to-noise, that there is little advantage to using the nonlinear estimator at any Strehl ratio.</p><p>The bottom panels in <ref type="figure">Fig. 6</ref> show the results for 10 5 photon counts and readout noise levels of 0 and 4 counts/pixel. The effect of the readout noise levels is clearly visible in the lowerright panel, where the Strehl ratio is greater than 0.5. In addition, the advantage of the nonlinear estimator over the linear one begins at a Strehl ratio of about 0.4. Unlike the case with 10 7 photons, when only 10 5 photons are available, the linear estimator performs almost as well as the nonlinear one at a Strehl ratio of 0.9. A similar effect can be seen in the upper panel for the 10 4 photons case, were the linear estimator slightly outperforms the nonlinear estimator at a Strehl ratio of 0.9 (this was confirmed with several batches of 24 trials). The cause of this is the fact that the nonlinear cost function has many local minima and, when the data are noisy, the minimization algorithm finds a minimum that is not more desirable than the linearized leastsquares solution. Why this effect is more pronounced at a Strehl ratio of 0.9 than Strehl ratios 0.3 through 0.8 is a bit of a curiosity. It is also interesting to note that performance of the estimators at Strehl ratios less than about 0.5 depends only weakly on the shot noise and detector noise. This is because the error in the solution is dominated by the nonlinearity, which is only partially mitigated by the nonlinear estimation method. At Strehl ratios of about 0.5 and above, the nonlinearity error is smaller, and the effects of noise are more pronounced.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">CONCLUSIONS/DISCUSSION</head><p>The desire to use the PyWFS without modulation stems from the high sensitivity of the device, but the price of this high sensitivity is nonlinearity. The simulation experiments here indicate that when the Strehl ratio of the input beam is above some threshold and the SNR is sufficient, nonlinear estimation methods can provide substantial advantages over linear estimation methods, thereby improving prospects for using the PyWFS without modulation. For the PyWFS simulated here, taking advantage of nonlinear estimation requires the input beam to have a Strehl ratio of about 0.3 or greater and photon flux about an order of magnitude greater than the operation threshold of the instrument. We have also shown that traditional slope-based measurements, in which the four PyWFS pupil images are reduced to two slope images, are unsuited to using the PYWFS without modulation. This is because the Jacobians associated with the slope representations of the measurements have steeper spectra of singular values than the Jacobians associated with the non-slope representations of the measurements. The effect of a steeper spectrum of singular values is more amplification of nonlinearity error and noise upon inversion, as explained in Sec. 4A. <ref type="bibr" target="#b1">2</ref> We have argued that employing nonlinear estimators based on Newton and quasi-Newton methods for optimization should be possible for AO systems running at kHz rates for two reasons. Firstly, all detailed optical modeling is done beforehand, so no computationally expensive operations such as FFTs are required in real-time. With no real-time constraints on the optical modeling, one can apply almost any computational modeling method. Secondly, the computations required to obtain the modeled intensity and its derivatives can be carried out efficiently and in a massively parallel manner, as explained in Sec. 3. Using a computationally advantageous representation of the wavefront such as PhasePixel, as opposed to ModalPhase, reduces the real-time computational burden. Table 1 gives an approximate count of the required operations to calculate the intensity and its Hessian matrix at every detector pixel. For example, if specifying the model requires N = 10 3 phase values and there are 10 4 detector pixels at which the intensity and its derivatives are to be determined, calculating the intensity requires ∼ 5NL = 5 × 10 7 FLOPS, and calculating the intensity Jacobian requires an additional NL = 10 7 FLOPS. Calculating the N × N Hessian matrix at every pixel is more expensive and requires an additional ∼ N 2 L/2 = 5 × 10 9 FLOPS, but there may be possibilities to reduce this by approximating these matrices with sparse alternatives, as explained in Sec. 3C. In addition, every iteration of the optimization method will require more operations, as described in Sec. 4C. For perspec-tive, the NVIDIA Tesla P100 GPU Accelerator delivers 10 TeraFLOPs (10 13 ) of single-precision arithmetic per second, so a highly streamlined system with multiple GPUs may be capable of the required real-time computations.</p><p>This article has emphasized the nonlinearity of the nonmodulated PyWFS and the fundamental challenges it imposes on estimation of the wavefront. The AO community has long recognized this challenge, and has used modulation of the input beam to make the PyWFS more linear. In order to mitigate some of the nonlinearity while retaining sensitivity, the PyWFS could be used with a small amount of modulation, and nonlinear estimation could be applied in such a situation as well. One obstacle to utilizing the estimation methods described here with a modulated PyWFS is increased computational expense of calculating the intensity and its derivatives. Let us take circular modulation applied by a steering mirror as an example. The tip/tilt applied by the steering mirror would need to be included in Eq. <ref type="formula" target="#formula_0">(14)</ref> and the equations that follow, until the intensity and its needed derivatives are determined. This would need to be done for multiple values of tip/tilt modulation in order to sample the path of the steering mirror. Then the intensities (and derivatives) would be averaged. Sampling the steering circle every 3.6 degrees would result in 100 times the computation of a calculation performed without modulation. One way that may reduce this burden would be to apply to use a spatial light modulator with, say, 10 modulation settings, in lieu of beam steering. <ref type="bibr" target="#b21">[22,</ref><ref type="bibr" target="#b22">23]</ref> In both the modulated and non-modulated cases, determining the matrix {P e k ; s l }, which is essentially a phaseaccurate, calibrated computational model of the PyWFS, will be a challenge. Such an effort would likely require a combination of calibration measurements, and simulated propagation.</p><p>The impact of the nonlinear estimation methods described here on real-time, closed-loop control requires more detailed investigation. The next logical step would be end-to-end simulation in which the beam feeding the non-modulated PyWFS has been partially corrected by an upstream AO system.</p><p>The role of nonlinear estimation in post-analysis, where the time constraints are not as stringent, has not been mentioned. If data are acquired with sufficiently high Strehl ratio and signalto-noise, this nonlinear estimation here should produce accurate estimates of the pupil phases and possibly the amplitudes as well. This capability would enable millisecond approaches to high-contrast imaging in which the wavefronts are needed as inputs to regression schemes. One such regression method produces simultaneous and self-consistent estimates of both the exoplanet image and the non-common path aberrations in the optics. <ref type="bibr" target="#b32">[33]</ref> </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>ACKNOWLEDGMENTS</head><p>The author thanks the referees, Olivier Guyon, and John Kohl for comments on the manuscript. This work has been supported by NSF Award #1600138 to the University of Michigan. (NormalizedSlope, UnnormalizedSlope) and non-slope (FourImages, AllPixels) preprocessing options, as a function of the Strehl ratio of the input beam (note that the pseudo-inverse is one type of linear estimator). As no noise was included, this error is entirely due to the nonlinearity error. Each data point is the mean RMS error over 60 trials, and the error bars indicate the standard deviation of these RMS errors over the 60 trials. This figure shows that the slope preprocessing only provides gain when the input Strehl ratio is greater than about 0.9, while non-slope preprocessing provides gain down to a Strehl ratio of about 0.1. This is due to the fact that slope preprocessing leads to more amplification of the nonlinearity error, as explained in the text. Note that the two non-slope curves are nearly overlapping and indistinguishable in the <ref type="figure">figure.</ref> top: Strehl ratio ≥ 0.85. bottom: Strehl ratio &lt; 0.85. and the x-axis is the Strehl ratio of the input beam. Except for the "no gain" curve, each curve corresponds to a different pairing of the number of photons incident on the detector and the detector readout noise level σ r . Linearized and nonlinear estimator curves for the same photon count number and σ r have the same line style and plotting symbol (except the plotting symbol for the linear estimator is filled, while the one for the nonlinear estimator is not) but have different colors. Each data point corresponds to the RMS error averaged over 24 trials, and the error bars represent the standard deviation of the RMS errors over the 24 trials. Note that some error bars are too small to be seen. Small horizontal offsets are used to separate the data to make the plots easier to read. upper plots: Curves for (10 7 photon counts, σ r = 4 counts/pixel), and for (10 4 photons, σ r = 0). The RMS error of the (10 7 photons, σ r = 4) curve is too small to be seen on the plot at Strehl ratios of 0.7, 0.8 and 0.9. These values are 0.6 • , 0.55 • , and 0.49 • , respectively, and their standard deviations are all about 0.02 • . The curves for (10 4 photons, σ r = 4) showed no gain at any Strehl ratio and are not displayed here. The curves for (10 7 photons, σ r = 0) are visually indistinguishable from the curves for (10 7 photons, σ r = 4), and are not displayed here. lower plots: Curves for (10 5 photons, σ r = 0) and (10 5 photons, σ r = 4).</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Fig. 1 .</head><label>1</label><figDesc>Fig. 1. Schematic illustration of the PyWFS. Taken from Ref. [17].</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Fig. 2 .</head><label>2</label><figDesc>Fig. 2. Examples from the PyWFS simulations for a wavefront with a standard deviation 1.1 radians, corresponding to a Strehl ratio of about 0.3. Each image shows the central 125 × 125 pixels of the detector plane. top: intensity (normalized units) image. bottom: A representation of the error due to neglecting interference between the beams in the simulation. The quantity displayed is log 10 [|I t − I a |/I t ], where I t is the true intensity calculated by the full simulation, and I a is an approximate intensity obtained by neglecting interference between the beams. Off of the four pupil images, one can see the effects of aliasing in the FFT-based propagation (as explained in the text, more sophisticated modeling is not a barrier to on-sky implementation).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Fig. 3 .</head><label>3</label><figDesc>Fig. 3. The fraction of the intensity falling outside of the geometrical images of the four pupils as a function of Strehl ratio of the input beam. Each data point is the mean result of 60 trials with random phases. The error bars indicate the standard deviation of the 60 results. This figure indicates that, for the PyWFS with the parameters simulated here, about 56% of the light falls outside of the pupil images as the Strehl ratio approaches unity.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Fig. 4 .</head><label>4</label><figDesc>Fig. 4. Normalized "spectrum" of singular values of the Jacobian (evaluated for a flat wavefront) under the PhasePixel representation of the wavefront for slope and non-slope preprocessing options. In all cases, the final singular value is zero, corresponding to the unobservable piston term. While non-slope preprocessing options have no singular values less than about 0.4 (other than the piston term), the slope preprocessing options have more than one-half of their singular values below 0.4, leading to more amplification of the nonlinearity error in the estimated phases, as can be seen in Fig. 5.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head></head><label></label><figDesc>≡ ∂A/∂c| c 0 is the Jacobian matrix, and the new vec- tor of functions B (with L components) accounts for the error incurred by the linearization, such that B(0) = 0. The vector of functions B will be called the "nonlinearity error." To econo- mize, let us make the following change in notation: c − c 0 → c, y − A(c 0 ) → y. Then Eq. (26) becomes:</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head></head><label></label><figDesc>where 1 is the identity matrix) has been utilized. The matrix Σ + Σ is a diagonal matrix with values of unity where σ l &gt; 0 and 0 where σ l = 0 (or small enough numerically to be considered zero). In the first term of Eq. (30), the components of c receive no amplification since V is unitary. It is easy to show that |VΣ + ΣV T c| ≤ |c|. Further, if all of the singular values are greater than zero (i.e., σ l &gt; 0 for all l), then VΣ + ΣV T c = c. On the other hand, the small singular values in Σ + in the second term of Eq. (30) will amplify both the nonlinearity error B(c) and the noise ν. Thus, small singular values are detrimental to the accuracy of the inversion even in the case in which there is no noise (i.e., ν = 0). One popular method of mitigating this noise amplifi- cation, called SVD truncation, is to replace 1/σ k with 0 on the diagonal of Σ + whenever σ k is below some threshold. When the SVD is truncated, the associated modes are forced to 0. [The modes under discussion here are singular vectors (i.e., the columns of the matrix V), not the ψ functions in Eq. (13).] NormalizedSlope, UnnormalizedSlope, FourImages and AllPixels (see Sec. 4A.1) each correspond to a different ver- sion of the measurement function A(c), according to Eqs.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>( 22 )</head><label>22</label><figDesc>and (23). It will economize the notation to redefine c and y via: c − c 0 → c, y − I d (s; c 0 ) → y, where I d (s; c 0 ) is all L values of I d (s l ; c 0 ) arranged into a L × 1 column vector. The unknown parameters c are related to the measurements via Eq. (28). Here, the symbols are defined specifically for the PyWFS estimation problem, not in generic terms as they were when Eq. (28) was first presented. The lin- earized model can be expressed in terms of the L × N Jacobian matrix G:</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>33 )</head><label>33</label><figDesc>Then, the linear least-squares estimate is c 1 = ˆ c + c 0 . A proper choice of R and non-zero choice of α ensures invertibility of the matrix [G T WG + αR] in Eq. (32); also see comments in Ref. [26]. Once the quantities c 0 , α, R and W have been chosen, the N × L matrix [G T WG + αR] −1 G T W can be pre-computed, so that cal- culating the linear least-squares estimate only involves a single matrix-vector multiplication. Common choices for R include the N × N identity matrix and finite differencing operators implemented with values of o(1) (where o(1) means "of order unity") on the appropriate di- agonals. For example, if D is one such matrix, then R = D T D.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head>Fig. 5 .</head><label>5</label><figDesc>Fig. 5. RMS error of the pseudo-inverse phase estimate for slope</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head>RMS</head><label></label><figDesc>Fig. 6. Performances of linearized and nonlinear estimators. The plots show the RMS error of the estimate of the phase on the y-axis, and the x-axis is the Strehl ratio of the input beam. Except for the "no gain" curve, each curve corresponds to a different pairing of the number of photons incident on the detector and the detector readout noise level σ r . Linearized and nonlinear estimator curves for the same photon count number and σ r have the same line style and plotting symbol (except the plotting symbol for the linear estimator is filled, while the one for the nonlinear estimator is not) but have different colors. Each data point corresponds to the RMS error averaged over 24 trials, and the error bars represent the standard deviation of the RMS errors over the 24 trials. Note that some error bars are too small to be seen. Small horizontal offsets are used to separate the data to make the plots easier to read. upper plots: Curves for (10 7 photon counts, σ r = 4 counts/pixel), and for (10 4 photons, σ r = 0). The RMS error of the (10 7 photons, σ r = 4) curve is too small to be seen on the plot at Strehl ratios of 0.7, 0.8 and 0.9. These values are 0.6 • , 0.55 • , and 0.49 • , respectively, and their standard deviations are all about 0.02 • . The curves for (10 4 photons, σ r = 4) showed no gain at any Strehl ratio and are not displayed here. The curves for (10 7 photons, σ r = 0) are visually indistinguishable from the curves for (10 7 photons, σ r = 4), and are not displayed here. lower plots: Curves for (10 5 photons, σ r = 0) and (10 5 photons, σ r = 4).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" validated="false"><head>Table 1 .</head><label>1</label><figDesc></figDesc><table>Item sizes and approximate operation counts required for 
+
+calculating various quantities needed for a single evaluation of the of 
+Hessian of the intensity at every detector pixel, using the PhasePixel 
+representation under the assumption of unit amplitude (i.e., a k </table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" validated="false"><head>UΣV T (the superscript T indicates matrix transposition), where U and V are unitary matrices and Σ is a diagonal matrix of singular values {σ k }, 0 ≤ σ k . The set of singular values {σ l }, ordered from largest to smallest, is also known as the spectrum of the matrix or the spectrum of singular values. Then G + ≡ VΣ + U T , where Σ + is a diago- nal matrix of the inverses of all of the non-zero singular values</head><label>UΣV</label><figDesc></figDesc><table>, 
+i.e., 1/σ k for all σ k &gt; 0. Where the singular values are zero (or 
+deemed to be numerically small) the corresponding entries in 
+the diagonal of Σ + are assigned values of zero.[30] 
+In order appreciate how the inversion in Eq. (29) can amplify 
+the noise ν and the nonlinearity error B(c), substitute Eq. (28) 
+into Eq. (29): 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" validated="false"><head>for the PhasePixel representation. Since each ele- ment of the N × N Hessian of the cost function requires a sum over L pixels, calculation of this Hessian requires the determi- nation of (N 2 + N)L/2 quantities. While the Hessian of the cost function is not itself sparse, the intensity Hessians in the second term of Eq. (36) may have useful sparse approximations, as al- ready discussed in Sec. 3C. Eq.</head><label></label><figDesc></figDesc><table></table></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">Pupil plane wavefront sensing with an oscillating prism</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ragazzoni</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Modern Optics</title>
+		<imprint>
+			<biblScope unit="volume">43</biblScope>
+			<biblScope unit="page" from="289" to="293" />
+			<date type="published" when="1996" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">Comparison between non-modulation four-sided and two-sided pyramid wavefront sensor</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Bai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Ning</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Huang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Wang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Optics Express</title>
+		<imprint>
+			<biblScope unit="volume">18</biblScope>
+			<biblScope unit="page" from="27534" to="27549" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">Variation around a pyramid theme: optical recombination and optimal use of photons</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Fauvarque</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Neichel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Fusco</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-F</forename><surname>Sauvage</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Opt. Lett</title>
+		<imprint>
+			<biblScope unit="volume">40</biblScope>
+			<biblScope unit="page" from="3528" to="3531" />
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">General formalism for Fourier-based wave front sensing: application to the pyramid wave front sensors</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Fauvarque</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Neichel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Fusco</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-F</forename><surname>Sauvage</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Girault</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Astronomical Telescopes, Instruments, and Systems</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="page">19001</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Alternative pyramid wavefront sensors</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Van Kooten</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Veran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Bradley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Astronomical Telescopes, Instruments, and Systems</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="page" from="29001" to="029001" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Sensitivity of a pyramidic wave front sensor in closed loop adaptive optics</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ragazzoni</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Farinato</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astronomy and Astrophysics</title>
+		<imprint>
+			<biblScope unit="volume">350</biblScope>
+			<biblScope unit="page" from="23" to="26" />
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Pyramid Wavefront Sensor behavior in partial correction Adaptive Optic systems</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Esposito</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Riccardi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astronomy and Astrophysics</title>
+		<imprint>
+			<biblScope unit="volume">369</biblScope>
+			<biblScope unit="page" from="9" to="12" />
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">A comparison of the shackhartmann and pyramid wavefront sensors</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">Y</forename><surname>Chew</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">M</forename><surname>Clare</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">G</forename><surname>Lane</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Optics Communications</title>
+		<imprint>
+			<biblScope unit="volume">268</biblScope>
+			<biblScope unit="page" from="189" to="195" />
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">A study of pyramid wfs behaviour under imperfect illumination</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Viotto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Magrin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Bergomi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Dima</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Farinato</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Marafatto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ragazzoni</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proc. Third AO4ELT Conf</title>
+		<meeting>Third AO4ELT Conf</meeting>
+		<imprint>
+			<date type="published" when="2013" />
+			<biblScope unit="page">38</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">First light AO (FLAO) system for LBT: final integration, acceptance test in Europe, and preliminary on-sky commissioning results</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Esposito</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Riccardi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Fini</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">T</forename><surname>Puglisi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Pinna</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Xompero</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Briguglio</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Quirós-Pacheco</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Stefanini</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">C</forename><surname>Guerra</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Busoni</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Tozzi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pieralli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Agapito</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Brusa-Zappellini</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Demers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Brynnel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Arcidiacono</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Salinari</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proc. SPIE</title>
+		<meeting>SPIE</meeting>
+		<imprint>
+			<date type="published" when="2010" />
+			<biblScope unit="volume">7736</biblScope>
+			<biblScope unit="page">773609</biblScope>
+		</imprint>
+	</monogr>
+	<note>Adaptive Optics Systems II</note>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">Natural guide star adaptive optics systems at lbt: Flao commissioning and science operations status</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Esposito</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Riccardi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Pinna</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Puglisi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Quirós-Pacheco</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Arcidiacono</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Xompero</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Briguglio</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Busoni</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Fini</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proc. SPIE</title>
+		<meeting>SPIE</meeting>
+		<imprint>
+			<date type="published" when="2012" />
+			<biblScope unit="page">84470</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">Magao: Status and on-sky performance of the magellan adaptive optics system</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">M</forename><surname>Morzinski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">M</forename><surname>Close</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Males</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Kopon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">M</forename><surname>Hinz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Esposito</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Riccardi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Puglisi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Pinna</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Briguglio</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proc. SPIE</title>
+		<meeting>SPIE</meeting>
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="page">914804</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Jovanovic</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Martinache</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Guyon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Clergeon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Singh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Kudo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Garrel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Newman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Doughty</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Lozi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Males</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Minowa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Hayano</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Takato</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Morino</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Kuhn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Serabyn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Norris</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Tuthill</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Schworer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Stewart</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Close</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Huby</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Perrin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Lacour</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Gauchet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Vievard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Murakami</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Oshiyama</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Baba</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Matsuo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Nishikawa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Tamura</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Lai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Marchis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Duchene</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Kotani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Woillez</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">The Subaru Coronagraphic Extreme Adaptive Optics System: Enabling High-Contrast Imaging on Solar-System Scales</title>
+		<imprint>
+			<date type="published" when="2015" />
+			<biblScope unit="volume">127</biblScope>
+			<biblScope unit="page">890</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">Development of a pyramid wavefront sensor</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">El</forename><surname>Hadi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Vignaux</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Fusco</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proc. AO4ELT-III</title>
+		<meeting>AO4ELT-III</meeting>
+		<imprint>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Overview and status of the giant magellan telescope project</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Bernstein</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">J</forename><surname>Mccarthy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Raybould</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">C</forename><surname>Bigelow</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">H</forename><surname>Bouchez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Filgueira</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Jacoby</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Johns</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Sawyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Shectman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proc. SPIE</title>
+		<meeting>SPIE</meeting>
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="page">91451</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">Adaptive optics program at tmt</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Boyer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proc. Fourth AO4ELT Conf</title>
+		<meeting>Fourth AO4ELT Conf</meeting>
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Linearity of the pyramid wavefront sensor</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Burvall</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Daly</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">R</forename><surname>Chamot</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Dainty</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Optics Express</title>
+		<imprint>
+			<biblScope unit="volume">14</biblScope>
+			<biblScope unit="page" from="11925" to="11934" />
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">On the nature of the measurements provided by a pyramid wave-front sensor</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Vérinaud</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Optics Communications</title>
+		<imprint>
+			<biblScope unit="volume">233</biblScope>
+			<biblScope unit="page" from="27" to="38" />
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">General formalism for fourier-based wave front sensing</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Fauvarque</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Neichel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Fusco</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-F</forename><surname>Sauvage</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Girault</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Optica</title>
+		<imprint>
+			<biblScope unit="volume">3</biblScope>
+			<biblScope unit="page" from="1440" to="1452" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">Avoiding to trade sensitivity for linearity in a real world wfs</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Greggio</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Magrin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Farinato</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ragazzoni</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Bergomi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Dima</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Marafatto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Viotto</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proc. Third AO4ELT Conf</title>
+		<meeting>Third AO4ELT Conf</meeting>
+		<imprint>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Pwfss on gmcao: a different approach to the non-linearity issue</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Viotto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Bergomi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Dima</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Farinato</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Greggio</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Magrin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Portaluri</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ragazzoni</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Esposito</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Pinna</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proc. SPIE</title>
+		<meeting>SPIE</meeting>
+		<imprint>
+			<date type="published" when="2016" />
+			<biblScope unit="page">99096</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Laboratory demonstrations on a pyramid wavefront sensor without modulation for closed-loop adaptive optics system</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Rao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Xian</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Liu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Optics Express</title>
+		<imprint>
+			<biblScope unit="volume">19</biblScope>
+			<biblScope unit="page" from="8135" to="8150" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">Digital pyramid wavefront sensor with tunable modulation</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Akondi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Castillo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Vohnsen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Optics Express</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="page" from="18261" to="18272" />
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">Limits of Adaptive Optics for High-Contrast Imaging</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Guyon</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astrophys. J</title>
+		<imprint>
+			<biblScope unit="volume">629</biblScope>
+			<biblScope unit="page" from="592" to="614" />
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">The path to visible extreme adaptive optics with magao-2k and magao-x</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Males</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">M</forename><surname>Close</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Guyon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">M</forename><surname>Morzinski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Hinz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Esposito</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Pinna</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Xompero</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Briguglio</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Riccardi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proc. SPIE</title>
+		<meeting>SPIE</meeting>
+		<imprint>
+			<date type="published" when="2016" />
+			<biblScope unit="page">990952</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">Comparison between a model-based and a conventional pyramid sensor reconstructor</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Korkiakoski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Vérinaud</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Le Louarn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Conan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Applied Optics</title>
+		<imprint>
+			<biblScope unit="volume">46</biblScope>
+			<biblScope unit="page" from="6176" to="6184" />
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">Convolution-and fourier-transformbased reconstructors for pyramid wavefront sensor</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Shatokhina</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ramlau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Applied Optics</title>
+		<imprint>
+			<biblScope unit="volume">56</biblScope>
+			<biblScope unit="page" from="6381" to="6390" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Goodman</surname></persName>
+		</author>
+		<title level="m">Introduction to Fourier Optics</title>
+		<imprint>
+			<publisher>The McGraw-Hill Companies, Inc</publisher>
+			<date type="published" when="1996" />
+		</imprint>
+	</monogr>
+	<note>second edition</note>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">Modeling pyramidal sensors in ray-tracing software by a suitable user-defined surface</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Antichi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Munari</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Magrin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Riccardi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Astronomical Telescopes, Instruments, and Systems</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page">28001</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">K</forename><surname>Moon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">C</forename><surname>Stirling</surname></persName>
+		</author>
+		<title level="m">Mathematical Methods and Algorithms for Signal Processing</title>
+		<imprint>
+			<publisher>Prentice Hall</publisher>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">P</forename><surname>Bertsekas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Nonlinear</forename><surname>Programming</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Athena Scientific</title>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+	<note>3rd Edition</note>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">D</forename><surname>Anderson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Moore</surname></persName>
+		</author>
+		<title level="m">Optimal Filtering</title>
+		<imprint>
+			<publisher>Dover Publications, Inc</publisher>
+			<date type="published" when="1979" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title level="a" type="main">Utilization of the Wavefront Sensor and Short-exposure Images for Simultaneous Estimation of Quasi-static Aberration and Exoplanet Intensity</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Frazin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astrophys. J</title>
+		<imprint>
+			<biblScope unit="volume">767</biblScope>
+			<biblScope unit="page">21</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

@@ -1,0 +1,2412 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-11T13:24+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">ORBITS FOR THE IMPATIENT: A BAYESIAN REJECTION SAMPLING METHOD FOR QUICKLY FITTING THE ORBITS OF LONG-PERIOD EXOPLANETS</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Sarah</forename><surname>Blunt</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Eric</forename><forename type="middle">L</forename><surname>Nielsen</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Robert</forename><forename type="middle">J</forename><surname>De Rosa</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Quinn</forename><forename type="middle">M</forename><surname>Konopacky</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Dominic</forename><surname>Ryan</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jason</forename><forename type="middle">J</forename><surname>Wang</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Laurent</forename><surname>Pueyo</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Julien</forename><surname>Rameau</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Christian</forename><surname>Marois</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Franck</forename><surname>Marchis</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Bruce</forename><surname>Macintosh</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">James</forename><forename type="middle">R</forename><surname>Graham</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Gaspard</forename><surname>Duchêne</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Adam</forename><forename type="middle">C</forename><surname>Schneider</surname></persName>
+						</author>
+						<title level="a" type="main">ORBITS FOR THE IMPATIENT: A BAYESIAN REJECTION SAMPLING METHOD FOR QUICKLY FITTING THE ORBITS OF LONG-PERIOD EXOPLANETS</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<note type="submission">Accepted to AJ on 03/23/2017 Accepted to AJ on 03/23/2017</note>
+					<note>Preprint typeset using L A T E X style emulateapj v. 12/16/11</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>stars: imaging -planets and satellites: fundamental parameters -methods: statistical</keywords>
+			</textClass>
+			<abstract>
+				<p>We describe a Bayesian rejection sampling algorithm designed to efficiently compute posterior distributions of orbital elements for data covering short fractions of long-period exoplanet orbits. Our implementation of this method, Orbits for the Impatient (OFTI), converges up to several orders of magnitude faster than two implementations of MCMC in this regime. We illustrate the efficiency of our approach by showing that OFTI calculates accurate posteriors for all existing astrometry of the exoplanet 51 Eri b up to 100 times faster than a Metropolis-Hastings MCMC. We demonstrate the accuracy of OFTI by comparing our results for several orbiting systems with those of various MCMC implementations, finding the output posteriors to be identical within shot noise. We also describe how our algorithm was used to successfully predict the location of 51 Eri b six months in the future based on less than three months of astrometry. Finally, we apply OFTI to ten long-period exoplanets and brown dwarfs, all but one of which have been monitored over less than 3 % of their orbits, producing fits to their orbits from astrometric records in the literature.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">INTRODUCTION</head><p>Direct imaging is sensitive to substellar objects with large projected separations from their host objects (0.2 "; e.g. <ref type="bibr" target="#b32">Macintosh et al. 2014</ref><ref type="bibr" target="#b8">, Claudi et al. 2016</ref>), corresponding to larger orbital semi-major axes and periods compared to those detected with radial velocity and transit methods <ref type="bibr" target="#b2">(Bowler 2016)</ref>. Therefore, over timescales of months to years, direct imaging observations often probe only short fractions of these orbits. In these cases, constraints on orbital parameters can be used to perform a preliminary characterization of the orbit (e.g. <ref type="bibr" target="#b0">Beust et al. 2014</ref><ref type="bibr" target="#b43">, Nielsen et al. 2014</ref><ref type="bibr" target="#b37">, Millar- Blanchaer et al. 2015</ref><ref type="bibr" target="#b47">, Sallum et al. 2015</ref><ref type="bibr" target="#b11">, De Rosa et al. 2015</ref><ref type="bibr" target="#b58">, Zurlo et al. 2016</ref><ref type="bibr" target="#b46">, Rameau et al. 2016</ref>). Orbital parameter constraints can also lead to mass constraints on directly imaged substellar objects (e.g. <ref type="bibr" target="#b30">Lagrange et al. 2012</ref><ref type="bibr" target="#b15">, Fabrycky 2010</ref>, constraints on additional planets in the system ( <ref type="bibr" target="#b3">Bryan et al. 2016)</ref>, and information about the interactions between planets and circumstellar disks (e.g. <ref type="bibr" target="#b43">Nielsen et al. 2014</ref><ref type="bibr" target="#b37">, Millar-Blanchaer et al. 2015</ref><ref type="bibr" target="#b46">, Rameau et al. 2016</ref>). In addition, orbit fitting can be used to constrain the future locations of exoplanets, notably to calculate the probability of a transit (e.g. <ref type="bibr" target="#b56">Wang et al. 2016)</ref>, or to determine an optimal cadence of observations to reduce uncertainty in orbital parameter distributions. For future direct imaging space missions such as the Wide-Field Infrared Survey Telescope (WFIRST ; <ref type="bibr" target="#b52">Spergel et al. 2015</ref><ref type="bibr" target="#b54">, Traub et al. 2016</ref>, it is particularly important to quickly and accurately fit newly discovered exoplanet orbits in order to plan future observations efficiently.</p><p>Several orbital fitting methods are currently used in astronomy. The family of Bayesian Markov Chain Monte Carlo methods (MCMC) was introduced to the field of exoplanet orbit fitting by <ref type="bibr" target="#b17">Ford (2004</ref><ref type="bibr" target="#b18">Ford ( , 2006</ref>) and has been widely used (e.g. <ref type="bibr" target="#b43">Nielsen et al. 2014</ref><ref type="bibr" target="#b37">, Millar-Blanchaer et al. 2015</ref><ref type="bibr" target="#b14">, Dupuy et al. 2016</ref>. MCMC is designed to quickly locate and explore the most probable areas of parameter space for a particular set of data, and takes longer to converge as a parameter space becomes less constrained by data, as in the case of astrometry from a fraction of a long-period orbit. In addition, many types of MCMC algorithms can be inefficient at exploring parameter spaces if the corresponding χ 2 surface is complicated (e.g. <ref type="bibr" target="#b17">Ford 2004</ref>). Another commonly used tool for fitting orbits is the family of least-squares Monte Carlo (LSMC) methods ( <ref type="bibr" target="#b45">Press et al. 1992</ref>), which uses a Levenberg-Marquardt minimization algorithm to locate the orbital fit with minimum χ 2 value for a set of astrometry. Once the minimum χ 2 orbit is discovered, this method then randomly varies the measured astrometry along Gaussian distributions defined by the observational errors. In cases where the parameter space is very unconstrained, this method often explores only the area closest to the minimum χ 2 orbit, leading to biases against areas of parameter space with lower likelihoods. For example, <ref type="bibr" target="#b7">Chauvin et al. (2012)</ref> found significantly different families of solutions when using LSMC than when using MCMC for the same orbital data for β Pic b. LSMC is therefore effective at finding the best-fit solution, but not well-suited to characterizing uncertainty by fully exploring the parameter space.</p><p>In this work, we present Orbits for the Impatient (OFTI), a Bayesian Monte Carlo rejection sampling method based on that described in <ref type="bibr" target="#b23">Ghez et al. (2008)</ref>, and similar to the method described in <ref type="bibr" target="#b28">Konopacky et al. (2016)</ref>. OFTI is designed to quickly and accurately compute posterior probability distributions from astrometry covering a fraction of a long-period orbit. We describe how OFTI works and demonstrate its accuracy by comparing OFTI to two independent MCMC orbit-fitting methods. We then discuss situations where OFTI is most optimally used, and apply OFTI to several sets of astrometric measurements from the literature.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">THE OFTI ALGORITHM</head><p>2.1. Method OFTI, like other Bayesian methods, combines astrometric observations and uncertainties with prior probability density functions (PDFs) to produce posterior PDFs of orbital parameters. These orbital parameter posteriors allow us to better characterize systems, for example by predicting future motion or by directly comparing the orbital plane to the orbits of other objects in the system or the distribution of circumstellar material.</p><p>The basic OFTI algorithm consists of the following steps:</p><p>1. Monte Carlo Orbit Generation from Priors 2. Scale-and-Rotate 3. Rejection sampling OFTI uses a modified Bayesian rejection sampling algorithm. Rejection sampling consists of generating random sets of parameters, calculating a probability for each value, and preferentially rejecting values with lower probabilities. For OFTI, the generated parameters are the orbital elements semi-major axis, a, period, P , eccentricity, e, inclination angle, i, position angle of nodes, Ω, argument of periastron, ω, and epoch of periastron passage, T 0 . For Bayesian rejection sampling algorithms such as OFTI, the candidate density functions used to generate these random parameters are prior probability distributions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.1.">Monte Carlo Orbit Generation from Priors</head><p>OFTI begins by generating an initial set of seven random orbital parameters drawn from prior probability distributions. In this work, we use a linearly descending eccentricity prior with a slope of -2.18 for exoplanets, derived from the observed distribution of exoplanets detected by the radial velocity method ( <ref type="bibr" target="#b40">Nielsen et al. 2010</ref>). The use of this prior assumes that long-period exoplanets follow the same eccentricity distribution as the planets detected by the radial velocity method.While the shape of the eccentricity prior directly affects the shape of the eccentricity posterior, as we would expect, the posteriors of other parameters are less affected when changing between a linearly descending and a uniform prior (see section 3.1). We assume a purely random orientation of the orbital plane, which translates into a sin(i) prior in inclination angle and uniform priors in the epoch of periastron passage and argument of periastron. That is, the inclination angle, position angle of nodes, and argument of periastron priors are purely geometric. OFTI initially generates orbits with a = 1 au and Ω = 0 • , but these values are altered in the following step. We note that OFTI can be easily run using different priors, making it useful for non-planetary systems and statistical tests.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.2.">Scale-and-Rotate</head><p>Once OFTI has generated an initial set of orbital parameters from the chosen priors, it performs a "scaleand-rotate" step in order to restrict the wide parameter space of all possible orbits. This increases the number of orbits accepted in the rejection sampling step. The generated semi-major axis and position angle of nodes are scaled and rotated, respectively, so that the new modified set of parameters describes an orbit that intersects a single astrometric data point. OFTI also takes the observational uncertainty of the data point used for the scaleand-rotate step into account. For each generated orbit, random offsets are introduced in separation (ρ) and position angle (θ) from Gaussian distributions with standard deviations equal to the astrometric errors at the scaleand-rotate epoch. These offsets are added to the measured astrometric values, and then the generated orbit is scaled-and-rotated to intersect the offset data point, rather than the measured data point. The scale-androtate step produces a uniform prior in Ω, and imposes a log(a) prior in semi-major axis. The posterior distributions OFTI produces are independent of the epoch chosen for this step, but the efficiency of the method is not. Some choices of the scale-and-rotate epoch result in a much higher fraction of considered orbits being accepted, and so the orbit is fit significantly faster. In order to take advantage of this change in efficiency, our implementation of OFTI performs an initial round of tests that pick out the scale-and-rotate epoch resulting in the largest acceptance rate of orbits, then uses this epoch every subsequent time this step is performed. The scale-and-rotate step differentiates OFTI from a true rejection sampling algorithm.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.3.">Rejection Sampling</head><p>Using the modified semi-major axis and position angle of nodes values, OFTI generates predicted ρ and θ values for all remaining epochs. OFTI then calculates the χ 2 probability for the predicted astrometry given the measured astrometry and uncertainties. This probability, assuming uncorrelated Gaussian errors, is given by:</p><formula xml:id="formula_0">p ∝ e −χ 2 /2 .</formula><p>Finally, OFTI performs the rejection sampling step; it compares the generated probability to a number randomly chosen from a uniform distribution over the range (0,1). If the generated probability is greater than this random number, the generated set of orbital parameters is accepted.</p><p>This process is repeated until a desired number of generated orbits has been accepted (see <ref type="figure" target="#fig_0">Figure 1)</ref>. As with MCMC, histograms of the accepted orbital parameters correspond to posterior PDFs of the orbital elements.</p><p>Our implementation of OFTI makes use of several computational and statistical techniques to speed up the basic algorithm described above: • Our implementation uses vectorized array operations rather than iterative loops wherever possible. For example, instead of generating one set of random orbital parameters at a time, our program generates arrays containing 10,000 sets of parameters, and performs all subsequent operations on these arrays. Our program then iterates over this main loop, accepting and rejecting in batches of 10,000 generated orbits at a time. 10,000 is the empirically determined optimal number for our implementation.</p><p>• Our implementation of OFTI is written to run in parallel on multiple CPUs (our default is 10), speeding up runtime by a constant factor.</p><p>• Our implementation of OFTI is equipped with a statistical speedup that increases the fraction of orbits accepted per orbits tested. Due to measurement errors, the minimum χ 2 orbit typically has a non-reduced χ 2 value greater than 0. OFTI makes use of this fact by calculating the minimum χ 2 value of all orbits tested during an initial run, then subtracting this minimum value from all future generated χ 2 values, rendering them more likely to be accepted in the method's rejection step.</p><p>In rejection sampling, having a random variable whose range is greater than the maximum probability doesn't change the distribution of parameters, but does result in more rejected trials.</p><p>• Our implementation of OFTI also restricts the ranges of the input i and total mass priors based on initial results. After our implementation has accepted 100 orbits, it uses the maximum, minimum, and standard deviation of the array of accepted parameters to infer safe upper and lower limits to place on the relevant prior. This changes only the range of the relevant prior, not the shape of the prior. This speedup prevents our implementation of OFTI from wasting time generating orbits that have a negligible chance of being accepted.</p><p>2.2. Validation with MCMC To illustrate that OFTI returns identical results to MCMC over short orbital arcs, we fit the same orbit and priors with OFTI and two MCMC orbit-fitting routines: the Metropolis Hastings MCMC algorithm described in <ref type="bibr" target="#b43">Nielsen et al. (2014)</ref>, and an Affine Invariant MCMC Foreman-Mackey (2013) orbit fitter from ( <ref type="bibr" target="#b32">Macintosh et al. 2014</ref>). In <ref type="figure" target="#fig_1">Figure 2</ref>, we plot the Metropolis Hastings MCMC and OFTI posterior PDFs calculated from astrometry of the system SDSS J105213.51+442255.7 AB (hereafter SDSS 1052; <ref type="bibr" target="#b13">Dupuy et al. 2015</ref>) from <ref type="bibr">2005- 2006</ref>. SDSS 1052 is a pair of brown dwarfs with period of approximately 9 years. We chose only a subset of the available astrometry of SDSS 1052 to illustrate the effect of fitting a short orbital arc. In addition, we assume a fixed system mass, and we use astrometry provided in <ref type="table" target="#tab_5">Table 2</ref> of <ref type="bibr" target="#b13">Dupuy et al. 2015</ref>. The posterior distributions produced by OFTI and the Metropolis-Hastings MCMC are identical. OFTI was also validated using the relative astrometry of 51 Eri b, a directly imaged exoplanet discovered by the GPI Exoplanet Survey in <ref type="bibr" target="#b33">(Macintosh et al. 2015</ref><ref type="bibr" target="#b11">, De Rosa et al. 2015</ref>). In <ref type="figure">Figure 3</ref>, we plot the posterior distributions produced by all three methods, calculated from relative astrometry of 51 Eri b taken between 2014 December and 2015 September. As in the previous case, all three sets of posterior distributions produced by OFTI and the two MCMC implementations are identical.</p><p>An important difference between MCMC and OFTI involves the types of errors on the posteriors produced by the two methods. Because each step of OFTI is independent of previous steps, deviations from analytical posteriors have the form of uncorrelated noise, i.e. if our implementation of OFTI is run until 100 orbits are accepted, the output posteriors will not be biased, but simply noisy. As our implementation of OFTI is run until greater numbers of orbits are accepted, noise reduces by √ N . MCMC steps, on the other hand, are not independent. Because the next MCMC step depends on the current location in parameter space, an un-converged MCMC run will result in biased, rather than noisy, posteriors. This is especially important in cases where MCMC has not been run long enough to achieve a satisfactory Gelman-Rubin (GR) statistic (a measure of convergence; <ref type="bibr" target="#b22">Gelman et al. 1992</ref>). In these cases, OFTI produces an unbiased result, while MCMC does not. This situation is illustrated in <ref type="figure">Figure 4</ref>, showing the posteriors produced by a Metropolis-Hastings implementation of MCMC and our implementation of OFTI for all known astrometry of ROXs 42B b ( <ref type="bibr" target="#b9">Currie et al. 2014</ref><ref type="bibr" target="#b3">, Bryan et al. 2016</ref>). After running for 30 hours on 10 CPUs, the MCMC posteriors are still un-converged, as can be seen by the lumpy shape of the Ω posterior. As a result, we see biases in the other posteriors. The GR statistics for each parameter were between 1.1 and 1.5 (an acceptable GR statistic is 1.01, see e.g. <ref type="bibr" target="#b17">Ford 2004</ref>). Our implementation of OFTI produced this result in 134 minutes, more than an order of magnitude faster than MCMC.</p><p>To demonstrate the differences in the random errors incurred by OFTI and the systematic errors of MCMC, and to illustrate OFTI's computational speed for short orbital arcs, we calculated how the semi-major axis distributions generated by OFTI and MCMC changed as more sets of orbital elements were accepted for OFTI, and generated for MCMC. For both OFTI and MCMC, we calculate the median of the first n semi-major axes tested as a function of n, resulting in an array of medians for OFTI and an array of medians for MCMC. We then take the ratio of each number in these arrays to the median of the complete distribution of tested semimajor axes. Since MCMC and OFTI converge on the same distributions, the medians of both complete semimajor axis distributions are the same. As n approaches the total number of orbits tested, the partial distributions approach the complete distribution, and the ratios approach 1. We repeat this procedure for the lower and upper 1 σ limits of the OFTI and MCMC semi-major axis distributions. These results are shown in <ref type="figure">Figure 5</ref> for the orbit of 51 Eri b. Note that this represents the number of orbits tested, rather than number of orbits accepted, and so is directly proportional to computation time. After approximately 10 4 orbits are tested, the OFTI semimajor axis distribution (red line) converges on the final median semi-major axis (to within 5 %), while the MCMC semi-major axis distribution (black line) suffers from systematic over-and under-estimates of the final semi-major axis value until more than 3 orders of magnitude more orbits have been tested. Similarly, OFTI converges on the appropriate 1 σ upper and lower limits for the output semi-major axis distribution (to within 5 %) after approximately 10 5 orbits are tested, while it takes MCMC 10 8 correlated steps in order to do the same.</p><p>OFTI is most efficient for astrometry covering smaller fractions of orbits, while MCMC achieves convergence faster for larger fractions of orbits. <ref type="figure">Figure 6</ref> illustrates this difference by displaying the wallclock time per CPU needed for each method to achieve convergence using astrometry from β Pic b <ref type="bibr" target="#b37">(Millar-Blanchaer et al. 2015</ref>). In order to compare the time for convergence by MCMC and OFTI, we define a proxy for convergence time: our distributions are said to be "converged" for a statistic of interest (e.g. a median, i 68 % confidence interval) when the statistic is within 1 % of the final value, where the final value is calculated from a distribution of 10 4 accepted orbits.</p><p>For astrometry covering small fractions of a total orbit, OFTI can compute accurate future location predictions in much less time than MCMC. We illustrate this application in <ref type="figure" target="#fig_3">Figure 7</ref>, which shows probability distributions predicting the ρ, θ of 51 Eri b on 2015 September 15 from four earlier astrometric points taken over a timespan of less than 2 months ( <ref type="bibr" target="#b33">Macintosh et al. 2015</ref>). Overplotted is the actual measured location of 51 Eri b. The predicted and observed medians for ρ are 0.455 ± 0.086 and 0.4547 ± 0.0057, and for θ are 170 ± 4 and 166.5 ± 0.6. This prediction analysis was made before the most recent astrometric data were obtained. 51 Eri A was unobservable between February and September of 2015. It took OFTI less than 5 minutes (running in parallel on ten 2.3 GHz AMD Opteron 6378 processors) to produce these predictions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.">Estimate of Performances</head><p>OFTI is a rejection-sampling method, meaning that it works by randomly sampling the parameter space of interest, then rejecting the sampled areas that do not match the data. As astrometry drawn from a larger fraction of the orbit becomes available, the orbit becomes more constrained, and the areas of parameter space that match the data shrink, so that OFTI becomes less efficient. A useful analogy for this phenomenon is throwing darts at a dartboard: when astrometry from only a small fraction of an orbit is available, many diverse orbits might fit the data, and a large fraction of the dartboard is acceptable, which results in a high acceptance rate. However, when more astrometry becomes available, a much smaller set of orbits will fit the data, and a much smaller fraction of the dartboard is acceptable, resulting  <ref type="figure">Figure 5</ref>. Ratios of the partial and final lower 1 σ limit, median, and upper 1 σ limit for one Metropolis-Hastings MCMC chain (black), and one OFTI run (red), computed for all published astrometry of 51 Eri b. OFTI converges on the appropriate median solution after testing approximately 10 4 sets of orbital elements, while MCMC continues to "wander" in a correlated fashion until accepting approximately 10 7 orbits. Red horizontal lines are located at ratios of 1.05 and 0.95, and a black dashed line is located at a ratio of 1.00.  <ref type="figure">Figure 6</ref>. Runtime per CPU needed for OFTI (red) and MCMC (black) to determine (within 1% error) the lower 1 σ limit, median, and upper 1 σ limit of the complete a distribution, as a function of the orbital fraction covered by input astrometry of β Pic b. As orbital fraction decreases, OFTI performance improves, while MCMC performance slightly improves. For orbital fractions greater than 15 %, we extrapolated the depicted behavior from the time OFTI took to accept 50 orbits. in a lower acceptance rate. Accordingly, OFTI is most efficient for astrometry covering a short fraction of an orbit, typically less than 15 % of the full orbital period. Because directly imaged exoplanets and brown dwarfs have large physical separations from their primary objects (greater than several au), OFTI is ideal for fitting the orbits of directly imaged systems, especially when the time spanned by direct imaging observations is short.</p><p>OFTI is also optimal when a quick estimate of the mean of a distribution is required. This will be particularly helpful in planning follow-up observations for space missions, as it allows to quickly estimate the optimal time for observations, also taking into account the possibility of the planet passing behind the star (see e.g. <ref type="bibr" target="#b48">Savransky et al. 2015</ref>). As <ref type="figure">Figure 5</ref> shows, OFTI can converge on an estimate for the median of the 51 Eri b semi-major axis distribution within 5 % of the true median after fewer than 10 4 orbits are tested. While an implementation of MCMC would have to run to completion in order to avoid a biased estimate of the semi-major axis distribution, the independence of successive OFTI trials allows OFTI to converge on an unbiased estimate much faster.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">APPLICATIONS</head><p>We use OFTI to fit orbits to 10 sets of astrometry from directly imaged exoplanets, brown dwarfs, and low-mass stars in the literature. Each substellar object has at least two published epochs of astrometry. We chose mostly objects for which an orbital fit has not been calculated because the available astrometry covers a short fraction of the object's orbit. In performing these fits, we make the natural assumption that all objects are bound, and that all objects execute Keplerian orbits, as the chance of catching a common proper motion companion in the process of ejection or during the closest approach of two unassociated objects is particularly small.</p><p>We calculate fits using only the data available in the literature. Random and systematic errors in the astrometry available in the literature can bias these results. In particular, systematic errors in the measurement of plate scale or true north of the various instruments used to compile a single astrometric data set can significantly change orbit fits. Sharp apparent motion due to astrometric errors is likely to be fit as a higher eccentricity orbit; more astrometric data are needed to identify outliers of this nature.</p><p>For each substellar object, we compiled relative astrometry, distances, and individual object mass estimates from the literature (see Appendix). Values of the companion mass with error bars were given for 2M 1207 b, κ And B, CD-35 2722 B, and GJ 504 b, and these were adopted as reported by the listed references. For HD 1160 B and C, η Tel B, and HR 3549 B, no central value with error bars were given, but instead a range of masses was provided; in these cases we adopted the middle of the range. We note that for visual orbits mass of the system enters Kepler's third law as the sum of the mass of both components, and so uncertainties in the orbit are dominated by uncertainties in the primary mass. We used Gaussian mass priors centered at the sum of the appropriate primary and secondary masses, with FWHM conservatively chosen to be the sum of the two mass uncertainties. For companion masses less than 15 % of the primary mass, which was the case for all objects except HIP 79797 B and 2M 1207, we neglected the uncertainty in the companion mass, and simply adopted the uncertainty of the primary. We used symmetric Gaussian priors in parallax or distance (we used distance priors only if no parallax was available in the literature), and symmetric or asymmetric Gaussian priors (asymmetric where asymmetric error bars were given) in total mass. Asymmetric Gaussian distributions consist of two halfGaussians with individual σ values, pieced together at the median of the aggregate distribution.</p><p>For each orbit, we provide:</p><p>• A table listing the maximum probability (maximum product of χ 2 probability and prior probabilities), minimum χ 2 , median, 68 % confidence interval, and 95 % confidence interval orbital elements</p><p>• A triangle plot showing posterior distributions for each orbital element and 2-dimensional covariances for each pair of orbital elements</p><p>• A 3-panel plot showing 100 orbits drawn from the posterior distributions 3.1. GJ 504 GJ 504 b is the coldest and bluest directly-imaged exoplanet to date, and one of the lowest mass. Its discovery was reported by <ref type="bibr" target="#b29">Kuzuhara et al. (2013)</ref>, who also perform a rejection-sampling orbit fit similar to OFTI (Janson et al. 2011). Masses and astrometry are provided in <ref type="table" target="#tab_3">Tables 2 and 12</ref>, and results are shown in <ref type="table" target="#tab_3">Table 1</ref> and Figures 8 and 9. Our results are consistent with the posterior distributions they find (noting that <ref type="bibr" target="#b29">Kuzuhara et al. (2013)</ref> have used a flat prior in eccentricity). Using a linearly descending prior in eccentricity, we find a median semi-major axis of 48 au, with 68 % confidence between 39 and 69 au, and a corresponding period of 299 years, with 68 % confidence between 218 and 523 years. We also note that <ref type="bibr" target="#b29">Kuzuhara et al. (2013)</ref> find an e posterior that decreases with eccentricity, as we do for OFTI calculations performed assuming both a uniform eccentricity prior and a linearly descending eccentricity prior.</p><p>We calculated fraction of orbital coverage by dividing the time spanned by observations by the 68 % confidence limits of the posterior distribution in period produced by OFTI. The calculated orbital fraction for the orbit of GJ 504 b is 0.4    <ref type="figure" target="#fig_8">Figure 9</ref>. 100 orbits fit to relative astrometry of GJ 504 b with respect to GJ 504 A, randomly selected from OFTI posterior PDFs. Left: orbital motion of GJ 504 b with respect to GJ 504 A over an orbital period. As elapsed time since the most recent observational epoch increases, the color of the orbital track changes from red to green to black (see colorbar in lower left corner). The black star indicates the primary. Right: relative separations (top) and position angles (bottom), together with the observed measurements and errors (black points with error bars), and minimum χ 2 orbit (red line). These orbits are the same as the orbits plotted in the left panel.</p><formula xml:id="formula_1">+0.1 −0.2 %.</formula><p>To illustrate the impact of our choice of eccentricity prior on the results, we performed another fit to the astrometry of GJ 504 b using a uniform, rather than a linearly descending, prior in eccentricity. The results are shown in <ref type="figure" target="#fig_0">Figure 10</ref>. The use of a different eccentricity prior changes the eccentricity posterior PDF, but does not significantly affect the other posterior PDFs. For example, when a linearly descending eccentricity prior is used, the semi-major axis posterior is 48 +22 −9 au, and when a uniform eccentricity prior is used, the posterior shifts to 47 +26 −11 au. 3.2. HD 1160 HD 1160 A hosts two known companions: HD 1160 B, a low-mass object at the stellar/brown dwarf boundary ( <ref type="bibr" target="#b20">Garcia et al. 2016)</ref>, and HD 1160 C, an M3.5 star at a wider projected separation than HD 1160 B ( <ref type="bibr" target="#b41">Nielsen et al. 2012</ref>). We compute fits to both the orbits of HD 1160 B and HD 1160 C with respect to HD 1160 A based on astrometry compiled in <ref type="table" target="#tab_6">Tables 3 and 4</ref>, and mass and distance values provided in <ref type="table" target="#tab_5">Table 2</ref> in the Appendix. Preliminary orbital fits were provided by <ref type="bibr" target="#b42">Nielsen et al. (2013)</ref>, but an updated fit including the latest astrometry published in <ref type="bibr" target="#b34">Maire et al. (2016)</ref> has not been computed. The results of our fits are shown in <ref type="table" target="#tab_3">Tables 13  and 14</ref> and <ref type="figure" target="#fig_0">Figures 11 -14</ref>. Because HD 1160 B and C are non-planetary companions, we used a uniform prior in e, rather than the empirically derived linearly descending prior used for exoplanets. This choice is supported by evidence that the empirical eccentricity distribution of long-period stellar binaries is approximately uniform (e.g. <ref type="bibr" target="#b12">Duchêne et al. 2013</ref>).</p><p>For HD 1160 B, the fraction of orbital coverage is 2.5 +2.2 −1.8 %, while for HD 1160 C, the fraction of orbital coverage is 0.11 ± 0.06 %.</p><p>OFTI constrains the range of possible inclination angles for the orbit of HD 1160 B tightly, with a 68 % confidence interval of 96-119 • , indicating close to an edge-on orbit. We find a semi-major axis of 77 +96 −27 au, and a period of 479 +1148 −227 years. A high eccentricity is favored. As seen in <ref type="figure" target="#fig_0">Figure 12</ref>, the minimum χ 2 orbit passes through all 1 σ error bars in ρ and θ, allowing OFTI to converge on a set of permissible orbits in fewer iterations than, for example, the orbit of η Tel B, whose data set contains several clear outliers (see Section 3.6).</p><p>The fit favors a more face-on orbit for HD 1160 C than for HD 1160 B, returning an inclination angle of 146 +17 • −18 . Note: Ω and ω have been wrapped between 0 and 180 • , and T0 has been wrapped between 1995 and 1995 + 1 period.</p><p>The maximum probability orbit was calculated by multiplying the output χ 2 likelihood by the priors, and taking the orbit with the maximum product. The acceptance rate was 0.13 %.</p><p>The probability that the inclination angle of HD 1160 B is within 10 • of the inclination angle of HD 1160 C is 8 %. It is fairly typical for triple stellar systems to be non-coplanar (e.g. <ref type="bibr" target="#b16">Fekel 1981</ref><ref type="bibr" target="#b53">, Tokovinin 2004</ref>, so this result is plausible. In keeping with the larger projected separation of HD 1160 C, we find a larger semi-major axis, 651 +432 −160 au, and period, 11, 260 +12,930 −3,898 years, for HD 1160 C compared to HD 1160 B.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.">HIP 79797</head><p>HIP 79797 Ba and HIP 79797 Bb are a close binary brown dwarf system orbiting the A star HIP 79797 A, first detected as an unresolved companion by <ref type="bibr" target="#b26">Huélamo et al. (2010)</ref>, and resolved into a binary by <ref type="bibr" target="#b42">Nielsen et al. (2013)</ref>. <ref type="bibr" target="#b42">Nielsen et al. (2013)</ref> perform a preliminary orbit fit using MCMC, but note that the MCMC fit was unconverged. Masses and astrometry are provided in <ref type="table" target="#tab_5">Tables  2 and 5</ref>. Results are shown in  <ref type="table" target="#tab_5">Tables 2 and 6</ref>. <ref type="bibr" target="#b36">Mesa et al. (2016)</ref> use a LSMC technique to constrain the orbit of HR 3549, and provide orbital elements for three orbits with greatest likelihood (least χ 2 ). While minimization algorithms like these are effective at finding local maxima in likelihood space, OFTI produces full Bayesian posteriors that show probability, rather than likelihood. Our OFTI fit, in contrast to that of <ref type="bibr" target="#b36">Mesa et al. (2016)</ref>, makes use of both astrometry points <ref type="bibr" target="#b36">Mesa et al. (2016)</ref> provide, rather than just one, and uses a Gaussian prior in mass with full width at half maximum (FWHM) equal to 5 % of the reported value in <ref type="bibr" target="#b36">Mesa et al. (2016)</ref>, rather than a fixed value. Our results are provided in <ref type="table" target="#tab_3">Table 16</ref>   <ref type="table" target="#tab_5">Tables 2 and 7</ref>, and orbital fits are shown in <ref type="table" target="#tab_3">Table 17</ref> and <ref type="figure" target="#fig_0">Figures 19 and 20</ref>. Using a linearly descending prior in eccentricity, we find a median semimajor axis of 46 au, with 68 % confidence between 31 and 84 au. We only loosely constrain the range of possible inclination angles, and determine that high eccentricity (&gt; 0.8) orbits are dispreferred. The median orbital period is 1,782 years, with 95 % confidence between 633 years and 20,046 years. The calculated orbital fraction for the orbit of 2M 1207 b is 0.06 +0.05 −0.03 %. 3.6. κ And κ And B is a substellar companion orbiting the late B star κ And. The discovery of κ And B was first reported by <ref type="bibr" target="#b4">Carson et al. (2013)</ref>, and followed up by <ref type="bibr" target="#b1">Bonnefoy et al. (2014)</ref>. Masses and astrometry are provided in <ref type="table" target="#tab_5">Tables 2 and 8</ref>, and results are shown in <ref type="table" target="#tab_3">Table 18</ref> and <ref type="figure" target="#fig_0">Figures 21 and 22</ref>. Using a linearly descending prior in eccentricity, we find a median semi-major axis of 77 au, with 68 % confidence between 54 and 123 au. Eccentricity remains mostly unconstrained after our analysis, but inclination is determined to be between 59 • and 159 • with 95 % confidence. The median orbital period is 378 years, with 95 % confidence between 144 years and 2,033 years. The calculated orbital fraction for the orbit of κ And B is 0.2 +0.2 −0.1 %. 3.7. η Tel η Tel B is a brown dwarf orbiting the A0V star η Tel A (Lowrance et al <ref type="bibr" target="#b59">2000</ref>). Masses and astrometry are provided in <ref type="table" target="#tab_3">Tables 2 and 9, and results  are shown in Table 19</ref> and <ref type="figure" target="#fig_1">Figures 23 and 24</ref>. We find a median semi-major axis of 192 au, with 68 % confidence between 125 and 432 au. The corresponding median period is 1,493 years, with 68 % confidence between 781 and 5,028 years. OFTI produced a well-constrained posterior in inclination angle, with 95 % of orbits having an inclination angle between 40 • and 120 • . Several data points are outliers, which results in a comparatively low orbital acceptance rate of 0.002 %. We use a uniform prior in eccentricity. The calculated orbital fraction for the orbit of η Tel B is 0.7 +0.7 −0.5 %.</p><p>3.8. 2M 0103-55 2MASS J01033563-5515561 (AB) b (hereafter 2M 0103-55 (AB) b) is a 12-14 Jupiter-mass object in orbit with respect to 2M 0103-55 (AB), a binary consisting of two low mass stars <ref type="bibr" target="#b10">(Delorme et al. 2013</ref>). <ref type="bibr" target="#b10">Delorme et al. (2013)</ref> first reported the discovery of 2M 0103-55 (AB) b, and provide two epochs of astrometry. Masses and astrometry are provided in <ref type="table" target="#tab_3">Tables 2 and  10</ref>, and results are shown in <ref type="table" target="#tab_5">Table 20</ref> and Figures 25 and 26. Two epochs of astrometry is generally too short of a baseline for the two implementations of MCMC discussed in this work to converge within the timescale of a few days, but OFTI quickly returns the appropriate posteriors. Using a linearly descending prior in eccentricity, we find a semi-major axis of 102 au, with 68 % confidence between 75 and 149 au, and a corresponding period of 1,682 years, with 68 % confidence between 1,054 and 2,990 years. OFTI also returns a firm lower limit on inclination angle, with 95 % of orbits having inclination angles greater than 112 • . The calculated orbital fraction for the orbit of 2M 0103 (AB) b is 0.6 +0.4 −0.3 %.  <ref type="table" target="#tab_3">Tables 2 and 11</ref>, and results are shown in <ref type="table" target="#tab_3">Table 21</ref> and <ref type="figure" target="#fig_1">Figures 27 and 26</ref>. With OFTI, we find a median semi-major axis of 115 au, with 68 % confidence between 74 and 216 au. The corresponding period is 1,853 years, with 68 % confidence between 947 and 4,772 years. Inclination angle and eccentricity remain mostly unconstrained. We use a uniform prior in eccentricity. The calculated orbital fraction for the orbit of CD-35 2722 B is 0.05 +0.05 −0.03 %.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">CONCLUSIONS</head><p>OFTI is a novel orbit-fitting method that reproduces the outputs of MCMC in orders of magnitude less time when fitting astrometric data covering only small fractions of orbits. A key difference with MCMC is that each OFTI orbit is independent of the others, whereas an MCMC chain produces a series of correlated values which only define the posterior PDF once the chains have fully converged. This difference makes OFTI an ideal tool when parameter estimates are required quickly, as in the context of a space mission. For example, when planning future observations, OFTI can quickly compute the expected decrease in errors on orbital parameters for different observing cadences without having to wait for multiple MCMC chains to converge.</p><p>In this paper, we have demonstrated the accuracy of the OFTI method by comparing the outputs of our implementation of OFTI with those of MCMC, the speed of OFTI by analyzing the outputs produced for varying input orbital fraction, and the utility of OFTI by providing fits to ten sets of astrometric data covering very short orbital arcs (&lt; 3 % orbital coverage for all but one) from the literature.</p><p>OFTI is a useful tool for constraining the orbital parameters of directly imaged long-period exoplanets, brown dwarfs, and long-period stellar binaries. It has been applied to fitting the orbits of exoplanets imaged by the GPIES campaign and extremely long-period brown dwarfs, and will be used to fit the orbits of future WFIRST targets. OFTI's efficiency will be critical for a space-based mission like WFIRST, allowing future observations to be planned effectively and efficiently.</p><p>We thank the anonymous referee for helpful comments that improved the quality of this work. S.B. has been supported by the National Science            The acceptance rate was 0.24 %.                 </p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 .</head><label>1</label><figDesc>Figure 1. Visualization of the OFTI method. Known astrometry (in this figure, for 51 Eri b), is shown as black crosses. The yellow star at (0,0) shows the location of 51 Eri A. Top: an orbit with a = 1 au, Ω = 0 • , and other orbital elements randomly drawn from appropriate priors is generated. Red dots along the orbit show the astrometric locations of 51 Eri b at the times of the observational epochs. The dotted line shows the line of nodes. Panels Two and Three: the scale-and-rotate step is performed. Bottom Panel: orbits accepted (light red) and rejected (gray) by the rejection sampling step of the OFTI algorithm. Inset: close up of bottom panel.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 2 .</head><label>2</label><figDesc>Figure 2. Normalized PDFs of the orbital parameters corresponding to orbits accepted by OFTI (red) and MCMC (black) for astrometry of the 9 year period binary brown dwarf SDSS 1052 from 2005-2006. The PDFs are identical, differing only by shot noise.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 3 .Figure 4 .</head><label>34</label><figDesc>Figure 3. Normalized PDFs of the orbital parameters corresponding to orbits accepted by OFTI (red), Metropolis-Hastings MCMC (black), and Affine-Invariant MCMC (blue) for relative astrometry of 51 Eri b from its discovery in 2014 December to 2015 September. The PDFs produced by all methods are identical, differing only by shot noise.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 7 .</head><label>7</label><figDesc>Figure 7. PDFs in separation and position angle (black curves) predicting the location of 51 Eri b on 2015 September 15, given all previously known epochs of astrometry. The vertical blue lines show the astrometric location of 51 Eri b on 2015 February 1, the green lines the location on 2014 December 18, and the red horizontal bars the measured ρ, θ.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Figure 8 .</head><label>8</label><figDesc>Figure 8. Posterior PDFs for the orbit of GJ 504 b with respect to GJ 504 A. Black lined panels on the diagonal show the posterior probability distributions for each of the orbital parameters, while off-diagonal plots show two-dimensional covariance contour plots. Red lines depict 68 % contours, blue lines depict 95 % contours, and green lines depict 99 % contours.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Figure 10 .</head><label>10</label><figDesc>Figure 10. Posterior PDFs for the orbit of GJ 504 b, calculated using a linearly descending prior in eccentricity (black), and a uniform prior in eccentricity (red). The choice of prior strongly affects the eccentricity posterior, but the other orbital element posteriors are generally the same. The largest change seen is in semi-major axis, where the distribution shifts from 48 +22 −9 au to 47 +26 −11 au when changing the linearly descending eccentricity prior to a uniform one. The two relevant eccentricity priors are plotted in the eccentricity panel as thin red and black lines, but the black prior is not visible behind the black posterior.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head></head><label></label><figDesc>and Figures 17 and 18. We find a semi-major axis of 94 +65 −28 au, which contains one of the semi-major axis values reported by Mesa et al. (2016) (133.2 au), while the other two semi- major axis values Mesa et al. (2016) report (299.7 and 441.2 au) are at 1.7 and 2.9 σ, respectively, of our semi- major axis distribution. Like Mesa et al. (2016), we find that most values of eccentricity, and values of i &gt; 90 • , are consistent with the astrometry, a reflection of the fact that the astrometry covers only a fraction of the full orbital arc (0.5 +0.4 −0.3 %). 3.5. 2M 1207 2MASSW J1207334-393254 b (hereafter 2M 1207 b) is a planetary mass companion orbiting 2M 1207 A, a brown dwarf with mass approximately three times that of 2M 1207 b. 2M 1207 b was first discovered using the Very Large Telescope with NACO by Chauvin et al. (2004). It was followed up first by Song et al. (2006), who confirmed the common proper motion of the pair, establishing 2M 1207 b as a bound companion, and again by Mohanty et al. (2007). Masses and astrometry are provided in</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head>3. 9 .</head><label>9</label><figDesc>CD-35 2722 CD-35 2722 B is an L-dwarf companion to the M1 dwarf CD-35 2722 A, discovered by the Gemini NICI planet-finding campaign (Wahhaj et al. 2011). (Wahhaj et al. 2011) report two epochs of relative astrometry and show that CD-35 2722 B is a bound companion on the basis of common proper motion. Masses and astrom- etry are provided in</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head></head><label></label><figDesc>Foundation Research Experiences for Undergraduates Program under Grant No. AST-1359346 and the Stanford Summer Research Early-Identification Program. S.B. would also like to acknowledge and thank Charles Royce and the Royce Fellowship for their support, and Jasmine Garani for useful discussion. Thanks to Mike Fitzgerald, Anand Sivaramakrishnan, Alexandra Greenbaum, Max Millar- Blanchaer, and Vanessa Bailey for helpful comments. Based on observations obtained at the Gemini Obser- vatory, which is operated by the Association of Uni- versities for Research in Astronomy, Inc., under a co- operative agreement with the National Science Founda- tion (NSF) on behalf of the Gemini partnership: the NSF (United States), the National Research Council (Canada), CONICYT (Chile), the Australian Research Council (Australia), Ministério da Ciência, Tecnologiae Inovacao (Brazil) and Ministerio de Ciencia, Tecnología e Innovación Productiva (Argentina). E.L.N., S.B., B.M., F.M., and M.P. were supported by NASA grant NNX14AJ80G. R.J.D.R, D.R, J.J.W, J.R.G have been supported by NSF grant AST-1518332, National Aero- nautics and Space Administration (NASA) Origins grant NNX15AC89G, and NASA NExSS grant NNX15AD95G. This work benefited from NASAs Nexus for Exoplanet System Science (NExSS) research coordination network sponsored by NASAs Science Mission Directorate.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_10"><head>Figure 11 .</head><label>11</label><figDesc>Figure 11. Triangle plots for the orbit of HD 1160 B with respect to HD 1160 A. See Figure 8.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_11"><head>Figure 12 .</head><label>12</label><figDesc>Figure 12. Depictions of 100 likely orbits fit to relative astrometry of HD 1160 B with repsect to HD 1160 A. See Figure 9.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_12"><head>Figure 13 .</head><label>13</label><figDesc>Figure 13. Triangle plots for the orbit of HD 1160 C with respect to HD 1160 A. See Figure 8.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_13"><head>Figure 14 .</head><label>14</label><figDesc>Figure 14. Depictions of 100 likely orbits fit to relative astrometry of HD 1160 C with respect to HD 1160 A. See Figure 9.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_14"><head>Figure 15 .</head><label>15</label><figDesc>Figure 15. Triangle plots for the orbit of HIP 79797 Bb with respect to HIP 79797 Ba. See Figure 8.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_15"><head>Figure 16 .Figure 17 .</head><label>1617</label><figDesc>Figure 16. Depictions of 100 likely orbits fit to relative astrometry of HIP 79797 Bb with respect to HIP 79797 Ba. See figure 9. Note: the vertical bars in the bottom right plot result from PA crossing 360 • .</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_16"><head>Figure 23 .</head><label>23</label><figDesc>Figure 23. Triangle plots for the orbit of η Tel B with respect to η Tel A. See Figure 8.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_17"><head>Figure 25 .</head><label>25</label><figDesc>Figure 25. Triangle plots for the orbit of 2M 0103-55 (AB) b with respect to 2M 0103-55 (AB). See Figure 8.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" validated="true"><head>Table 1 Orbit of GJ 504 b with respect to GJ 504 A orbital element unit max probability min χ 2 median 68% confidence range 95% confidence range</head><label>1</label><figDesc></figDesc><table>a 
+au 
+44.48 
+67.24 
+48 
+39-69 
+31-129 
+P 
+yr 
+268.56 
+508.23 
+299 
+218-523 
+155-1332 
+e 
+0.0151 
+0.1519 
+0.19 
+0.05-0.40 
+0.01-0.62 
+i 
+
+• 
+
+142.2 
+131.7 
+140 
+125-157 
+111-171 
+ω 
+
+• 
+
+91.7 
+4.9 
+95 
+31-151 
+4-176 
+Ω 
+
+• 
+
+133.7 
+61.6 
+97 
+46-146 
+8-173 
+T 0 
+yr 
+2228.11 
+2419.96 2145.10 
+2068.06-2310.13 
+2005.07-2825.03 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_4" validated="false"><head>Table 15 and</head><label>15</label><figDesc></figDesc><table>Figures 15 
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_5" validated="true"><head>Table 2 Relevant Distance &amp; Mass Parameters</head><label>2</label><figDesc></figDesc><table>Orbit [primary, companion] 
+
+Parallax (mas) 
+
+Primary Mass (M 
+
+) 
+Secondary Mass (M 
+
+J ) 
+
+Mass Refs. 
+OFTI Input Mass (M 
+) Orbit Fraction d 
+
+HD 1160 A, HD 1160 B 
+
+9.66 ± 0.45 
+
+1.95 ± 0.10 a 
+
+29 
+
+Siess et al. (2000) 
+
+1.95 ± 0.10 
+
+2.5 +2.2 
+−1.8 % 
+
+Garcia et al. (2016) 
+
+HD 1160 A, HD 1160 C 
+
+9.66 ± 0.45 
+
+1.95 ± 0.10 a 
+
+187 
+
+Garcia et al. (2016), 
+
+2.13 ± 0.10 
+
+0.11 ± 0.06 % 
+
+Nielsen et al. (2012) 
+
+HIP 79797 Ba, HIP 79797 Bb 
+
+19.15 ± 0.42 
+0.06 ± 0.02, 0.05 ± 0.02 
+
+Nielsen et al. (2013) 
+
+0.11 ± 0.04 
+
+10 +11 
+−8 % 
+
+HR 3549 A, HR 3549 B 
+
+10.82 ± 0.27 
+
+2.30 ± 0.12 c 
+
+45 
+
+Mesa et al. (2016) 
+
+2.34 ± 0.12 
+
+0.5 +0.4 
+−0.3 % 
+
+2M 1207 A, 2M 1207 b 
+
+18.51 ± 1.03 
+
+0.024 ± 0.005 
+
+8 ± 2 
+
+Patience et al. (2012) 
+
+0.032 ± 0.007 
+
+0.06 +0.05 
+−0.03 % 
+
+κ And A, κ And B 
+
+19.37 ± 0.19 
+
+2.8 +0.1 
+
+−0.2 
+
+50 +16 
+
+−13 
+
+Hinkley et al. (2013) 
+
+2.8 +0.1 
+
+−0.2 
+
+0.2 +0.2 
+−0.1 % 
+
+η Tel A, η Tel B 
+
+20.74 ± 0.21 
+
+2.90 ± 0.15 b 
+
+35 
+
+Wyatt et al. (2007), 
+
+2.93 ± 0.15 
+
+0.7 +0.7 
+−0.5 % 
+
+Neuhäuser et al. (2011) 
+
+2M 0103-55 (AB), 2M 0103-55 (AB) b 
+
+21.18 ± 1.37 
+
+0.36 ± 0.04 
+
+13 
+
+Delorme et al. (2013) 
+
+0.37 ± 0.04 
+
+0.6 +0.4 
+−0.3 % 
+
+CD-35 2722 A, CD-35 2722 B 
+
+22.7 ± 1.0 pc c 
+
+0.40 ± 0.05 
+
+31 ± 8 
+
+Wahhaj et al. (2011) 
+
+0.43 ± 0.05 
+
+0.05 +0.05 
+−0.03 % 
+
+GJ 504 A, GJ 504 b 
+
+56.95 ± 0.26 
+
+1.22 ± 0.08 
+
+4 +4.5 
+
+−1.0 
+
+Kuzuhara et al. (2013) 
+
+1.22 ± 0.08 
+
+0.4 +0.1 
+−0.2 % 
+
+a 
+
+Interpolated from Siess models (Siess et al. 2000) using an age of 0.05 Gyr, Z=.02, mv = 7.12; 5 % error bars assumed. 
+
+b 
+
+5 % error bars assumed. 
+
+c 
+
+Shkolnik et al. (2012); Note that this is a trigonometric distance, not a parallax 
+
+d 
+
+Fraction of orbit covered by astrometry 
+
+Note: All parallaxes taken from the Simbad database. 
+Note: Secondary masses without error bars were presented in the papers referenced as mass ranges, rather than PDFs or median values with error bars. We took the median values of these 
+ranges as inputs for OFTI. </table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_6" validated="false"><head>Table 3 Previous Observations of HD 1160 B</head><label>3</label><figDesc></figDesc><table>Epoch 
+ρ (") 
+θ ( • )</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_7" validated="false"><head>Table 5 Previous</head><label>5</label><figDesc></figDesc><table>Observations of HIP 79797 Bb with respect to 
+HIP 79797 Ba 
+
+Epoch 
+ρ (") 
+θ ( • ) 
+Reference 
+
+2010.27 0.060 ± 0.020 
+331 ± 13 
+Nielsen et al. (2013) 
+2010.35 0.060 ± 0.006 
+339 ± 3 
+Nielsen et al. (2013) 
+2011.35 0.063 ± 0.015 
+340 ± 10 
+Nielsen et al. (2013) 
+2012.26 0.063 ± 0.007 
+342 ± 3 
+Nielsen et al. (2013) 
+2012.66 0.077 ± 0.014 
+338 ± 9 
+Nielsen et al. (2013) 
+
+Total Change in θ: 
+7 • </table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_8" validated="true"><head>Table 6 Previous Observations of HR 3549 B</head><label>6</label><figDesc></figDesc><table>Epoch 
+∆α (") 
+∆dec (") 
+Reference 
+
+2013.03 0.333 ± 0.009 
+0.806 ± 0.009 
+Mawet et al. (2015) 
+2015.01 0.334 ± 0.015 
+0.788 ± 0.015 
+Mawet et al. (2015) 
+2015.96 0.348 ± 0.004 
+−0.776 ± 0.004 
+Mesa et al. (2016) 
+2015.99 0.344 ± 0.007 
+−0.775 ± 0.007 
+Mesa et al. (2016) 
+
+Total Change in θ: 
+1.49 • 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_9" validated="false"><head>Table 7 Previous</head><label>7</label><figDesc></figDesc><table>Observations of 2M1207 b 
+
+Epoch 
+ρ (") 
+θ ( • ) 
+Reference 
+
+2004.32 
+0.772 ± 0.004 
+125.4 ± 0.3 
+Chauvin et al. (2005) 
+2004.66 0.7737 ± 0.0022 
+125.37 ± 0.03 
+Song et al. (2006) 
+2005.10 
+0.768 ± 0.005 
+125.4 ± 0.3 
+Chauvin et al. (2005) 
+2005.23 
+0.769 ± 0.010 
+125.6 ± 0.7 
+Mohanty et al. (2007) 
+2005.24 
+0.776 ± 0.008 
+125.5 ± 0.3 
+Chauvin et al. (2005) 
+2005.32 0.7735 ± 0.0023 
+125.61 ± 0.20 
+Song et al. (2006) 
+
+Total Change in θ: 
+0.21 • 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_10" validated="false"><head>Table 8 Previous</head><label>8</label><figDesc></figDesc><table>Observations of κ And B 
+
+Epoch 
+ρ (") 
+θ ( • ) 
+Reference 
+
+2012.00 1.070 ± 0.010 
+55.7 ± 0.6 
+Carson et al. (2013) 
+2012.52 1.058 ± 0.007 
+56.0 ± 0.4 
+Carson et al. (2013) 
+2012.83 1.029 ± 0.005 
+55.3 ± 0.3 
+Bonnefoy et al. (2014) a 
+
+Total Change in θ: 
+0.4 • 
+
+a The measurements from Bonnefoy et al. were extracted from two nights of 
+data. The date presented above is the average of the two observation dates. 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_11" validated="false"><head>Table 9 Previous</head><label>9</label><figDesc></figDesc><table>Observations of η Tel B 
+
+Epoch 
+ρ (") 
+θ ( • )</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_12" validated="true"><head>Table 10 Previous Observations of 2M 0103-55 (AB) b</head><label>10</label><figDesc></figDesc><table>Epoch 
+ρ (") 
+θ ( • ) 
+Reference 
+
+2002.82 1.718 ± 0.015 
+338.0 ± 0.05 
+Delorme et al. (2013) 
+2012.90 1.770 ± 0.003 
+336.1 ± 0.01 
+Delorme et al. (2013) 
+
+Total Change in θ: 
+1.9 • 
+
+2M 0103-55 (AB) is a binary, resolved in all epochs of astrometry. Astrom-
+etry above is measured relative to the barycenter of 2M 0103-55 (AB). 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_13" validated="false"><head>Table 11 Previous</head><label>11</label><figDesc></figDesc><table>Observations of CD-35 2722 B 
+
+Epoch 
+ρ (") 
+θ ( • ) 
+Reference 
+
+2009.01 3.172 ± 0.005 
+244.13 ± 0.25 
+Wahhaj et al. (2011) 
+2010.02 3.137 ± 0.005 
+243.10 ± 0.25 
+Wahhaj et al. (2011) 
+
+Total Change in θ: 
+1.03 • 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_14" validated="false"><head>Table 12 Previous</head><label>12</label><figDesc></figDesc><table>Observations of GJ 504 b 
+
+Epoch 
+ρ (") 
+θ ( • ) 
+Reference 
+
+2011.23 2.479 ± 0.016 
+327.94 ± 0.39 
+Kuzuhara et al. (2013) 
+2011.39 2.483 ± 0.008 
+327.45 ± 0.19 
+Kuzuhara et al. (2013) 
+2011.61 2.481 ± 0.033 
+326.84 ± 0.94 
+Kuzuhara et al. (2013) 
+2011.62 2.448 ± 0.024 
+325.82 ± 0.66 
+Kuzuhara et al. (2013) 
+2012.16 2.483 ± 0.015 
+326.46 ± 0.36 
+Kuzuhara et al. (2013) 
+2012.28 2.487 ± 0.008 
+326.54 ± 0.18 
+Kuzuhara et al. (2013) 
+2012.39 2.499 ± 0.026 
+326.14 ± 0.61 
+Kuzuhara et al. (2013) 
+
+Total Change in θ: 
+1.8 • 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_15" validated="true"><head>Table 13 Orbit of HD 1160 B with respect to HD 1160 A</head><label>13</label><figDesc></figDesc><table>orbital element unit max probability min χ 2 median 68 % confidence range 95 % confidence range 
+
+a 
+au 
+45.27 
+77.86 
+77 
+50-173 
+42-834 
+P 
+yr 
+218.02 
+482.21 
+479 
+252-1627 
+194-17134 
+e 
+0.8119 
+0.2550 
+0.77 
+0.35-0.94 
+0.05-0.98 
+i 
+
+• 
+
+109.3 
+98.2 
+103 
+96-119 
+92-149 
+ω 
+
+• 
+
+10.2 
+99.9 
+96 
+39-143 
+6-174 
+Ω 
+
+• 
+
+66.1 
+61.1 
+63 
+38-91 
+9-169 
+T 0 
+yr 
+2137.84 
+2138.27 2220.06 
+2131.28-2796.96 
+2087.36-9871.18 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_16" validated="true"><head>Table 14 Orbit of HD 1160 C with respect to HD 1160 A</head><label>14</label><figDesc></figDesc><table>orbital element unit max probability 
+min χ 2 
+median 68 % confidence range 95 % confidence range 
+
+a 
+au 
+1631.43 
+2512.52 
+651 
+491-1083 
+372-2454 
+P 
+yr 
+45119.44 
+80174.59 
+11260 
+7362-24190 
+4852-82443 
+e 
+0.6286 
+0.8110 
+0.33 
+0.11-0.60 
+0.02-0.82 
+i 
+
+• 
+
+136.1 
+170.9 
+146 
+128-163 
+110-174 
+ω 
+
+• 
+
+31.4 
+93.1 
+84 
+28-150 
+4-176 
+Ω 
+
+• 
+
+25.2 
+56.4 
+62 
+20-148 
+3-177 
+T 0 
+yr 
+46827.45 
+2374.57 
+3812.12 
+2915.07-8680.52 
+2195.37-31708.72 </table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_17" validated="true"><head>Table 15 Orbit of HIP 79797 Bb with respect to HIP 79797 Ba</head><label>15</label><figDesc></figDesc><table>orbital element unit max probability min χ 2 median 68 % confidence range 95 % confidence range 
+
+a 
+au 
+2.01 
+9.96 
+3 
+2-8 
+2-35 
+P 
+yr 
+8.71 
+82.70 
+23 
+11-86 
+7-735 
+e 
+0.9133 
+0.8965 
+0.75 
+0.31-0.95 
+0.05-0.99 
+i 
+
+• 
+
+75.2 
+85.0 
+83 
+66-93 
+34-117 
+ω 
+
+• 
+
+151.1 
+104.0 
+95 
+39-145 
+6-174 
+Ω 
+
+• 
+
+168.4 
+8.3 
+157 
+51-166 
+4-177 
+T 0 
+yr 
+1998.44 
+2061.23 2005.47 
+1998.34-2034.01 
+1995.48-2338.70 </table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_18" validated="true"><head>Table 16 Orbit of HR 3549 B with respect to HR 3549 A</head><label>16</label><figDesc></figDesc><table>orbital element unit max probability min χ 2 median 68 % confidence range 95 % confidence range 
+
+a 
+au 
+85.84 
+83.73 
+94 
+66-159 
+50-360 
+P 
+yr 
+520.01 
+496.86 
+592 
+346-1303 
+231-4461 
+e 
+0.5103 
+0.4797 
+0.47 
+0.16-0.75 
+0.02-0.92 
+i 
+
+• 
+
+138.5 
+138.1 
+130 
+111-152 
+96-170 
+ω 
+
+• 
+
+136.8 
+167.3 
+87 
+26-152 
+4-176 
+Ω 
+
+• 
+
+172.6 
+14.0 
+77 
+13-168 
+2-178 
+T 0 
+yr 
+2094.84 
+2105.86 2115.38 
+2078.47-2319.26 
+2030.61-3633.32 
+
+Note: The acceptance rate was 2.59 %. 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_19" validated="true"><head>Table 17 Orbit of 2M 1207 b with respect to 2M 1207 A</head><label>17</label><figDesc></figDesc><table>orbital element unit max probability min χ 2 median 68 % confidence range 95 % confidence range 
+
+a 
+au 
+35.26 
+91.88 
+46 
+31-84 
+24-231 
+P 
+yr 
+1153.44 
+4648.27 
+1782 
+974-4413 
+633-20046 
+e 
+0.2226 
+0.5226 
+0.49 
+0.15-0.83 
+0.02-0.98 
+i 
+
+• 
+
+41.6 
+41.5 
+69 
+36-109 
+13-150 
+ω 
+
+• 
+
+141.4 
+161.6 
+90 
+29-151 
+4-176 
+Ω 
+
+• 
+
+129.6 
+1.9 
+119 
+52-146 
+7-174 
+T 0 
+yr 
+2424.39 
+2172.58 2683.34 
+2285.03-4277.65 
+2107.69-12883.36 </table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_21" validated="true"><head>Table 19 Orbit of η Tel B with respect to η Tel A</head><label>19</label><figDesc></figDesc><table>orbital element unit max probability min χ 2 median 68 % confidence range 95 % confidence range 
+
+a 
+au 
+206.39 
+207.86 
+192 
+125-432 
+106-2091 
+P 
+yr 
+1600.73 
+1640.25 
+1493 
+781-5028 
+612-53621 
+e 
+0.9084 
+0.0354 
+0.77 
+0.34-0.96 
+0.05-1.00 
+i 
+
+• 
+
+88.4 
+87.4 
+86 
+72-96 
+40-120 
+ω 
+
+• 
+
+121.8 
+165.6 
+98 
+37-146 
+5-175 
+Ω 
+
+• 
+
+169.8 
+167.4 
+165 
+42-170 
+3-178 
+T 0 
+yr 
+2851.39 
+3623.16 2669.33 
+2391.73-4459.40 
+2263.35-26828.14 
+
+Note: The acceptance rate was 0.00002 %. 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_23" validated="true"><head>Table 21 Orbit of CD-35 2722 B with respect to CD-35 2722 A</head><label>21</label><figDesc></figDesc><table>orbital element unit max probability 
+min χ 2 
+median 68 % confidence range 95 % confidence range 
+
+a 
+au 
+286.48 
+10048.78 
+115 
+74-216 
+53-520 
+P 
+yr 
+6858.18 
+1454272.75 
+1853 
+947-4772 
+580-17796 
+e 
+0.9058 
+0.9973 
+0.82 
+0.57-0.95 
+0.18-0.99 
+i 
+
+• 
+
+160.4 
+154.2 
+126 
+95-156 
+49-172 
+ω 
+
+• 
+
+110.4 
+136.7 
+128 
+32-163 
+3-177 
+Ω 
+
+• 
+
+72.1 
+98.2 
+75 
+58-104 
+20-158 
+T 0 
+yr 
+2088.36 
+2087.50 
+2125.23 
+2099.91-2184.95 
+2082.76-2531.59 </table></figure>
+
+			<note place="foot">Note: The acceptance rate was 0.006 %.</note>
+
+			<note place="foot">Note: The acceptance rate was 13.8 %.</note>
+
+			<note place="foot">Note: The acceptance rate was 13.99 %.</note>
+
+			<note place="foot">Note: The acceptance rate was 0.02 %.</note>
+
+			<note place="foot">Note: The acceptance rate was 0.32 %.</note>
+
+			<note place="foot">Blunt, Nielsen, De Rosa, et al.</note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Beust</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-C</forename><surname>Augereau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Bonsor</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">561</biblScope>
+			<biblScope unit="page">43</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Bonnefoy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Currie</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G.-D</forename><surname>Marleau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">562</biblScope>
+			<biblScope unit="page">111</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">P</forename><surname>Bowler</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1605.02731</idno>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+<note type="report_type">PASP, eprint</note>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">L</forename><surname>Bryan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">P</forename><surname>Bowler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">A</forename><surname>Kuntson</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1606.06744</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Carson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Thalmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Janson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJL</title>
+		<imprint>
+			<biblScope unit="volume">763</biblScope>
+			<biblScope unit="page">32</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Chauvin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">M</forename><surname>Lagrange</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Dumas</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">435</biblScope>
+			<biblScope unit="page">29</biblScope>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Chauvin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A.-M</forename><surname>Lagrange</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Dumas</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">438</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Chauvin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A.-M</forename><surname>Lagrange</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Beust</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">542</biblScope>
+			<biblScope unit="page">41</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Claudi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Gratton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Desidera</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mem SAIt</title>
+		<imprint>
+			<biblScope unit="volume">87</biblScope>
+			<biblScope unit="page">132</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Currie</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Daemgen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Debes</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJL</title>
+		<imprint>
+			<biblScope unit="volume">780</biblScope>
+			<biblScope unit="page">30</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Delorme</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Gagné</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">H</forename><surname>Girard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">553</biblScope>
+			<biblScope unit="page">5</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>De Rosa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">L</forename><surname>Nielsen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">C</forename><surname>Blunt</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJL</title>
+		<imprint>
+			<biblScope unit="volume">814</biblScope>
+			<biblScope unit="page">3</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Duchêne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Kraus</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ARAA</title>
+		<imprint>
+			<biblScope unit="volume">51</biblScope>
+			<biblScope unit="page">269</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">J</forename><surname>Dupuy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">C</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">K</forename><surname>Leggett</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">805</biblScope>
+			<biblScope unit="page">56</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">J</forename><surname>Dupuy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">M</forename><surname>Kratter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">L</forename><surname>Kraus</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">817</biblScope>
+			<biblScope unit="page">80</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">C</forename><surname>Fabrycky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">A</forename><surname>Murray-Clay</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">710</biblScope>
+			<biblScope unit="page">1408</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">C</forename><surname>Fekel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Jr</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">246</biblScope>
+			<biblScope unit="page">879</biblScope>
+			<date type="published" when="1981" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Ford</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AIP Conference Proceedings</title>
+		<imprint>
+			<biblScope unit="volume">713</biblScope>
+			<biblScope unit="page">27</biblScope>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Ford</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">642</biblScope>
+			<biblScope unit="page">505</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">125</biblScope>
+			<biblScope unit="page">306</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">V</forename><surname>Garcia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Currie</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Guyon</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1610.05786</idno>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Geissler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Chauvin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">F</forename><surname>Sterzik</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">480</biblScope>
+			<biblScope unit="page">193</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gelman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">B</forename><surname>Rubin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Statist. Sci</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="page">457</biblScope>
+			<date type="published" when="1992" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">M</forename><surname>Ghez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Salim</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">N</forename><surname>Weinberg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">689</biblScope>
+			<biblScope unit="page">1044</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">W</forename><surname>Guenther</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Neuhäuser</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Huélamo</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">365</biblScope>
+			<biblScope unit="page">514</biblScope>
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Hinkley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Pueyo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">K</forename><surname>Faherty</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">779</biblScope>
+			<biblScope unit="page">153</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Huélamo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">E A</forename><surname>Nürnberger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">D</forename><surname>Ivanov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">521</biblScope>
+			<biblScope unit="page">54</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Janson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Carson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Thalmann</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">728</biblScope>
+			<biblScope unit="page">85</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Q</forename><forename type="middle">M</forename><surname>Konopacky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">A</forename><surname>Macintosh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">152</biblScope>
+			<biblScope unit="page">28</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Kuzuhara</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Tamura</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Kudom</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">774</biblScope>
+			<biblScope unit="page">1</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A.-M</forename><surname>Lagrange</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>De Bondt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Meunier</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">542</biblScope>
+			<biblScope unit="page">18</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">J</forename><surname>Lowrance</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Schneider</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Kirkpatrick</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">541</biblScope>
+			<biblScope unit="page">390</biblScope>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Macintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Graham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Ingraham</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PNAS</title>
+		<imprint>
+			<biblScope unit="volume">111</biblScope>
+			<biblScope unit="page">35</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Macintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Graham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Barman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">350</biblScope>
+			<biblScope unit="page">64</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A.-L</forename><surname>Maire</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Bonnefoy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Ginski</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">587</biblScope>
+			<biblScope unit="page">56</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Mawet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>David</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Bottom</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">811</biblScope>
+			<biblScope unit="page">103</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Mesa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vigan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Orazi</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1606.06654</idno>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Millar-Blanchaer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Craham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">P</forename><surname>Pueyo</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">811</biblScope>
+			<biblScope unit="page">1</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Mohanty</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Jayawardhana</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Huélamo</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">657</biblScope>
+			<biblScope unit="page">1064</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Neuhäuser</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Ginski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">O B</forename><surname>Schmidt</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">416</biblScope>
+			<biblScope unit="page">1430</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">L</forename><surname>Nielsen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">M</forename><surname>Close</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">717</biblScope>
+			<biblScope unit="page">878</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">L</forename><surname>Nielsen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">C</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Wahhaj</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">750</biblScope>
+			<biblScope unit="page">53</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">L</forename><surname>Nielsen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">C</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Wahhaj</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">776</biblScope>
+			<biblScope unit="page">4</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">L</forename><surname>Nielsen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">C</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Wahhaj</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">794</biblScope>
+			<biblScope unit="page">158</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Patience</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">R</forename><surname>King</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>De Rosa</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">540</biblScope>
+			<biblScope unit="page">85</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">H</forename><surname>Press</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">B</forename><surname>Rybicki</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">N</forename><surname>Hewitt</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">385</biblScope>
+			<biblScope unit="page">416</biblScope>
+			<date type="published" when="1992" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Rameau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">L</forename><surname>Nielsen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>De Rosa</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJL</title>
+		<imprint>
+			<biblScope unit="volume">822</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Sallum</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Eisner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">M</forename><surname>Close</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">801</biblScope>
+			<biblScope unit="page">85</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Savransky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Garrett</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Astron. Telesc. Instrum. Syst</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">11006</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">L</forename><surname>Shkolnik</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Anglada-Escudé</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">C</forename><surname>Liu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">758</biblScope>
+			<biblScope unit="page">56</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Siess</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Dufour</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Forestini</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">358</biblScope>
+			<biblScope unit="page">593</biblScope>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Song</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Schneider</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Zuckerman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">652</biblScope>
+			<biblScope unit="page">724</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b52">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Spergel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Gehrels</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Baltay</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1503.03757</idno>
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b53">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Tokovinin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Revista Mexicana de Astronomía y Astrofísica (Serie de Conferencias)</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="page">7</biblScope>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b54">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">A</forename><surname>Traub</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Breckinridge</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">P</forename><surname>Greene</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">JAST</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page">11020</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b55">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Wahhaj</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">C</forename><surname>Liu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">A</forename><surname>Biller</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">729</biblScope>
+			<biblScope unit="page">139</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b56">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Graham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">P</forename><surname>Pueyo</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">152</biblScope>
+			<biblScope unit="page">97</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b57">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">C</forename><surname>Wyatt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Smith</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">Y L</forename><surname>Su</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">663</biblScope>
+			<biblScope unit="page">365</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b58">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Zurlo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vigan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A-L</forename><surname>Galicher</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">587</biblScope>
+			<biblScope unit="page">57</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b59">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Lowrance</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b60">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Guenther</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b61">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Sep</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b62">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Sep</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b63">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Sep</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b64">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Sep</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b65">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Sep</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b66">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Sep</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b67">
+	<analytic>
+		<title/>
+	</analytic>
+	<monogr>
+		<title level="j">PA (deg.)</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b68">
+	<monogr>
+		<title level="m" type="main">Depictions of 100 likely orbits fit to relative astrometry of 2M 0103-55 (AB) b with respect to 2M</title>
+		<imprint>
+			<publisher>AB</publisher>
+			<biblScope unit="page" from="103" to="55" />
+		</imprint>
+	</monogr>
+	<note>Figure 26</note>
+</biblStruct>
+
+<biblStruct xml:id="b69">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Sep</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b70">
+	<analytic>
+		<title/>
+	</analytic>
+	<monogr>
+		<title level="j">PA (deg.)</title>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b71">
+	<monogr>
+		<title level="m" type="main">Depictions of 100 likely orbits fit to relative astrometry of CD-35 2722 B with respect to CD-35 2722 A</title>
+		<imprint/>
+	</monogr>
+	<note>Figure 28. See figure 9</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

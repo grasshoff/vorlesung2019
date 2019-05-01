@@ -1,0 +1,1454 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2019-01-22T13:31+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">The ARCiS framework for Exoplanet Atmospheres The Cloud Transport Model</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2018-12-13">December 13, 2018 December 13, 2018</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Chris</forename><forename type="middle">W</forename><surname>Ormel</surname></persName>
+							<email>[c.w.ormel@uva.nl</email>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Anton Pannekoek Institute (API)</orgName>
+								<orgName type="institution" key="instit2">University of Amsterdam</orgName>
+								<address>
+									<addrLine>Science Park 904</addrLine>
+									<postCode>1090 GE</postCode>
+									<settlement>Amsterdam</settlement>
+									<country key="NL">The Netherlands</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Michiel</forename><surname>Min</surname></persName>
+							<email>m.min@sron]</email>
+							<affiliation key="aff1">
+								<orgName type="institution">Netherlands Institute for Space Research (SRON)</orgName>
+								<address>
+									<addrLine>Sorbonnelaan 2</addrLine>
+									<postCode>3584 CA</postCode>
+									<settlement>Utrecht</settlement>
+									<country key="NL">The Netherlands</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">The ARCiS framework for Exoplanet Atmospheres The Cloud Transport Model</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2018-12-13">December 13, 2018 December 13, 2018</date>
+						</imprint>
+					</monogr>
+					<note>Astronomy &amp; Astrophysics manuscript no. rain c ESO 2018</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>Planets and satellites: atmospheres -Planets and satellites: composition -Methods: numerical</keywords>
+			</textClass>
+			<abstract>
+				<p>Context. Understanding of clouds is instrumental in interpreting current and future spectroscopic observations of exoplanets. Modelling clouds consistently is complex, since it involves many facets of chemistry, nucleation theory, condensation physics, coag-ulation, and particle transport. Aims. To develop a simple physical model for cloud formation and transport, efficient and versatile enough that it can be used, in modular fashion for parameter optimization searches of exoplanet atmosphere spectra. In this work we present the cloud model and investigate the dependence of key parameters as the cloud diffusivity K and the nuclei injection rate ˙ Σn on the planet&apos;s observational characteristics. Methods. The transport equations are formulated in 1D, accounting for sedimentation and diffusion. The grain size is obtained through a moment method. For simplicity, only one cloud species is considered and the nucleation rate is parametrized. From the resulting physical profiles we simulate transmission spectra covering the visual to mid-IR wavelength range. Results. We apply our models towards KCl clouds in the atmosphere of GJ1214 b and towards MgSiO3 clouds of a canonical hot-Jupiter. We find that larger K increases the thickness of the cloud, pushing the τ = 1 surface to a lower pressure layer higher in the atmosphere. A larger nucleation rate also increases the cloud thickness while it suppresses the grain size. Coagulation is most important at high ˙ Σn and low K. We find that the investigated combinations of K and ˙ Σn greatly affect the transmission spectra in terms of the slope at near-IR wavelength (a proxy for grain size), the molecular features seen at ∼µm (which disappear for thick clouds, high in the atmosphere), and the 10 µm silicate feature, which becomes prominent for small grains high in the atmosphere. Conclusions. Clouds have a major impact on the atmospheric characteristics of hot-Jupiters, and models as those presented here are necessary to reveal the underlying properties of exoplanet atmospheres. The result of our hybrid approach-aimed to provide a good balance between physical consistency and computational efficiency-is ideal towards interpreting (future) spectroscopic observations of exoplanets.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>The composition of exoplanet atmospheres contain very important clues to their formation and evolution. Different formation scenarios predict different abundances of key elements like C, O, N, and Si (e.g., ¨ <ref type="bibr" target="#b35">Oberg et al. 2011;</ref><ref type="bibr" target="#b14">Helling et al. 2014;</ref><ref type="bibr" target="#b33">Mordasini et al. 2016;</ref><ref type="bibr" target="#b29">Madhusudhan et al. 2017</ref>). Measuring the abundances of these elements is one of the major goals of performing exoplanet atmosphere spectroscopy (see e.g. <ref type="bibr" target="#b5">Brewer et al. 2017</ref>). With the launch of the James Webb Space Telescope (JWST) scheduled in 2021, a new wavelength window, the near-to mid-IR, will open up for compositional analysis of exoplanet atmospheres. With the recently selected ARIEL mission on the 2028 horizon, performing spectroscopy of a statistically significant sample of exoplanets, the future for atmosphere characterization looks particularly bright ( <ref type="bibr" target="#b46">Turrini et al. 2018</ref>). This new spectroscopic window presents us with many opportunities, but at the same time provides challenges in proper interpretation.</p><p>One of the major hurdles in atmospheric characterization is the presence of clouds obscuring the gaseous content of the atmosphere. Besides shielding the gaseous atmosphere from detection, clouds also alter the chemical composition of the gaseous atmosphere. By removing elements from the gas phase and raining them down to deeper layers, cloud processes alter the chemical composition of the atmosphere. For the interpretation of the atmosphere spectrum, this can lead to an incorrect assessment of the atomic composition of the bulk planet.</p><p>The difficulty of modelling cloud formation has led to a rich variety of different treatments of clouds. For models that retrieve key atmospheric parameters (temperature, pressure, and chemical profiles) directly from the observations, so-called retrieval models, it is very important that the simulations can be performed in the most computationally efficient manner. These methods often simply apply an atmospheric pressure below which the opacity of the atmosphere is grey (or infinite) with the possible addition of Rayleigh scattering haze (see e.g. <ref type="bibr" target="#b24">Kreidberg et al. 2015;</ref><ref type="bibr" target="#b2">Barstow et al. 2017</ref>). This assumption might be acceptable for the narrow wavelength range considered in most studies right now. However, when the wavelength range extends, it becomes crucial to take into account the wavelength dependence of the optical properties of the cloud particles.</p><p>In forward models the complexity of the cloud formation varies. The approximate cloud formation model by <ref type="bibr" target="#b0">Ackerman &amp; Marley (2001)</ref> is probably one of the most widely used cloud formation frameworks. In this model the physical properties of the cloud particles are parameterized in terms of a single parameter, f sed , the ratio between the particle sedimentation and the turbulent eddy velocities. It is therefore a proxy of the cloud particle size. Although this has the advantage of avoiding an elaborate nucleation/condensation/coagulation model, the assumption of a fixed particle size is rather ad-hoc. At the other extreme are full self-consistent models that follow the microphysics of grain nucleation, condensation, transport and chemistry ( <ref type="bibr" target="#b15">Helling et al. 2008a</ref>; <ref type="bibr" target="#b12">Gao et al. 2018)</ref>. Nevertheless, enhanced model complexity also introduces drawbacks. First, these models tend to be computationally demanding and are therefore not well suited for implementation in retrieval codes. In addition, increased model complexity often implies a great number of free parameters, which either need to be justified or else need to be explored, increasing the computational demand. Most crucially in this regard is the formation of condensation seeds (nucleation), which under the extreme conditions in exoplanet atmospheres is poorly understood. These considerations might argue in favour of building a retrieval framework that contains no cloud formation physics and, by fitting the spectrum, have the observations tell us what is going on (see e.g. <ref type="bibr" target="#b2">Barstow et al. 2017;</ref><ref type="bibr" target="#b45">Tsiaras et al. 2018)</ref>. While this is a widely-used approach, a drawback of this approach is that it comes with a plethora of free parameters, which physical consistency is not a priori guaranteed (for example, the feedback of cloud formation on the atmospheric composition is not necessarily accounted for).</p><p>Here, we aim for an intermediate approach, in which the cloud structure is computed in a simplified but consistent forward model. We envision that such a hybrid model has the benefits of both worlds: it should include the most elementary cloud physics (e.g., condensation and cloud transport) consistently, but yet be be computationally fast and flexible enough to allow for parameter studies and incorporation in retrieval algorithms. Recent examples of this approach are the semi-analytical model by <ref type="bibr" target="#b7">Charnay et al. (2018)</ref>, applicable for Brown Dwarfs and young exoplanets, 1D dust coagulation models of atmospheres of planets embedded in their natal gas disk ( <ref type="bibr" target="#b35">Movshovitz et al. 2010;</ref><ref type="bibr" target="#b32">Mordasini 2014;</ref><ref type="bibr" target="#b39">Ormel 2014)</ref>, and 1D cloud transport models for exoplanets <ref type="bibr" target="#b36">(Ohno &amp; Okuzumi 2017</ref><ref type="bibr" target="#b21">Kawashima &amp; Ikoma 2018)</ref>. A common characteristics of these approaches is that they are one dimensional and consider a single, representative particle size that varies with height. In this paper we follow these leads to efficiently compute the formation of clouds for hot Jupiters. We use a diffusion/condensation framework to compute the growth of cloud particles and include particle coagulation. On the other hand the nucleation rate is parameterized to accommodate the large uncertainty in nucleation efficiency.</p><p>The cloud model that we present in this paper will become part of a general framework for analysis and retrieval of exoplanet spectra <ref type="bibr">1</ref> . In this context we are developing a code for computation of atmospheric properties, radiative transfer, and retrieval named ARCiS (ARtful modelling Code for exoplanet Science). The overarching aim of ARCiS is to develop an approach that is well-balanced between physical consistency, model complexity and computationally efficiency. The physical consistency allows for direct physical interpretation of observations. The modest model complexity allows for in depth understanding of the effects going on. The computational efficiency ensures that the model can be efficiently used in spectral retrieval analysis of observations. In this Paper we focus on the <ref type="bibr">1</ref> The cloud model, written in python, is publicly available at http://www.exoclouds.com/. cloud model; a validation of the entire ARCiS framework and subsequent fitting of real spectra will be deferred to upcoming studies.</p><p>In Sect. 2 the cloud formation model is explained. In Sect. 3 we present the resulting cloud structures and transmission spectra for a sub-Neptune (GJ1214 b) and for a typical hot-Jupiter planet, while varying the diffusivity and nucleation rate. In Sect. 4, we present the synthetic transmission spectra in the nearto mid-IR for the hot-Jupiter configuration. An assessment of the cloud model is proved in Sect. 5. In Sect. 6 we summarize the results and discuss extensions to this modelling framework.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Model</head><p>Our cloud particle model entails solving for the 1D steady state solutions to the transport equations involving vapor, condensates, and nuclei. Cloud particles are initiated through nucleation at prescribed rates. Vapor can condense on these seeds and the particles may further growth by coagulation. Particles are transported by gravitational settling and turbulent (eddy) diffusion, until they reach the bottom of the cloud, hot enough to result in evaporation. For simplicity a single species -KCl in case of GJ1214 b and MgSiO 3 in case of the generic hot Jupiter -is considered. The choice for the species in question is arbitrary, although for the cloud to be observed, it must lie high in the atmosphere. Hence, the temperature of the upper atmosphere must be lower -but not much lower -than the condensation temperature. It is also straightforward to extend the model to include other chemical compounds.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">Atmosphere model</head><p>We consider the atmosphere typical to a hot Jupiter planet. To obtain its physical structure -the temperature T (z), pressure P (z) and density ρ(z) profiles -we adopt the atmosphere model of <ref type="bibr" target="#b13">Guillot (2010)</ref> to obtain a relation between temperature and depth:</p><formula xml:id="formula_0">T 4 = 3T 4 int 4 2 3 + τ + 3T 4 irr f irr 4 2 3 + 1 γ √ 3 + γ √ 3 − 1 γ √ 3 e −γτ √ 3 (1)</formula><p>where the internal temperature T int is a measure of the planet's internal heat flux σT 4 int -the rate at which the planet cools -T irr a measure of the heat flux received from the star, τ the optical depth at IR wavelengths, and γ = κ vis /κ IR the ratio between the opacity at visual (irradiated) and IR (outgoing) wavelengths. The parameter f irr specifies the distribution of the incoming flux over the planet (f irr = 1/4 for an equal distribution over the entire planet is used here). The irradiation temperature is defined T irr = T (R p /r p ) 2 where T is the stellar (effective temperature), R p the planet radius and r p the distance to the host star. See Guillot (2010) for further discussion.</p><p>Employing this relation between T and τ , the hydrostatic balance, and the ideal gas law we obtain the temperature and density as function of pressure. (In particular, for constant κ IR , as we will use here, we have P = g z τ /κ IR ). <ref type="figure" target="#fig_7">Figure 1</ref> provides the P-T and ρ-T structures resulting from the atmosphere model for our generic hot Jupiter model and GJ1214 b (parameters are discussed in Sect. 3 and listed in <ref type="table" target="#tab_1">Table 1</ref>). From the temperature a saturation vapor density (P sat ) can be calculated. Vapor is expected to condense out when the partial temperature <ref type="bibr">[K]</ref>  density [g cm <ref type="bibr">−3 ]</ref> generic hot Jupiter  density [g cm <ref type="bibr">−3 ]</ref> GJ1214 b <ref type="figure" target="#fig_7">Fig. 1</ref>. Left: the physical structure of a generic hot-Jupiter atmosphere. The temperature T (P ) and gas density profile ρ gas (P ) are obtained from the Guillot (2010) atmosphere model. The equilibrium density ρ eq of MgSiO 3 is obtained from Eq. <ref type="bibr">(18)</ref>. Below the cloud deck (horizontal dashed line), ρ v = ρ(MgSiO 3 ) &lt; ρ eq ; the species are present at constant abundance, such that x v = ρ v /ρ gas ≡ x v,bot is constant. Above the cloud base (ρ v &gt; ρ eq ; light blue) cloud formation (not included in this <ref type="figure">figure)</ref> will reduce the vapor density at the expense of condensates. Right: same for KCl in the GJ1214 b atmosphere.</p><formula xml:id="formula_1">x v,bot T ρ gas ρ eq,KCl ρ KCl</formula><p>pressure will exceeds P sat . Here, we re-express this condition in terms of a density: condensation occurs when ρ eq &lt; ρ v , where ρ eq = m v P sat /k B T , ρ v = x v ρ the vapor density, k B Boltzmann constant, x v the mass concentration, and m v the molecular weight of the vapor species. Let us denote the vapor concentration below the cloud deck by x v,bot . Below the cloud deck we can expect that x v,bot is constant. The vapor density below the cloud deck is then simply ρ v = x v,bot ρ gas (blue line in <ref type="figure" target="#fig_7">Fig. 1</ref>). The height where ρ v = ρ eq (vertical dashed line) can be taken as the point where cloud formation starts -the base of the cloud. Because of transport effects it is conceivable that the cloud will extend below this height, e.g., heavy rain particles take time to evaporate. Conversely, the cloud deck could be located at a higher layer if cloud formation requires strong, super-saturated conditions. These considerations are automatically accounted for in our numerical model. Above the cloud base the vapor concentration is expected to become less than x v,bot (light blue line) due to cloud formation. The surface (top) of the cloud is defined where the concentration of condensates x c = ρ c /ρ gas is (close to) zero. The height where this occurs is not a priori known.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.">Cloud transport model</head><p>We model cloud transport of particles and vapor as advectiondiffusion processes, solving equations like</p><formula xml:id="formula_2">∂ρ i ∂t + · M i = S i (2)</formula><p>where ρ i is the mass density of a certain species i, t is time, and M i the mass flux</p><formula xml:id="formula_3">M i ≡ ρ i v sed,i − Kρ gas x i<label>(3)</label></formula><p>x i the mass concentration of species i, v sed,i the particle sedimentation velocity, K the diffusion tensor, and ρ gas the gas density. In this work, we consider only vertical (z) transport, implying that only one velocity component and one diffusion element (K zz ) remain. Also note that v sed = 0 for a vapor species. The RHS of Eq. (2), S i , specifies source terms arising from deposition (condensation), sublimation (evaporation) or nucleation, depending on the species i. The sedimentation velocity is obtained by equating the aerodynamic drag force with the planet's gravity, v sed,p = g z t stop where t stop encapsulates the aerodynamic properties of the cloud particle. In general, the gas drag force is non-linear in particle-gas velocity v sed (see e.g., Whipple 1972) and t stop must be found by iteration. However, for small particles t stop becomes independent of velocity. In particular, for the parameters of our model cloud, the gas drag law obeys the Epstein (1924) regime (free molecular flow) for which</p><formula xml:id="formula_4">t stop−Epstein = a p ρ • v th ρ gas (4)</formula><p>where a p is the radius of the grain, ρ • its internal density, v th = 8k B T /πm gas the thermal velocity of the gas. The Epstein drag law applies in the free molecular flow regime, a p &lt; 9 4 l mfp , where l mfp = m gas /( √ 2ρ gas σ mol ) is the mean free path. We employ the following assumptions:</p><p>1. The medium consist of three components -nuclei (n), condensates (c), and vapor (v). Only a single cloud species is considered. Any gas-gas or gas-grain chemistry is not accounted for. 2. The model is plane parallel; only the vertical dimension (z) is modeled and the only relevant diffusion coefficient is K zz . 3. The cloud model is in steady state, ∂/∂t = 0. This implies that</p><formula xml:id="formula_5">M v = −M c (5) at any location. 4</formula><p>. Nucleation is parametrized in the form of a log-normal profile with height (pressure)</p><formula xml:id="formula_6">S n = ρ gas g z ˙ Σ N σ * P √ 2π exp − 1 2σ 2 * log P P * 2<label>(6)</label></formula><p>where ˙ Σ N , P * and σ * respectively indicate the integrated nuclei production rate, the characteristic height where the nuclei are deposited, and the width of the distribution. 5. At any layer, the characteristic particle mass m p is obtained taking the ratio of the total solid density of the particles (the density of condensates ρ c = x c ρ gas plus the density of nuclei x n ρ gas ) to the particle number density n p . In our model, the particle number density follows from the nuclei number density. In the case without coagulation any particle will contain only one nuclei, n p = n n . (Below, in Sect. 2.2.1 this assumption will be relaxed, accounting for coagulation effects.) Hence</p><formula xml:id="formula_7">m p = (x c + x n )ρ gas n p ≈ x c ρ gas n n = x c m n0 x n (7)</formula><p>where m n0 is the mass of a single nuclei. In Eq. <ref type="formula">(7)</ref> the second step assumes that the condensates dominate the mass and the last step employs the single nuclei per cloud particle assumption: n n m n0 = x n ρ gas . From the characteristic particle mass m p a characteristic grain radius a p follows, assuming that the grains are spherical. A grain size distribution is not accounted for, but it may be reconstructed from a p . In addition, a p changes with height through nucleation, condensation, evaporation, and coagulation. The grain radius a p in turn determines the sedimentation velocity v sed,p of the particles. 6. We take the diffusivity (K zz ) equal for vapor and particles and independent of height. (These assumptions are easily relaxed, though).</p><p>We then obtain the following set of ordinary equations specifying the evolution of the condensate, nuclei, and vapor:</p><formula xml:id="formula_8">∂M c ∂z = S c (8a) ∂M n ∂z = S n (8b) ∂x c ∂z = x c v sed,p K zz − M c K zz ρ gas (8c) ∂x n ∂z = x n v sed,p K zz − M n K zz ρ gas (8d) ∂x v ∂z = − M v K zz ρ gas (8e)</formula><p>where M v is given by Eq. (5), S n by Eq. (6), and the particle properties follow from x c and x n as described above. The condensation rate S c is given by</p><formula xml:id="formula_9">S c = f stick (x v ρ gas −ρ eq )×min πa 2 p v th,v n p ; 4πa p D i n p . (9)</formula><p>where D i the diffusivity and f stick a sticking probability, here taken unity, and ρ eq = m v P sat /k B T the equilibrium (or saturation) density. Equation (9) combines the free molecular flow (vapor molecules travel on ballistic trajectories on the scale of the particle) and the diffusion-limited regimes <ref type="bibr" target="#b47">(Woitke &amp; Helling 2003;</ref><ref type="bibr" target="#b48">Yau &amp; Rogers 1996)</ref>. Note that in Eq. <ref type="formula">(9)</ref> we have not accounted for the (liberated) latent heat of condensation.</p><p>For the diffusivity we follow <ref type="bibr" target="#b47">Woitke &amp; Helling (2003)</ref>, after <ref type="bibr" target="#b20">Jeans (1967)</ref>, and write</p><formula xml:id="formula_10">D i = k B T 3P gas σ com v th,red .<label>(10)</label></formula><p>This equation describes diffusion of a quantity in a two component medium of vapor and hydrogen gas. The reduced thermal velocity v th,red is taken equal to the mean gas thermal velocity (v th,red = v th ) and σ com is the combined cross section. We take, somewhat arbitrarily, σ com = 8 × 10 −15 cm 2 .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.1.">Adding coagulation</head><p>Coagulation among the cloud particles will decrease their number density n p , relaxing the identity n p = n n , while leaving unaffected the mass concentration of nuclei. That is, coagulation will result in n p &lt; x n ρ gas /m n0 . Within the above framework, it is possible to include coagulation among the cloud particles by adding two additional equations, describing n p :</p><formula xml:id="formula_11">∂N p ∂z = S n m n0 − n p t coag (11a) ∂c p ∂z = c p v sed,p /K p − N p /K p n gas (11b)</formula><p>where N p is the particle number flux and t coag is the coagulation timescale, c p = n p /n gas the particle concentration (by number), and n gas the gas number density. The coagulation time includes contributions from differential settling (∆v) and Brownian motion. In terms of the coagulation rate (dn p /dt = −n p /t coag ) these can be added:</p><formula xml:id="formula_12">t −1 coag = 1 2 n p π(2a p ) 2 ∆v + 1 2 4π min(v BM a p , D p )a p n p (12)</formula><p>where v BM = 16k B T /πm p for equal mass particles, D p = k B T /6πηa p (StokesEinstein equation), η = ν mol ρ gas the dynamic viscosity, ν mol = 0.5l mfp v th the molecular viscosity <ref type="bibr" target="#b6">(Chapman &amp; Cowling 1970)</ref>, and ∆v is the relative velocity between the cloud particles. The factor 1 2 prevents double counting. Following <ref type="bibr" target="#b25">Krijt et al. (2016)</ref> and <ref type="bibr" target="#b41">Sato et al. (2016)</ref> it is appropriate to take ∆v = 0.5v sed when the coagulation is driven by sedimentation. For identical particles having the same aerodynamical properties ∆v = 0, but in reality a distribution in aerodynamical properties always ensures that ∆v ∼ v sed ( <ref type="bibr" target="#b38">Okuzumi et al. 2011</ref>).</p><p>Adding these equations would bring the total number of equations to solve to seven. However, when we assume (correctly) that the nuclei mass is insignificant, x n x c , there is no need to follow the nuclei mass density x n . Equation (11a) and Eq. (11b) then replace Eq. (8b) and Eq. (8d). To keep the expressions in units of mass concentrations (like x) and mass flux (like M), we transform Eq. (11) by defining:</p><formula xml:id="formula_13">˜ M n = m n0 N p (13a) ˜ x n = n p m n0 /ρ gas (13b)</formula><p>In terms of these new variables, Eq. <ref type="formula">(11)</ref> read</p><formula xml:id="formula_14">∂ ˜ M n ∂z = S n − ˜ x n ρ gas t coag (14a) ∂ ˜ x n ∂z = ˜ x n v sed,p /K p − ˜ M n /K p ρ gas (14b)</formula><p>These are identical to Eq. (8b) and Eq. (8d), except for the term involving t coag . In runs including coagulation we simply use these equations to follow the number density of nuclei (n n or˜x or˜ or˜x n ). The nuclei mass density (x n ) is not followed, but this is justified since it is in any case negligible compared to the mass density of the condensate (x c ) and therefore bears no influence on the physical properties of the cloud particles. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.">Boundary conditions and solution technique</head><p>Equations (8a)-(8e) constitute a system of five first order, ordinary differential equations and five unknowns (x c , x n , x v , M c , M n ). Therefore, five boundary conditions are necessary. We specify boundary conditions at the bottom and the top of the domain. At the top of the cloud (z = z top ) we demand that the condensate flux vanishes:</p><formula xml:id="formula_15">M c (z top ) = 0<label>(15)</label></formula><p>and that the nuclei flux equals</p><formula xml:id="formula_16">M n (z top ) = − ∞ ztop S n dz<label>(16)</label></formula><p>while at the base of the cloud we put constraints on the mass concentrations:</p><formula xml:id="formula_17">x n (z bot ) = x c (z bot ) = 0; x v (z bot ) = x v,bot .<label>(17)</label></formula><p>The condition x c = 0 reflects that at the base of the cloud the temperature has become high enough for all the condensates to be evaporated. The vapor concentration at the cloud base (x v,bot ) is an input. The nuclei boundary condition x n = 0 strictly only holds when the nuclei are also made of MgSiO 3 , such that they would also evaporate. But this is not necessarily the case. Formally, we should extend the systems of equations describing evaporation of the nuclei species, which is a rather cumbersome extension of the model. Alternatively, we could introduce a free parameter for n n (z bot ). But we found its effects rather insignificant as long as it is not too large. Hence, we considered the simple choice of a zero concentration nuclei boundary condition is preferable above an (arbitrary) specification of the nuclei seed.</p><p>Since conditions are placed on both the upper and the lower boundary, Eqs. (8a)-(8e) represent a boundary value problem (BVP). This BVP is solved using the solve bvp function from python's SciPy module ( <ref type="bibr" target="#b1">Ascher et al. 1994;</ref><ref type="bibr" target="#b22">Kierzenka &amp; Shampine 2001;</ref><ref type="bibr" target="#b42">Shampine et al. 2006</ref>). These codes requires an initial "guess" for the solution, which must be sufficiently close to the actual solution. Otherwise, convergence is not guaranteed. This represents a problem since the actual solution is of course unknown.</p><p>We therefore resort to an iterative approach, introducing a parameter that is added to the condensation rate S c and the nucleation rate S n . Hence, = 0 corresponds to the cloud-free solution (x v = x v,bot , x c = 0, M c = 0). Then, a very small , e.g., = 10 −8 , will give a solution that will be close to the known (cloud-free) solution that solve bvp is able to solve. This new solution (with = 10 −8 ) then provides the guess for the next iteration, where is larger. We progressively increase until = 1, with which the desired cloud profiles are obtained.</p><p>A similar iterative approach can be designed for the boundaries of the domain. Although the bottom boundary is given by the ρ v,bot constraint, 2 the upper boundary is in principle open, as diffusion always allows some particles to be transported to the very upper regions. As a final step, we therefore adjust the boundaries of the domain, searching for a solution where x c stays positive in the entire domain, while x c near the boundary is a very tiny fraction (e.g., 10 −8 ) of its peak value.</p><p>With these incremental approach of "relaxing" to the solution, solve bvp is still computational efficient. The 24 runs listed in <ref type="table" target="#tab_2">Table 2</ref> took an average of 17 seconds to complete on a modern desktop PC, with the slowest one requiring 25 seconds. Notes. The first four columns list the input parameters: the planet (see <ref type="table" target="#tab_1">Table 1</ref> for parameters), whether coagulation is included or not, the diffusivity Kzz, and the nuclei production rate ˙ Σn. The model calculates a steady state cloud and we list: the peak mass flux (intensity of the rain) Mc,max, the pressure level where the geometrical transmission optical depth reaches 1 Pτ=1, the total geometrical vertical optical depth of the cloud τz,tot, and the maximum grain radius amax.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Physical structure</head><p>In this section we present the outcome of the cloud model in terms of its physical structure: the concentration and properties of the cloud particles. In Sect. 3.1 we consider a generic hot Jupiter planet, whereas in Sect. 3.2 we apply our model towards GJ1214 b to compare our results to previous findings.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Hot-Jupiter MgSiO 3 clouds</head><p>We consider a generic hot Jupiter planet situated at a distance of 0.05 au around a solar-like star. We consider MgSiO 3 as our cloud species, for which we use the saturation pressure of <ref type="bibr" target="#b0">Ackerman &amp; Marley (2001)</ref> P sat = 1.04 × 10 17 exp − 58 663</p><formula xml:id="formula_18">T dyn cm −2 .<label>(18)</label></formula><p>Because MgSiO 3 does not exist in vapor phase, it would be erroneous to consider taking the molecular weight of MgSiO 3 (100.4 m H ) for m v . Instead, we consider an effective vapor mass, which is given by the constituents from which MgSiO 3 forms. Typically, MgSiO 3 falls apart into three molecules ( <ref type="bibr" target="#b15">Helling et al. 2008a</ref>). We therefore simply take m v = m MgSiO3 /3 = 33.5m H .</p><p>For the atmospheric parameters, we adopt parameters similar values as <ref type="bibr" target="#b28">Line et al. (2013)</ref>, see <ref type="table" target="#tab_1">Table 1</ref>. An internal temperature of T int = 500 K is used and an atmosphere IR-opacity of 0.3 cm 2 g −1 . The higher IR-opacity crudely reflects the appearance of clouds, but note that at present the model does not self-consistently treat (thermal) feedback of the clouds on the profiles. We have verified that changing these parameters does not affect the conclusions of this work. The corresponding atmospheric physical structure was shown in <ref type="figure" target="#fig_7">Fig. 1</ref>. The outcome of the cloud model for the parameters listed in <ref type="table" target="#tab_1">Table 1</ref> is presented in <ref type="figure" target="#fig_2">Fig. 2</ref> for the default model. In <ref type="figure">Fig. 3</ref> we take eight other parameter combinations of K zz and ˙ Σ n , crudely corresponding what has been used in literature studies (e.g., <ref type="bibr" target="#b21">Kawashima &amp; Ikoma 2018)</ref>. Several output quantities of the runs are further listed in <ref type="table" target="#tab_2">Table 2</ref>. The intensity of the rain is characterized by the mass flux parameter M c whose peak value is listed. A higher M c,max reflects more vigorous mass transport; this parameter hence correlates with the diffusivity K zz . For reference, a value of M c = 10 −7 g cm −2 s −1 amounts to a MgSiO 3 precipation of 11 mm yr −1 . We calculate both the vertical optical depth</p><formula xml:id="formula_19">τ z (z) = ztop z n p (z )πa 2 p (z )dz<label>(19)</label></formula><p>as well as the transmission optical depth in the geometrical limit</p><formula xml:id="formula_20">τ trans (z) = ztop z n p (z )πa 2 p (z ) 2R (z − z) dz<label>(20)</label></formula><p>that is, the optical depth corresponding from the line perpendicular to height z. In <ref type="table" target="#tab_2">Table 2</ref> the total geometrical optical depth refers to τ z as measured from the base of the cloud whereas the pressure level where τ reaches unity (P τ =1 ) refers to the transmission optical depth τ trans . The latter quantity is more meaningful in the context of transmission spectra. These geometrical values only serve as a crude guide as opacities are not often close to their geometrical limit (especially for small particles). Proper simulated spectra are calculated in Sect. 4. Finally, we list the peak radius of the condensate particles, a max . <ref type="figure" target="#fig_2">Figure 2</ref> presents profiles of nucleation rate, concentrations of vapor condensates and nuclei and grain size for the standard model (K zz = 10 8 cm 2 s −1 , ˙ Σ n = 10 −15 g cm −2 s −1 ; the central panel of <ref type="figure" target="#fig_2">Fig. 3 corresponds to Fig. 2</ref>). Coagulation is included. Note the steep but continuous transition from cloudy to cloud-free near the bottom of the cloud. This is caused by the steep increase in the equilibrium density <ref type="figure" target="#fig_7">(Fig. 1)</ref>. Several factors regulate the extent of the cloud. The first is the location where the nuclei form, which is given in <ref type="figure" target="#fig_2">Fig. 2a</ref>. Recall that the nuclei production profile S n (Eq. <ref type="formula" target="#formula_6">(6)</ref>) is characterized by three parameters: P * , σ * and ˙ Σ n . In <ref type="figure" target="#fig_2">Fig. 2</ref> we also present a case where the nuclei are released at a higher height (P * is decreased by a factor three; dashed curves). Increasing the height where the nuclei are released does not much affect the profiles deeper in the atmosphere. In both cases cloud particles readily consume the vapor locally, whereas transport and coagulation act on larger (time)scales. However, there may be some observational consequences as the grain size around τ trans = 1 is affected.</p><p>Comparing <ref type="figure" target="#fig_2">Fig. 2a</ref> and b, it can be seen that the height where nuclei are injected is also the height where the concentration of nuclei (˜ x n ) peaks. Below this height˜xheight˜ height˜x n decreases because particles' velocity speeds up due to their growth by condensation. The ratio of x c and˜xand˜ and˜x n determines the size of the particles, which increases for our standard model to 4 µm just above the cloud base <ref type="figure" target="#fig_2">(Fig. 2c)</ref>. In the upper regions, the particle radius levels off at ≈0.005 µm, several factors larger than the nucleation radius. Grains tend to be somewhat smaller and more abundant in the model where the nuclei are injected at a larger height, because they accrete less vapor before settling down <ref type="figure" target="#fig_2">(Fig. 2b and  c</ref>). Althoug at these heights the density of MgSiO 3 is rather low, the larger grain size may be of some observational importance for the transmission spectra, especially concerning the Rayleigh scattering at optical wavelengths.</p><p>More important in regulating the cloud thickness is the eddy diffusivity K zz . A larger K zz implies that more vapor is transported upwards and that more (small) particles can be found above the nuclei injection height. This is illustrated in <ref type="figure">Fig. 3</ref> where we vary the diffusivity (rows) and the total nucleation rate (columns). Clearly, larger diffusivity results in denser and thicker clouds; particles are uplifted to higher regions and more vapor is being transported from below the cloud deck. In the limit where the transport becomes dominated by diffusion, we can expect the concentration of condensates x c to be identical to the concentration of the vapor at the base of the cloud, x v,bot = 3 × 10 −3 . This explains the boxy cloud profile of the ˙ Σ n = 10 −11 , K zz = 10 10 model (bottom right panel of <ref type="figure">Fig. 3)</ref>.</p><p>Finally, we find that the cloud thickness increases with the nucleation rate ˙ Σ n <ref type="figure">(Fig. 3)</ref>. A higher ˙ Σ n tends to reduce the grain size, since the total amount of vapor on a given grain is smaller when there are more of them. Since the grain size is a directly observational property, the nucleation model is therefore an essential part to any cloud model. We also conducted runs without coagulation, in order to isolate its effects. These are presented by the dashed lines in <ref type="figure">Fig. 3</ref>. Clearly, coagulation does not affect the low ˙ Σ n runs. The growth of particles in these runs is entirely due to condensation. Coagulation is more important at higher nucleation rates and for lower K zz ; the former because there is a larger surface available and the latter because the grains are more concentrated. The differences between the no-coagulation and coagulation runs are the greatest in the ( ˙ Σ n , K zz ) = (10 −11 , 10 6 ) run (top right). The no-coagulation run is characterized by extremely small particles (similar to the nucleation size) and the total geometrical optical depth of the cloud reaches values above 10 4 (see <ref type="table" target="#tab_2">Table 2</ref>). Including coagulation, however, greatly increases the grain size, The concentration of cloud particles (black) and the characteristic particle size (dark red; shared x-axis) against pressure, plotted for combinations of diffusivities K zz and nucleation rates ˙ Σ n (panels). The grain radius of particles in models without coagulation is shown by the dashed dark curve. The height where the transition optical depth reached unity (τ trans = 1) is indicated by the circle.</p><p>reducing the cloud vertical geometrical optical depth by over a factor of 10 4 !</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">GJ1214 b KCl clouds</head><p>GJ1214 b is a super-Earth or sub-Neptune planet of radius R p = 2.7±0.1 R ⊕ and mass M p = 6.5±1.0 M ⊕ orbiting an M4.5 star at a distance of 0.015 au ( <ref type="bibr">Charbonneau et al. 2009</ref>). With these bulk properties GJ1214 b could both a 'water world' or a more standard terrestrial planet with a H/He envelope. Interestingly, GJ1214 b transmission spectra is virtually featureless ( <ref type="bibr" target="#b23">Kreidberg et al. 2014</ref>), indicative of clouds.</p><p>Cloud models have recently been applied to GJ1214 b (e.g., <ref type="bibr">Gao &amp; Benneke 2018;</ref><ref type="bibr" target="#b37">Ohno &amp; Okuzumi 2018)</ref>. Here we apply our cloud model towards GJ1214 b with the aim of comparing the physical structure (particle sizes and concentrations) against these works in the broadest sense. We note that a detailed comparison, let alone a calibration, is rather meaningless as these works employ vastly different cloud microphysical and atmospheric models.</p><p>We consider KCl as our cloud species and use the P sat profile presented in <ref type="bibr" target="#b34">Morley et al. (2012)</ref>. The concentration of KCl at the bottom of the atmosphere is taken to be x v,bot = 3×10 −4 . We largely follow <ref type="bibr" target="#b37">Ohno &amp; Okuzumi (2018)</ref> in choosing our atmospheric parameters (see <ref type="table" target="#tab_1">Table 1</ref>). However we keep κ IR fixed; with κ IR = 0.03 cm 2 g −1 we obtain a P-T profile <ref type="figure" target="#fig_7">(Fig. 1)</ref> that resembles theirs. The diffusivity is fixed at K zz = 10 8 cm 2 s −1 while we consider the same three values for the nuclei production rate ˙ Σ n . Nuclei are injected at a height corresponding to a pressure of 0.01 bar. condensate density, log 10 ρ c <ref type="figure">Fig. 4</ref>. Obtained particle size as function of pressure for the cloud models applied to GJ1214b. The intensity of the rain in terms of the volume density of condensates (ρ c = x c ρ gas ) is indicated by the color bar. Three values of the nuclei production rate are considered (as indicated by color) and results are plotted with and without accounting for coagulation. The diffusivity parameter is fixed at K zz = 10 8 cm 2 s −1 . Particle radii are larger in runs that include coagulation.</p><p>Results are shown in <ref type="figure">Fig. 4</ref> where the particle radius is plotted against height for the three nucleation rates and for either the coagulation mode and the no-coagulation mode. The intensity of the rain in terms of the condensate volume density ρ c is indicated by the color. The rain reaches its highest intensity near the cloud base. Clearly, the nuclear production rate -a free parameter in our model -has a key influence on the grain size. Also, it can be seen that clouds with the smallest grains are also the most extended, since these grains tend to diffuse, rather than settle. Finally, grains are larger in runs where coagulation is included. These findings reflect the discussion of the hot generic hot-Jupiter clouds in Sect. 3.1.</p><p>Comparing these curves to the K zz = 10 8 cm 2 s −1 , 1xsolar metallicity panel of <ref type="figure">Fig. 5</ref> of <ref type="bibr">Gao &amp; Benneke (2018)</ref>, we see that their typical sizes of 1-10 µm correspond well to our results with the low ˙ Σ n . (In their model the nucleation rate is given by a full microphysical model) The gradient in grain size with height seems to be a bit shallower in our models, however, considering that (Gao &amp; Benneke 2018) did not include coagulation.</p><p>Ohno &amp; Okuzumi (2018) also modeled GJ1214 b and, like us, used a charateristic size approach. In addition, they too prescribed the nucleation. However, they fixed the nuclei number density at the cloud base. Compared to our choice of prescribing the entire profile, this has the advantage of only introducing a single free parameter. On the other hand, it results in the largest grains residing in the top of the cloud, which seems somewhat spurious. Their typical grain size of 1-2 µm nevertheless corrresponds well to our results (they too account for coagulation) and their volume mixing ratios approach x c = 10 −4 -the same as in our case.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Transmission spectra (hot Jupiter)</head><p>From <ref type="figure">Fig. 3</ref> we see that the cloud thickness and particle size are heavily influenced by the diffusion strength and the nucleation rate. To investigate their effect on the spectral appearance of the transit signal of the planet, we computed for the nine cases of the generic hot-Jupiter model shown in <ref type="figure">Fig. 3</ref> the transmission spectra. These are shown in <ref type="figure">Fig. 5</ref>.</p><p>To compute the spectra we have developed a radiative transfer tool for simulating exoplanet spectra. This code uses molecular linelists from the ExoMol project and the HITEMP and HITRAN databases to compute the molecular opacities with the method by <ref type="bibr" target="#b30">Min (2017)</ref>. A validation of this ARCiS module is given in App. A. Even though for the cloud condensation equations we use pure MgSiO 3 as a condensate, we add 10% of metallic iron to the particles when computing the optical properties. The implicit assumption is that the physical properties of the cloud particles (their sizes and concentrations) are well described by modelling the dominant condensate, i.e., by our cloud model. However, this assumption cannot be made for the optical properties, which exhibit a strongly non-linear dependence on composition. MgSiO 3 , for example, is completely transparent in the near-IR, while only a small fraction of iron in the silicate lattice, or condensed inclusions, like metallic iron, will suffice to give a significant near-IR opacity. Hence, lacking a multi-species cloud model, we account for this by adding a small amount of continuum opacity in the form of metallic iron. The 10% metallic iron we take here is rather arbitrary and could be up to 50% given the cosmic abundance of iron. The true iron fraction in planetary atmospheres is a parameter that we have to derive from observations or constrain from planet formation theory.</p><p>The cloud opacities are computed using refractive index data from <ref type="bibr" target="#b19">Jaeger et al. (1998);</ref><ref type="bibr" target="#b17">Henning &amp; Stognienko (1996)</ref> where we mix the iron and MgSiO 3 together using effective medium theory. We use the distribution of hollow spheres (DHS) method from <ref type="bibr" target="#b31">Min et al. (2005)</ref> to convert the refractive index into particle optical properties. The gas phase chemistry is computed assuming thermochemical equilibrium using the code fromMollì In <ref type="figure">Fig. 5</ref> the mid-IR transmission spectra are plotted for the same combination of diffusivities and nucleation rate as in <ref type="figure">Fig. 3</ref>. The near-to mid-IR spectral region will become available with the MIRI instrument onboard the James Webb Space Telescope and further into the future with the recently selected ARIEL mission. Several inferences can be made. First, increasing the cloud thickness (either by increasing ˙ Σ N or increasing K zz ) suppresses the molecular features of e.g. H 2 O in the 1-3 µm range. The reason is that, the τ = 1 height now resides much higher in the atmosphere to shield the molecular emission.</p><p>A striking result is the spectral appearance of MgSiO 3 around 10 micron. The 10 micron silicate resonance is very sensitive to particle size. Small particles give a strong resonance signature, while increasing the particle size, the signature is flattened (see e.g. <ref type="bibr" target="#b31">Min et al. 2005</ref>). In addition, the solid feature stands out stronger against the (molecular) background for thicker clouds. Therefore, the resonance around 10 micron is most clearly seen in the case with high nucleation rate and diffusion strength (lower right panel), i.e., a thick cloud of small particles. Only for the lowest diffusion strength (upper panels) does the silicate signature become unobservable around 10 micron. Finally, <ref type="figure">Fig. 5</ref> displays a very interesting evolution of the slope of the near-IR signature. For the low nucleation rate models, the effect of increasing the cloud thickness (i.e. the diffusion strength) results in a grey near-IR spectrum. On the other hand, for the high nucleation rate, the near-IR spectrum is character- ized by a much steeper slope. The reason behind this diverging trend with cloud thickness is the dependence of particle size with nucleation rate. Higher nucleation rates result in smaller grains whose opacity has a much steeper wavelength dependence in the near-IR region. Conversely, the 1-10 µm grains that are produced in the low ˙ Σ n , high K run (bottom left panel) result in a grey opacity and a transmission spectra insensitive to wavelength.</p><p>The spectra we computed are sensitive to the effects of particle coagulation. The effects are twofold. One is that coagulation causes the grains to grow and settle deeper into the atmosphere. Second the opacity of the larger particles produced by coagulation is different. It can be seen that when we switch off the coagulation the cloud deck in the upper right four panels of <ref type="figure">Fig. 5</ref> is much higher and thus mutes the molecular features more. In addition, the spectral appearance typical for small particles, i.e. the silicate feature at 10 µm and the Rayleigh scattering slope at optical wavelengths, are reduced significantly by the effects of particle coagulation. While the case with low diffusion and high nucleation rate displays a strong cloud deck and silicate feature without coagulation, the spectral appearance is dominated by molecular features when coagulation is switched on. These considerations emphasize that cloud features can only be properly interpreted by models that include coagulation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Model Assessment</head><p>We reflect on the achievement of our cloud model in the light of recent similar approaches. The key idea of our approach is to extend the simplicity and usability of the <ref type="bibr" target="#b0">Ackerman &amp; Marley (2001)</ref> model with a more physical justified cloud model, while preserving its simplicity. <ref type="bibr" target="#b0">The Ackerman &amp; Marley (2001)</ref> model already contained particle and vapor transport; however, it does not compute the size of the cloud particles. To pro-ceed, a nucleation prescription is required. This we have done very crudely, simply by imposing it through ad-hoc prescriptions. Alternatively, nucleation can be treated from first principles. Photochemistry is a possible avenue for the formation of seed nuclei, which is thought to be the source of the haze as, for example, observed in Titan ( <ref type="bibr" target="#b44">Tomasko et al. 2005</ref>). Another nucleation pathway is that of homogeneous nucleation, where the nuclei seed directly form out of the vapor. The hot interiors of exoplanets characterized by thick envelopes will guarantee evaporation of any condensate at some depth. For these planets homogeneous condensation may be considered the natural way to form clouds.</p><p>These additions to the nucleation model can, in principle, render the model more physically rigorous. However they also come at a drawback. A well-known issue with the classical nucleation theory is that it mispredicts nucleation rates by many orders of magnitude (e.g., <ref type="bibr" target="#b10">Feder et al. 1966;</ref><ref type="bibr" target="#b43">Tanaka et al. 2005;</ref><ref type="bibr" target="#b18">Horsch et al. 2008;</ref><ref type="bibr" target="#b8">Diemand et al. 2013</ref>). Similarly, codes that model haze formation necessarily rely on a large chemical network, with hundreds of reactions, and sophisticated radiation transport ( <ref type="bibr" target="#b27">Lavvas et al. 2008;</ref><ref type="bibr" target="#b26">Lavvas &amp; Koskinen 2017;</ref><ref type="bibr" target="#b21">Kawashima &amp; Ikoma 2018)</ref>. Obviously, parametrizing nucleation implies that the size of the typical cloud size particle no longer follows from first principles. But the transport model still addresses variations of particle concentration and size with height, which act as independent model constraints.</p><p>Another major simplification we have adopted is the characteristic particle approach (as in <ref type="bibr" target="#b36">Ohno &amp; Okuzumi 2017)</ref>. A brief discussion on the validity and limitations of this approach can be found in <ref type="bibr" target="#b21">Kawashima &amp; Ikoma (2018)</ref>. Recently, several studies have used CARMA 3 towards modeling clouds on exoplanets ( <ref type="bibr" target="#b12">Gao et al. 2018;</ref><ref type="bibr">Gao &amp; Benneke 2018;</ref><ref type="bibr" target="#b40">Powell et al. 2018</ref>). An output of this code is the particle size distribution at any height. A possible approach is to reconstruct the entire grain size distribution from the characteristic size (cf. <ref type="bibr" target="#b16">Helling et al. 2008b</ref><ref type="bibr" target="#b4">or Birnstiel et al. 2012</ref> for disks). Nevertheless, within the ARCiS framework, solving for the particle size distribution is too computationally intensive, since we intend it to be used in future MCMC parameter searches. Altogether, we make no claim to have invented the "best" cloud model in terms of physical rigor, but one that is minimalistic, physical consistent and above all useful. Its modular approach can easily be extended to include more physical processes and its results can guide sophisticated, computationally intensive models in a complementary fashion.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">Summary</head><p>In this paper we have studied the effects of diffusion strength and nucleation efficiency on the characteristics of clouds in exoplanet atmospheres. We have presented a relatively simple framework of cloud formation where these effects can be studied efficiently. Both the nucleation rate and the diffusion strength are key parameters in determining the properties of the cloud particles and the extent of the cloud. Since both these parameters are highly uncertain, it is important to understand their effects. We have presented simulated infrared transmission spectra for different combinations of these two parameters in a typical hot Jupiter atmosphere. For the physical structure of the clouds we conclude that:</p><p>-Increasing the nucleation rate results in thicker clouds of smaller particles. The high number of nuclei facilitate con-3 Community Aerosol and Radiation Model for Atmospheres. densation. At the same time, the condensed mass is distributed over a larger number of particles, resulting in on average smaller particles. -Increasing the diffusion strength results in thicker clouds. In this case, more vapor is mixed up and can condense on the nuclei. This causes simply more cloud material at each altitude and thus thicker clouds.</p><p>For the transmission spectra resulting from these structures we conclude:</p><p>-For increasing diffusion strength and to a lesser degree increasing nucleation rate the molecular features weaken. This is caused by increasingly thicker clouds shielding more of the gaseous atmosphere. -For high values of the diffusion strength and nucleation rate, the solid state 10 µm silicate feature appears. This feature of the cloud particles is visible in almost all parameter settings we consider here, but is most prominent for the highest values of diffusion and nucleation because they create the thickest clouds with small particles. -For increasing nucleation rates, i.e. smaller particles, the slope of the Near-IR steepens. -Coagulation has a significant influence on the spectral appearance of the clouds, especially in the case of high nucleation rates.</p><p>The above observational features can be used to characterize cloud particles in exoplanet atmospheres. The modelling framework we present in this paper is computationally not very demanding. We can see two very important extensions of the present model. First, the opacities obtained from the cloud model can be fed back to the physical structure, such that for example the temperature profile is obtained self-consistently (recall that we used a fixed κ IR in calculating the P -T profile). Second, and maybe more important, we can use this modelling framework to include a physically motivated cloud formation model in retrieval methods. This way we can simulate the effect that clouds have on the atmospheric composition and observational features. In addition, it allows us to put observational constraints on physical parameters like the nucleation rate and the diffusion strength. This will provide a significant step forward in understanding the physical processes in exoplanet atmospheres.</p><p>We have validated the computations performed with ARCiS with the exoplanet simulation code petitCODE Mollì ere et al. <ref type="bibr">2015,</ref><ref type="bibr">2017)</ref>. The petitCODE has been extensively benchmarked in <ref type="bibr" target="#b3">Baudino et al. (2017)</ref>. We compute the transmission spectrum of the atmospheric setup from the model used here without any cloud formation. The chemistry, hydrostatic structure, molecular opacities and resulting transmission spectrum are computed both by ARCiS and petitCODE independently. Note that the chemical equilibrium module used in ARCiS is the same as the one used in petitCODE. This module is benchmarked in <ref type="bibr" target="#b3">Baudino et al. (2017)</ref>, so here we only check the proper implementation of the module in ARCiS. <ref type="figure">Figure A.</ref>1 shows the comparison of the resulting transmission spectra. The spectra match exceptionally well at almost all wavelengths. There are some small differences in the optical part of the spectrum which can be attributed to a different Rayleigh scattering law and different opacities for TiO and VO used in both codes. These differences are irrelevant for the purpose of this paper. The petitCODE spectrum is computed at higher spectral resolution and thus shows small high frequency variations which are smoothed in the lower resolution ARCiS spectrum. We conclude that the match is excellent.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>10Fig. 2 .</head><label>2</label><figDesc>Fig. 2. Results of the standard model (K = 10 8 cm 2 s −1 ; ˙ Σ n = 10 −15 g cm −2 s −1 ). (a) Nucleation rate S n , which follows a lognormal distribution around a reference pressure P * . The dotted horizontal lines indicate the bottom and top of our computational domain. (b) The concentrations of nuclei (˜ x n ), condensates (x c ), and vapor (x v ). The equilibrium concentration corresponding to the saturation pressure is also plotted (x eq ) but it virtually coincides with x v . (c) The characteristic grain radius a p . The dashed lines correspond to a model where the nuclei are inserted at a higher layer than the standard. The open circles correspond to the depth where the geometrical transmission optical depth τ trans equals 1.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head></head><label></label><figDesc>Fig. 3. Cloud profiles. The concentration of cloud particles (black) and the characteristic particle size (dark red; shared x-axis) against pressure, plotted for combinations of diffusivities K zz and nucleation rates ˙ Σ n (panels). The grain radius of particles in models without coagulation is shown by the dashed dark curve. The height where the transition optical depth reached unity (τ trans = 1) is indicated by the circle.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head></head><label></label><figDesc>ere et al. (2017). The atomic abundances that go into the chemical computations are assumed to be Solar with depletions in Si, O, and Mg according to the computed value of x v . This causes the C/O ratio to change in the cloud forming region, affecting the chemistry there. Below the cloud deck the C/O ratio is Solar, i.e. C/O = 0.55, while in the cloud forming region C/O ≈ 0.7.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head></head><label></label><figDesc>Fig. 5. Transmission spectra corresponding to the runs of Fig. 3 simulated by SPARC. Gray curves give the spectra without accouting for coagulation, black curves include coagulation. Note that the scaling of the y-axis is different for the different diffusivities (higher K zz results in a larger R p ).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Fig. A. 1 .</head><label>1</label><figDesc>Fig. A.1. Transmission spectra for the standard model without clouds computed using petitCODE and ARCiS.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" validated="true"><head>Table 1 . Cloud and atmospheric parameters for the generic hot-Jupiter and GJ1214 b.</head><label>1</label><figDesc></figDesc><table>Symbol 
+(default) Value 
+Unit 
+Description 
+Generic HJ GJ1214 b a 
+species 
+MgSiO3 
+KCl 
+cloud species 
+˙ 
+Σn 
+10 −19 , 10 −15 , 10 −11 
+g cm −2 s −1 nucleation rate 
+γ 
+0.158 
+0.038 
+opacity ratio visual and IR wavelengths (Eq. (1)) 
+κIR 
+0.3 
+0.03 cm 2 g −1 
+IR opacity 
+ρ• 
+2.8 
+2.8 g cm −3 
+particle internal density 
+σ *  
+0.2 
+width of nucleation profile (Eq. (6)). 
+σcom 
+8 × 10 −15 
+cm 2 
+combined (vapor and gas) molecular cross section 
+σ mol 
+2 × 10 −15 
+cm 2 
+molecular cross section (gas) 
+Kg, Kp 
+10 6 , 10 8 , 10 10 
+10 8 cm 2 s −1 
+particle and gas diffusivity 
+M planet 
+1 
+0.0206 MJ 
+planet mass 
+P *  
+60 
+10 4 dyn cm −2 
+reference height for the nucleation profile (Eq. (6)) 
+R pl 
+1.087 
+0.244 RJ 
+planet radius 
+R 
+1 
+0.2064 R 
+stellar radius 
+T 
+5778 
+3026 K 
+stellar effective temperature 
+Tint 
+500 
+60 K 
+internal temperature 
+an 
+0.001 
+µm 
+particle nucleation radius 
+firr 
+0.25 
+heat distribution factor 
+f stick 
+1.0 
+vapor sticking probability 
+gz 
+2192 
+893 cm s −2 
+gravitational acceleration 
+mgas 
+2.34 
+mH 
+mean molecular weight (gas) 
+mv 
+34.67 
+74.45 mH 
+mass vapor species 
+rp 
+0.05 
+0.0143 au 
+distance to star 
+x v,bot 
+3 × 10 −3 
+3 × 10 −4 
+vapor mass concentration at/below cloud base 
+
+Notes. (a) Empty entries indicate the value listed in the generic hot Jupiter column is used. 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" validated="true"><head>Table 2 . Table of output quantities.</head><label>2</label><figDesc></figDesc><table>planet 
+coagulation K 
+˙ 
+Σn 
+Mc,max 
+Pτ=1 
+τz,tot 
+amax 
+[cm 2 s −1 ] [g cm −2 s −1 ] [g cm −2 s −1 ] 
+[bar] 
+[µm] 
+generic HJ x 
+10 10 
+10 −11 
+−1.8 × 10 −6 
+4.3 × 10 −7 3.0 × 10 3 0.051 
+
+10 10 
+10 −11 
+−1.7 × 10 −6 
+9.5 × 10 −7 740 
+0.24 
+x 
+10 10 
+10 −15 
+−1.6 × 10 −6 
+8.9 × 10 −6 140 
+1.0 
+
+10 10 
+10 −15 
+−1.8 × 10 −6 
+1.0 × 10 −5 73 
+2.4 
+x 
+10 10 
+10 −19 
+−1.3 × 10 −6 
+2.6 × 10 −4 5.0 
+20 
+
+10 10 
+10 −19 
+−1.3 × 10 −6 
+2.7 × 10 −4 3.9 
+26 
+x 
+10 8 
+10 −11 
+−1.9 × 10 −8 
+3.5 × 10 −6 1.3 × 10 4 0.012 
+
+10 8 
+10 −11 
+−1.8 × 10 −8 
+1.9 × 10 −5 29 
+3.9 
+x 
+10 8 
+10 −15 
+−1.9 × 10 −8 
+3.6 × 10 −5 460 
+0.25 
+
+10 8 
+10 −15 
+−1.8 × 10 −8 
+4.6 × 10 −5 22 
+4.1 
+x 
+10 8 
+10 −19 
+−1.8 × 10 −8 
+2.1 × 10 −3 4.6 
+5.2 
+
+10 8 
+10 −19 
+−1.8 × 10 −8 
+2.1 × 10 −3 2.5 
+8.7 
+x 
+10 6 
+10 −11 
+−1.9 × 10 −10 1.0 × 10 −4 6.2 × 10 4 2.7 × 10 −3 
+
+10 6 
+10 −11 
+−1.9 × 10 −10 6.6 × 10 −4 1.7 
+1.4 
+x 
+10 6 
+10 −15 
+−1.9 × 10 −10 2.2 × 10 −4 450 
+0.058 
+
+10 6 
+10 −15 
+−1.9 × 10 −10 3.8 × 10 −3 1.6 
+1.3 
+x 
+10 6 
+10 −19 
+−1.9 × 10 −10 5.6 × 10 −3 1.3 
+1.2 
+
+10 6 
+10 −19 
+−1.9 × 10 −10 5.8 × 10 −3 0.86 
+1.7 
+GJ1214 b 
+x 
+10 8 
+10 −11 
+−3.2 × 10 −8 
+5.6 × 10 −6 2.7 × 10 4 0.015 
+
+10 8 
+10 −11 
+−3.0 × 10 −8 
+2.0 × 10 −4 810 
+1.3 
+x 
+10 8 
+10 −15 
+−3.1 × 10 −8 
+1.2 × 10 −4 1.2 × 10 3 0.30 
+
+10 8 
+10 −15 
+−3.0 × 10 −8 
+4.1 × 10 −4 250 
+2.5 
+
+10 8 
+10 −19 
+−2.7 × 10 −8 
+3.0 × 10 −3 16 
+17 
+x 
+10 8 
+10 −19 
+−2.9 × 10 −8 
+2.5 × 10 −3 44 
+6.0 
+
+</table></figure>
+
+			<note place="foot">Chris W. Ormel and Michiel Min: Exoplanet Atmosphere Cloud Transport Model</note>
+
+			<note place="foot" n="2"> The lower boundary may deviated from the ρ v,bot = ρeq condition when transport timescales are shorter than evaporation times, e.g., when the particles have become large and settle quickly.</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+			</div>
+
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Appendix A: Validation with petitCODE</head></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">S</forename><surname>Ackerman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Marley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">556</biblScope>
+			<biblScope unit="page">872</biblScope>
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<monogr>
+		<title level="m" type="main">Numerical solution of boundary value problems for ordinary differential equations</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><forename type="middle">M</forename><surname>Ascher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">M M</forename><surname>Mattheij</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">D</forename><surname>Russell</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1994" />
+			<biblScope unit="volume">13</biblScope>
+			<pubPlace>Siam</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">K</forename><surname>Barstow</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Aigrain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">G J</forename><surname>Irwin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">K</forename><surname>Sing</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">834</biblScope>
+			<biblScope unit="page">50</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-L</forename><surname>Baudino</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Mollì Ere</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Venot</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">850</biblScope>
+			<biblScope unit="page">150</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Birnstiel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">M</forename><surname>Andrews</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Ercolano</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">544</biblScope>
+			<biblScope unit="page">79</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Brewer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Fischer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Madhusudhan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">153</biblScope>
+			<biblScope unit="page">83</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">The mathematical theory of non-uniform gases. an account of the kinetic theory of viscosity, thermal conduction and diffusion in gases Charbonneau</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Chapman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">G. ; D</forename><surname>Cowling</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><forename type="middle">K</forename><surname>Berta</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Irwin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">462</biblScope>
+			<biblScope unit="page">891</biblScope>
+			<date type="published" when="1970" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Charnay</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Bézard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-L</forename><surname>Baudino</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">854</biblScope>
+			<biblScope unit="page">172</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Diemand</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Angélil</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">K</forename><surname>Tanaka</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Tanaka</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<imprint>
+			<biblScope unit="volume">139</biblScope>
+			<biblScope unit="page">74309</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">S</forename><surname>Epstein</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Physical Review</title>
+		<imprint>
+			<biblScope unit="volume">23</biblScope>
+			<biblScope unit="page">710</biblScope>
+			<date type="published" when="1924" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Feder</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">C</forename><surname>Russell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Lothe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">M</forename><surname>Pound</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Advances in Physics</title>
+		<imprint>
+			<biblScope unit="volume">15</biblScope>
+			<biblScope unit="page">111</biblScope>
+			<date type="published" when="1966" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Chris</forename><forename type="middle">W</forename><surname>Ormel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Michiel</forename><surname>Min</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Exoplanet Atmosphere Cloud Transport Model Gao, P. &amp; Benneke, B</title>
+		<imprint>
+			<date type="published" when="2018" />
+			<biblScope unit="volume">863</biblScope>
+			<biblScope unit="page">165</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Marley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">S</forename><surname>Ackerman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">855</biblScope>
+			<biblScope unit="page">86</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Guillot</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">520</biblScope>
+			<biblScope unit="page">27</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Helling</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Woitke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">B</forename><surname>Rimmer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Life</title>
+		<imprint>
+			<biblScope unit="page">4</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Helling</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Woitke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W.-F</forename><surname>Thi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">485</biblScope>
+			<biblScope unit="page">547</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Helling</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Woitke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W.-F</forename><surname>Thi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">485</biblScope>
+			<biblScope unit="page">547</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Henning</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Stognienko</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">311</biblScope>
+			<biblScope unit="page">291</biblScope>
+			<date type="published" when="1996" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Horsch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Vrabec</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Hasse</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Phys. Rev. E</title>
+		<imprint>
+			<biblScope unit="volume">78</biblScope>
+			<biblScope unit="page">11603</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Jaeger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">J</forename><surname>Molster</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Dorschner</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">339</biblScope>
+			<biblScope unit="page">904</biblScope>
+			<date type="published" when="1998" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<monogr>
+		<title level="m" type="main">An introduction to the kinetic theory of gases</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Jeans</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1967" />
+			<publisher>Cambridge University Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Kawashima</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Ikoma</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">853</biblScope>
+			<biblScope unit="page">7</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Kierzenka</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">F</forename><surname>Shampine</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ACM Transactions on Mathematical Software (TOMS)</title>
+		<imprint>
+			<biblScope unit="volume">27</biblScope>
+			<biblScope unit="page">299</biblScope>
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Kreidberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Bean</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-M</forename><surname>Désert</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">505</biblScope>
+			<biblScope unit="page">69</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Kreidberg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Line</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Bean</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">814</biblScope>
+			<biblScope unit="page">66</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Krijt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">W</forename><surname>Ormel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Dominik</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G G M</forename><surname>Tielens</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">586</biblScope>
+			<biblScope unit="page">20</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Lavvas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Koskinen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">847</biblScope>
+			<biblScope unit="page">32</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">P</forename><surname>Lavvas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Coustenis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">M</forename><surname>Vardavas</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Planet. Space Sci</title>
+		<imprint>
+			<biblScope unit="volume">56</biblScope>
+			<biblScope unit="page">27</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Line</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">S</forename><surname>Wolf</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Zhang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">775</biblScope>
+			<biblScope unit="page">137</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Madhusudhan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Bitsch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Johansen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Eriksson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">469</biblScope>
+			<biblScope unit="page">4102</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Min</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">607</biblScope>
+			<biblScope unit="page">9</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Min</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Hovenier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">; P</forename><surname>Koter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Van Boekel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Bouwman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">432</biblScope>
+			<biblScope unit="page">47</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+	<note>ApJ</note>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Mordasini</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">572</biblScope>
+			<biblScope unit="page">118</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Mordasini</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Van Boekel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Mollì Ere</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Henning</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Benneke</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">832</biblScope>
+			<biblScope unit="page">41</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">V</forename><surname>Morley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Fortney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Marley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">756</biblScope>
+			<biblScope unit="page">172</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Movshovitz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Bodenheimer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Podolak</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Lissauer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">I</forename><surname>Murray-Clay</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Bergin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">A</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Icarus</title>
+		<imprint>
+			<biblScope unit="volume">209</biblScope>
+			<biblScope unit="page">16</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+	<note>ApJ</note>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Ohno</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Okuzumi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">835</biblScope>
+			<biblScope unit="page">261</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Ohno</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Okuzumi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">859</biblScope>
+			<biblScope unit="page">34</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Okuzumi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Tanaka</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Takeuchi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Sakagami</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">731</biblScope>
+			<biblScope unit="page">95</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">W</forename><surname>Ormel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">789</biblScope>
+			<biblScope unit="page">18</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Powell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Gao</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Parmentier</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">860</biblScope>
+			<biblScope unit="page">18</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Sato</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Okuzumi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Ida</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">589</biblScope>
+			<biblScope unit="page">15</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">F</forename><surname>Shampine</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">H</forename><surname>Muir</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Xu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Numer. Anal. Ind. Appl. Math</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page">201</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">K</forename><surname>Tanaka</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Kawamura</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Tanaka</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Nakazawa</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<imprint>
+			<biblScope unit="volume">122</biblScope>
+			<biblScope unit="page">184514</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">G</forename><surname>Tomasko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Archinal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Becker</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">438</biblScope>
+			<biblScope unit="page">765</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Tsiaras</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">P</forename><surname>Waldmann</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Zingales</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">155</biblScope>
+			<biblScope unit="page">156</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Turrini</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Miguel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Zingales</surname></persName>
+		</author>
+		<title level="m">Experimental Astronomy Whipple, F. L. 1972, in From Plasma to Planet</title>
+		<editor>A. Elvius</editor>
+		<imprint>
+			<date type="published" when="2018" />
+			<biblScope unit="page">211</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Woitke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Helling</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">399</biblScope>
+			<biblScope unit="page">297</biblScope>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">K</forename><surname>Yau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Rogers</surname></persName>
+		</author>
+		<title level="m">A short course in cloud physics</title>
+		<imprint>
+			<publisher>Elsevier</publisher>
+			<date type="published" when="1996" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

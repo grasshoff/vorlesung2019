@@ -1,0 +1,1636 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-04T16:28+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Planet detection down to a few λ/D: an RSDI/TLOCI approach to PSF subtraction</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Benjamin</forename><forename type="middle">L</forename><surname>Gerard</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Physics and Astronomy</orgName>
+								<orgName type="institution">University of Victoria</orgName>
+								<address>
+									<addrLine>3800 Finnerty Rd</addrLine>
+									<postCode>V8P 5C2</postCode>
+									<settlement>Victoria</settlement>
+									<country key="CA">Canada</country>
+								</address>
+							</affiliation>
+							<affiliation key="aff1">
+								<orgName type="institution">National Research Council of Canada</orgName>
+								<address>
+									<addrLine>5071 West Saanich Rd</addrLine>
+									<postCode>V9E 2E7</postCode>
+									<settlement>Victoria</settlement>
+									<country key="CA">Canada</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Christian</forename><surname>Marois</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Physics and Astronomy</orgName>
+								<orgName type="institution">University of Victoria</orgName>
+								<address>
+									<addrLine>3800 Finnerty Rd</addrLine>
+									<postCode>V8P 5C2</postCode>
+									<settlement>Victoria</settlement>
+									<country key="CA">Canada</country>
+								</address>
+							</affiliation>
+							<affiliation key="aff1">
+								<orgName type="institution">National Research Council of Canada</orgName>
+								<address>
+									<addrLine>5071 West Saanich Rd</addrLine>
+									<postCode>V9E 2E7</postCode>
+									<settlement>Victoria</settlement>
+									<country key="CA">Canada</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Planet detection down to a few λ/D: an RSDI/TLOCI approach to PSF subtraction</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>
+					<term>high contrast imaging</term>
+					<term>PSF subtraction</term>
+					<term>image processing</term>
+				</keywords>
+			</textClass>
+			<abstract>
+				<p>Most current high contrast imaging point spread function (PSF) subtraction algorithms use some form of a least-squares noise minimization to find exoplanets that are, before post-processing, often hidden below the instrumental speckle noise. In the current standard PSF subtraction algorithms, a set of reference images is derived from the target image sequence to subtract each target image, using Angular and/or Simultaneous Spectral Differential Imaging (ADI, SSDI, respectively). However, to avoid excessive exoplanet self-subtraction, ADI and SSDI (in the absence of a strong spectral feature) severely limit the available number of reference images at small separations. This limits the performance of the least-squares algorithm, resulting in lower sensitivity to exoplanets at small angular separations. Possible solutions are to use additional reference images by acquiring longer sequences, use SSDI if the exoplanet is expected to show strong spectral features, or use images acquired on other targets. The latter option, known as Reference Star Differential Imaging (RSDI), which relies on the use of reference images that are highly correlated to the target image, has been ineffective in previous ground-based high contrast imaging surveys. The now &gt;200 target reference library from the Gemini Planet Imager Exoplanet Survey (GPIES) allows for a detailed RSDI analysis to possibly improve contrast performance near the focal plane mask, at ∼2-7 λ/D separations. We present the results of work to optimize PSF subtraction with the GPIES reference library using a least-squares algorithm designed to minimize speckle noise and maximize planet throughput, thus maximizing the planet signal to noise ratio (SNR). Using December 2014 51 Eri GPI data in the inner 100 mas to 300 mas annulus, we find no apparent improvement in SNR when using RSDI and/or our optimization scheme. This result, while still being investigated, seems to show that current algorithms on ADI+SSDI data sets are optimized, and that limited gains can be achieved by using a PSF archive.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">INTRODUCTION</head><p>In the search to detect and characterize exoplanets by direct imaging, the best achievable contrast requires suppression effects from both a realtime adaptive optics (AO) and coronagraphic system as well post-processing of these images to remove the residual point spread function (PSF). Current state of the art PSF subtraction algorithms are limited in sensitivity at small angular separations from the on-axis PSF, close to the coronagraph's focal plane mask (FPM). Exoplanet population predictions suggest that with the current generation of high contrast imaging instruments, more detections are possible at smaller separations, 1 or alternatively there could be additional planets in existing data that could be seen with better post-processing sensitivity. It is suggested that the distribution of radial-velocity detected planets as a function of separation follows an inverse power law, 2 continuing to wider separations accessible by direct imaging, <ref type="bibr" target="#b2">3</ref> and thus improved post-processing performance at smaller angular separations is of great interest to the exoplanet community.</p><p>The main factor limiting PSF subtraction performance near the inner working angle (IWA) is the selection criteria for angular differential imaging (ADI) <ref type="bibr" target="#b3">4</ref> and simultaneous spectral differential imaging (SSDI). <ref type="bibr" target="#b4">[5]</ref><ref type="bibr" target="#b5">[6]</ref><ref type="bibr" target="#b6">[7]</ref> This selection criteria requires that reference images, used in some form of a least-squares-based 8, 9 PSF subtraction algorithm, have a certain planet signal threshold (known as "aggressiveness") to limit planet self-subtraction in the target image. The amount of field of view (FOV) rotation or spectral magnification required with ADI or SSDI, respectively, usually between ∼1.5 and 3 λ/D, limits fewer available references from the target sequence at smaller separations (i.e., with SSDI, for a flat spectrum, compared to a larger separation, diffraction at a smaller separation moves speckles a smaller absolute radial distance as a function of wavelength * , and with ADI, at a set FOV rotation, arc length decreases with decreasing radial separation). Thus, this ADI+SSDI selection effect limits the optimal PSF subtraction sensitivity to planet detection at small angular separations near the instrument IWA.</p><p>A solution to this problem is reference star differential imaging (RSDI), where PSF subtraction on a target image that may contain a hidden planet can access a large archive of "planet-less" references images. The key to increasing sensitivity at small IWA using RSDI, as with any PSF subtraction technique, is to use a set of reference images that are highly correlated to the target image. With this in mind, the archival legacy investigations of circumstellar environments (ALICE) pipeline <ref type="bibr" target="#b9">10</ref> was recently developed for Hubble Space Telescope (HST ) PSF subtraction, mostly to recover disks, but no ground-based first generation AO surveys, generally accessing a higher sensitivity and smaller IWA than HST, have yet acquired enough data for RSDI in the ∼2-7λ/D regime † .</p><p>With the next generation of high contrast imaging instrument surveys such as the Gemini Planet Imager Exoplanet Survey (GPIES), <ref type="bibr" target="#b10">11</ref> we can test the performance of RSDI down to ∼2 λ/D. Our initial work on this topic acts as demonstrator for RSDI performance gain in this regime with future high contrast imaging survey instruments. In this paper, we present an analysis using GPIES to increase planet sensitivity near the IWA with a least-squares-based RSDI algorithm. In §2 we describe our procedure used to create PSF library reference images, in §3 we outline the specifics of our algorithm, in §4 we present the results of our algorithm applied to December 2014 GPI 51 Eri data, 12 and in §5 we summarize our work and consider possible future improvements.</p><p>This analysis is based entirely on GPI H band 51 Eri target sequence data from December 2014 <ref type="bibr" target="#b11">12</ref> and an additional PSF library archive from the GPIES campaign through December 2015. We only consider performance close to the edge of the FPM (∼125 mas) 13 in the inner 100 mas to 300 mas annulus. Matching the 51 Eri b detection, all of the following analysis is carried out using a methane (T8) dwarf spectrum. We use zero indexing to refer to frames and slices in the target sequence. We use a GPI pixel scale of 14.166 mas/spaxel, determined from all GPIES and lab astrometric data. <ref type="bibr" target="#b13">14</ref> We note that a similar RSDI procedure with GPIES was recently developed using the KarhunenLò eve Image Projection (KLIP) algorithm, 9 mostly designed for broadband disk detection (M. Millar-Blanchaer et al., in prep) and broadband planet detection at wider separations (D. Vega et al, in prep), and so the work presented in this paper is complimentary, instead using a least-squares designed for small IWA planet detection and spectral extraction. <ref type="figure">Figure 1</ref> shows a schematic of how we create the GPIES PSF library such that any potential planet is removed from the data. In each sequence of images for a given target, we use the datacubes produced from the GPI data reduction pipeline 15 so that all images at a given time and wavelength are 1. registered to a common center using cubic spline interpolation, magnified as a function of wavelength to align speckles (the first step in simultaneous spectral differential imaging, or SSDI), and flux normalized to flatten the stellar spectrum, all using the GPI satellite spot 16 positions, 2. high-pass filtered using a 11 by 11 pixel median boxcar filter to remove low spatial frequency noise, and 3. median combined in both time and wavelength, removing any possible planet signal as illustrated in <ref type="figure">Figure  1</ref>. * For a spectrum with strong spectral features like methane absorption, the selection criteria will allow many more references to include in the least-squares at the peak vs. trough of the spectrum, thus "counteracting" the small angular separation selection bias.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">PSF LIBRARY</head><p>† Ground-based RSDI was initially attempted with pervious-generation generation high contrast imaging surveys beyond ∼7 λ/D, but with no performance gain, likely due to stability issues (e.g., <ref type="bibr">Galicher et al. 2016</ref>, submitted) fake planet <ref type="figure">Figure 1</ref>. A schematic diagram, from a GPIES target sequence at a single time and wavelength after steps 1 -2 above, illustrating how creating the PSF archive images in step 3 removes any planet signal by medianing across time and wavelength, where the planet position changes with respect to the telescope pupil due to ADI and SSDI.</p><formula xml:id="formula_0">= Δ t, ADI = Δ λ, SSDI</formula><p>Any exoplanet will be removed after medianing all images in step 3 because (1) the planet position in ADI observing mode changes azimuthally with time (i.e., without de-rotating the images to a common position angle), and (2) after step 1 the planet position changes radially with wavelength. Thus, for every target sequence we obtain one PSF library reference image, yielding a total of 207 available archive references.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">PSF SUBTRACTION ALGORITHM</head><p>In this section we present our adaptation of the Speckle-Optimized Subtraction for Imaging Exolanets (SOSIE) <ref type="bibr" target="#b16">17</ref> and Template Locally Optimized Combination of Images (TLOCI) 18 least-squares pipelines to use with optimized RSDI. In §3.1 we review the principles of SOSIE and TLOCI in application to our pipeline, in §3.2 we explain our reference selection criteria based on image correlation, in §3.3 we outline our algorithm to optimize planet SNR, and in §3.4 we discuss additional optimization parameters. For all images in the 51 Eri target sequence, unless explicitly stated, we apply all the steps in the TLOCI algorithm, 18 using an input T8 spectrum.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">TLOCI, SOSIE Architecture</head><p>As in the original least-squares-based LOCI algorithm, 8 we define the region of interest to subtract the PSF as the "subtraction region" as well as a larger "optimization region." The optimization region is used to obtain the least-squares subtraction coefficients from a region that does not contain any exoplanet light, thus fitting for the speckle noise while preventing the algorithm from fitting the planet signal. The subtraction coefficients are then applied to the subtraction region to minimize the noise but also preserve the planet signal. In order to obtain these subtraction coefficients, a least-squares algorithm is run using a correlated set of reference images (with the same geometry of optimization and subtraction regions as in the target image) in order to minimize the noise in the target image optimization region. In the LOCI algorithm, the subtraction region lies within the optimization region, causing the least-squares to fit any planet signal in the subtraction region, thus significantly affecting the algorithm throughput and planet SNR. In contrast, the SOSIE algorithm is designed to allow better planet throughput by</p><p>1. masking the subtraction region from the optimization region, and 2. correcting the remaining throughput reduction from self-subtraction by using a forward model (FM).</p><p>Our choice of masking geometry in step 1 is illustrated in <ref type="figure">Figure 2</ref>. Any SOSIE implementation relies on the subtraction region optimization region buffer regions focal plane mask <ref type="figure">Figure 2</ref>. A schematic of our chosen optimization and subtraction region geometry, adding buffer regions between the two. A least-squares algorithm 8 is run on the optimization region in the target image and set of references to generate subtraction coefficients that are then applied to the target image subtraction region.</p><p>assumption that noise in the optimization region is spatially correlated with noise in the subtraction region, and thus works best with highly correlated data obtained in stable conditions. We chose the optimization region geometry in <ref type="figure">Figure 2</ref>. Additionally, we chose to add a "buffer region" on either side of the optimization region, each extending azimuthally by the amount of target sequence FOV rotation (usually less than ∼ 30 • ). The rationale for adding this buffer region is that if a planet lies at the edge of the subtraction region, the buffer region prevents the least-squares from fitting the planet light in an adjacent optimization region, potentially preventing throughput loss, although further testing of different SOSIE geometries, which are beyond the scope of this initial paper, are needed to better understand the sensitivity gain by adding a buffer region, as well as the validity of assuming the noise is azimuthally symmetric (see §5).</p><p>In step 2, we use a TLOCI approach 18 to generate spectrum-weighted template PSFs as a function of time and wavelength, applying a T8 template spectrum to select reference images at a given aggressiveness (see §3.2). We then apply the least-squares subtraction coefficients to the target and reference template PSFs, just as is done to subtract the real target images with a set of references, creating a residual noiseless FM to estimate the amount of self-subtraction and apply the appropriate throughput correction. Instead of using the FM flux value at the target PSF location to calculate a throughput correction, we use the peak FM flux value in an aperture centered on the target PSF location of width ∼λ/D because the former can be biased by aggressive self-subtraction effects.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Reference Image Selection</head><p>Normalizing reference images to a given target image using the robust standard deviation, <ref type="bibr" target="#b18">19</ref> we then used the robust standard deviation of the target-reference difference ( <ref type="figure" target="#fig_1">Figure 3a</ref>) to quantify target image "correlation," which converges to zero at the target image and is lower for more correlated reference images. <ref type="figure" target="#fig_1">Figures 3b, 3c</ref>, and 3d show the same robust correlation metric after applying the TLOCI selection criteria with aggressiveness 0.9, 0.5, and 0.1, respecively. An aggressiveness of 0.9 requires that for a given reference image, the cumulative FM flux in a λ/D diameter aperture, centered on the target image FM location, be less than 90% of the target image cumulative FM flux in that aperture (and for an aggressiveness of 0.5, less than 50%, etc.). In addition to aggressiveness, we require that any reference for a given target image must be at either the same time or wavelength. This allows for a decreased overall computation time in order to determine the correlation of a given target image to all the available references. Although this limits the total available number images from which to select references, we know that images at the same time and wavelength are already ∼90% correlated in wavelength and ∼50% correlated in time. <ref type="bibr" target="#b17">18</ref> Thus, images at a different time and wavelength from the target image should accordingly decrease correlation, and so with this simplification we are still keeping the most correlated images. (a) Our correlation metric for an example target image no selection criteria, using the robust standard deviation of the difference between the target image and a given reference image, normalized to the highest value. As expected, the robust correlation converges to 0 at the sample target image. Using the reference selection criteria to chose the 25 most correlated images, an aggressiveness of 0.9 (b) and 0.5 (c) yields only one PSF library image to include in the set of references, whereas an aggressiveness of 0.1 (d) yields references mostly from the PSF library, suggesting that a gain in contrast by adding the PSF library is dependent on aggressiveness.</p><p>Assuming use of the 25 most correlated reference images (after the TLOCI selection criteria to minimize self-subtraction effects; but see §3.3) to subtract the target image, <ref type="figure" target="#fig_1">Figures 3b, 3c</ref>, and 3d show that at high and medium aggressiveness, most references are from the target sequence (24 of 25), whereas at low aggressiveness, a greater number of the most correlated references come from the PSF library (11 of 25). For low aggressiveness, we can see that all the target sequence images are more correlated than any PSF library image, but this aggressiveness limits the total number of available references from the target sequence to 14, thus requiring use of the PSF library if we want to use 25 total references. This discrepancy as a function of aggressiveness, in both available number of correlated images from the target sequence and number of correlated images from the PSF library, suggests that adding the PSF library could improve contrast in at least some cases that require low aggressiveness, such as the spectral extraction of a companion.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Optimization Algorithm</head><p>Although the SOSIE and TLOCI algorithms have made improvements over the original LOCI algorithm to correct for throughput using masking and forward modelling, thereby effectively optimizing the planet SNR vs only minimizing the noise in the subtraction region, there are still (unaccounted for) free parameters which can change the planet SNR, including 1. number of references, Too few references limits the diversity of the least-squares to optimally minimize the noise in the subtraction region, whereas too many reference images will overfit the noise in the optimization region, also causing a higher noise in the subtraction region.</p><p>2. aggressiveness, A lower aggressiveness inherently requires selecting less correlated reference images from the target sequence but also causes less self-subtraction, whereas a higher aggressiveness will use more correlated images from the target sequence but cause more self-subtraction.</p><p>3. singular value decomposition (SVD) cutoff, Less correlated reference images can cause noise to propagate into the covariance matrix inversion step in the least-squares algorithm, effectively overfitting the noise in the optimization region, 17 thus causing a higher noise in the subtraction region, similar to step 1. This problem can be addressed by changing the SVD cutoff, which truncates the matrix inversion below a cutoff (singular) value.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">different optimization and subtraction region geometries.</head><p>The core methodology of our algorithm is to address items 1 and 2 by optimizing what we call the "FM SNR." We also briefly address items 3 and 4 in §3.4 and also item 4 in §5.</p><p>To optimize the SNR as a function of number of reference images and aggressiveness in each subtraction region, we compute a grid search with our aforementioned SOSIE/TLOCI algorithm, varying the number of the most correlated references between 3 and 25 with a step size of 1 and varying the aggressiveness between 0.1 and 0.9 with a step size of 0.1. For each iteration, we compute the FM SNR by dividing the peak FM flux within a λ/D diameter aperture centered on the target PSF location (as discussed in §3.1) by the robust standard deviation in the subtraction region of PSF-subtracted image. Before calculating the noise in the subtraction region, we first convolve the original PSF-subtracted image with a λ/D diameter Airy disk kernel, 20 whose cumulative flux is normalized to one so that flux is conserved in the convolved image. This convolution step filters out pixel-to-pixel noise in order to distinguish λ/D-sized speckles as the noise floor. Finally, we adopt the parameters of number of references and aggressiveness for a given subtraction region that maximize the FM SNR.</p><p>Throughout this process, in each least squares image, we found cases where negative least-squares subtraction coefficients generated an artificial increase in forward model flux, which bias the FM SNR optimiztion even though the planet is not actually brighter. The solution is to restrict the subtraction coefficients to be positive in the least-squares algorithm, also known as a non-negative least-squares (NNLS), <ref type="bibr" target="#b20">21</ref> and so we use this algorithm instead of a regular least-squares for the rest of our analysis. We also chose to optimize the FM SNR as opposed to bootstrapping a signal into the real image because the former is a noiseless image that can isolate throughput effects from noise effects, unlike the latter.</p><p>To test our algorithm performance in the rest of this paper, we will consider optimized PSF subtraction using only the target sequence (hereafter "tar opt"), unoptimized PSF subtraction using only the target sequence (hereafter "un-opt"), and optimized PSF subtraction using both the target sequence and PSF library (hereafter "tar+lib opt"). We do not consider optimized PSF subtraction using only the PSF library, without the target sequence. A full reduction with only the PSF library would not do better than just the target sequence or target sequence + PSF library because <ref type="figure" target="#fig_1">Figure 3</ref> shows that the most correlated images are from the target sequence, independent of aggressiveness, and that these also outnumber the most correlated images to include from from the PSF library, so that on average for a given target image, the given aggressiveness is such that the majority of most references will be from the target sequence.</p><p>Two examples comparing our various optimization schemes are shown in <ref type="figure" target="#fig_2">Figure 4</ref>, along with the mean behavior across the full target sequence. <ref type="figure" target="#fig_2">Figure 4</ref> illustrates a number of important concepts that we discuss below:</p><p>• In <ref type="figure" target="#fig_2">Figure 4a</ref>, the FM SNR is consistently higher in the tar+lib opt code than in the tar opt code (i.e., for a given color, the solid lines generally lie above the dotted lines) by up to a factor of ∼2, suggesting that adding the PSF library should show significant improvement in SNR, relatively independent of aggressiveness and number of references. However, this was a specially picked case where we found an unusually high number of correlated PSF library images to the target image.</p><p>• <ref type="figure" target="#fig_2">Figure 4b</ref> is a much more typical example FM SNR optimization. In this case, we can see that:</p><p>1. There is a ∼10-20 % improvement in FM SNR when using the PSF library, but only at medium to low aggressiveness.</p><p>2. without using the PSF library, a low aggressiveness selection criteria may provide less than 25 available references from the target sequence, meaning that the number of references can only be optimized out to less than this value. This effect agrees with <ref type="figure" target="#fig_1">Figure 3</ref>, showing that at a lower aggressiveness there are less available references from the target sequence.</p><p>The two points above suggest that adding the PSF library is most effective at low aggressiveness when there are less available references from the target sequence. High aggressiveness cases do not show any improvement because there are always enough available references from the target sequence that are all more correlated with the target image than any PSF library image.</p><p>• <ref type="figure" target="#fig_2">Figure 4c</ref> shows that 1. adding the PSF library does on average improve FM SNR throughout the full sequence, but only at low aggressiveness and more than ∼10 references, consistent with <ref type="figure" target="#fig_2">Figure 4b</ref>.</p><p>2. at low aggressiveness, the negative coefficients in a linear least-squares algorithm are biasing the tar+lib opt FM to performance that is both better and worse than tar opt code, illustrating that using a NNLS algorithm should yield a more consistent performance improvement in this regime.</p><p>• <ref type="figure" target="#fig_2">Figure 4d</ref> shows the diversity of optimal parameters for aggressiveness and number of references across the full sequence. This suggests that the standard approach to PSF subtraction, which uses a set number of references and aggressiveness across the full sequence (i.e. the un-opt code), should not perform as well as our optimized approach.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4">Additional Parameters</head><p>In order to choose an optimal least-squares SVD cutoff for matrix inversion (SVD cutoff ) ‡ and number of subtraction regions around the full annulus (n), we ran a grid search with 10 −1 &lt; SVD cutoff &lt; 10 −7 (with step size of ∆log 10 (SVD cutoff ) = −1) and 2 &lt; n &lt; 5 (using a step size of ∆n = 1) for a number of test cases at a fixed number of references and aggressiveness, using the same subtraction region geometry as in <ref type="figure" target="#fig_2">Figure 4</ref>. In a number of test cases for single target images, we generally found a maximum FM SNR at SVD cutoff = 10 −3 and n = 2, and so we adopt these parameters for the rest of this paper (but see §5).</p><p>Relatedly, in order to run this optimization routine on the full target sequence in a reasonable amount of time (∼24 hours on our 2.7 GHz processor, running in serial), we simplified the above optimization routine by binning the step size in number of reference images to two instead of one and in binning in aggressiveness to 0.2 instead of 0.1, finding no evidence of a significant decrease in forward model SNR from these effects for multiple test cases.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">RESULTS</head><p>Results after running our tar+lib opt, tar opt, and un-opt codes on the full 51 Eri sequence, each of which include a run with and without a bootstrapped methane planet, are shown in <ref type="figure" target="#fig_3">Figure 5</ref>. Each image is rotated to north up (ADI) and demagnified (SSDI) before median combining in time to create a final PSF-subtracted datacube. The datacube is then collapsed across wavelength with a weighted mean using the input spectrum. <ref type="bibr" target="#b17">18</ref> When running the un-opt code, we chose to use the "typical" parameters applied throughout the full sequence (independent of the results in <ref type="figure" target="#fig_2">Figure 4d</ref>): 20 reference images and aggressiveness = 0.5. For the bootstrap reductions, we add the satellite spot PSF into the raw images, normalized to the robust standard deviation in slice 9 (the peak of a T8 spectrum) of the non-bootstrap tar+lib opt collapsed cube within a 2 pixel-wide annulus around the bootstrap radial separation (200 mas), multiplied by 8, which represents an "∼8σ" detection. For a methane planet, the bootstrap signal is also a function of wavelength, and so we additionally normalize the bootstrap signal to the mean of the normalized input spectrum (accordingly, in the final time-collapsed cube the T8 peak should be above 8σ and the methane absorption band should be below 8σ, and thus the bootstrap signal in the wavelength-collapsed image should be detected at ∼8σ).</p><p>To compute the SNR maps in <ref type="figure" target="#fig_3">Figure 5</ref>, we create a "back-rotated" time-collapsed datacube, where each frame is rotated by its amount of FOV rotation, but in the opposite direction of north up, thus medianing out any planet signal that is no longer spatially aligned, but preserving the radial noise characteristics. Within a given 2 pixel-wide annulus, the signal values in the correctly rotated north-up, time-collapsed image are then divided by the robust standard deviation in the same annulus of the corresponding back-rotated image, repeated over all annuli of the 100 to 300 mas region to produce the SNR maps in <ref type="figure" target="#fig_3">Figure 5</ref>.</p><p>None of the non-bootstrapped codes show an obvious point source detection above 5σ in the inner annulus. We find a bootstrap SNR for the tar+lib opt, tar opt, and un-opt codes of 12.55, 12.45, and 12.95, respectively. These results suggest that neither our FM optimization scheme nor adding the PSF library actually improves planet SNR. The latter is consistent with the average results in Figures 4c, which shows that on average the tar+lib opt tar opt un-opt <ref type="figure">Figure 6</ref>. Performance after bootstrapping a simulated methane planet using our three different codes: optimized using the target sequence and PSF library (tar+lib opt), optimized using only the target sequence (tar opt), and un-optimized (20 reference images, aggressiveness = 0.5 throughout the full sequence) using only the target sequence (un-opt). (a) Bootstrap SNR as a function of wavelength, where the dashed lines of the same color show the corresponding collapsed cube bootstrap SNR as in <ref type="figure" target="#fig_3">Figure 5</ref> (b)-(d), indicating that neither our FM SNR optimization scheme nor using the PSF library improves performance. (b) Output bootstrap signal normalized to the peak value of the input bootstrap signal, indicating that all algorithms more or less recover the input signal, although the methane absorption band is bootstrapped well below the PSF-subtracted noise floor and thus biased by any brighter speckles, and the ∼20% discrepancy at the T8 peak suggests that further work is needed to understand why our FM throughput correction is not performing as well in this regime. (c) 5σ contrast as a function of separation on the collapsed, back-rotated, bootstrapped images, again showing that all codes have a similar performance.</p><p>PSF library shows no improvement except in cases of low aggressiveness, for which <ref type="figure" target="#fig_2">Figure 4d</ref> shows that most of the sequence is optimized at higher aggressiveness. However, the lack of improvement from our FM SNR optimization scheme is puzzling, and discussed further below as well as in §5. <ref type="figure">Figure 6</ref> shows the bootstrap spectral performance and contrast curves for our three different PSF subtraction codes. The left panel shows the output bootstrap SNR spectrum (wavelength increases with increasing slices, from 0 to 36 across H band 22 ), confirming the collapsed cube results in <ref type="figure" target="#fig_3">Figure 5</ref> as a function of wavelength: neither our FM SNR optimization scheme nor adding the PSF library shows any improvement in bootstrap SNR over existing methods. The middle panel shows the input and output bootstrap signals as a function of wavelength, normalized to the peak input signal, indicating that in all codes our noiseless FM throughput correction mostly recover the input signal. In the methane absorption band there is some discrepancy between the input and recovered signal, but in this low SNR regime the bootstrap signal is well below the noise and may be biased by brighter speckles. However, around the T8 peak, all codes are ∼20% dimmer than the input signal. This throughput loss suggests that our FM throughput correction is not performing well in this regime, and further work is needed to understand why ( §5). The right panel shows the 5σ contrast as a function of position. In order to remove bias from the bootstrap signal, we calculate contrast on the bootstrapped, collapsed, back-rotated images.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">CONCLUSION</head><p>ADI and SSDI limit PSF subtraction sensitivity to detect and characterize planets at small angular separations. This problem can be addressed using RSDI. RSDI on ground-based high contrast imaging instruments at ∼2-7 λ/D has only recently become possible with sufficient campaign data from the Gemini Exoplanet Imaging Survey (GPIES). 11 Our main conclusions are as follows:</p><p>• We have developed a new method of optimized RSDI PSF subtraction using the SOSIE 17 and TLOCI <ref type="bibr" target="#b17">18</ref> least-squares formalism, which includes</p><p>• When running this PSF subtraction routine on the inner 100 to 300 mas annulus of the GPI December 2014 51 Eri dataset, 12 we find 1. no obvious planet detection, 2. when bootstrapping a fake methane planet into the raw datacubes, there is no apparent gain in planet SNR when adding the PSF library and/or using our FM optimization scheme compared to current non-RSDI-based PSF subtraction methods.</p><p>These results present the first attempt to improve planet SNR using RDSI in the ∼2-7 λ/D regime. This method should be further explored in the context of current and future high contrast imaging survey instruments working near the diffraction limit. Future work on this initial study will proceed for a number of different topics. However, for any further adjustments to the optimized code, the first step is to parallelize the now serial Python-based optimization code so that it can reduce the full sequence in only a few hours on our 16 core machine rather than ∼24 hours. Afterwards, there are a number of different possible avenues to explore:</p><p>• Understand the discrepancy between input and output bootstrap signal near the T8 peak, perhaps originating from problems with applying our FM throughput correction in this regime. This throughput loss may also be affecting our FM SNR optimization scheme.</p><p>• Test performance of the three codes using additional spectral templates, such as a DUSTY 23 spectrum, which should be less effective than a methane spectrum when using SSDI due to the lack of spectral features, thus more sensitive to increased performance with RSDI.</p><p>• Test performance of different optimization and subtraction region geometries, e.g., using all or portions of the adjacent, more outer annulus and/or portions of the inner annulus to define the optimization region geometry, still not overlapping with the subtraction region. The rational here is that there could be a more optimal geometry that samples the noise of the subtraction region rather than assuming azimuthal symmetry in the same annulus (e.g., assuming radial symmetry).</p><p>• To further investigate the performance tradeoff between a linear least-squares and a NNLS, include a loop in the linear least-squares to optimize the SVD cutoff. Although we found that using two subtraction regions consistently gave the highest FM SNR, we found that the optimal SVD cutoff varied between 10 −3 and 10 −4 . We did not include a loop to optimize this parameter due to computational limits, which would have at minimum doubled the overall computation time in serial. However, there may be little or no gain from adding such a loop, since optimizing the SVD cutoff is similar to optimizing the number of references.</p><p>• Create PSF library images by medianing only across wavelength. This could allow for a greater ensemble of references from which to choose. However, medianing only in wavelength is also less effective at medianing out the planet flux in the inner annulus, and so there may be additional throughput effects from this. The rational here is that by median collapsing in time and wavelength, we could be missing a potentially more correlated PSF library image due to time instability.</p><p>• Run the tar+lib opt code on the all of the GPIES campaign data acquired thus far to search for any undetected planets already in the existing data, using multiple spectral templates. Most datasets are far less ideal than our 51 Eri data set, particularly in stability and FOV rotation, for which the former and the latter can be improved by using an SNR optimization scheme and a PSF library, respectively. Thus, RSDI and/or FM SNR optimization may show more improvement on other targets.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 3 .</head><label>3</label><figDesc>Figure 3. An example of how the correlation for a single target image (frame 20, slice 10) varies with aggressiveness. (a) Our correlation metric for an example target image no selection criteria, using the robust standard deviation of the difference between the target image and a given reference image, normalized to the highest value. As expected, the robust correlation converges to 0 at the sample target image. Using the reference selection criteria to chose the 25 most correlated images, an aggressiveness of 0.9 (b) and 0.5 (c) yields only one PSF library image to include in the set of references, whereas an aggressiveness of 0.1 (d) yields references mostly from the PSF library, suggesting that a gain in contrast by adding the PSF library is dependent on aggressiveness.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 4 .</head><label>4</label><figDesc>Figure 4. (a)-(b) FM SNR as a function of number of reference images and aggressiveness, with and without the PSF library ("tar+lib opt" and "tar opt," respectively), for two test cases. The variable "k" refers to the specific subtraction region considered, for which, using two subtraction regions across the full annulus, k=0 represents the lower half of the annulus and k=1 represents the upper half. (c) the difference in FM SNR values between the tar+lib opt and tar opt codes for each individual least-squares image, averaged across the full sequence, as a function of number of reference images and aggressiveness. Error bars are determined from the standard deviation of each averaged FM SNR difference divided by the square root of the number of available values at that given number of references and aggressiveness. The non-negative least-squares (NNLS) algorithm is shown in solid for comparison with the standard linear lease-squares algorithm, shown as dashed lines. A positive value on the y-axis indicates that adding the PSF library improves the FM SNR. (d) A two-dimensional histogram of the optimal values for aggressiveness and number of references as determined from FM SNR optimization across the full target sequence using the tar+lib opt code. A higher number of counts in a given bin means that more target images are optimized at the corresponding number of references and aggressiveness compared to other bins.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 5 .</head><label>5</label><figDesc>Figure 5. SNR maps for (a) the optimized code using the PSF library, (b) bootstrapping with the optimized code using the PSF library, (c) bootstrapping with the optimized code using only the target sequence, and (d) bootstrapping with the un-optimized code (20 reference images, aggressiveness = 0.5 throughout the full sequence) using only the target sequence. The red circle shows the bootstrap location. The bootstrap SNR in (b), (c), and (d) is 12.55, 12.45, and 12.95, respectively.</figDesc></figure>
+
+			<note place="foot">‡ The SVD cutoff was only investigated for matrix inversion in our testing with a linear least-squares algorithm (but see §5). We did not consider optimizing the matrix inversion in the NNLS algorithm.</note>
+
+			<note place="foot" n="1">. reference image selection based on an input spectral template and robust correlation to the target image, 2. an ensemble of PSF library reference images that removes any planet signal through medianing, many of which are correlated enough to images in the target sequence to allow using RSDI, 3. an improved planet throughput compared to the LOCI 8 formalism, based on an optimization and subtraction region masking scheme and a subsequent forward model (FM) throughput correction, and 4. an optimization routine designed to maximize the planet SNR as a function of the number of reference images and aggressiveness.</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>ACKNOWLEDGMENTS</head><p>We gratefully acknowledge research support of the Natural Sciences and Engineering Council (NSERC) of Canada. The GPI project has been supported by Gemini Observatory, which is operated by AURA, Inc., under a cooperative agreement with the NSF on behalf of the Gemini partnership: the NSF (USA), the National Research Council (Canada), CONICYT (Chile), the Australian Research Council (Australia), MCTI (Brazil) and MINCYT (Argentina).</p></div>
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<monogr>
+		<title level="m" type="main">Ground-based direct detection of exoplanets with the gemini planet imager (GPI)</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Graham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Macintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Doyon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Gavel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Larkin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Levine</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Oppenheimer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Palmer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Saddlemyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Sivaramakrishnan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-P</forename><surname>Veran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Wallace</forename></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+	<note>ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">The keck planet search: Detectability and the minimum mass and orbital period distribution of extrasolar planets</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Cumming</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P</forename><surname>Butler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Marcy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">S</forename><surname>Vogt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Wright</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Fischer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Publications of the Astronomical Society of the Pacific</title>
+		<imprint>
+			<biblScope unit="volume">120</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lafrenì Ere</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Doyon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Nadeau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">R</forename><surname>Oppenheimer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">F</forename><surname>Roche</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Rigaut</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Graham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Jayawardhana</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Johnstone</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">G</forename><surname>Kalas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Macintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Racine</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">The gemini deep planet survey</title>
+		<imprint>
+			<date type="published" when="2007" />
+			<biblScope unit="volume">670</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Angular differential imaging: A powerful high-contrast imaging technique</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lafrenì Ere</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Doyon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Macintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Nadeau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">641</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Speckle noise and the detection of faint companions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Racine</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">A H</forename><surname>Walker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Nadeau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Doyon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marois</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Publications of the Astronomical Society of the Pacific</title>
+		<imprint>
+			<biblScope unit="volume">111</biblScope>
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Efficient speckle noise attenuation in faint companion imaging</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Doyon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Racine</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Nadeau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Publications of the Astronomical Society of the Pacific</title>
+		<imprint>
+			<biblScope unit="volume">112</biblScope>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Imaging spectroscopy for extrasolar planet detection</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">B</forename><surname>Sparks</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">C</forename><surname>Ford</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">578</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">A new algorithm for point-spread function subtraction in high-contrast imaging: A demonstration with angular differential imaging</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lafrenì Ere</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Doyon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Nadeau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">660</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">Detection and characterization of exoplanets and disks using projections on karhunenlò eve eigenimages</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Soummer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Pueyo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Larkin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal Letters</title>
+		<imprint>
+			<biblScope unit="volume">755</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Archival legacy investigations of circumstellar environments: overview and first results</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Choquet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Pueyo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Hagan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Gofas-Salas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Rajan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D</forename><surname>Perrin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Debes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Golimowski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">C</forename><surname>Hines</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>N&amp;apos;diaye</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Schneider</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Mawet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Soummer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Space Telescopes and Instrumentation</title>
+		<imprint>
+			<biblScope unit="page">914357</biblScope>
+			<date type="published" when="2014" />
+			<publisher>Optical</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Macintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Graham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Ingraham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Q</forename><surname>Konopacky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Perrin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Poyneer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Bauman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Barman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">S</forename><surname>Burrows</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Cardwell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Chilcote</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J D</forename><surname>Rosa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Dillon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Doyon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Dunn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Erikson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">P</forename><surname>Fitzgerald</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Gavel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Goodsell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Hartung</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Hibon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Kalas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Larkin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Maire</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Marchis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Marley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Mcbride</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Millar-Blanchaer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Morzinski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Norton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">R</forename><surname>Oppenheimer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Palmer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Patience</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Pueyo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Rantakyro</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Sadakuni</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Saddlemyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Savransky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Serio</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Soummer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Sivaramakrishnan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Song</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Thomas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">K</forename><surname>Wallace</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Wiktorowicz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Wolff</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Proceedings of the National Academy of Science</title>
+		<imprint>
+			<biblScope unit="volume">111</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+	<note>First light of the gemini planet imager</note>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Macintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Graham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Barman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J D</forename><surname>Rosa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Q</forename><surname>Konopacky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Marley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">L</forename><surname>Nielsen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Pueyo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Rajan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Rameau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Saumon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Patience</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Ammons</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Arriaga</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Artigau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Beckwith</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Brewster</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Bruzzone</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Bulger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Burningham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">S</forename><surname>Burrows</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Chiang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">K</forename><surname>Chilcote</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">I</forename><surname>Dawson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Dong</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Doyon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><forename type="middle">H</forename><surname>Draper</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Duchêne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">M</forename><surname>Esposito</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Fabrycky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">P</forename><surname>Fitzgerald</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">B</forename><surname>Follette</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Fortney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Gerard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Goodsell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">Z</forename><surname>Greenbaum</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Hibon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Hinkley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">H</forename><surname>Cotten</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L.-W</forename><surname>Hung</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Ingraham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Johnson-Groh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Kalas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lafreniere</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">E</forename><surname>Larkin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Line</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Long</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Maire</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Marchis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">C</forename><surname>Matthews</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">E</forename><surname>Max</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Metchev</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Millar-Blanchaer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Mittal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">V</forename><surname>Morley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">M</forename><surname>Morzinski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Murray-Clay</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Oppenheimer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Palmer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Patel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D</forename><surname>Perrin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">A</forename><surname>Poyneer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">R</forename><surname>Rafikov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">T</forename><surname>Rantakyro</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">L</forename><surname>Rice</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Rojo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">R</forename><surname>Rudy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-B</forename><surname>Ruffio</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">T</forename><surname>Ruiz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Sadakuni</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Saddlemyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Salama</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Savransky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">C</forename><surname>Schneider</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Sivaramakrishnan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Song</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Soummer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Thomas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Vasisht</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">K</forename><surname>Wallace</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Ward-Duong</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Wiktorowicz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">G</forename><surname>Wolff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Zuckerman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">350</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+	<note>Discovery and spectroscopy of the young jovian planet 51 eri b with the gemini planet imager</note>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Soummer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Sivaramakrishnan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">R</forename><surname>Oppenheimer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Brenner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Carlotti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Pueyo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Macintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Bauman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Saddlemyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Palmer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Erickson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Dorrer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Caputa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Wallace</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Griffiths</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Mey</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">The gemini planet imager coronagraph testbed</title>
+		<imprint>
+			<date type="published" when="2009" />
+			<biblScope unit="page">74400</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">Gemini planet imager observational calibrations v: astrometry and distortion</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Q</forename><forename type="middle">M</forename><surname>Konopacky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Thomas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">A</forename><surname>Macintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Dillon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Sadakuni</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Maire</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Fitzgerald</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Hinkley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Kalas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Esposito</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">J</forename><surname>Ingraham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Marchis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D</forename><surname>Perrin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Graham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J D</forename><surname>Rosa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Morzinski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Pueyo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">K</forename><surname>Chilcote</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">E</forename><surname>Larkin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Fabrycky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Goodsell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">R</forename><surname>Oppenheimer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Patience</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Saddlemyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Sivaramakrishnan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Ground-based and Airborne Instrumentation for Astronomy</title>
+		<imprint>
+			<biblScope unit="page">914784</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Gemini planet imager observational calibrations i: Overview of the gpi data reduction pipeline</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D</forename><surname>Perrin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Maire</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Ingraham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Savransky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Millar-Blanchaer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">G</forename><surname>Wolff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-B</forename><surname>Ruffio</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><forename type="middle">H</forename><surname>Draper</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Sadakuni</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Rajan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">P</forename><surname>Fitzgerald</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Macintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Graham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Doyon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">E</forename><surname>Larkin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">K</forename><surname>Chilcote</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Goodsell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Palmer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Labrie</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Beaulieu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J D</forename><surname>Rosa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">Z</forename><surname>Greenbaum</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Hartung</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Hibon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Q</forename><surname>Konopacky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lafreniere</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-F</forename><surname>Lavigne</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Marchis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Patience</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Pueyo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">T</forename><surname>Rantakyr´&amp;apos;rantakyr´rantakyr´&amp;apos;o</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Soummer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Sivaramakrishnan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Thomas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Ward-Duong</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Wiktorowicz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Ground-based and Airborne Instrumentation for Astronomy</title>
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="page">91473</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">Gemini planet imager observational calibrations viii: characterization and role of satellite spots</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Rajan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Graham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Savransky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">J</forename><surname>Ingraham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Ward-Duong</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Patience</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J D</forename><surname>Rosa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Bulger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Sivaramakrishnan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D</forename><surname>Perrin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Thomas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Sadakuni</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">Z</forename><surname>Greenbaum</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Pueyo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">R</forename><surname>Oppenheimer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Kalas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Cardwell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Goodsell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Hibon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">T</forename><surname>Rantakyro</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Ground-based and Airborne Instrumentation for Astronomy</title>
+		<imprint>
+			<biblScope unit="page">914755</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">Exoplanet imaging with LOCI processing: photometry and astrometry with the new SOSIE pipeline</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Macintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-P</forename><surname>Véran</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Adaptive Optics Systems</title>
+		<imprint>
+			<biblScope unit="volume">II</biblScope>
+			<biblScope unit="page">77361</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">GPI PSF subtraction with TLOCI: the next evolution in exoplanet/disk high-contrast imaging</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Correia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Galicher</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Ingraham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Macintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Currie</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Rosa</forename></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">D</forename></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Adaptive Optics Systems IV</title>
+		<imprint>
+			<biblScope unit="page">91480</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title level="a" type="main">The long wavelength array software library</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Dowell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Wood</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Stovall</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">S</forename><surname>Ray</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Clarke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Taylor</forename></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename></persName>
+		</author>
+		<ptr target="http://fornax.phys.unm.edu/lwa/doc/lsl-0.4.x/robust.html" />
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Astronomical Instrumentation</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">P</forename><surname>Robitaille</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Tollerud</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Greenfield</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Droettboom</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Bray</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Aldcroft</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Davis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Ginsburg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">M</forename><surname>Price-Whelan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">E</forename><surname>Kerzendorf</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Conley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Crighton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Barbary</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Muna</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Ferguson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Grollier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">M</forename><surname>Parikh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">H</forename><surname>Nair</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">M</forename><surname>Unther</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Deil</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Woillez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Conseil</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Kramer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">E H</forename><surname>Turner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Singer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Fox</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">A</forename><surname>Weaver</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Zabalza</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><forename type="middle">I</forename><surname>Edwards</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">A</forename><surname>Bostroem</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J</forename><surname>Burke</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">R</forename><surname>Casey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">M</forename><surname>Crawford</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Dencheva</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Ely</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Jenness</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Labrie</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">L</forename><surname>Lim</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Pierfederici</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Pontzen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Ptak</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Refsdal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Servillat</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Streicher</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Astropy: A community python package for astronomy</title>
+		<imprint>
+			<date type="published" when="2013" />
+			<biblScope unit="volume">558</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Solving least squares problems</title>
+		<ptr target="http://docs.scipy.org/doc/scipy-0.17.0/reference/generated/scipy.optimize.nnls.html" />
+	</analytic>
+	<monogr>
+		<title level="j">Society for Industrial and Applied Mathematics</title>
+		<imprint>
+			<date type="published" when="1987" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Gemini planet imager observational calibrations vi: photometric and spectroscopic calibration for the integral field spectrograph</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Maire</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">J</forename><surname>Ingraham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J D</forename><surname>Rosa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">D</forename><surname>Perrin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Rajan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Savransky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-B</forename><surname>Ruffio</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">G</forename><surname>Wolff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">K</forename><surname>Chilcote</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Doyon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Graham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">Z</forename><surname>Greenbaum</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Q</forename><forename type="middle">M</forename><surname>Konopacky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">E</forename><surname>Larkin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">A</forename><surname>Macintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Millar-Blanchaer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Patience</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">A</forename><surname>Pueyo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Sivaramakrishnan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">J</forename><surname>Thomas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Weiss</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Ground-based and Airborne Instrumentation for Astronomy</title>
+		<imprint>
+			<biblScope unit="page">914785</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">Evolutionary models for low-mass stars and brown dwarfs: Uncertainties and limits at very young ages</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Baraffe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Chabrier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Allard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">H</forename><surname>Hauschildt</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astronomy &amp; Astrophysics</title>
+		<imprint>
+			<biblScope unit="volume">382</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title level="a" type="main">Bounded-variable least-squares: an algorithm and applications</title>
+	</analytic>
+	<monogr>
+		<title level="j">Computational Statistics</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<date type="published" when="1995" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

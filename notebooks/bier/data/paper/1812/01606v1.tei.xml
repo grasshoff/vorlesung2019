@@ -1,0 +1,579 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2019-01-22T13:31+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">qpower2 -a fast and accurate algorithm for the computation of exoplanet transit light curves with the power-2 limb-darkening law</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2018-12-06">December 6, 2018</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">F L</forename><surname>Maxted</surname></persName>
+							<email>p.maxted@keele.ac.uk</email>
+							<affiliation key="aff0">
+								<orgName type="laboratory">Astrophysics Group</orgName>
+								<orgName type="institution">Keele University</orgName>
+								<address>
+									<postCode>ST5 5BG</postCode>
+									<settlement>Keele, Staffordshire</settlement>
+									<country key="GB">UK</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Gill</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="laboratory">Astrophysics Group</orgName>
+								<orgName type="institution">Keele University</orgName>
+								<address>
+									<postCode>ST5 5BG</postCode>
+									<settlement>Keele, Staffordshire</settlement>
+									<country key="GB">UK</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">qpower2 -a fast and accurate algorithm for the computation of exoplanet transit light curves with the power-2 limb-darkening law</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2018-12-06">December 6, 2018</date>
+						</imprint>
+					</monogr>
+					<note type="submission">Dates to be inserted</note>
+					<note>Astronomy &amp; Astrophysics manuscript no. qpower2-arxiv c ESO 2018</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>binaries: eclipsing -Techniques: photometric</keywords>
+			</textClass>
+			<abstract>
+				<p>Context. The power-2 law, I λ (µ) = 1 − c (1 − µ α), accurately represents the limb-darkening profile for cool stars. It has been implemented in a few transit models to-date using numerical integration but there is as-yet no implementation of the power-2 law in analytic form that is generally available. Aims. Our aim is to derive an analytic approximation that can be used to quickly and accurately calculate light curves of transiting exoplanets using the power-2 limb-darkening law. Methods. An algorithm to implement the power-2 law is derived using a combination of an approximation to the required integral and a Taylor expansion of the power-2 law. The accuracy of stellar and planetary radii derived by fitting transit light curves with this approximation is tested using light curves computed by numerical integration of limb-darkening profiles from 3D stellar model atmospheres. Results. Our algorithm (qpower2) is accurate to about 100 ppm for broad-band optical light curves of systems with a star-planet radius ratio p = 0.1. The implementation requires less than 40 lines of python code so can run extremely fast on graphical processing units (GPUs; ∼ 1 million models per second for the analysis of 1000 data points). Least-squares fits to simulated light curves show that the star and planet radius are recovered to better than 1% for p &lt; 0.2. Conclusions. The qpower2 algorithm can be used to efficiently and accurately analyse large numbers of high-precision transit light curves using Monte Carlo methods.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>Limb darkening is the variation of specific intensity emitted from a stellar photosphere as a function of the viewing angle. The advent of very high precision photometry for transiting exoplanet systems has led to extensive discussion in the literature of the best way to parameterise limb darkening in transit models, e.g., <ref type="bibr" target="#b1">Espinoza &amp; Jordán (2016)</ref>, <ref type="bibr">Müller et al. (2013)</ref>, Howarth (2011), <ref type="bibr" target="#b20">Sing et al. (2008)</ref>, <ref type="bibr" target="#b14">Morello et al. (2017)</ref>, <ref type="bibr" target="#b16">Neilson et al. (2017)</ref>, <ref type="bibr" target="#b7">Kipping (2013)</ref>, etc. One well-established result from such studies is that using a linear limb-darkening law can lead to significant bias in the parameters derived from the analysis of high quality photometry. For example, <ref type="bibr" target="#b1">Espinoza &amp; Jordán (2016)</ref> found systematic errors in the radius estimates for small planets as large as 3% as a result of using linear limb-darkening coefficients. There are several alternative ways to parametrize limb darkening. Among the alternative two-parameter laws used to model the limb darkening profile I λ (µ) for a given bandpass λ is the quadratic limb-darkening law <ref type="bibr" target="#b8">(Kopal 1950</ref>) -</p><formula xml:id="formula_0">I λ (µ) = 1 − c 1 (1 − µ) − c 2 (1 − µ) 2 ,</formula><p>where µ is the cosine of the angle between the surface normal and the line of sight. This limb darkening law has the advantage of being relatively simple and well-understood in terms of the correlations between the coefficients <ref type="bibr" target="#b17">(Pál 2008;</ref><ref type="bibr" target="#b6">Kipping &amp; Bakos 2011;</ref><ref type="bibr" target="#b4">Howarth 2011</ref>) and how to sample the parameter space to achieve a non-informative prior <ref type="bibr" target="#b7">(Kipping 2013)</ref>. It is frequently used for studies of transiting exoplanets because several implementations of the algorithm by <ref type="bibr" target="#b11">Mandel &amp; Agol (2002)</ref> to rapidly and precisely calculate transit light curves with quadratic limb darkening are widely available.</p><p>Among the limb darkening laws with 2 coefficients, the power-2 limb darkening law <ref type="bibr" target="#b3">(Hestroffer 1997</ref>) has been recommended by <ref type="bibr" target="#b14">Morello et al. (2017)</ref> as they find that it outperforms other two-coefficient laws adopted in the exoplanet literature in most cases, particularly for cool stars. The form of this limb darkening law is</p><formula xml:id="formula_1">I λ (µ) = 1 − c (1 − µ α ) .</formula><p>Using an exponent of µ rather than a coefficient of some power of µ enables this two-parameter law to match accurately the shape of the limb darkening profile towards the limb of the star using only one extra parameter cf. a linear limb-darkening law. The power-2 law has been implemented in the ellc binary star model <ref type="bibr" target="#b12">(Maxted 2016)</ref> and the batman transit model <ref type="bibr" target="#b9">(Kreidberg 2015)</ref>. For both models, the transit light curve is calculated using numerical integration. The time required to perform the numerical integration is not generally a concern if one is analysing individual targets, but can be a limiting factor if the aim is to detect and analyse transits in large numbers of high precision light curves from surveys such as <ref type="bibr">Kepler (Twicken et al. 2016</ref>), K2 ( <ref type="bibr" target="#b5">Howell et al. 2014</ref>) or TESS ( <ref type="bibr" target="#b19">Ricker et al. 2015</ref>). <ref type="bibr" target="#b13">Maxted (2018)</ref> provides a tabulation of the parameters c and α for cool stars based on limb darkening profiles calculated using 3-dimensional radiative hydrodynmical models. These limb darkening profiles were tested against the limb darkening properties of stars measured from Kepler light curves of transiting exoplanets. The agreement between the computed and observed limb-darkening parameters was very good for inactive solar-type stars.</p><p>Here we present the qpower2 algorithm for calculating light curves of transiting exoplanets and related systems for which the star and planet can be approximated by spheres and the intensity profile on the star is described by the power-2 limb darkening law. The algorithm is extremely fast and accurate enough to model light curves from space-based instruments for systems with a radius ratio up to p ≈ 0.2. The algorithm can be applied equally to brown dwarf or low-mass stellar companions to normal stars in eclipsing binary systems. The deriviation of the algorithm is outlined in section 2. In section 3 we investigate the accuracy of the parameters recovered by least-squares fitting of transit light curves using the qpower2 algorithm and compare its performance to the quadratic limb-darkening law. In section 4 we make some comments regarding the use of the algorithm and execution speed in various implementations. Our conclusions are given in section 5.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Derivation of the qpower2 algorithm</head><p>The problem to be solved is to calculate the flux measured by a distant observer from a spherical star of radius r eclipsed by an opaque spherical body ("planet") of radius r p r . We set r = 1 for the following derivation. The star-planet radius ratio is p = r p /r . For this derivation we assume that the smaller companion emits no flux.</p><p>The specific intensity on the stellar disk in some passband λ is described by the power-2 law,</p><formula xml:id="formula_2">I λ (µ) = I 0 1 − c (1 − µ α )<label>(1)</label></formula><p>where µ = √ 1 − r 2 is the cosine of the angle between the line of sight and the normal to the stellar surface, and r is the distance on the sky from the centre of the star, so the limb of the star is at r = 1. The normalizing constant I 0 is introduced so that the total flux from the unocculted star is 1, i.e.</p><formula xml:id="formula_3">1 0 I λ (r) 2π r dr = 1,<label>(2)</label></formula><p>where I λ (r) = I 0 1 − c + c 1 − r 2 γ and we have defined γ = α/2 for convenience. From this definition we obtain</p><formula xml:id="formula_4">I 0 = α + 2 π [(1 − c)α + 2] .<label>(3)</label></formula><p>To calculate the light curve we need to evaluate the integral</p><formula xml:id="formula_5">F(p, z) = 1 − S I λ (r) dA,<label>(4)</label></formula><p>where the area to be integrated over, S , is the part of the star obscured by the planet. In general, evaluating this integral requires use of hypergeometric functions, which is computational expensive. Instead, we derive an approximation to this integral by replacing I λ (r) by a truncated Taylor series -</p><formula xml:id="formula_6">I λ (r) ≈ I λ (r 0 ) + (r − r 0 )I λ (r 0 ) + 1 /2(r − r 0 ) 2 I λ (r 0 ),<label>(5)</label></formula><p>where primed symbols denote derivatives with respect to r. The coordinate system used for the following derivation is defined such that the centre of the planet is at the position (x, y) = (z, 0). For the case with z &lt; 1 − p the disk of the planet lies competely within the disc of the star, as illustrated in <ref type="figure">Fig. 1</ref>. For these phases we use r 0 = z as the reference point for the Taylor series expansion. We also use a Taylor series expansion for (1 − r 2 ) = (1 − x 2 − y 2 ) around the value y = 0 to obtain the following approximation -</p><formula xml:id="formula_7">F(p, z) ≈ 1 − 2I 0 z+p z−p 1 − c + c 1 − x 2 γ √ dx + 1 /3I 0 α c z+p z−p 1 − x 2 γ−1 3 /2 dx,<label>(6)</label></formula><formula xml:id="formula_8">where = p 2 − (z − x) 2 . Approximating (1 − x 2 ) by (1 − z 2 )</formula><p>in the second integral and expanding the term in square brackets in the first integral with a Taylor series around z, we obtain</p><formula xml:id="formula_9">F(p, z) ≈ 1 − I 0 π p 2 c 0 + 1 /4p 2 c 2 − 1 /8α c p 2 s γ−1 ,<label>(7)</label></formula><p>where</p><formula xml:id="formula_10">c 0 = 1 − c + c s γ ,<label>(8)</label></formula><formula xml:id="formula_11">c 2 = 1 /2α c s γ−2 (α − 1)z 2 − 1 ,<label>(9)</label></formula><p>and s = 1 − z 2 . Using c 0 only from the term in square brackets in equation <ref type="formula" target="#formula_9">(7)</ref> is equivalent to using the "small planet approximation" described by <ref type="bibr" target="#b11">Mandel &amp; Agol (2002)</ref>. A similar approach can be taken for ingress and egress phases of the light curve where 1 − p &lt; z &lt; 1 + p. In these cases the integral is evaluated in two regions separated by the chord defined by the intersections between the two limbs. This chord is at a distance d = z 2 − p 2 + 1 /2z from the origin. Care must be taken in choosing the reference point r 0 in the Taylor expansion because I λ (r) → ∞ for r → 1. To avoid this problem and to ensure continuity with the light curve at other phases we choose r 0 = r a = (z − p + d)/2 to evaulate the integral over the region between the chord and the limb of the planet, and r 0 = r b = (1+d)/2 for the region between the chord and the limb of the star. These are the midpoints on the perpendicular bisector of the chord between the chord and the limb of the star/planet, as illustrated in <ref type="figure">Fig. 2</ref>. The region between the chord and the limb of the star is always small for cases where p 1 so we only use the first two terms in the Taylor expansion in this region.</p><p>For convenience we define s a = 1 − r 2 a , s b = 1 − r 2 b , and also q = (z − d)/p and w = p 2 − (d − z) 2 before proceeding as before. We then find that the light curve at these phases can be approximated by</p><formula xml:id="formula_12">F(z, p) = 1 − I 0 (J 1 − J 2 + K 1 − K 2 )<label>(10)</label></formula><p>where</p><formula xml:id="formula_13">J 1 = a 0 (d − z) − 2 /3a 1 w 2 + 1 /4b 2 (d − z) 2(d − z) 2 − p 2 w + a 0 p 2 + 1 /4b 2 p 4 cos −1 (q)<label>(11)</label></formula><formula xml:id="formula_14">J 2 = α c s γ−1 a p 4 1 /8 cos −1 (q) + 1 /12 q (q 2 − 5 /2) 1 − q 2 ,<label>(12)</label></formula><formula xml:id="formula_15">K 1 = (d 0 − r b d 1 ) cos −1 (d) + [r b d + 2 /3 (1 − d 2 )] d 1 − d d 0 √ 1 − d 2<label>(13)</label></formula><formula xml:id="formula_16">K 2 = 1 /3 c α s γ+ 1 /2 b (1 − d)<label>(14)</label></formula><p>The coefficients in these expressions arising from the Taylor expansion of I λ (z) are</p><formula xml:id="formula_17">b 0 = 1 − c + c s γ a ,<label>(15)</label></formula><formula xml:id="formula_18">b 1 = −α c r a s γ−1 a ,<label>(16)</label></formula><formula xml:id="formula_19">b 2 = 1 /2α c s γ−2 a (α − 1)r 2 a − 1 ,<label>(17)</label></formula><formula xml:id="formula_20">d 0 = 1 − c + c s γ b ,<label>(18)</label></formula><p>and</p><formula xml:id="formula_21">d 1 = −α c r b s γ−1 b .<label>(19)</label></formula><p>These are then grouped according to their common factors to form the factors</p><formula xml:id="formula_22">a 0 = b 0 + b 1 (z − r a ) + b 2 (z − r a ) 2<label>(20)</label></formula><p>and</p><formula xml:id="formula_23">a 1 = c 1 + 2c 2 (z − r a ).<label>(21)</label></formula><p>An implementation of this algorithm in python is given in the appendix. The calculations in this paper were done using an equivalent implementation of the qpower2 algorithm that is included in the python module pycheops 1 that is currently under development to facilitate analysis of data from the CHEOPS mission ( <ref type="bibr" target="#b0">Cessa et al. 2017</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Performance tests</head><p>In this section we report results of our tests to assess the accuracy of the qpower2 algorithm. All these tests have been done with light curves calculated for the CHEOPS passband. The results for the Kepler and TESS passbands are very similar. The light curves were simulated using the ellc binary star model assuming that both the star and planet are spherical and using the "very_fine" numerical integration option so that numerical noise is no more than a few ppm. The stellar radius has very little effect on the shape of the transit light curve so we fix this parameters at a value r /a = 0.1 for all these simulations. The lightcurve is simulated for a planet on a circular orbit at 1001 points evenly distributed over a phase range covering the transit plus 5% of the transit width before and after the first and last contact points, respectively.</p><p>The limb darkening profile for the star is taken from the tabulated values provided at 10 values of µ calculated by <ref type="bibr" target="#b10">Magic et al. (2015)</ref> using the STAGGER-grid 3D stellar atmosphere models. The limb darkening profile is interpolated to the desired values of T eff , log g and [Fe/H], and then interpolated onto a regular grid of 101 µ values using a monotonic piecewise cubic Hermite interpolating polynomial. <ref type="bibr">2</ref> We used the values log g = 4.5 and [Fe/H] = 0 for all the tests presented here.</p><p>For the optimisation of the least-squares fits we used the Nelder-Mead simplex algorithm as implemented in the minimize function of the python package scipy.optimize. We found that this algorithm converged on the correct solution more reliably than the other algorithms available in this function.</p><p>An example of a simulated light curve is shown in p = r p /r = 0.1. This value of p is typical for gas giant planets in short-period orbits around solar-type stars ("hot Jupiters"). Also shown in this figure is the light curve calculated using the power-2 limb-darkening law calculated with ellc using values of c and α from (Maxted 2018). From this figure it can be seen that the qpower2 algorithm reproduces light curves for the power-2 limbdarkening law accurate to better than 0.008% for these parameters.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Accuracy compared to other algorithms</head><p>We compared the performance of the qpower2 algorithm to numerical integration of the power-2 limb-darkening law with ellc and the algorithm for quadratic limb darkening by <ref type="bibr">Man- del &amp; Agol (2002)</ref>. The results are shown as a function of p in <ref type="figure">Fig. 4</ref> for a star with T eff = 6000 K. The results from the power-2 light curve fits are extremely accurate across the whole range of p for all three values of the impact parameter used here (b = 0.3, 0.6, 0.9). Note that we used the "sparse" numerical integration grid option in ellc to calculate these results. Better accuracy, if needed, can be achieved using a finer numerical integration grid but at the expense of increased computation time.</p><p>The sharp decrease in the accuracy of the recovered values of r p and r at p = 0.2 for b = 0.9 is a result of the eclipse being grazing for this configuration. The light curve for a grazing eclipse contains very little information about the geometry of the system so there are large degeneracies in the least-squares fits and the results are very sensitive to numerical noise. The eclipse is also very shallow and lacks the characteristic shape of an eclipse due to a planetary transit that is typically used to identify these systems in photometric surveys so we ignore grazing eclipses for the remainder of this discussion.</p><p>The radii and radius ratio determined with the quadratic limb-darkening law are accurate to approximately 0.5% over the same range of p and b. The performance of this algorithm in terms of the recovered values of r p and r is worst for small values of p, while the recovered value of p is accurate to better than 0.5% for all values of p for impact parameters b = 0.3 and b = 0.6. We have not investigated these trends in detail but strongly suspect that they are due to the poor match between the quadratic limb-darkening law and the realistic limb darkening profiles for solar-type stars from the STAGGER-grid at small values of µ, i.e. towards the limb of the star.</p><p>The performance of the qpower2 algorithm overall is very similar to the quadratic limb-darkening algorithm, i.e., the results are accurate to better than approximately 0.5% for transits with p &lt; 0.2. One clear difference is that the qpower2 algorithm performs better than quadratic limb-darkening law for p &lt; ∼ 0.06. For b = 0.3 and b = 0.6 there is a small bias in the recovered values that varies slowly with p. This suggests that it should be possible to correct for this bias in the analysis of high-quality light curves using simulations similar to those presented here. The best fit from the least-squares fit using the qpower2 algorithm can also be used as an accurate starting point for further least-squares fits using numerical integration of the power-2 limb darkening law with ellc or batman.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">Accuracy as a function of effective temperature</head><p>The results as a function of stellar effective temperature, T eff , for the qpower2 algorithm with p = 0.1 are shown in <ref type="figure" target="#fig_3">Fig. 5</ref>. The range T eff = 4500 K to 7000 K is set by the range of stellar effective temperature available from the STAGGER-grid for log g = 4.5. The accuracy of the recovered parameter values is quite consistent across the full range of T eff and is, in general, better than 0.5%.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Implementation notes and timing tests</head><p>In this section we make some comments regarding the implementation of the algorithm and present the results of some tests we have conducted to assess the speed of the qpower2 algorithm.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">Python implementation</head><p>The python implementation of the qpower2 algorithm shown in <ref type="figure">Fig. A.1</ref> uses the function select to assign the output of either function q1 or q2 to the output array depending on whether z ≤ p or |z − 1| &lt; p. This requires that these functions are valid for any input value of z. We have used the clip function to restrict the value of z and so avoid invalid calculations inside these functions. Similarly, the function finfo(0.0).eps is used to generate a small floating-point number (typically 2 −52 ) to avoid errors due to an attempt to raise 0 to a negative power. Alternative methods for applying the conditions z ≤ p and |z − 1| &lt; p can avoid some of these complications and may be faster in some cases since fewer calls to q1 and q2 will be required. For clarity, we have not included good programming practices such as error and warning message generation, checks for invalid input parameters, in-line documentation or comments in this code fragment. The implementation of qpower2 in the current development version of pycheops (0.0.13) uses a loop to pass once through the input values of z with an if ...then ...else if ... logical structure to apply the conditions z ≤ p and |z − 1| &lt; p. This structure is well suited to "just-in-time" compilation and optimisation using the package numba. <ref type="bibr">3</ref> We found this to be an effective and easy way to dramatically improve the speed of the calculation, as described below.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.">Comparison with other algorithms</head><p>We tested the speed of various algorithms to calculate the transit light curve of a system with p = 0.1, r = 0.1 and b = 0. For all <ref type="table">Table 1</ref>. The execution time per light curve for simulations containing either 1000 data points (Data set A) or 3840 data points (Data set B) for the transit of a star by a planet with p ≈ 0.1. The notes for batman give the value of the max_err option that is used to set the number of integration steps such that the maximum error due to numerical noise does not exceed the value given in ppm.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Algorithm</head><p>Limb darkening Processor Execution Notes time [µs] Data set A qpower2, pycheops power-2 2 GHz CPU 113 Optimised using numba qpower2, pycheops power-2 2 GHz CPU 5550 No optimisation qpower2, <ref type="figure">Fig. A.1</ref> power-2 2 GHz CPU 570 batman quadratic 2 GHz CPU 169 batman power-2 2 GHz CPU 2380 maxerr=1 (default) batman power-2 2 GHz CPU 247 maxerr=70 Data set B qpower2, C/OpenMP power-2 4.8 GHz CPU 357 qpower2, C/OpenMP power-2 4.8 GHz CPU ×8 112 qpower2, C/OpenMP power-2 GTX1080 GPU 13.2 Return array of models qpower2, C/OpenMP power-2 GTX1080 GPU 2.5 Return log L values only the algorithms tested we simulated a light curve with 1000 observations uniformly sampled over one transit plus 5% in phase before and after the start and end of the transit. The algorithms tested were: the qpower2 implementation from pycheops with and without optimisation using numba; the qpower2 implementation from <ref type="figure">Fig. A.1</ref>; batman using quadratic limb darkening; batman using power-2 limbdarkening. Quadratic limb darkening in batman uses a variant of the algorithm by <ref type="bibr" target="#b11">Mandel &amp; Agol (2002)</ref>. The power-2 algorithm in batman uses a numerical integration scheme with the option to set the maximum numerical error in ppm. We ran simulations with the default option maxerr = 1 and also simulations with maxerr = 70 for direct comparison with the qpower2 algorithm. These tests were all performed on an Apple MacBook Pro with a 2 GHz Intel R Core i7 CPU. Timings were calculated using the %timeit function in IPython.</p><p>From the results shown in <ref type="table">Table 1</ref> for these simulations (Data set A) we see that the optimised qpower2 implementation from pycheops is the fastest of the algorithms tested and is just over twice as fast as the batman algorithm for power-2 limb-darkening with maxerr = 70, and 50% faster than batman with quadratic limb darkening.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.3.">CPU versus GPU timing tests</head><p>The qpower2 algorithm is a small piece of code than can be executed in parallel on a data set of moderate size. This makes it well-suited to acceleration by executing it on a graphical processing unit (GPU). We have experimented with this option using the CUDA R toolkit by NVIDIA R . 4 This option works particularly well if the code can be refactored to send a single array with multiple sets of parameter values to the GPU, i.e. it is much faster to loop over the calls to the qpower2 function on the GPU rather than the CPU. Another effective optimisation for Markov chain Monte Carlo routines such as emcee <ref type="bibr" target="#b2">(Foreman- Mackey et al. 2013</ref>) is to calculate the log-likelihood (log L) for each model on the GPU and to return only these values, rather than incurring the overhead of returning the simulated light curve from the GPU to the CPU. <ref type="bibr">4</ref> https://developer.nvidia.com/cuda-toolkit We used a PC running linux (Ubuntu 17.10) with eight 4.2 GHz Intel R Core i7-7700K CPUs (overclocked to 4.8 GHz) and a GeForce GTX 1080 GPU to compare the execution speed of the qpower2 algorithm running on CPUs and GPUs. The parameters used for these simulations were the similar to those for the comparison between algorithms in the previous section except that we used 3840 points per eclipse. We used an implementation of the qpower2 algorithm written in C using OpenMP 5 for parallelization. The results are shown in <ref type="table">Table 1</ref> (Data set B).</p><p>From <ref type="table">Table 1</ref> we see that the speed-up using this option does not scale with the number of CPUs used. This is a consequence of the overheads in the parallelization. Nevertheless, with 8 CPUs it is possible to increase the speed of an MCMC analysis by more than a factor of 3. However, gains in speed of an order of magnitude are possible by using a GPU to calculate the light curves, and an additional speed-up by more than a factor of ×5 is possible if the MCMC code can refactored so that the log-likelihood (log L) calculation is performed on the GPU, rather than returning the computed light curve to the CPU. With these optimisations it is possible to calculate up to 1 million log L values per second on a GPU for a transit light curve with 1000 data points.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Conclusion</head><p>The qpower2 algorithm is straightforward to implement, very fast and sufficiently accurate to model the light curves of transiting exoplanet systems and related objects from instruments such as Kepler, TESS, CHEOPS and PLATO ( <ref type="bibr" target="#b18">Rauer et al. 2014</ref>). For a typical hot Jupiter system, the log-likelihood for a transit light curve of 1000 observations can be computed for a model light curve accurate to 100 ppm in approximately 1µs on a GPU. This makes this algorithm an attractive choice for en masse analysis of light curves from these massive photometric surveys. Article number, page 8 of 8</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Fig. 1 .Fig. 2 .</head><label>12</label><figDesc>Fig. 1. Coordinate system used for our derivation illustrated for the case |z − 1| &lt; p .</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Fig. 3 .</head><label>3</label><figDesc>Fig. 3. Upper panel: light curve computed using the ellc light curve model with a limb darkening profile from the STAGGER-grid for T eff = 6000 K, log g = 4.5, [Fe/H] = 0. The parameters for this light curve are r = 0.05, p = 0.1 and b = 0. Lower panel: the difference between light curves computed with the "sparse" numerical grid option in ellc and the power-2 limb darkening law (dashed green line) or with the qpower2 algorithm (dotted cyan line) and the light curve shown in the upper panel. The power-2 and qpower2 light curves were calculated using the same parameters as in the upper panel.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Fig. 3 Fig. 4 .</head><label>34</label><figDesc>Fig. 4. Errors in selected light curve parameters from least-squares fits to light curves generated from limb darkening profiles from the STAGGERgrid, as a function of radius ratio, p, for three different algorithms. From left-to-right: ellc light curve model with the power-2 limb-darkening law; Mandel &amp; Agol algorithm for the quadratic limb-darkening law; qpower2 algorithm. Results are shown for three values of the impact parameter, as follows: b = 0.3 -solid green line, b = 0.6 -dotted blue line, b = 0.9 -dashed cyan line.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Fig. 5 .</head><label>5</label><figDesc>Fig. 5. Errors in selected light curve parameters from least-squares fits to light curves generated from limb darkening profiles from the STAGGERgrid, as a function of radius ratio, p, for qpower2 algorithm for three different values of T eff , as noted in the titles to the upper panels. Results are shown for three values of the impact parameter, as follows: b = 0.3 -solid green line, b = 0.6 -dotted blue line, b = 0.9 -dashed cyan line.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>-</head><label></label><figDesc>Fig. A.1. A python implementation of the qpower2 algorithm.</figDesc></figure>
+
+			<note place="foot" n="1"> https://pypi.python.org/pypi/pycheops/ 2 implemented in the python module scipy.interpolate as the class PchipInterpolator Article number, page 3 of 8 A&amp;A proofs: manuscript no. qpower2-arxiv</note>
+
+			<note place="foot" n="3"> https://numba.pydata.org/ Article number, page 5 of 8 A&amp;A proofs: manuscript no. qpower2-arxiv</note>
+
+			<note place="foot" n="5"> http://www.openmp.org Article number, page 6 of 8 P. F. L. Maxted and S. Gill: qpower2</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+			</div>
+
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Appendix A: Python implementation</head><p>An implementation of the qpower2 algorithm written for python version 3.6 is shown in <ref type="figure">Fig. A.1</ref>. Note that this implementation is written for clarity rather than optimised for speed.</p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Cessa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Beck</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Benz</surname></persName>
+		</author>
+		<title level="m">Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</title>
+		<imprint>
+			<date type="published" when="2017" />
+			<biblScope unit="volume">10563</biblScope>
+			<biblScope unit="page">105631</biblScope>
+		</imprint>
+	</monogr>
+	<note>Society of PhotoOptical Instrumentation Engineers (SPIE) Conference Series</note>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Espinoza</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Jordán</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">457</biblScope>
+			<biblScope unit="page">3573</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Goodman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">125</biblScope>
+			<biblScope unit="page">306</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Hestroffer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">327</biblScope>
+			<biblScope unit="page">199</biblScope>
+			<date type="published" when="1997" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">D</forename><surname>Howarth</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">418</biblScope>
+			<biblScope unit="page">1165</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">B</forename><surname>Howell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Sobeck</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Haas</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">126</biblScope>
+			<biblScope unit="page">398</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Kipping</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Bakos</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">730</biblScope>
+			<biblScope unit="page">50</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Kipping</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">435</biblScope>
+			<biblScope unit="page">2152</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<monogr>
+		<title level="m" type="main">Harvard College Observatory Circular</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Kopal</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1950" />
+			<biblScope unit="volume">454</biblScope>
+			<biblScope unit="page">1</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Kreidberg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">127</biblScope>
+			<biblScope unit="page">1161</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Magic</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Chiavassa</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Collet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Asplund</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">573</biblScope>
+			<biblScope unit="page">90</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Mandel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">580</biblScope>
+			<biblScope unit="page">171</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">F L</forename><surname>Maxted</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">591</biblScope>
+			<biblScope unit="page">111</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">F L</forename><surname>Maxted</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">616</biblScope>
+			<biblScope unit="page">39</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Morello</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Tsiaras</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">D</forename><surname>Howarth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Homeier</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">154</biblScope>
+			<biblScope unit="page">111</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">M</forename><surname>Müller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">F</forename><surname>Huber</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Czesla</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">U</forename><surname>Wolter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">H M M</forename><surname>Schmitt</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">560</biblScope>
+			<biblScope unit="page">112</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">R</forename><surname>Neilson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Mcneil</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Ignace</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Lester</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">845</biblScope>
+			<biblScope unit="page">65</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Pál</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">390</biblScope>
+			<biblScope unit="page">281</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Rauer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Catala</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Aerts</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Experimental Astronomy</title>
+		<imprint>
+			<biblScope unit="volume">38</biblScope>
+			<biblScope unit="page">249</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">R</forename><surname>Ricker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">N</forename><surname>Winn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Vanderspek</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Astronomical Telescopes, Instruments, and Systems</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page">14003</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">K</forename><surname>Sing</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vidal-Madjar</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-M</forename><surname>Désert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Lecavelier Des Etangs</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Ballester</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">686</biblScope>
+			<biblScope unit="page">658</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Twicken</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Jenkins</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">E</forename><surname>Seader</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">152</biblScope>
+			<biblScope unit="page">158</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

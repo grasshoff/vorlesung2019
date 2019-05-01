@@ -1,0 +1,488 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2019-01-22T13:31+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Reference-less algorithm for circumstellar disks imaging</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Benoˆıt</forename><surname>Benoˆıt Pairet</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">ICTEAM/ELEN</orgName>
+								<orgName type="institution" key="instit1">ISPGroup</orgName>
+								<orgName type="institution" key="instit2">UCLouvain</orgName>
+								<address>
+									<country key="BE">Belgium</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Faustine</forename><surname>Cantalloube</surname></persName>
+							<affiliation key="aff1">
+								<orgName type="department">Max Planck Institute for Astronomy</orgName>
+								<address>
+									<country key="DE">Germany</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Laurent</forename><surname>Jacques</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">ICTEAM/ELEN</orgName>
+								<orgName type="institution" key="instit1">ISPGroup</orgName>
+								<orgName type="institution" key="instit2">UCLouvain</orgName>
+								<address>
+									<country key="BE">Belgium</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Reference-less algorithm for circumstellar disks imaging</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<abstract>
+				<p>Circumstellar disks play a key role in the understanding of stellar systems. Direct imaging of such extended structures is a challenging task. Current post-processing techniques, first tailored for ex-oplanets imaging, tend to produce deformed images of the circumstellar disks, hindering our capability to study their shape and photometry in details. We address here the reasons of this shortcoming and propose an algorithm that produces more faithful images of disks taken with ground-based telescopes. We also show that our algorithm is a good candidate for exo-planets imaging. We then explain how our approach can be extended in the form of a regularized inverse problem.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Imaging stellar systems requires high contrast and high resolution to resolve the faint objects close to the much brighter hosting star. Ground based telescopes offer the highest resolution but suffer from atmospheric turbulence. Adaptive optics is used to correct the wavefront, thus allowing the use of a coronagraph which hides most of the starlight to unveil faint surrounding structures. Even with state-of-the-art hardware, there are remaining quasistatics aberrations forming speckles in the image, which prevent detection of faint signals. Specific observation methods are used to increase data diversity to disentangle the on-sky signals from the speckles. Angular differential imaging (ADI) is a popular observation method <ref type="bibr" target="#b4">[5]</ref> where multiple snapshots of the star are taken through a night of observation in a way such that the speckles remain quasistatic while on-sky signals follow a deterministic circular trajectory, determined by the parallactic angles. Dedicated processing is then required to process ADI datasets. Among them, Principal components analysis (PCA) is a popular method <ref type="bibr" target="#b0">[1,</ref><ref type="bibr" target="#b10">11]</ref>. The reduction procedure, i.e., the processing pipeline, goes as follows, (i) the n × n × t spatiotemporal data cube is reshaped into a R T ×n 2 matrix Y , (ii) we compute its low rank approximation, L through an SVD, (iii) L is subtracted from the data to form S = Y − L containing the on-sky signals, and (iv) the frames of S are aligned to a common direction for the on-sky signal and temporally averaged to form the processed frame, we denote this last step as Red(S). A detection is then usually performed either directly on the processed frame <ref type="bibr" target="#b5">[6]</ref> or using the volume S <ref type="bibr" target="#b8">[9]</ref>. Throughout this paper, we write the best r rank approximation of a matrix X as H SVD r (X). Although ADI-based methods proved to be a powerful tool for exoplanets detection, observing circumstellar disks * BP and LJ are funded by the Belgian F.R.S.-FNRS. Part of this study is funded by the project AlterSense (MIS-FNRS) remains an uneasy task as the shape of the disks is not known and can be quite irregular with smooth edges. The morphology of the disks is known to be severely impacted by the reduction procedure, hindering our capability to study the structure of the disks from ADI datasets. Very few attempts of tackling the problem of the disk deformation induced by the processing on ADI datasets have been made so far. We mention <ref type="bibr" target="#b6">[7]</ref>, in which the authors used a forward modeling of disks that they inject on the dataset to estimate the deformation induced by PCA. Another promising approach is found in <ref type="bibr" target="#b9">[10]</ref> where the authors impose positivity on the processed frame by means of non-negative matrix factorization.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Our approach</head><p>In this short paper, we investigate the reasons behind the failure of PCA and provide an algorithm to overcome this shortcoming. First we illustrate the deformation induced by PCA on bright disks taken with the SPHERE highcontrast instrument <ref type="bibr" target="#b1">[2]</ref> installed at the Very Large Telescope in Chile. The first is the ellipsoidal disk surrounding HR 4796A <ref type="bibr" target="#b7">[8]</ref>. The second is the sprial disk surrounding SAO 206462 <ref type="bibr" target="#b3">[4]</ref>. <ref type="figure" target="#fig_0">Fig. 1</ref> shows the images of these disks obtained with PCA (top and middle, left). The disk around HR 4796A is supposed to have an ellipsoidal shape, but here we see negative (in dark) rotated copies of the disk on both sides of it. For SAO 206462, polarized images show its actual form (see <ref type="bibr" target="#b2">[3]</ref>), we also see negative artifacts surrounding the signal of the disk which is distorted by the PCA process. The processing relies on the SVD where Y = U ΣV . In our setting, the matrix V ∈ R T ×n 2 is a list of T n × n images (each images being reshaped into a vector in R n 2 , by a slight abuse of notation, we call them images throughout this paper), Σ is a list of weight attributed to each image, and the time variation is encoded in U where different weights are assigned to each image of V through the temporal evolution.</p><p>By analyzing the images encoded in V , we see that the way the disk is encoded in these images causes the deformation in the PCA processed frame. This is emphasized when building S as the polar decomposition of Y , i.e., as S = U V , where we see the same kind of deformations without any "self-absorption".</p><p>Because the disk rotates, it has to be present in the images sequence at different positions. Unfortunately, the reference images V do not encode the temporal evolution. Hence the disk must be represented in V with positive and negative rotated copies whose linear combinations explain the temporal evolution of the disk. The left image of <ref type="figure" target="#fig_1">Fig. 2</ref> shows the 6 th image of V , where we can see this effect clearly.</p><p>The proposed algorithm iteratively subtracts the best estimate of the disk from the data so its impact onto the images of V decreases. To motivate this, we show that using an estimate from a PCA-processed frame significantly reduces the impact of the disk on V . We compute the processed frame with L = H SVD 1 (Y ) and keep only the positive parts of it and denote it d. We then inject it in a t × n × n cube and rotate the frames according to the parallactic angles, we denote this operation by D = Θ(d). <ref type="figure" target="#fig_1">Fig. 2 (right)</ref> displays an image of V obtained by the SVD of Y − D. We can see that in this case the disk structure does not appear as clearly as on <ref type="figure" target="#fig_1">Fig. 2 (left)</ref>.</p><p>Then the algorithm iterates with r = 1, . . . , p and we compute S (r) = Y − H SVD r (Y − Θ(Red(S (r−1) )). This is motivated by the idea that if a better approximation of the disk is removed from Y , its impact on V further decreases. In return if the disk has a lower impact on V , we expect to get a better approximation of the disk.</p><p>The rest of the algorithm follows the classical ADI reduction, S (p) is aligned and collapsed to form the processed frame f . The full algorithm is summarized in Alg. 1. <ref type="figure" target="#fig_0">Fig. 1 (top and middle, right)</ref> diplays the results of this algorithm applied to the two datasets shown earlier. For SAO 206462, comparing with results displayed on <ref type="figure" target="#fig_0">Figure 1</ref> of <ref type="bibr" target="#b2">[3]</ref>, one can see that the proposed algorithm produced a well-rendered shape. To further demonstrate the capability of our algorithm to preserve shapes, we applied it to exoplanets imaging, on the SPHERE data of HR 8799. For exoplanets, we know that the shape of the planets is similar to an Airy disk. We display the PCA-processed frame on <ref type="figure" target="#fig_0">Fig. 1 (bottom left)</ref>. We observe the typical PCA-induced shape, the planet is surrounded by two negative regions. The results of our approach is displayed on <ref type="figure" target="#fig_0">Fig. 1 (bottom right)</ref>. By a carful inspection, we can see that the Airy-disk like shape is rendered by our method, hence indicating that it is indeed shape preserving.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Conclusion</head><p>Alg. 1 shows promising results for both disks and exoplanets imaging. This algorithm is similar to a greedy version of a regularized inverse problem. It would then probably benefit from being formulated as a convex optimization program and solved exactly. To do so, we need to impose a low rank structure for L, using the nuclear norm and "rotating 1-rank" structure for S. This could be done using the Radon domain where an image rotation corresponds to a shift. This way, the temporal evolution of S, i.e., the rotation of the same frame, is encoded as a convolution with circular boundary conditions. We observed that the Radon transform preserves the low rank structure of L. Hence the algorithm could be fully described in the Radon domain. This more rigorous approach is left as a future work.</p><p>We also showed that Alg. 1 can be used for exoplanets detection. In the processed frame the shape of the exoplanets is recovered. This provides the opportunity to further disentangle the exoplanet signal from residual noise by means of a deconvolution. This is left as future work.</p><p>Acknowledgements: The authors thank Julien Milli and Anne-Lise Maire for kindly providing the SPHERE datasets used in this study. </p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Processed frames using PCA (left) and our algorithm (right) for HR 4796A (top), SAO 206462 (middle), and HR 8799 (bottom). The colorbars are arbitrary but are consistent between left and right. Both disks are deformed in the PCA-processing. The shapes of the disks are closer to their actual shapes, obtained using polarimetric differential imaging. For HR 8799, the processed frame exhibits the typical PCA-induced deformation: two negative negative regions next to the planets. On the other hand, our algorithm yields a frame where planets have a round shape and we can even see the second ring of the Airy disk.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: Difference in the morphology of the images of V. Left, sixth image of V built from Y . Rigth, sixth image of V built from Y − D. Where D is the estimate of the disk. We can see that for the latter case, the intensity of the disk is significantly lower.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head></head><label></label><figDesc>Input: Y , m, p 2: Output: f 3: S (0) = Y − H SVD 1 (Y ) 4: for r = 1, 2, . . . , p do 5: S (r) = Y − H SVD r (Y − Θ(Red(S (r−1) ))) 6: end for 7: f = Red(S (p) )</figDesc></figure>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<monogr>
+		<title level="m" type="main">Pynpoint: an image processing package for finding exoplanets. Monthly Notices of the Royal Astronomical Society</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Adam</forename><surname>Amara</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Sascha</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Quanz</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2012" />
+			<biblScope unit="volume">427</biblScope>
+			<biblScope unit="page" from="948" to="955" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">Sphere: a planet finder instrument for the vlt</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jean-Luc</forename><surname>Beuzit</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Markus</forename><surname>Feldt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Kjetil</forename><surname>Dohlen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">David</forename><surname>Mouillet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Pascal</forename><surname>Puget</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Francois</forename><surname>Wildi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Lyu</forename><surname>Abe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Jacopo</forename><surname>Antichi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Andrea</forename><surname>Baruffolo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Pierre</forename><surname>Baudoz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Ground-based and airborne instrumentation for astronomy II</title>
+		<imprint>
+			<date type="published" when="2008" />
+			<biblScope unit="volume">7014</biblScope>
+			<biblScope unit="page">701418</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">Small vs. large dust grains in transitional disks: do different cavity sizes indicate a planet?-sao 206462 (hd 135344b) in polarized light with vlt/naco</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Antonio</forename><surname>Garufi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Sascha</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Henning</forename><surname>Quanz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Esther</forename><surname>Avenhaus</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Carsten</forename><surname>Buenzli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Farzana</forename><surname>Dominik</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Meru</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Michael</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Paola</forename><surname>Meyer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Hans</forename><forename type="middle">Martin</forename><surname>Pinilla</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Sebastian</forename><surname>Schmid</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Wolf</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astronomy &amp; Astrophysics</title>
+		<imprint>
+			<biblScope unit="volume">560</biblScope>
+			<biblScope unit="page">105</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Testing giant planet formation in the transitional disk of sao 206462 using deep vlt/sphere imaging</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A-L</forename><surname>Maire</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Tomas</forename><surname>Stolker</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Sergio</forename><surname>Messina</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">André</forename><surname>Müller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Beth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Thayne</forename><surname>Biller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Carsten</forename><surname>Currie</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Carol</forename><forename type="middle">A</forename><surname>Dominik</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Anthony</forename><surname>Grady</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Mickaël</forename><surname>Boccaletti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Bonnefoy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astronomy &amp; Astrophysics</title>
+		<imprint>
+			<biblScope unit="volume">601</biblScope>
+			<biblScope unit="page">134</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">Angular differential imaging: A powerful high-contrast imaging technique</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Christian</forename><surname>Marois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">David</forename><surname>Lafreniere</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">René</forename><surname>Doyon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Bruce</forename><surname>Macintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Daniel</forename><surname>Nadeau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">641</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">556</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Fundamental limitations of high contrast imaging set by small sample statistics</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Dimitri</forename><surname>Mawet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Julien</forename><surname>Milli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Zahed</forename><surname>Wahhaj</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Didier</forename><surname>Pelat</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Olivier</forename><surname>Absil</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Christian</forename><surname>Delacroix</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Anthony</forename><surname>Boccaletti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Markus</forename><surname>Kasper</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Matthew</forename><surname>Kenworthy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Christian</forename><surname>Marois</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">792</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page">97</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Impact of angular differential imaging on circumstellar disk images</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Milli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A-M</forename><surname>Mouillet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Lagrange</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Boccaletti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Mawet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Chauvin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Bonnefoy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astronomy &amp; Astrophysics</title>
+		<imprint>
+			<biblScope unit="volume">545</biblScope>
+			<biblScope unit="page">111</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">Near-infrared scattered light properties of the hr 4796 a dust ring-a measured scattering phase function from 13.6 to 166</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Julien</forename><surname>Milli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Arthur</forename><surname>Vigan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">David</forename><surname>Mouillet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A-M</forename><surname>Lagrange</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J-C</forename><surname>Augereau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Christophe</forename><surname>Pinte</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Dimitri</forename><surname>Mawet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Hans</forename><forename type="middle">Martin</forename><surname>Schmid</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Anthony</forename><surname>Boccaletti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Luca</forename><surname>Matrà</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astronomy &amp; Astrophysics</title>
+		<imprint>
+			<biblScope unit="volume">6</biblScope>
+			<biblScope unit="page">108</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title level="a" type="main">Stim map: detection map for exoplanets imaging beyond asymptotic gaussian residual speckle noise</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Benoˆıtbenoˆıt</forename><surname>Pairet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Faustine</forename><surname>Cantalloube</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Carlos</forename><forename type="middle">A Gomez</forename><surname>Gonzalez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Olivier</forename><surname>Absil</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Laurent</forename><surname>Jacques</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1810.06895</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Monthly Notices of the Royal Astronomical Society</title>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+<note type="report_type">arXiv preprint</note>
+	<note>Subtmitted in</note>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Non-negative matrix factorization: Robust extraction of extended structures</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Laurent</forename><surname>Bin Ren</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Guangtun</forename><forename type="middle">Ben</forename><surname>Pueyo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">John</forename><surname>Zhu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Gaspard</forename><surname>Debes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Duchêne</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">852</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page">104</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">Detection and characterization of exoplanets and disks using projections on karhunenlò eve eigenimages</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Rémi</forename><surname>Soummer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Laurent</forename><surname>Pueyo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">James</forename><surname>Larkin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal Letters</title>
+		<imprint>
+			<biblScope unit="volume">755</biblScope>
+			<biblScope unit="issue">2</biblScope>
+			<biblScope unit="page">28</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

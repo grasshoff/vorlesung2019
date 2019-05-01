@@ -1,0 +1,679 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2019-01-22T13:40+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">EXOCARTOGRAPHER: A BAYESIAN FRAMEWORK FOR MAPPING EXOPLANETS IN REFLECTED LIGHT</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2018-02-21">February 21, 2018 February 21, 2018</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Ben</forename><surname>Farr</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Will</forename><forename type="middle">M</forename><surname>Farr</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Nicolas</forename><forename type="middle">B</forename><surname>Cowan</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Hal</forename><forename type="middle">M</forename><surname>Haggard</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Tyler</forename><surname>Robinson</surname></persName>
+						</author>
+						<title level="a" type="main">EXOCARTOGRAPHER: A BAYESIAN FRAMEWORK FOR MAPPING EXOPLANETS IN REFLECTED LIGHT</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2018-02-21">February 21, 2018 February 21, 2018</date>
+						</imprint>
+					</monogr>
+					<note>Draft version Preprint typeset using L A T E X style emulateapj v. 12/16/11 Draft version</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<abstract>
+				<p>Future space telescopes will directly image extrasolar planets at visible wavelengths. Time-resolved reflected light from an exoplanet encodes information about atmospheric and surface inhomogeneities. Previous research has shown that the light curve of an exoplanet can be inverted to obtain a low-resolution map of the planet, as well as constraints on its spin orientation. Estimating the uncertainty on 2D albedo maps has so far remained elusive. Here we present exocartographer, a flexible open-source Bayesian framework for solving the exo-cartography inverse problem. The map is parameter-ized with equal-area HEALPix pixels. For a fiducial map resolution of 192 pixels, a four-parameter Gaussian process describing the spatial scale of albedo variations, and two unknown planetary spin parameters, exocartographer explores a 198-dimensional parameter space. To test the code, we produce a light curve for a cloudless Earth in a face-on orbit with a 90 • obliquity. We produce synthetic white light observations of the planet: 5 epochs of observations throughout the planet&apos;s orbit, each consisting of 24 hourly observations with a photometric uncertainty of 1% (120 data). We retrieve an albedo map and-for the first time-its uncertainties, along with spin constraints. The albedo map is recognizably of Earth, with typical uncertainty of 30%. The retrieved characteristic length scale is 88±7 • , or 9800 km. The obliquity is recovered with a 1 − σ uncertainty of 0.8 •. Despite the uncertainty in the retrieved albedo map, we robustly identify a high albedo region (the Sahara desert) and a large low-albedo region (the Pacific Ocean).</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">INTRODUCTION</head><p>Next-generation space telescopes like HabEx and LU-VOIR promise to directly image nearby Earth twins in reflected light, allowing astronomers to measure the reflectance spectra of these planets <ref type="bibr" target="#b8">(Des Marais et al. 2002)</ref>, as well as to monitor their time-varying brightness ( <ref type="bibr" target="#b9">Ford et al. 2001</ref>). We focus on this second goal, but note that it may be impossible to properly interpret spectra without context from time-resolved observations, and vice versa.</p><p>Using only time-resolved photometry, we would like to infer a planet's spin and its albedo map (for a recent review of exoplanet mapping, see . Rotation and obliquity place strong constraints on the late stages of a planet's formation (e.g., <ref type="bibr" target="#b23">Schlichting &amp; Sari 2007)</ref>. Rotation also determines the frequency of diurnal radiative forcing and the amplitude of Coriolis forces, while obliquity determines the latitudinal distribution of insolation and the amplitude of seasons. Surface geography, on the other hand, bears witness to the geophysical/geochemical processes operating on a planet (e.g., <ref type="bibr" target="#b0">Abbot et al. 2012;</ref><ref type="bibr" target="#b1">Cowan &amp; Abbot 2014;</ref><ref type="bibr" target="#b13">Fujii et al. 2014</ref>), and-in the case of liquid water-can directly establish the habitability of a planet <ref type="bibr" target="#b20">(Robinson 2017)</ref>. Lastly, the spatial and temporal distribution of clouds is determined by global climate, orography, and large-scale circulation (e.g., <ref type="bibr" target="#b25">Showman et al. 2013</ref>).</p><p>Much progress has been made since <ref type="bibr" target="#b9">Ford et al. (2001)</ref> showed that time-resolved photometry of Earth encodes information complementary to time-averaged spectroscopy. First of all, researchers demonstrated how to use the brightness variations of a planet to estimate its rotational period <ref type="bibr" target="#b18">(Pallé et al. 2008;</ref><ref type="bibr" target="#b17">Oakley &amp; Cash 2009)</ref>. It was then shown that the rotational color variations of a planet can be used to infer the number, reflectance spectra, and longitudinal locations of major surface types ( <ref type="bibr" target="#b6">Cowan et al. 2009;</ref><ref type="bibr" target="#b2">Cowan &amp; Agol 2011;</ref><ref type="bibr" target="#b12">Fujii et al. 2010</ref><ref type="bibr" target="#b12">Fujii et al. , 2011</ref><ref type="bibr" target="#b5">Cowan &amp; Strait 2013;</ref><ref type="bibr" target="#b14">Fujii et al. 2017</ref>). Meanwhile, the rotational and orbital color variations of an unresolved planet can be analyzed to create a 2-dimensional multi-color map-equivalently a 2D map of known surfaces-and measure rotational obliquity <ref type="bibr" target="#b11">Fujii &amp; Kawahara 2012;</ref><ref type="bibr" target="#b24">Schwartz et al. 2016;</ref><ref type="bibr" target="#b15">Kawahara 2016)</ref>.  demonstrated the retrieval of a surface albedo map and the obliquity from simulated 1-year light curves of an atmosphere-less Earth. Mapping the surface from light curves is an ill-conditioned inverse problem that is unstable to noise. To overcome it, they adopted the physical condition that the surface albedo is between 0 and 1 and recovered the rough surface features of Earth. The obliquity was measured by minimizing χ 2 or the extended information criterion, along with its uncertainty by bootstrap resampling.  and <ref type="bibr" target="#b11">Fujii &amp; Kawahara (2012)</ref> applied the concept of 2D mapping to simulated light curves of a realistic cloudy Earth, with an updated inver-sion technique. In these studies they employed Tikhonov regularization for the albedo map instead of the bounding condition. This method discards the components associated with small singular values of the design matrix and is equivalent to adopting a Gaussian prior in a Bayesian framework. Their recovered 2D surface maps at different photometric bands exhibit features consistent with the actual maps of cloud/snow cover, continents, and vegetation. However, evaluating the uncertainty of the recovered map and obliquity was left aside.</p><p>In this paper, we improve on the work of  in three important ways: 1) We base our map on only five epochs of 1 day each, rather than a year's worth of exposures, 2) we fit for the characteristic length scale of albedo markings on the planet, rather than adopting an a priori spatial scale, and 3) we quantify the uncertainty on the albedo map.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">exocartographer</head><p>exocartographer is a fully Bayesian framework for retrieving the albedo map and spin geometry of a planet based on time-resolved photometry. The Python code is open-source and available at https://github.com/ bfarr/exocartographer.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">The Forward and Inverse Problems</head><p>We cannot hope to extract the same detailed information from the light curves as went into them. We will instead use a relatively simple surface integral that captures the essential physics governing the light curves. Following , we describe the timeresolved reflectance of the planet as:</p><formula xml:id="formula_0">R(t) = A(θ, φ)K(θ, φ, S, t) sin θdθdφ,<label>(1)</label></formula><p>where A(θ, φ) is the 2D albedo map of the planet, which we assume to be fixed, K(θ, φ, S, t) is the convolution kernel, θ is co-latitude, φ is longitude, and S represents planetary spin parameters that are not known a priori, namely obliquity and its orientation with respect to the observer. Computing R(t) given everything on the right hand side of <ref type="formula" target="#formula_0">(1)</ref> is the forward problem. The inverse problem is to determine A(θ, φ) and S, given R(t), the photometric uncertainty σ, and a parametrization of K. In practice, this entails repeatedly solving the forward problem with varying parameters to see which ones best match the data in hand. In order for this to be computationally feasible, one must make simplifying assumptions: the model used for retrieving the albedo map and planetary spin is essentially a toy model, albeit one that captures the first-order physics. We adopt the kernel for diffuse reflection from </p><formula xml:id="formula_1">: K = 1 π V (θ, φ, t)I(θ, φ, t)</formula><p>, where V and I denote the visibility and illumination functions. All of the time-dependence -and the dependence on planetary spin-enter the forward problem through the visibility and illumination. They can be expressed compactly in terms of the angles between the local normal and the vector pointing towards the observer and the star: V = max(cos γ o , 0) and I = max(cos γ * , 0), where γ o and γ * are the observer and stellar zenith angles, both of which are a function of time and location on the planet.</p><p>The visibility and illumination functions are more usefully expressed in terms of latitude and longitude of the sub-observer and sub-stellar positions:</p><formula xml:id="formula_2">V = max sθsθ o (cφcφ o + sφsφ o ) + cθcθ o 0 (2) I = max sθsθ s (cφcφ s + sφsφ s ) + cθcθ s 0 (3)</formula><p>where we have used s and c to denote sine and cosine, and the o and s subscripts denote the sub-observer and substellar location, which are functions of time. The computational crux of the forward problem is thus to quickly compute the sines and cosines of these time varying angles as a function of the orbital and spin parameters (e.g., Appendix A of <ref type="bibr" target="#b24">Schwartz et al. 2016</ref>).</p><p>2.2. Basis Maps In order to make the inverse problem tractable, we need to adopt a parametrization for the albedo map, A(θ, φ). As discussed in , there are two complementary classes of basis maps one can adopt: pixels and spherical harmonics. For the current application it is necessary to switch back and forth between these two representations to take advantage of both of their strengths.</p><p>Spherical harmonics are an orthonormal basis, and complete for any continuous map on a sphere. This means that the coefficients we derive for an expansion up to, say l = 3 should remain unchanged if we extend the expansion to higher l. (In practice this is only strictly true if one is decomposing a map rather than a light curve, but it is roughly true for light curves, too: adding higher-order spherical harmonics should only produce small changes in the lower-order coefficients). Moreover, the spherical harmonic basis set exhibits a null-space: certain maps have no light curve signature. By using spherical harmonic basis functions, we can trivially quantify the extent to which our Gaussian Process prior constrains otherwise unconstrained coefficients. The spherical harmonic representation is convenient for mapping because it enables coherent jumps in large regions of the planet, and enables a straightforward application of regularization, as described below.</p><p>Pixels are also an orthonormal basis. They have a more intuitive nullspace (e.g., latitudes more than π/2 away from the sub-observer latitude are simply unobservable and hence in the nullspace). The pixel representation is convenient because the albedo of a pixel must be between 0 and 1, which makes it easy to propose parameter jumps.</p><p>We use Hierarchical, Equal Area, and isoLatitude Pixelation (HEALPix) 8 pixels, so our map parameters are the albedo of each pixel (see <ref type="figure">Figure 1</ref> for an example). HEALPix is superior to a regular lat-lon grid because all pixels are the same area, nothing is weird at the poles, and it plays well with spherical harmonics. It takes a considerable amount of time to output the latitude and longitude of the HEALPix pixels, so we do this once ahead of time. Since the latitude and longitude only appear in Eqns 2 and 3 as trigonometric functions, we actually pre-compute {cos θ, sin θ, cos φ, sin φ}.</p><p>The base HEALPix resolution is 12 pixels. Higher resolutions are defined by N side , the number of divisions albedo <ref type="figure">Fig. 1</ref>.-The top map shows the true map used to generate the light curve, down-sampled to the resolution of our model. This is followed by the 10 th percentile, median, and 90 th percentile of the marginal posterior distributions for the albedo of each pixel. The 10 th percentile map clearly shows a reflecting region (the Sahara Desert) while the 90 th percentile clearly shows a large dark region (the Pacific Ocean). These maps therefore establish the presence of continents and oceans on the the planet, with all that implies for habitability.</p><p>along the side of a base pixel. The number of HEALpix pixels in a map is therefore N pix = 12N 2 side . We test the necessary resolution of the kernel by producing light curves with the same map, but with kernels of different resolution. We find that N side = 8 and 4 introduce pixelation error near quadrature of 10 −3 , and a few ×10 −3 , respectively. Photometry of directly imaged planets is unlikely to be better than 1% in the foreseeable future ( <ref type="bibr" target="#b6">Cowan et al. 2009;</ref><ref type="bibr" target="#b11">Fujii &amp; Kawahara 2012</ref>), so we deem that N side = 4 is sufficient for our purposes <ref type="bibr" target="#b11">(Fujii &amp; Kawahara 2012</ref> use N side = 8).</p><p>One can devise a heuristic for the N side one should adopt as a function of orbital phase. The kernel is a lune and therefore has a height of π and a width π − α, where α is the star-planet-observer "phase angle". Each pixel has an angular area of 4π/N pix , and an angular size of 4π/N pix = π 3 N −1 side ≈ N −1 side . In order to properly resolve the kernel, one would like at least three pixels across the narrow width of the kernel: N −1 side (π − α)/3, suggesting that the minimum resolution at a given orbital phase is N side 3/(π − α). At quadrature (α = π/2), for example, we find that the minimum N side is 6/π ≈ 2, justifying our use of N side = 4.</p><p>Our map parameters are the pixel albedos. The kernel of the convolution is computed on the Healpix map, so the transformation from map to light curve is simply matrix multiplication. But the Gaussian Process prior is applied on the spherical harmonic coefficients, a m l , so we must convert from pixels to spherical harmonics at each step in the MCMC. (At first blush, it seems that one could decompose the kernel into spherical harmonics as well and perform the convolution in Y m l space, but this is no faster because there are roughly as many spherical harmonics as there are pixels.) Unfortunately, one cannot have exactly the same number of pixels as spherical harmonics. In particular, for N side = {1, 2, 4, 8} the number of pixels is N pix = {12, 48, 192, 768}. The number of spherical harmonics is N SH = (l max + 1) 2 , which corresponds to N SH = {9, 16, 36, 49, 169, 196, 729, 784} for l max = {2, 3, 5, 6, 12, 13, 26, 27}. Our chosen Healpix resolution of N side = 4 roughly translates to l max = 13. Since N SH is slightly greater than N pix , we are slightly over-constraining the map, as described below.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3.">Gaussian Process</head><p>Our adopted resolution of N side = 4 means that we have 192 map parameters, namely the albedo of each pixel. This is more than the 120 data we will fit below, so we must apply additional constraints on the pixel values. The Gaussian Process (GP) prior on the map imparts a preferred length/angular scale to the albedo structures, which could correspond to the typical size of clouds or continents on a given planet. Unlike standard regularization, we do not have to choose that angular scale a priori, rather it is a fitted parameter along with the pixel values themselves and the viewing geometry parameters.</p><p>At each step in the fit, all of the pixels, viewing parameters, and GP parameters are varied independently. We then use the current GP model to evaluate the prior on the current map. The GP parameters themselves have priors, so there are two layers of priors, making this a "hierarchical" model. The GP parameters and their priors are: the mean albedo (flat prior), the standard deviation of the albedo (prior is flat in log), the preferred angular scale (flat prior between 1/3 of a pixel to 3π), and the relative amplitude of spatially-uncorrelated albedo variations (flat prior between 0 and 1). Since the priors on the GP parameters only indirectly affect the posterior, these choices are not critical.</p><p>The posterior, the probability of parameters, θ, given data, d, is given by:</p><formula xml:id="formula_3">p(θ|d) =p(θ GP )p(θ map |θ GP ) × p(θ orb )p(d|{θ map , θ orb }),<label>(4)</label></formula><p>where the last term is the likelihood of the data given the map, orbital, and Gaussian process parameters. Evaluating the GP prior (particularly the multivariate Gaussian likelihood) in pixel space is expensive, so we take advantage of the property that any Gaussian map whose correlation matrix depends only on angular separation between points will have a diagonal covariance matrix in Y m l space (i.e., the spatial analog of stationarity in the time domain; stationary processes are completely described by their Fourier-space power spectrum, which is the diagonal of the covariance matrix in Fourier space). Furthermore, any map that is statistically isotropic will have a Y m l covariance that is only a function of l, which we will refer to as C l . So, instead of computing the covariance matrix and using a multivariate Gaussian likelihood in pixel space, we compute the a m l coefficients, and use a Gaussian likelihood in Spherical Harmonic space.</p><formula xml:id="formula_4">Each a m l is distributed like a m l ∼ N 0, √ C l .</formula><p>There is only one final wrinkle: the number of degrees of freedom in a m l coefficients is not equal to the number of pixels, as described above. We can either: 1) underconstrain the pixels by using an l max that corresponds to fewer a m l coefficients than pixels, which will result in some linear combinations of pixels (corresponding to the Y m l with l &gt; l max ) that are unconstrained by the prior; or 2) over-constrain the pixels by choosing an l max that corresponds to more a m l coefficients than pixels, meaning the effective prior imposed in pixel space is not exactly the squared-exponential kernel. We choose to do the latter, so the pixels are over-constrained. This makes sampling easier, since no combinations of pixels can run away to infinity.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4.">Viewing Geometry</head><p>We assume that all of the parameters specifying the viewing geometry are known a priori, except for the planet's spin orientation (obliquity, and it's orientation with respect to the observer). The remaining parameters can either be constrained by other means (the orbital inclination and period, as well as the planet's instantaneous location in its orbit can be constrained by radial velocity, stellar astrometry, or planetary astrometry), or are arbitrary (we don't worry about offending extraterrestrials by redefining their Greenwich). We presume that the planetary rotation period is already known.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.5.">Parameter Sampling</head><p>For a given light curve, we use the maximum likelihood estimator Powell to determine the best-fit map and viewing geometry, especially the planet's spin. We use this as the initial guess for a thorough exploration of parameter space to determine parameter uncertainties.</p><p>In order to explore parameter space, exocartographer uses the Markov Chain Monte Carlo emcee <ref type="bibr" target="#b10">(Foreman- Mackey et al. 2013</ref>). In particular, we use parallel tempering ( <ref type="bibr" target="#b26">Vousden et al. 2016</ref>) to improve sampling efficiency of the high-dimensional, non-linearly correlated posterior.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">TESTING exocartographer</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Synthetic light curve</head><p>We produce an idealized light curve with hourly cadence using a cloud-free toy model of Earth assuming Lambertian reflection (a higher resolution version of the top panel of <ref type="figure">Figure 1</ref>) and adopting a face-on orbit (i = 0) and 90 degree obliquity, but otherwise Earth-like values (1 day rotation, and 365 day orbit). The synthetic light curve is shown in <ref type="figure">Figure 2</ref>. This is the most favorable viewing geometry for exoplanet mapping: 1) the planet-star projected separation is constant and hence the planet is visible throughout its orbit, 2) since it is always at quadrature, scattering phase effects can be neglected, 3) the planet is viewed equator-on and therefore the entire planet can be mapped, and 4) the large obliquity ensures that all latitudes are well illuminated at at least one point in the orbit, making it possible to recover a faithful map of the entire planet. Indeed, this idealized scenario is precisely what  adopted for their seminal paper.</p><p>Leveraging the work of <ref type="bibr" target="#b24">Schwartz et al. (2016)</ref> we only consider 5 epochs, and in deference to the fact that these missions will be horribly over-subscribed, we only observe the planet for slightly more than a planetary rotation at each epoch. Considering 5 days-rather than a year'sworth of data has the ancillary benefit of reducing the run time of forward model calls by almost two orders of magnitude. Generating a light curve across 5 days with a 1 hour cadence from a 192-pixel map takes 1.6 ms with a 3 GHz Intel Xeon W processor, and a full posterior probability density evaluation (including light curve generation) takes 2.3 ms.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">Retrieval Results</head><p>The retrieval exercise was a surprising success. We can successfully model the simulated photometry <ref type="figure">(Fig- ure 2</ref>), but this is nothing to write home about: as stated above, the problem would be under-constrained if it weren't for the Gaussian Process prior. More importantly, using only 5 days worth of photometry, we recover the obliquity and its orientation to high precision <ref type="figure">(Figure 3)</ref>, and the albedo map of the planet with enough precision to robustly identify a high-albedo region (the Sahara Desert) and a low-albedo region (the Pacific Ocean). The 10 th percentile, mean, and 90 th percentile maps are shown in <ref type="figure">Figure 1</ref>. Although previous mapping efforts had proven that the best-fit map bears a resemblance to Earth <ref type="bibr" target="#b11">Fujii &amp; Kawahara 2012)</ref>, we have now shown that-even with very limited orbital coverage-the map uncertainties are small enough to make robust inferences about the surface character of the planet.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">DISCUSSION &amp; FUTURE WORK</head><p>We have built an open-source, modular code that builds on <ref type="bibr" target="#b11">Fujii &amp; Kawahara (2012)</ref>. Crucially, we use an MCMC to extract albedo maps and planet spin and their uncertainties, whereas they used optimization to determine best-fit parameters. Also, we use Gaussian Processes to enforce smooth maps rather than Tikhonov Regularization. The latter has a tunable regularization parameter, λ, which is chosen based on the "L-curve criterion". By contrast, Gaussian Processes uses the data to fit for the characteristic length scale of the map.</p><p>Although this was a useful numerical experiment, we made many simplifying assumptions, all of which should eventually be relaxed in future efforts. exocartographer is a solid platform on which to build more sophisticated mapping capabilities. We now discuss possible improvements, starting with relatively straightforward considerations and ending with more challenging improvements.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">Low-Hanging Fruit</head><p>Our assumed photometric uncertainty of 1% for one hour integrations is at the optimistic end of what LUVOIR might achieve for nearby targets (∼10 pc). Nonetheless, smaller telescope diameters might be able to achieve comparable photometric precision for planets somewhat larger than Earth that rotate more slowly. In any case, larger photometric uncertainties will produce larger parameter and map uncertainties, but in no way stress the exocartographer platform.</p><p>We assumed a known rotational period for the planet, whereas in practice this would have to be extracted from the data themselves. Previous efforts have shown that this can be done independently of exo-cartography (e.g., by computing the auto-correlation function of the timeresolved photometry; <ref type="bibr" target="#b18">Pallé et al. 2008;</ref><ref type="bibr" target="#b17">Oakley &amp; Cash 2009)</ref>. It is unlikely that an MCMC initialized near the correct rotational period will jump to one of its harmonics, unless the time sampling is very poor, in which case planet mapping is hopeless.</p><p>By forcing the albedo to be between 0 and 1, we have implicitly assumed that the planetary radius is known. In reality, the radii of directly imaged planets will not be known. Allowing for unknown planetary radius effectively removes the A ≤ 1 constraint: is the planet very reflective or simply very big? Even in that case there is a physical limit to the size of planets, roughly that of Jupiter. The A &gt; 0 constraint would be unaffected by an unknown radius: flux cannot be negative, regardless of planet size. For the particular retrieval excercise we have performed, the albedo of cloudless Earth is quite low, so we expect that our results would be robust to within a scale factor; we wouldn't know the absolute albedo of the Sahara, merely that it is some factor greater than the planetary mean.</p><p>The face-on geometry is favorable for mapping because the planet is never inside the coronagraph/starshade inner working angle, provided it is visible at all. But since we only considered five epochs for our analysis, considering different orbital inclinations should not present a significant challenge. That said, considering more, or longer, epochs would increase the number of data, hence increasing the computational burden but ultimately improving the quality of the maps and geometrical constraints.</p><p>The 90 • obliquity of the planet facilitated our task in two ways: all latitudes receive significant sunlight at one or more orbital phases, and all latitudes are visible to the observer. The combination of these two factors mean that we can, in principle, map the entire planet. For different viewing geometries we would only be able to map certain latitudes (e.g., an observer at 45 • north cannot map locations below 45 • south) and some latitudes would be poorly constrained (for low obliquity planets, the poles are poorly illuminated and hence hard to map, even for a polar observer; ).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.">Harder Nuts to Crack</head><p>We have assumed that the surface of the planet is a non-uniform Lambertian reflector. In fact, real planets are non-Lambertian, notably due to forward scattering from molecules and aerosols, as well as due to specular reflection by surface liquids <ref type="bibr" target="#b22">(Robinson et al. 2010</ref><ref type="bibr" target="#b21">(Robinson et al. , 2014</ref>. In principle one could use a parametrized scattering phase function to fit for this behavior. Of course, the parameters would be different for different surface types. Although this would add a few model parameters, the main challenge would be that forward model calls might become more computationally expensive due to the nontrivial convolution kernel.</p><p>Lastly, we have adopted a cloudless planet. To first order, clouds are just another bright surface, and one can differentiate between clouds and, say, continents with multi-wavelength data-even two-broadbands can do the trick ( <ref type="bibr" target="#b6">Cowan et al. 2009;</ref><ref type="bibr" target="#b11">Fujii &amp; Kawahara 2012)</ref>. But clouds further complicate the mapping exercise in two ways: they mask underlying surfaces, and they change with time. One can make a map of surfaces and average cloud cover <ref type="bibr" target="#b11">(Fujii &amp; Kawahara 2012)</ref>, and cloud variability will show up as residual structured noise. In this scheme, regions that are essentially always shrouded in clouds, e.g., rain forests, are treated as if the clouds were indeed glued to the surface.</p><p>Is there a better way to deal with clouds? The very feature that makes clouds pernicious-their timevariability-may also be their undoing: since most regions are cloud-free, at least occasionally, then it may be possible to construct a cloud-corrected map. This would require multiple rotations at each epoch, the duration of the observations must be greater than the characteristic weather timescale on the planet, (e.g., a few days for Earth; <ref type="bibr" target="#b19">Peixoto &amp; Oort 1992)</ref>.</p><p>A possible strategy for dealing with both nonLambertian scattering and clouds is using multiwavelength data. In this manuscript we limited ourselves to white-light photometry. Simultaneously analyzing multi-band data has the advantage that the maps can look very different at different wavelengths, while the geometrical parameters must be common (e.g., <ref type="bibr" target="#b11">Fujii &amp; Kawahara 2012)</ref>. One can even use the color variations of the planet to identify the number and colors of surfaces, even if these are a priori unknown <ref type="bibr" target="#b5">(Cowan &amp; Strait 2013;</ref><ref type="bibr" target="#b14">Fujii et al. 2017</ref>).</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Fig. 2 .Fig. 3 .</head><label>23</label><figDesc>Fig. 2.-Simulated light curve and resulting fit from an Earth analog with 0 degree (face-on) inclination and 90 degree obliquity. The simulated data and measurement errors are shown in the five insets, representing five epochs, each lasting one rotation, collected over the course of a year with a one hour cadence. The shaded region in each inset shows the central 90% posterior credible interval for the reconstructed light curve.</figDesc></figure>
+
+			<note place="foot" n="8"> http://healpix.sourceforge.net/</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">S</forename><surname>Abbot</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">B</forename><surname>Cowan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">J</forename><surname>Ciesla</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">756</biblScope>
+			<biblScope unit="page">178</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">B</forename><surname>Cowan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">S</forename><surname>Abbot</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">781</biblScope>
+			<biblScope unit="page">27</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">B</forename><surname>Cowan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">726</biblScope>
+			<biblScope unit="page">82</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">B</forename><surname>Cowan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">A</forename><surname>Fuentes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">M</forename><surname>Haggard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">434</biblScope>
+			<biblScope unit="page">2465</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">B</forename><surname>Cowan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Fujii</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1704.07832</idno>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+<note type="report_type">ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">B</forename><surname>Cowan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">E</forename><surname>Strait</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">765</biblScope>
+			<biblScope unit="page">17</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">B</forename><surname>Cowan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Agol</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">S</forename><surname>Meadows</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">700</biblScope>
+			<biblScope unit="page">915</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">B</forename><surname>Cowan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Robinson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">A</forename><surname>Livengood</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">731</biblScope>
+			<biblScope unit="page">76</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">J</forename><surname>Des Marais</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">O</forename><surname>Harwit</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">W</forename><surname>Jucks</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astrobiology</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page">153</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Ford</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Seager</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">L</forename><surname>Turner</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">412</biblScope>
+			<biblScope unit="page">885</biblScope>
+			<date type="published" when="2001" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Goodman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">125</biblScope>
+			<biblScope unit="page">306</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Fujii</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Kawahara</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">755</biblScope>
+			<biblScope unit="page">101</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Fujii</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Kawahara</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Suto</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">738</biblScope>
+			<biblScope unit="page">866</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+	<note>ApJ</note>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Fujii</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Kimura</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Dohm</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Ohtake</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astrobiology</title>
+		<imprint>
+			<biblScope unit="volume">14</biblScope>
+			<biblScope unit="page">753</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Fujii</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Lustig-Yaeger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">B</forename><surname>Cowan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">154</biblScope>
+			<biblScope unit="page">189</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Kawahara</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">822</biblScope>
+			<biblScope unit="page">112</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Kawahara</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Fujii</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">720</biblScope>
+			<biblScope unit="page">62</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+	<note>ApJ</note>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">H H</forename><surname>Oakley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Cash</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">700</biblScope>
+			<biblScope unit="page">1428</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Pallé</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Ford</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Seager</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Montañés-Rodríguez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Vazquez</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">676</biblScope>
+			<biblScope unit="page">1319</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">P</forename><surname>Peixoto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">H</forename><surname>Oort</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1992" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Robinson</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1701.05205</idno>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+<note type="report_type">ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Robinson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Ennico</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">S</forename><surname>Meadows</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">787</biblScope>
+			<biblScope unit="page">171</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Robinson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">S</forename><surname>Meadows</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Crisp</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">721</biblScope>
+			<biblScope unit="page">67</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">E</forename><surname>Schlichting</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Sari</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">658</biblScope>
+			<biblScope unit="page">593</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">C</forename><surname>Schwartz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Sekowski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">M</forename><surname>Haggard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Pallé</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">B</forename><surname>Cowan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">457</biblScope>
+			<biblScope unit="page">926</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<monogr>
+		<title level="m" type="main">Atmospheric Circulation of Terrestrial Exoplanets</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">P</forename><surname>Showman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">D</forename><surname>Wordsworth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">M</forename><surname>Merlis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Kaspi</surname></persName>
+		</author>
+		<editor>S. J. Mackwell, A. A. Simon-Miller, J. W. Harder, &amp; M. A. Bullock</editor>
+		<imprint>
+			<date type="published" when="2013" />
+			<biblScope unit="page" from="277" to="326" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">D</forename><surname>Vousden</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">M</forename><surname>Farr</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Mandel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">455</biblScope>
+			<biblScope unit="page">1919</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

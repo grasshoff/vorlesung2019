@@ -1,0 +1,968 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2019-01-22T13:35+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">A linear time method for the detection of point and collective anomalies</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2018-06-07">June 7, 2018</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Alexander</forename><surname>Fisch</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Lancaster University</orgName>
+								<address>
+									<country key="GB">United Kingdom</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Idris</forename><surname>Eckley</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Lancaster University</orgName>
+								<address>
+									<country key="GB">United Kingdom</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Paul</forename><surname>Fearnhead</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution">Lancaster University</orgName>
+								<address>
+									<country key="GB">United Kingdom</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">A linear time method for the detection of point and collective anomalies</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2018-06-07">June 7, 2018</date>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<abstract>
+				<p>The challenge of efficiently identifying anomalies in data sequences is an important statistical problem that now arises in many applications. Whilst there has been substantial work aimed at making statistical analyses robust to outliers, or point anomalies, there has been much less work on detecting anomalous segments, or collective anomalies. By bringing together ideas from changepoint detection and robust statistics, we introduce Collective And Point Anomalies (CAPA), a computationally efficient approach that is suitable when collective anomalies are characterised by either a change in mean, variance, or both, and distinguishes them from point anomalies. Theoretical results establish the consistency of CAPA at detecting collective anomalies and empirical results show that CAPA has close to linear computational cost as well as being more accurate at detecting and locating collective anomalies than other approaches. We demonstrate the utility of CAPA through its ability to detect exoplanets from light curve data from the Kepler telescope.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head><p>Anomaly detection is an area of considerable importance for many time series applications, such as fault detection or fraud prevention, and has been subject to increasing attention in recent years. See <ref type="bibr" target="#b3">[4]</ref> and <ref type="bibr" target="#b24">[25]</ref> for comprehensive reviews of the area. As <ref type="bibr" target="#b3">[4]</ref> highlight, anomalies can fall into one of three categories: global anomalies, contextual anomalies, or collective anomalies. Global anomalies and contextual anomalies are defined as single observations which are outliers with regards to the complete dataset and their local context respectively. Conversely, collective anomalies are defined as sequences of observations which are not anomalous when considered individually, but together form an anomalous pattern.</p><p>A number of different approaches can be taken to detect point (i.e. contextual and/or global) anomalies. These are observations which do not conform with the pattern of the data. Hence, the problem of detecting point anomalies can be reformulated as inferring the general pattern of the data in a manner that is robust to anomalies. The field of robust statistics offers a wide range of methods aimed at this problem. For instance, <ref type="bibr" target="#b27">[28]</ref> proposed S estimators to robustly estimate the mean and variance, which were extended to a multivariate setting by <ref type="bibr" target="#b28">[29]</ref>. A wide variety of robust time series models also exist. For example, <ref type="bibr" target="#b20">[21]</ref> proposed a robust ARMA model, <ref type="bibr" target="#b21">[22]</ref> a robust ARCH model, and <ref type="bibr" target="#b22">[23]</ref> a robust GARCH model. A robust non-parametric method, which decomposes time series into trend, seasonal component, and residual was proposed by <ref type="bibr" target="#b4">[5]</ref>.</p><p>The machine learning community has also provided a rich corpus of work for the detection of point anomalies. Commonly used methods include nearest neighbour based approaches, such as the local outlier factor (Breunig et al. <ref type="bibr" target="#b2">[3]</ref>), and information theoretical methods such as the one introduced by <ref type="bibr" target="#b7">[8]</ref>. It is beyond the scope of this paper to review them all. Instead we refer to excellent reviews that can be found in <ref type="bibr" target="#b3">[4]</ref> and <ref type="bibr" target="#b24">[25]</ref>.</p><p>One common drawback of several point anomaly approaches is their inability to detect anomalous segments, or collective anomalies. Such features are of significance in many applications. One example is the analysis of brain imaging data, where periods in which the brain activity deviates from the pattern of the rest state have been associated with sudden shocks ( <ref type="bibr" target="#b0">[1]</ref>). Another example is in detecting regions of the genome with unusual copy number ( <ref type="bibr" target="#b1">[2]</ref> [31] <ref type="bibr" target="#b35">[36]</ref>), with such copy number variation being associated with diseases such as cancer ( <ref type="bibr" target="#b11">[12]</ref>).</p><p>The main contribution of this paper is to use an epidemic changepoint model as a principled framework for both collective and point anomalies. An epidemic changepoint model assumes that the data follow a certain typical distribution at all time, except during some anomalous time windows. The behaviour changes away from the typical distribution at the beginning of these windows and returns to it at the end. These epidemic changes can naturally be interpreted as collective anomalies. For the case in which collective anomalies are characterised by epidemic changes in mean and/or variance, point anomalies can additionally be modelled as epidemic changes of length one in variance only. This framework thus allows for the joint modelling and detection of collective anomalies and point anomalies. We therefore call the algorithm Collective And Point Anomalies (CAPA).</p><p>As a motivation for our work, and to help make the ideas in this paper concrete, consider the problem of detecting exoplanets via the so called transit method first proposed by <ref type="bibr" target="#b32">[33]</ref>.  at regular intervals, with the aim of detecting periodically recurring segments of reduced luminosity. Such periods indicate the transit of a planet ( <ref type="bibr" target="#b29">[30]</ref>) and can naturally be interpreted as collective anomalies. The light curves are typically preprocessed ( <ref type="bibr" target="#b23">[24]</ref>) and both the raw and whitened light curves can be accessed online. We have included the whitened light curve of the star Kepler 1132 in <ref type="figure" target="#fig_0">Figure 1</ref> to illustrate the nature of this type of data. We note the presence of a global anomaly on day 1550 and the noisy nature of the data, making the detection of transits challenging given the weak signal induced by planetary transits. Indeed, even the transit of Jupiter past the sun reduces the latter's luminosity by only 1% ( <ref type="bibr" target="#b29">[30]</ref>).</p><p>Existing work on the detection of collective anomalies can be found in the statistics and machine learning literature. On the statistical side, hidden Markov models have been proposed, which assume that a hidden state obeying a Markov chain determines whether the data produced is anomalous or typical ( <ref type="bibr" target="#b31">[32]</ref>). The underlying assumption that anomalous segments share one or multiple common behaviours is very attractive for the exoplanet detection application outlined above, but can be a constraint in others. Hidden Markov models also suffer from the fact that they are not robust to global anomalies which are present in the Kepler data, as can be seen in <ref type="figure" target="#fig_0">Figure 1</ref>. Moreover, they tend to be slow to fit, which is an important disadvantage in many modern, big-data applications. For example, there are currently 40 million light curves, similar to that shown in <ref type="figure" target="#fig_0">Figure 1</ref>, that have been gathered and need analysing. Conversely, machine learning methods include LinkedIn's luminol ( <ref type="bibr" target="#b18">[19]</ref>) which uses a sign test to detect segments of anomalous mean. However, as we will see in the simulation section of this paper, this method's performance can be poor.</p><p>Epidemic changepoints can be modelled as two classical changepoints, for the detection of which a variety of methods have been proposed ( <ref type="bibr" target="#b5">[6]</ref>, <ref type="bibr" target="#b6">[7]</ref>, <ref type="bibr" target="#b10">[11]</ref>, <ref type="bibr" target="#b14">[15]</ref>, <ref type="bibr" target="#b17">[18]</ref>). However, this approach does not exploit the fact that the behaviour of the segment before the start and after the end of an epidemic segment is the same, which reduces its statistical power. This is a disadvantage, especially when faced with a weak signal, like in the light curve data.</p><p>The epidemic changepoint problem as such was first considered by <ref type="bibr" target="#b16">[17]</ref>, who use a cumulative sum type statistic to detect them <ref type="bibr" target="#b33">[34]</ref>. The main corpus of work addressing the problem of their detection has since been driven by the analysis of neuroimaging and genome data. An early application of epidemic changepoints to neuroimaging data can be found in <ref type="bibr" target="#b26">[27]</ref>, who use a hidden Markov model to detect epidemic changes in mean. This was later extended by <ref type="bibr" target="#b0">[1]</ref>. Both methods are vulnerable to point anomalies, a shortcoming in some applications like the one we consider in this paper. Another limitation is that both approaches assume the presence of at most one change. Conversely, motivated by challenges arising in Genomics, a range of methods, both univariate and multivariate, have been proposed to detect epidemic changes in mean, mainly by considering sum of squares type test statistics (see <ref type="bibr" target="#b11">[12]</ref> [31] <ref type="bibr" target="#b35">[36]</ref>), sometimes in combination with hidden states. They are therefore vulnerable to global anomalies. A more general Bayesian hidden state method for the detection of anomalous segments was proposed by <ref type="bibr" target="#b1">[2]</ref>.</p><p>The article is organised as follows: We begin by introducing a parametric model with epidemic changes in Section 2. This provides a general framework for collective anomalies, the location of which we infer by minimising a penalised cost. Motivated by our application, we will place a special emphasis on the detection of joint epidemic changes in mean and variance and show that epidemic changes of length one in variance only can be incorporated to model point anomalies.</p><p>In the classical changepoint setting, information is not typically shared between different segments of the data. However, in this epidemic setting, the typical parameter is shared, making it impossible to minimise the penalised cost via the dynamic programming approach of <ref type="bibr" target="#b9">[10]</ref>. We therefore provide an algorithm in Section 3 which minimises an approximation to the penalised cost based on a robust estimate of the parameter of the typical distribution. This approximation can be minimised by a dynamic program, which can be pruned in a fashion similar to <ref type="bibr" target="#b14">[15]</ref>. As a result of this pruning, we find that the run time of CAPA is close to O(n) in some cases.</p><p>We present theoretical results regarding the consistency of CAPA at detecting collective anomalies in Section 4. Specifically, we introduce a proof of consistency for the detection of joint classical changes in mean and variance using a penalised cost approach, which is of independent interest. We then compare CAPA to other methods in a simulation study in Section 5 and show that it outperforms them, especially in the presence of point anomalies. We conclude the paper by demonstrating in Section 6 that CAPA can be used to detect Kepler 1132-b, an exoplanet which orbits Kepler 1132 ( <ref type="bibr" target="#b19">[20]</ref>). The proofs of the theoretical results are all given in the appendix and the supplementary material can be found at the end of the paper. Code implementing CAPA can be accessed at https://github.com/Fisch-Alex/anomaly.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">A Modelling Framework for Collective Anomalies</head><p>We assume that the data follow a parametric model and model collective anomalies as epidemic changes in the model parameters. Whilst, in practice, it is unlikely that the distribution of the data in an anomalous segment will belong to the same family of distributions as the distribution of the typical data, it can nevertheless be expected that a set of parameters different from the typical distribution's will offer a better fit. We say that data x 1 , ..., x n follow a parametric epidemic changepoint model if</p><formula xml:id="formula_0">x t ∼ f (x t , θ(t)), θ(t) =            θ 1 s 1 &lt; t ≤ e 1 , . . . θ K s K &lt; t ≤ e K , θ 0 otherwise,</formula><p>where θ 0 is the usually unknown parameter of the typical distribution, from which the model deviates during the K anomalous segments (s 1 , e 1 ),...,(s K , e K ). We assume these windows do not overlap, i.e. e 1 ≤ s 2 , ..., e K−1 ≤ s K . Note that fitting an epidemic changepoint requires only one new set of parameters for θ, since the typical parameter is shared across the non-anomalous segments. This compares favourably with the two additional sets of parameters for θ introduced when an epidemic changepoint is fitted using two classical changepoints. We therefore gain statistical power. This gain is particularly important when θ is high dimensional. It is possible to infer the number and location of epidemic changes by choosing˜Kchoosing˜ choosing˜K, (˜ s 1 , ˜ e 1 ),...,(˜ s ˜ K , ˜ e ˜ K ), and˜θ and˜ and˜θ 0 , which minimise the penalised cost</p><formula xml:id="formula_1">t / ∈∪[˜ si+1,˜ ei] C(x t , ˜ θ 0 ) + ˆ K j=1   miñ miñ θj   ˜ ej t=˜sjt=˜sj +1 C(x t , ˜ θ j )   + β   ,<label>(1)</label></formula><p>subject to e i − s i ≥ ˆ l, wherê l is the minimum segment length for an appropriate cost function C(x, θ) and a suitable penalty β. For example, C(x, θ) could be defined as the negative log-likelihood of x under the parametric model using parameter θ. The penalty β could then be set to (2 + ||θ|| 0 ) log(n) and this would be a BIC type penalty.</p><p>Using the formulation in (1), we can infer the location of joint epidemic changes in mean and variance by minimising the penalised cost related to the negative log-likelihood of Gaussian data. In this case θ = (µ, σ 2 ) contains both the mean and variance and we minimise</p><formula xml:id="formula_2">t / ∈∪[˜ si+1,˜ ei] log(σ 2 0 ) + x t − µ 0 σ 0 2 + ˜ K j=1 (˜ e j − ˜ s j ) log˜ej log˜ log˜ej t=˜sjt=˜sj +1 (x t − ¯ x (˜ sj +1):˜ ej ) 2 (˜ e j − ˜ s j ) + 1 + β ,<label>(2)</label></formula><p>using a minimum segment length of 2 to account for the fact that θ is two dimensional. It is well known that many changepoint detection methods struggle in the presence of point anomalies in the data and tend to fit two changepoints around each of them ( <ref type="bibr" target="#b5">[6]</ref>). An approach based on minimising the above cost function is not intrinsically immune to it. However, we can modify the model by allowing epidemic changes, in variance only, of length one to address this issue. We therefore choose˜Kchoose˜ choose˜K, (˜ s 1 , ˜ e 1 ),...,(˜ s ˜ K , ˜ e ˜ K ), µ 0 , σ 0 , as well as the set of point anomalies O ⊂ {1, ..., n}, which minimise the modified penalised cost</p><formula xml:id="formula_3">t / ∈∪[˜ si+1,˜ ei]∪O log(σ 2 0 ) + x t − µ 0 σ 0 2 + t∈O log (x − µ 0 ) 2 + 1 + ˜ β + ˆ K j=1 (˜ e j − ˜ s j ) log˜ej log˜ log˜ej t=˜sjt=˜sj +1 (x t − ¯ x (˜ sj +1):˜ ej ) 2 (˜ e j − ˜ s j ) + 1 + β ,</formula><p>where˜βwhere˜ where˜β is a penalty smaller than β. This modification ensures that it is now cheaper to fit an outlier as an epidemic changepoint in variance only than as a full epidemic change. Consequently, the method becomes robust against point anomalies, fitting epidemic changes only around true collective anomalies. This modification has the added benefit that it allows the algorithm to detect and distinguish between point and collective anomalies. This property is important for a range of applications in which collective and point anomalies have different interpretations (see Section 6 for an example).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Inference for Collective Anomalies</head><p>Algorithm 1 CAPA Algorithm (No Pruning)</p><p>Input:</p><p>A set of observations of the form, (x 1 , x 2 , . . . , xn) where x i ∈ R. Penalty constants β and˜βand˜ and˜β for the introduction of a collective and a point anomaly respectively A minimum segment length l ≥ 2 Initialise: Set</p><formula xml:id="formula_4">C(0) = 0, Anom(0) = N U LL. 1: ˆ µ ← M EDIAN (x 1 , x 2 , . . . , xn)</formula><p>Obtain robust estimates of the mean and variance 2: ˆ σ ← IQR(x 1 , x 2 , . . . , xn) 3: for i ∈ {1, ..., n} do 4:</p><formula xml:id="formula_5">x i ← x i − ˆ µ ˆ σ</formula><p>Centralise the data 5: end for 6: for m ∈ {1, ..., n} do 7:</p><formula xml:id="formula_6">C 1 (m) ← min 0≤k≤m−l C(k) + (m − k) log 1 m−k m t=k+1 xt − ¯ x (k+1):m 2 + 1 + β Collective Anom.</formula><p>8:</p><formula xml:id="formula_7">s ← arg min 0≤k≤m−l C(k) + (m − k) log 1 m−k m t=k+1 xt − ¯ x (k+1):m 2 + 1 + β 9: C 2 (m) ← C(m − 1) + x 2 m</formula><p>No Anomaly 10: We now turn to consider the problem of minimising the penalised cost we introduced in the previous section. Unlike in the classical changepoint problem considered by <ref type="bibr" target="#b9">[10]</ref>, the penalised cost given by equation <ref type="formula" target="#formula_1">(1)</ref> can not be minimised using a dynamic program, since the parameter θ 0 is shared across multiple segments and typically unknown. We therefore use robust statistics to obtain an estimatê θ 0 for θ 0 . Such robust estimates can be obtained for a variety of models ( <ref type="bibr" target="#b8">[9]</ref>  <ref type="bibr" target="#b12">[13]</ref>). For example, the median, M -estimators, or the clipped mean can be used to robustly estimate the mean. The inter quantile range, the median absolute deviation, or the clipped standard deviation can be use to estimate the variance. Robust regression is available to estimate the parameters of AR models.</p><formula xml:id="formula_8">C 3 (m) ← C(m − 1) + 1 + log γ + x 2 m + ˜ β , , Point Anomaly 11: C(m) ← min [C 1 (m), C 2 (m), C 3 (m)] 12: switch arg min [C 1 (m), C 2 (m), C 3 (m)] do Select</formula><p>Having obtainedˆθobtainedˆ obtainedˆθ 0 , we then minimise</p><formula xml:id="formula_9">t / ∈∪[ˆ si+1,ˆ ei] C(x t , ˆ θ 0 ) + ˆ K j=1   minˆθj minˆ minˆθj   ˆ ej t=ˆsjt=ˆsj +1 C(x t , ˆ θ j )   + β   ,</formula><p>as an approximation to (1). Since it can be expected that most data belongs to the typical distribution, ˆ θ 0 should be close to θ 0 . One might therefore expect that using this estimate will have little impact on the performance of the method, which we also show theoretically for joint changes in mean and variance in Section 4.2.</p><p>The approximation to the penalised cost can be minimised exactly by solving the dynamic programme</p><formula xml:id="formula_10">C(m) = min 0≤k≤m− ˆ l C(m − 1) + C(x m , ˆ θ 0 ), C(k) + minˆθ minˆ minˆθ m t=k+1 C(x t , ˆ θ) + β ,<label>(3)</label></formula><p>where C(m) is the cost of the most efficient partition of the first m observations and C(0) = 0. For example, solving the dynamic programme</p><formula xml:id="formula_11">C(m) = min 0≤k≤m−2 C(m − 1) + log(ˆ σ 2 0 ) + x m − ˆ µ 0 ˆ σ 0 2 , C(k) + (m − k) log 1 m − k m t=k+1 x t − ¯ x (k+1):m 2 + 1 + β ,</formula><p>approximately minimises the penalised cost for joint epidemic changes in mean and variance defined in equation (2). Similarly, we can minimise its point anomaly robust analogue by solving the dynamic programme</p><formula xml:id="formula_12">C(m) = min 0≤k≤m−2 C(m − 1) + log(ˆ σ 2 0 ) + x m − ˆ µ 0 ˆ σ 0 2 , C(k) + (m − k) log 1 m − k m t=k+1 x t − ¯ x (k+1):m 2 + 1 + β, C(m − 1) + 1 + log γ ˆ σ 2 0 + (x m − ˆ µ 0 ) 2 + ˜ β ,</formula><p>where γ is a small constant ensuring that the argument of the logarithm will be larger than 0 (see Algorithm 1 for pseudocode). Adding the γ ˆ σ 2 0 term is necessary when order statistics are used to obtainˆµobtainˆ obtainˆµ 0 . Assuming that the observations x t are independent and Normal, all sums m t=m−k+1 x t − ¯ x (m−k+1):m 2 will be non-zero with probability 1, meaning that in theory such a correction is not necessary for the other logarithmic term. In practice, observations are of finite precision and adding γ ˆ σ 2 0 to the argument of the other logarithmic term, with γ set to the level of rounding should be considered.</p><p>Solving the full dynamic program is at least O(n 2 ). This lower bound can be achieved for the detection of joint changes in mean and variance. However, we can prune the solution space by borrowing ideas from <ref type="bibr" target="#b14">[15]</ref>, provided the loss function is such that adding a free changepoint will not increase the cost -a property which holds for many commonly used cost functions such as the negative log-likelihood. Indeed, the following proposition holds:</p><formula xml:id="formula_13">Proposition 1 Let the cost function C(·, ·) be such that c t=a C(x t , ˆ θ a:c ) ≥ b−1 t=a C(x t , ˆ θ a:(b−1) ) + c t=b C(x t , ˆ θ b:c )</formula><p>holds for all a, b, and c such that</p><formula xml:id="formula_14">a + ˆ l ≤ b &lt; c − ˆ l. Then, if C(k) + m t=k C(x t , ˆ θ) ≥ C(m)</formula><p>holds for some k &lt; m − ˆ l, we can disregard k for all future steps m ≥ m + ˆ l of the dynamic programme.</p><p>Proof : Please see the Appendix. Note that the time after which an option can be discarded also depends on the minimum segment length, something not considered by <ref type="bibr" target="#b14">[15]</ref>. This results enables us to reduce the computational cost. In practice, we found that it was close to O(n) for the detection of joint epidemic changes in mean and variance when the number of true epidemic changes increased linearly with the number of observations.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Theory for Joint Changes in Mean and Variance</head><p>We now introduce some theoretical results regarding the consistency of CAPA. All proofs for the results in this section can be found in the appendix. We establish that the consistency of CAPA can be viewed as a corollary of the consistency of a statistical procedure minimising a penalised cost function to detect classical changepoints. Consequently, we will begin by proving that method's consistency for the detection of changes in mean and variance in Section 4.1. To the best of our knowledge, no such result exists in the literature, which makes this proof of independent interest. We then proceed to proving the consistency of CAPA in Section 4.2.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1">Consistency of Classical Changepoint Detection</head><p>Consider the sequence x 1 , ..., x n ∈ R n which is normally distributed with K ∈ N changepoints. The sequence therefore satisfies x t = µ(t) + σ(t)η t , where</p><formula xml:id="formula_15">η t i.i.d. ∼ N (0, 1) and (µ(t), σ(t) 2 ) =        (µ 1 , σ 2 1 ) t 0 + 1 ≤ t ≤ t 1 , . . . (µ K+1 , σ 2 K+1 ) t K + 1 ≤ t ≤ t K+1 .</formula><p>Here 0 = t 0 ≤ ... ≤ t K+1 = n denote the start of the series, the K changepoints, and the end of the series.</p><p>Changes in mean and variance can be of varying strength. To quantify this, we define the signal strength σ,k of the change in variance at the kth changepoint to be</p><formula xml:id="formula_16">2 σ,k = σ k σ k+1 − σ k+1 σ k 2 = σ k σ k+1 + σ k+1 σ k − 2.</formula><p>We note that 2 σ,k is equal to 0 if, and only if, σ k+1 = σ k . We also define the signal strength µ,k of change in mean at the kth changepoint to be</p><formula xml:id="formula_17">µ,k = |µ k − µ k+1 | √ σ k σ k+1 .</formula><p>Note that these two quantities can be combined into a global measure of signal strength 2 k = 2 σ,k + 1 2 2 µ,k for the kth change (see Lemma 7 in the Appendix for details).</p><p>We now define the penalised cost˜Ccost˜ cost˜C(</p><formula xml:id="formula_18">x i:j , τ , β) of data x i:j under partition τ = {i − 1, ˆ t 1 , ..., ˆ t ˆ K , j} to be ˜ C(x i:j , τ , β) = ˆ K k=0˜C k=0˜ k=0˜C(x ( ˆ t k +1): ˆ t k+1 ) + ˆ K β log(n) 1+δ , for δ, β &gt; 0.</formula><p>Here β log(n) 1+δ is a strengthened SIC-style penalty (Fryzlewicz <ref type="bibr" target="#b6">[7]</ref>) for introducing an additional changepoint. We estimate changepoints with a cost of segment x a:b</p><formula xml:id="formula_19">˜ C(x a:b ) = ˜ C(x a:b , {a − 1, b}) = (b − a + 1) log b a (x t − ¯ x a:b ) 2 b − a + 1 + 1 ,</formula><p>similar to the one we use to infer the location of epidemic changes in mean and variance. Since this leaves two parameters to fit, we impose a minimum segment length of two for all partitions.</p><p>Assume that there exists some˜δsome˜ some˜δ &gt; 0 such that t k − t k−1 ≥ log(n) 1+δ+˜δ1+δ+˜ 1+δ+˜δ for all k, which ensures that the changepoints are sufficiently spaced apart to allow for their detection. Then, the following consistency result holds for the inferred number and location of changepointsˆKchangepointsˆ changepointsˆK andˆtandˆ andˆt 1 , ..., ˆ t ˆ K inferred by minimising˜Cminimising˜ minimising˜C(x 1:n , τ, β):</p><formula xml:id="formula_20">Theorem 1 Let x 1 , .</formula><p>.., x n follow the distribution specified above and the changes be such that k &gt; for some &gt; 0. Then ∀ &gt; 0 there exist constants A(β, k , δ, ,) decreasing in k , B(β, , ˜ δ, δ, ,) decreasing in , and</p><formula xml:id="formula_21">C such that P ˆ K = K, | ˆ t i − t i | &lt; A(β, k , δ, ,) log(n) 1+δ ≥ 1 − Cn − holds for all n ≥ B(β, , ˜ δ, δ, ,).</formula><p>Proof : Please see the Appendix.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2">Consistency of CAPA</head><p>The results we obtained in the previous section can be extended to prove the consistency of CAPA for the detection of joint epidemic changes in mean and variance. As in the previous section, consider data x 1 , ..., x n which is of the form x t = µ(t) + σ(t)η t , where η t ∼ N (0, 1). Since we now assume epidemic changes, we have</p><formula xml:id="formula_22">(µ(t), σ(t) 2 ) =            (µ 1 , σ 2 1 ) s 1 &lt; t ≤ e 1 , . . . (µ K , σ 2 K ) s K &lt; t ≤ e K , (µ 0 , σ 2 0 ) otherwise.</formula><p>Here, µ 0 and σ 2 0 are the typical mean and variance respectively and K is the number of epidemic changepoints. The variables s k and e k denote the starting and end point of the kth anomalous window respectively. We impose</p><formula xml:id="formula_23">log(n) 1+δ+˜δ1+δ+˜ 1+δ+˜δ ≤ e k − s k ≤ O( √ n) and s k+1 − e k &gt; log(n) 1+δ+˜δ1+δ+˜ 1+δ+˜δ for some˜δsome˜ some˜δ &gt; 0.</formula><p>Treating the s k and e k like classical changepoints allows us to extend the definitions of σ , µ , and to the epidemic changepoint model.</p><p>The following consistency result then holds for a partition (</p><formula xml:id="formula_24">ˆ s 1 , ˆ e 1 , ..., ˆ s ˆ K , ˆ e ˆ K )</formula><p>inferred by CAPA using a minimum segment length of two and β log(n) 1+δ for some δ &gt; 0 as penalty for both point anomalies and epidemic changepoints.</p><p>Theorem 2 Let x 1 , ..., x n follow the distribution specified above and the changes be such that k &gt; for some &gt; 0. Then ∀ &gt; 0 there exist constants A(β, k , δ, ,) decreasing in k , B(β, , ˜ δ, δ, ) decreasing in , and C such that</p><formula xml:id="formula_25">P ˆ K = K, |ê k − e k | &lt; A(β, k , δ, ,) log(n) 1+δ , |ˆs|ˆs k − s k | &lt; A(β, k , δ, ,) log(n) 1+δ ≥ 1 − Cn −</formula><p>holds for all n ≥ B(β, , ˜ δ, δ, ,).</p><p>Proof : Please see the Appendix.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Simulation Study</head><p>To assess the potential of CAPA, we compare its performance to that of other popular anomaly and changepoint methods on simulated data. In particular, we compare with PELT as implemented in <ref type="bibr" target="#b13">[14]</ref>, a commonly used changepoint detection method, luminol <ref type="bibr">([19]</ref>), an algorithm developed by LinkedIn to detect segments of atypical behaviour, as well as BreakoutDetection ( <ref type="bibr" target="#b10">[11]</ref>) which was introduced by Twitter to detect changes in mean in a way which is robust to point anomalies. The simulation study was conducted over simulated time series each consisting of 5000 observations, for which the typical data follows a N (0, 1) distribution. Epidemic changepoints start at a rate of 0.0005 (corresponding to an average of about 2.5 epidemic changes in each series), with their length being i.i.d. P ois <ref type="formula" target="#formula_10">(30)</ref>  We compared the performance of the four methods in the presence of both strong and weak changes in mean and/or variance. We also repeated the analysis with 10 i.i.d. N (0, 10 2 ) distributed point anomalies occurring at randomly sampled points in the typical data. The comparison of these methods is made using the three different approaches we detail below.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1">ROC</head><p>We obtained ROC curves for the four methods. For BreakoutDetection and PELT, we considered detected changes within 20 time points of true changes to be true positives and classified all other detected changes as false positives. For luminol and CAPA, we considered detected starting and end points of epidemic changes to be true positives if they were within 20 observations of a starting and end point respectively. The results regarding the precision of true positives in Section 5.2 suggest that the results in this section are robust with regard to the choice of error tolerance. We set the minimum segment length to ten for PELT, CAPA, and BreakoutDetection. To obtain the ROC curves we varied the penalty for epidemic segments in CAPA, the penalty in PELT, the threshold in luminol, and the beta parameter of BreakoutDetection.</p><p>The resulting ROC curves, as well as examples of realisations of the data for the scenario of weak and strong changes in mean can be found in <ref type="figure" target="#fig_4">Figures 2 and 3</ref> respectively. The results for joint changes in mean and variance, as well as changes in variance can be found in the supplementary material. We see that CAPA generally outperforms PELT, even in the absence of point anomalies. This is due to it having more statistical power, by exploiting the epidemic nature of the change. This becomes particularly apparent when the changes are weak. CAPA also outperform BreakoutDetection and luminol for epidemic changes in mean, the scenario for which these methods were developed. Moreover, the performance of CAPA is barely affected by the presence of point anomalies, unlike that of the non-robust methods. This observation remained true when we repeated our analysis with N (0, 1000 2 ) distributed point anomalies. The ROC curves for these additional simulations can be found in the supplementary material.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2">Precision</head><p>We also investigated the precision of the true positives for the four methods. We compared the mean absolute distance between detected changes (i.e. true changes which had a detected changes within 20 observations) and      the nearest estimated change across all the 12 scenarios. We used the default penalties for all methods (i.e. the default threshold for luminol and the BIC for PELT and CAPA) except BreakoutDetection, where we found that the default penalty returned no true positives at all for many scenarios. We therefore used the results we obtained when deriving the ROC curves to set the beta parameter to an appropriate level for each case.</p><p>The results of this analysis can be found in <ref type="figure" target="#fig_7">Figure 4</ref>. We see that CAPA is generally the most precise one. Moreover, its precision is not too strongly affected by the presence of point anomalies, unlike that of PELT, whose performance is significantly deteriorated by anomalies, especially when the signal is weak. The reason for this is that PELT fits additional changes in the presence of anomalies, which results in shorter segments. This leads to less accurate parameter estimates, which results in poorer estimates for the location of the changepoint. CAPA does not face this problem since the parameter of the typical distribution is shared across all segments. This remains true when the point anomalies are are a lot stronger, as can be seen in the supplementary material.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.3">Runtime</head><p>Finally, we investigated the relationship between the runtime of the 4 methods and the number of observations. Our comparison is based on data following a distribution identical to the one we used in Sections 5.1 and 5.2. Since this type of data favours PELT and CAPA, because the expected number of changes increases with the number of observations, we also compared the runtime of the four methods on stationary N (0, 1) data, which represents the worst case scenario for these methods. <ref type="figure">Figure 5</ref> displays the average speed over 50 repetitions for the two cases. When comparing the slopes between 10000 and 50000 datapoints we note that it is very close to 2 for BreakoutDetection in both cases as well as CAPA and PELT for stationary data, suggesting quadratic scaling. In the presence of epidemic changes however, that slope is 1.26 for CAPA -1.14 even between 25000 and 50000 datapoints -thus suggesting near linear runtime. We now apply CAPA to the Kepler light curve data, with the aim of detecting exoplanets via the so called transit method ( <ref type="bibr" target="#b29">[30]</ref>). As described in Section 1, this approach consists of repeatedly measuring a star's brightness for a certain period of time, thus obtaining a so called light curve. Periodically recurring dips in the measurements then point towards the transit of a planet causing a small eclipse. Since the signal of transiting planets is known to be weak, we amplify it by exploiting its periodic nature. If the period of an orbiting planet were known, the signal of its transit could be strengthened by considering all data points to have been gathered at their measurement time modulo that period. We would thus obtain an irregularly sampled time series which we can transform into a regularly sampled time series by binning the data into equally sized bins of length approximately equal to the measurement interval of the Kepler telescope and taking the average within each bin. We could then apply CAPA to this preprocessed data, which would exhibit a stronger signal for any planet with the associated period. Detecting the signal for such a planet involves detecting a collective anomaly with a reduced mean. However we need to do this whilst being robust to the point anomalies in the data, and the potentially other collective anomalies associated with planets with different periods. The results obtained by applying this method, using the default penalties of our software implementation of CAPA, to the light curve of Kepler 1132 using a period of 62.8, 62.9, and 63.0 days can be found in <ref type="figure" target="#fig_8">Figure 6</ref>. We note that using a period of 62.9 days results in a promising dip, which is not present when using 62.8 or 63 days as period.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">Application to Kepler Light Curve Data</head><p>Given a light curve, the periods of exoplanets orbiting the corresponding star (if any are present) are obviously not known a priori. We can, however, apply the above approach for a range of periods, given the fact that the cost of running CAPA is comparable to that of binning the data. Since transits appear as periods of reduced mean, we record the strength of the strongest change in mean as defined by max k ( µ,k ) and estimated using the sample mean and variance in the collective anomalies, and the estimated means and variance of the typical distribution. We expect this quantity to be largest for the periods of exoplanets. We identified the strength of the strongest change in mean for all periods from 1 day to 200 days with increments of 0.01 days for the light curve of Kepler 1132. The result of this analysis can be found in <ref type="figure" target="#fig_9">Figure 7</ref>. Note that the largest change in mean is recorded at a period of 62.89 days. As with spectral methods, we also observe resonance of the main signal at integer fractions of that period. This result is consistent with the existing literature, which considers Kepler 1132 to be orbited approximately every 62.892 days by the exoplanet Kepler 1132-b whose radius is about 2.5 times that of the earth ( <ref type="bibr" target="#b19">[20]</ref>).</p><p>We also applied CAPA to the light curves of other stars with confirmed exoplanets and were able to detect their transit signal at the right period. A more detailed exposition of these results can be found in the supplementary material. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8">Appendix: Proofs</head><p>This Appendix contains proofs for all the results in this papers. Proofs for Lemmata we use can be found in the supplementary material.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8.1">Proof of Proposition 1</head><p>Let m ≥ m + ˆ l. We have</p><formula xml:id="formula_26">C(m) + m t=m+1 C(x t , ˆ θ (m+1):m ) + β ≤ C(k) + m t=k C(x t , ˆ θ (k+1):m ) + m t=m+1 C(x t , ˆ θ (m+1):m ) + β ≤ C(k) + m t=k+1 C(x t , ˆ θ (k+1):m ) + β,</formula><p>which shows that the cost of choosing k will always be larger than that of choosing m. We can thus disregard k.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8.2">Proof of Theorem 1</head><p>Before proving this theorem, we introduce some notation. We define the cost of a segment x i:j under the true partition {0, t 1 , ..., t K , n} and true parameters to be</p><formula xml:id="formula_27">C(x i:j ) = j t=i log(σ(t) 2 ) + j t=i η 2 t .</formula><p>Note that this cost is additive, i.e. for a &lt; b − 1 &lt; b + 1 &lt; c we have C(x a:c ) = C(x a:b ) + C(x (b+1):c ), whilst the fitted cost satisfies the inequality˜Cinequality˜ inequality˜C(x a:c ) ≥ ˜ C(x a:b ) + ˜ C(x (b+1):c ). We also define the residual sum of squares</p><formula xml:id="formula_28">Y i:j = j k=i (η k − ¯ η i:j ) 2 .</formula><p>Finally, we will work on the event sets E 1 , E 2 , E 3 , E 4 , E 5 , and E 6 which we define below using notation a := a(i, j) = j − i + 1</p><formula xml:id="formula_29">E 1 := a¯ η 2 i:j &lt; 4(1 + ) log(n), 1 ≤ i ≤ j ≤ n , E 2 := Y i:j ≤ a − 1 + 2 (a − 1)(2 + ) log(n) + (4 + 2) log(n), 1 ≤ i ≤ j ≤ n , E 3 := {Y i:j ≥ c(a, n)(a − 1), 1 ≤ i &lt; j ≤ n} , E 4 := t k +1 t=t k −1 (x t − ¯ x (t k −1):(t k +1) ) 2 σ 2/3 k σ 4/3 k−1 &gt; n − , t k +2 t=t k (x t − ¯ x t k :(t k +2) ) 2 σ 4/3 k σ 2/3 k−1 &gt; n − , 1 ≤ k ≤ K − 1 , E 5 := (x t k − x t k +1 ) 2 σ k σ k−1 &gt; n − , 1 ≤ k ≤ K , E 6 := Y i:j ≥ a − 1 − 2 (a − 1)(2 + ) log(n), 1 ≤ i ≤ j ≤ n ,</formula><p>where c(a, n) &lt; 1 satisfies</p><formula xml:id="formula_30">a 2 · c(a, n) − 1 − log(c(a, n)) 2 = (2 + ) log(n).</formula><p>Note that c(a, n) is guaranteed to exits by the intermediate value theorem. Indeed, the function f (x) = x − 1 − log(x) is continuous and satisfies f (1) = 0 and f (x) → ∞ as x → 0 + . The motivation for these events is as follows: E 1 bounds the error in the estimates of the mean, while E 2 , E 3 , and E 6 bound the error in the estimates of the variance. E 5 and E 4 are needed to prevent the existence of segments length two and three respectively in which the observations lie to close to each other, which would encourage the algorithm to erroneously fit them in a short segment of low variance. We write E = ∩E i . We are now in a position to prove the following lemmata:</p><p>Lemma 1 (Yao 1988) P(E 1 ) &gt; 1 − ˜ K 1 n − , for some constant˜Kconstant˜ constant˜K 1 .</p><formula xml:id="formula_31">Lemma 2 P(E 2 ) &gt; 1− ˜ K 2 n − , P(E 3 ) &gt; 1− ˜ K 3 n − , P(E 4 ) &gt; 1− ˜ K 4 n − , P(E 5 ) &gt; 1− ˜ K 5 n − , P(E 6 ) &gt; 1− ˜ K 6</formula><p>n − , and P(E 7 ) &gt; 1 − ˜ K 7 n − for some constants˜Kconstants˜ constants˜K 2 , ˜ K 3 , ˜ K 4 , ˜ K 5 , ˜ K 6 , and˜Kand˜ and˜K 7 .</p><p>Lemma 3 There exists a constant˜Cconstant˜ constant˜C 1 such that Y i:j − a − a log(Y i:j /a) ≤ ˜ C 1 log(n) holds on E for all 1 ≤ i &lt; j ≤ n.</p><p>Lemma 4 Let i, j be such that there exists some k such that t k−1 &lt; i &lt; j ≤ t k . The following holds given E :</p><formula xml:id="formula_32">0 ≤ C (x i:j ) − ˜ C (x i:j ) ≤ ˜ C 2 log(n).</formula><p>Lemma 5 Let i, j be such that ∃k such that t k−1 = i &lt; j ≤ t k or t k−1 &lt; i &lt; j = t k + 1. The following then holds given E C (x i:j ) − ˜ C (x i:j ) ≤ ˜ C 3 log(n)</p><p>Lemma 6 Let a, b, c ∈ τ for some partition τ of x i,j such that ∃k such that t k−1 &lt; a &lt; b &lt; c ≤ t k . Then,</p><formula xml:id="formula_33">˜ C (x i:j , τ, β) − ˜ C (x i:j , τ −b , β) ≥ 3 4 β log(n) 1+δ ,</formula><p>where τ −b = τ \ {b} holds on E for large enough n.</p><p>Lemma 7 For all α &gt; 0, there exists a constant˜κconstant˜ constant˜κ( k , α, δ, ,) decreasing in k such that˜Cthat˜ that˜C (</p><formula xml:id="formula_34">x i:j ) − (C (x i:t k ) + C x (t k +1):j ) ≥ α log(n) 1+δ holds on E if j − t k = t k + 1 − i ≥ ˜ κ( k , α, δ, ,) log(n) 1+δ and j ≤ t k+1 , i &gt; t k−1 for all n &gt; 2.</formula><p>We now define˜κdefine˜ define˜κ k = 2˜κ2˜κ( k , 3β, δ, ,), noting it decreases in k , and the set of partitions</p><formula xml:id="formula_35">B := {0, t 1 , t 2 , ..., t K , n} | |t k − t k | ≤ ˜ κ k log(n) 1+δ 1 ≤ k ≤ K ,</formula><p>which are withiñ κ k log(n) 1+δ of the true partition. We will show that, for large enough n, the optimal partition lies in B given the event set E. Given the probability of E, this proves Theorem 1. Our approach will consist of showing that the cost of a partition τ / ∈ B is higher than that of the true partition with the true parameters (see Proposition 4). We will achieve this by adding free changes to τ thus splitting up the series into multiple sub-segments each containing a single true changepoint and˜κand˜ and˜κ k log(n) 1+δ points either side of it. This also defines a projection of τ onto the partitions of the sub-segments. We define the set of partitions</p><formula xml:id="formula_36">B k := {i − 1, t k , j} | |t k − t k | ≤ ˜ κ k log(n) 1+δ</formula><p>for segments x i:j for which there exist a k such that:</p><formula xml:id="formula_37">t k−1 +1 ≤ i ≤ t k −˜ κ k log(n) 1+δ &lt; t k +˜κ+˜κ k log(n) 1+δ ≤ j ≤ t k+1</formula><p>as an analogue of B for the whole of x.</p><p>If τ / ∈ B, there must be at least one sub-segment for which the projection of τ does not lie in B k . We will show in Proposition 3, that the cost of the true partition using the true parameters is at least O(log(n) 1+δ ) lower than that of the projection of τ on such a segment. We will also show in Proposition 2 that the projections of τ which are in B k have a cost which is at most O(log(n)) lower than that of the true partition with true parameters.</p><p>Proposition 2 Let i, j ∈ N , be such that there exists a k such that: t k−1 + 1 ≤ i &lt; t k &lt; j ≤ t k+1 , then there exists a constant˜Cconstant˜ constant˜C 4 such that given E,</p><formula xml:id="formula_38">C (x i:j ) + β log(n) 1+δ − ˜ C(x i:j , τ, β) ≤ ˜ C 4 log(n)</formula><p>for all valid partitions τ of the form τ = {i − 1, ˆ t, j}, if n is large enough.</p><p>Proof of Proposition 2: The following cases are possible:</p><formula xml:id="formula_39">Case 1: ˆ t = t k . Then: C (x i:j ) + β log(n) 1+δ − ˜ C(x i:j , {i − 1, ˆ t, j}, β) = C (x i:j ) − ˜ C(x i:t k ) + ˜ C(x (t k +1):j ) ≤ 2 ˜ C 2 log(n),</formula><p>where the inequality follows from Lemma 4. Case 2: ˆ t = t k + 1. Then:</p><formula xml:id="formula_40">C (x i:j ) + β log(n) 1+δ − ˜ C(x i:j , {i − 1, ˆ t, j}, β) = C (x i:j ) − ˜ C(x i:(t k +1) ) + ˜ C(x (t k +2):j ) ≤ ( ˜ C 2 + ˜ C 3 ) log(n),</formula><p>where the inequality follows from Lemmata 4 and 5. Case 3: ˆ t &gt; t k + 1. Then:</p><formula xml:id="formula_41">C (x i:j ) + β log(n) 1+δ − ˜ C(x i:j , {i − 1, ˆ t, j}) ≤ C (x i:j ) + 2β log(n) 1+δ − ˜ C(x i:j , {i − 1, t k , ˆ t, j}, β) = C (x i:j ) − ˜ C(x i:t k ) + ˜ C(x (t k +1): ˆ t ) + ˜ C(x ( ˆ t+1):j ) ≤ 3 ˜ C 2 log(n),</formula><p>where the first inequality follows from the fact that introducing an unpenalised changepoint reduces cost and the second is a consequence of Lemma 4. Case 4: ˆ t = t k − 1. Symmetrical to case 2. Case 5: ˆ t &lt; t k − 1. Symmetrical to case 3. This finishes our proof.</p><p>Proposition 3 There exists a constant n 4 (β, δ, ,), such that ∀i, j for which ∃k such that</p><formula xml:id="formula_42">t k−1 + 1 ≤ i ≤ t k − ˜ κ k log(n) 1+δ &lt; t k + ˜ κ k log(n) 1+δ ≤ j ≤ t k+1˜C k+1˜ k+1˜C(x i:j , τ, β) − C (x i:j ) + β log(n) 1+δ ≥ 1 3 β log(n) 1+δ</formula><p>holds for all τ / ∈ B k given E and n &gt; n 4 (β, δ, ,).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Proof of Proposition 3:</head><p>Consider τ / ∈ B k . We consider the following three cases and denote H := 1 2 ˜ κ k log(n) 1+δ , noting that it is larger thañ κ(, 3β, δ, ,) log(n) 1+δ .</p><p>Case 1: |τ | = 2. We have τ = {i − 1, j}. Hence:</p><formula xml:id="formula_43">˜ C(x i:j , τ , β) ≥ ˜ C(x i:(t k −H) ) + ˜ C(x (t k −H+1):(t k +H) ) + ˜ C(x (t k +H+1):j ) ≥ ˜ C(x i:(t k −H) ) + C(x (t k −H+1):(t k +H) ) + 3β log(n) 1+δ + ˜ C(x (t k +H+1):j ) ≥2β log(n) 1+δ − 2 ˜ C 2 log(n) + C (x i:j ) + β log(n) 1+δ ,</formula><p>where the second inequality follows from the definition of H and Lemma 7 and the third from Lemma 4. Case 2: |τ | = 3. We have τ = {i − 1, t k + L, j}, where |L| &gt; ˜ κ k log(n) 1+δ . We assume L &gt; 0, the other case being very similar. We have:</p><formula xml:id="formula_44">˜ C(x i:j , {i − 1, t k + L, j}, β) = ˜ C(x i:(t k +L) ) + ˜ C(x (t k +L+1):j ) + β log(n) 1+δ ≥ ˜ C(x i:(t k −H−1) ) + ˜ C(x (t k −H):(t k +H) ) + ˜ C(x (t k +H+1):(t k +L) ) − ˜ C 2 log(n) + C(x (t k +L+1):j ) + β log(n) 1+δ ≥3β log(n) 1+δ − 3 ˜ C 2 log(n) + C (x i:j ) + β log(n) 1+δ ,</formula><p>where the inequalities follow from of the definition of H as well as Lemmata 7 and 4. Case 3: |τ | ≥ 4. Let τ = {a 1 , a 2 , ..., a |τ | }, where a 1 = i − 1 and a |τ | = j. There must exist a l ∈ {2, ..., |τ | − 1}, such that a l−1 &lt; t k and a l+1 &gt; t k + 1. We thus have:</p><formula xml:id="formula_45">˜ C(x i:j , τ , β) = (|τ | − 3)β log(n) 1+δ +   l−2 m=1 + |τ |−1 m=l+1   ˜ C(x am+1,am+1 ) + ˜ C(x (a l−1 +1):a l+1 , {a l−1 , a l , a l+1 }, β) ≥ (|τ | − 2)β log(n) 1+δ +   l−2 m=1 + |τ |−1 m=l+1   C(x am+1,am+1 ) + C(x (a l−1 +1):a l+1 ) − (|τ | − 3) ˜ C 2 log(n) − ˜ C 4 log(n) = C(x i:j , τ, β) + β log(n) 1+δ + (|τ | − 3)β log(n) 1+δ − (|τ | − 3) ˜ C 2 + ˜ C 4 log(n),</formula><p>by Lemma 4 and Proposition 2. This finishes the proof.</p><p>Proposition 4 There exists a constantñconstant˜constantñ 5 (β, δ, , ˜ δ, ,) decreasing in such that given E, we have˜C</p><formula xml:id="formula_46">have˜ have˜C(x 1:n , τ, β) − C(x 1,n ) + Kβ log(n) 1+δ ≥ 1 4 β log(n) 1+δ</formula><p>for all τ / ∈ B if n ≥ ˜ n 5 (β, δ, , ˜ δ, ,).</p><p>Proof of Proposition 4: First, consider the special case K = 0. For this case, τ / ∈ B implies thatˆKthatˆ thatˆK ≥ 1. We have</p><formula xml:id="formula_47">˜ C(x 1:n , τ, β) ≥ ˜ C(x 1:n , {0, n}, β) + ˆ K 3 4 β log(n) 1+δ ≥ C(x 1:n ) + ˆ K 3 4 β log(n) 1+δ − ˜ C 2 log(n),</formula><p>where the first inequality follows from Lemma 6 and the second from Lemma 4. Next assume K ≥ 1. Let τ / ∈ B. We now introduce free changepoints l 0 , l 1 , ..., l K to break up the series into multiple sub-series with one true changepoint each. We impose l 0 = 0, l K = n, |l k − t k | &gt; 4˜κ4˜κ k log(n) 1+δ for 0 &lt; k ≤ K and |l k − t k+1 | &gt; 4˜κ4˜κ k log(n) 1+δ for 0 ≤ k &lt; K. We also require that τ ∪ {l 0 , ..., l K } is a valid partition (i.e. one which has segments of length at least two) and that there exists a ˆ k such that</p><formula xml:id="formula_48">τ ˆ k := τ ∩ {î k−1 + 1, l ˆ k−1 + 2, ..., l ˆ k } / ∈ B ˆ k . We are guaranteed to find such points l 0 , l 1 , ..., l K if n is such that log(n) 1+δ+˜δ1+δ+˜ 1+δ+˜δ ≥ 12˜κ12˜κ k log(n) 1+δ ,</formula><p>which is satisfied if n &gt; ˜ n 5 (β, δ, , ˜ δ, ,), whereñwhere˜whereñ 5 (β, δ, , ˜ δ, ,) decreases in δ. Indeed, we can choose points near the middle of the true segments which are not in τ , or by select points in τ if the former is impossible because there are too many point in τ near the middle of some segment.</p><p>Since introducing free changes reduces the cost we then have</p><formula xml:id="formula_49">˜ C(x 1:n , τ, β) ≥ K k=1˜C k=1˜ k=1˜C(x (l k−1 +1):l k , τ k , β) = ˜ C(x (l ˆ k−1 +1):l ˆ k , τ ˆ k , β) + k = ˆ k ˜ C(x (l k−1 +1):l k , τ k , β) ≥ C(x 1:n , τ, β) + 1 3 β log(n) 1+δ − (K − 1) ˜ C 4 log(n),</formula><p>where the second inequality follows from Propositions 2 and 3. This finishes the proof. Proof of Theorem 1: B contains the true partition with fitted parameters which is cheaper than the true partition with true parameters. Proposition 4 shows that conditional on E the true partition with true parameters will be cheaper than all τ / ∈ B fo n &gt; ˜ n 5 (β, δ, , ˜ δ, ). The optimal partition must therefore be in B, given event set E. This proves Theorem 1, since Lemmata 1 and 2 imply that P(E) ≥ 1</p><formula xml:id="formula_50">− ( ˜ K 1 + ˜ K 2 + ˜ K 3 + ˜ K 4 + ˜ K 5 + ˜ K 6 )n − .</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="8.3">Proof of Theorem 2</head><p>In order to prove this result, we will use the following notation in this section: We define˜Cdefine˜ define˜C E (x 1:n , τ E , β, µ, σ) to be the cost of an epidemic partition τ E = {ˆs{ˆs 1 , ˆ e 1 , ...ˆ s ˆ K , ˆ e ˆ K } under a penalty β log(n) 1+δ and inferred parameters of the typical distribution µ, σ. We define C E (x 1:n , β, µ, σ), to be the cost under the true partition using the true parameters for the epidemic segments and µ, σ as estimates for the parameters of the typical distribution. We also define the set of epidemic partitions</p><formula xml:id="formula_51">B E = {ˆs{ˆs 1 , ˆ e 1 , ..., ˆ s K , ˆ e K } | |ê k − e k | &lt; ˜ κ k log(n) 1+δ , |ˆs|ˆs k − s k | &lt; ˜ κ k log(n) 1+δ</formula><p>as an epidemic equivalent of B. Finally, we note that we can extend the definition of the event set E to epidemic changepoints by treating the s k and e k like classical changepoints. We will begin by proving a simplified version of the theorem in which we run our epidemic changepoint detection algorithm without allowing for epidemic changes of length one in variance only and imposing that each segment of the data allocated to the typical distribution is of length at least two. The reason for this is that this allows us to define an equivalent non-epidemic partition, whose segments must be of length at least two, for each epidemic partition. We also begin by assuming that the parameter of the typical distribution is known. This simplified version captures the main ideas of the full proof. We will proceed to showing that the result also holds when the typical mean and variance are unknown. This will be followed by a proof of the full result by means of introducing and proving the consistency of a modified version of the classical changepoint detection algorithm described in the previous section which also allows for segments of length one.</p><p>For now, we assume that all segments are of length at least two and that the true parameters µ 0 and σ 0 are known. This allows us to use the fact that the cost of the true epidemic partition using the true parameters is exactly the same as the cost of the corresponding true non-epidemic partition using the true parameters with twice the penalty. We can therefore prove the following proposition, as a corollary of Proposition 4.</p><p>Proposition 5 There exists a constantñconstant˜constantñ 6 (β, δ, , ˜ δ, ,), decreasing in such that for all</p><formula xml:id="formula_52">τ E / ∈ B E ˜ C E (x 1:n , τ E , β, µ 0 , σ 0 ) − C E (x 1:n , β, µ 0 , σ 0 ) ≥ 1 5 β log(n) 1+δ/2</formula><p>holds on E for large enough n &gt; ˜ n 6 (β, δ, , ˜ δ, ,).</p><p>Proof of Proposition 5: We note that</p><formula xml:id="formula_53">˜ C E (x 1:n , τ E , β, µ 0 , σ 0 ) ≥ ˜ C x 1:n , τ E ∪ {0, n}, 1 2 β + β 2 ˆ K k=2 I{s k = e k−1 } log(n) 1+δ ,</formula><p>because using fitted parameters instead of µ 0 and σ 0 for segments allocated to the typical distribution under τ E can only reduce the cost. Additionally, two epidemic changes correspond to three classical changepoints if their end and starting points coincide. Moreover,</p><formula xml:id="formula_54">C E (x 1:n , β, µ 0 , σ 0 ) = C (x 1:n ) + Kβ log(n) 1+δ .</formula><p>Therefore:</p><formula xml:id="formula_55">˜ C E (x 1:n , τ E , β, µ 0 , σ 0 ) − C E (x 1:n , β, µ 0 , σ 0 ) ≥ ˜ C x 1:n , τ E ∪ {0, n}, 1 2 β + β 2 ˆ K k=2 I{s k = e k−1 } log(n) 1+δ − C (x 1:n ) + 2K β 2 log(n) .</formula><p>This leaves two possibilities. If τ E ∪ {0, n} / ∈ B then the above will exceed 1 4 β log(n) 1+δ , by proposition 4. Since τ E / ∈ B E , the only way we can have τ E ∪ {0, n} ∈ B is if there exists a k such that s k = e k−1 . In that case the difference will exceed 1 2 β log(n) 1+δ − (2K + 1) ˜ C 4 log(n),</p><p>by Proposition 2. This finishes the proof. We can now use this proposition to prove Theorem 2 in the same way we used 4 to prove Theorem 1. Proof of Theorem 2: Proposition 5 proves Theorem 2 as Lemmata 1 and 2 imply that P(E) ≥ 1</p><formula xml:id="formula_56">− ( ˜ K 1 + ˜ K 2 + ˜ K 3 + ˜ K 4 + ˜ K 5 + ˜ K 6 )n − .</formula><p>We now introduce the following lemma about the distribution of the median and inter-quantile range. It will allow us to prove Theorem 2 when the true parameters are unknown.</p><p>Lemma 8 There exists a constants˜Kconstants˜ constants˜K 8 , D 1 , and D 2 such that for large enough n</p><formula xml:id="formula_57">P |ˆµ|ˆµ − µ 0 | ≤ D 1 σ 0 log(n) n , ˆ σ 2 σ 2 0 − 1 ≤ D 2 log(n) n ≥ 1 − ˜ K 8 n −</formula><p>We can use this Lemma above to introduce a new event E 7 stating that the estimated parameters are close to the true parameters.</p><formula xml:id="formula_58">E 7 := |ˆµ|ˆµ − µ 0 | ≤ D 1 σ 0 log(n) n , ˆ σ 2 σ 2 0 − 1 ≤ D 2 log(n) n .</formula><p>This event bounds the effect of using the estimated typical parameters instead of the true parameters for the cost of the true distribution with true non-typical parameters. Indeed, the following lemma holds:</p><p>Lemma 9 There exists a constant˜Cconstant˜ constant˜C 7 such that given E and E 7 and n large enough we have:</p><formula xml:id="formula_59">˜ C E (x 1:n , β, ˆ µ, ˆ σ) − C E (x 1:n , β, µ 0 , σ 0 ) ≤ ˜ C 7 log(n).</formula><p>We can use this lemma to prove the following extension of Proposition 5 to the case when the typical parameters are inferred.</p><p>Proposition 6 There exists a constantñconstant˜constantñ 7 (β, δ, , ˜ δ, ,) decreasing in such that for all</p><formula xml:id="formula_60">τ E / ∈ B E ˜ C E (x 1:n , τ E , β, ˆ µ, ˆ σ) − C E (x 1:n , β, ˆ µ, ˆ σ) ≥ 1 5 β log(n) 1+δ/2</formula><p>holds on E ∩ E 7 for n &gt; ˜ n 7 (β, δ, , ˜ δ, ,).</p><p>Proof of Proposition 6: We note that, as before,</p><formula xml:id="formula_61">˜ C E (x 1:n , τ E , β, ˆ µ, ˆ σ) ≥ ˜ C x 1:n , τ E ∪ {0, n}, 1 2 β + β 2 ˆ K k=2 I{s k = e k−1 } log(n) 1+δ C E (x 1:n , β, µ, σ) = C (x 1:n ) + Kβ log(n) 1+δ ,</formula><p>Therefore we now have</p><formula xml:id="formula_62">˜ C E (x 1:n , τ E , β, ˆ µ, ˆ σ) − C E (x 1:n , β, ˆ µ, ˆ σ) ≥ ˜ C x 1:n , τ E ∪ {0, n}, 1 2 β + β 2 ˆ K k=2 I{s k = e k−1 } log(n) 1+δ − C (x 1:n ) + 2K β 2 log(n) 1+δ − ˜ C 7 log(n),</formula><p>by applying Lemma 9. The rest of the proof is identical to that of Proposition 5, with an added O(log(n)) term. In order to be able to extend Proposition 6 to the case in which we allow epidemic changes of length one in variance only, as well as segments of the typical distribution which are of length one, we will prove the consistency of the following adaptation of the algorithm detecting classical changepoints we introduced in the previous section. We now let the segment costs be</p><formula xml:id="formula_63">˜ C(x i:j ) = ˜ C(x i:j , {i − 1, j}) =        ( ˆ t k+1 − ˆ t k ) logˆt logˆlogˆt k+1ˆt k+1ˆ k+1ˆt k +1 (xt−¯ x (ˆ t k +1):ˆ t k+1 ) 2 ( ˆ t k+1 − ˆ t k ) + 1 i &lt; j, min log(˜ σ 2 ) + (xi−˜ µ) 2 ˜ σ 2 , 1 + log(γ ˜ σ 2 + (x t − ˜ µ) 2 ) i = j,</formula><formula xml:id="formula_64">where |˜µ|˜µ − µ k | ≤ D 1 σ k log(n) n and | ˜ σ 2 σ 2 k − 1| &lt; D 2 log(n) n</formula><p>for k either k − 1,k, or k + 1, when i belongs to the kth segment. Given E 7 the range of allowed˜σallowed˜ allowed˜σ 2 and˜µand˜ and˜µ is therefore guaranteed to contain the estimated typical parametersˆσparametersˆ parametersˆσ 2 andˆµandˆ andˆµ when applied to x. The algorithm can obviously not be implemented in practice, as it requires knowledge of the true parameters. It is nevertheless a consistent method.</p><p>To prove this, we need to define a last event set E 8 which controls the newly introduced segments of length one:</p><formula xml:id="formula_65">E 8 := |x t − µ k+1 | ≥ σ k n −2+ , |x t − µ k−1 | ≥ σ k n −2+ , 1 ≤ t ≤ n ,</formula><p>We can prove the following probability bounds</p><p>Lemma 10 There exists a constant˜Kconstant˜ constant˜K 8 such that</p><formula xml:id="formula_66">P(E 8 ) ≥ 1 − ˜ K 8 n −</formula><p>We can now prove the following proposition, adapted from Proposition 4 for this modified penalised cost approach:</p><p>Proposition 7 There exists a constantñconstant˜constantñ 7 (β, δ, , ˜ δ, ) such that given E ∩ E 8 , we have˜C</p><formula xml:id="formula_67">have˜ have˜C(x 1:n , τ, β) − C(x 1,n ) + Kβ log(n) 1+δ ≥ 1 5 β log(n) 1+δ</formula><p>for all τ / ∈ B if n ≥ ˜ n 7 (β, δ, , ˜ δ, )</p><p>Proof of Proposition 7: Identical to the proof of Proposition 4. We just need to replace Lemma 4 by</p><p>Lemma 11 There exists a constant˜Cconstant˜ constant˜C 2 such that if i, j are such that there exists some k such that t k−1 &lt; i ≤ j ≤ t k , then given E ∩ E 7 and n large enough</p><formula xml:id="formula_68">C (x i:j ) − ˜ C (x i:j ) ≤ ˜ C 2 log(n).</formula><p>to also account for the newly added segments of length one. We can now prove that Proposition 8 There exists a constantñconstant˜constantñ 8 (β, δ, , ˜ δ, ,) decreasing in such that for all</p><formula xml:id="formula_69">τ E / ∈ B E ˜ C E (x 1:n , τ E , β, ˆ µ, ˆ σ) − C E (x 1:n , β, ˆ µ, ˆ σ) ≥ 1 5 β log(n) 1+δ/2</formula><p>holds on E ∩ E 7 ∩ E 8 for n &gt; ˜ n 8 (β, δ, , ˜ δ, ,).</p><p>holds even when we allow for epidemic changes of length one in variance only and do not impose that segments allocated to the typical distribution have to be of length at least two. Proof of Proposition 8: Identical to the proof of Proposition 6 using Proposition 7 instead of Proposition 4.</p><p>Proof of Theorem 2: Proposition 8 proves Theorem 2 since Lemmata 1, 2, 8, and 10 show that</p><formula xml:id="formula_70">P(E ∩ E 7 ∩ E 8 ) ≥ 1 − ( ˜ K 1 + ˜ K 2 + ˜ K 3 + ˜ K 4 + ˜ K 5 + ˜ K 6 + ˜ K 7 + ˜ K 8 )n − .</formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="9">Supplementary Material</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="9.1">Proofs of Lemmata</head><p>Lemma 1 (Yao 1988) P(E 1 ) &gt; 1 − ˜ K 1 n − , for some constant˜Kconstant˜ constant˜K 1 .</p><p>Proof of Lemma 1: See <ref type="bibr" target="#b34">[35]</ref>.</p><formula xml:id="formula_71">Lemma 2 P(E 2 ) &gt; 1− ˜ K 2 n − , P(E 3 ) &gt; 1− ˜ K 3 n − , P(E 4 ) &gt; 1− ˜ K 4 n − , P(E 5 ) &gt; 1− ˜ K 5 n − , P(E 6 ) &gt; 1− ˜ K 6 n − , and P(E 7 ) &gt; 1 − ˜ K 7 n − for some constants˜Kconstants˜ constants˜K 2 , ˜ K 3 , ˜ K 4 , ˜ K 5 , ˜ K 6 , and˜Kand˜ and˜K 7 .</formula><p>Proof of Lemma 2: We note that Y i:j ∼ χ 2 a−1 .</p><p>[16] proved that</p><formula xml:id="formula_72">P −2 √ kx ≤ χ 2 k − k ≤ 2 √ kx + 2x ≥ 1 − 2e −x .</formula><p>Therefore:</p><formula xml:id="formula_73">P −2 (a − 1)(2 + ) log(n) ≤ Y i:j − (a − 1) ≤ 2 (a − 1)(2 + ) log(n) + 2(2 + ) log(n) ≥ 1 − 2n −(2+) .</formula><p>A Bonferroni correction therefore gives P(E 2 ∩ E 6 ) &gt; 1 − 2n − . We can derive the following Chernoff bound for k ≥ 1 and 0 ≤ ˜ c &lt; 1:</p><formula xml:id="formula_74">P χ 2 k ≤ k˜ck˜c = P exp θ(χ 2 k − k˜ck˜c) ≥ 1 ≤ E exp θ(χ 2 k − k˜ck˜c) = e −k˜cθk˜cθ E e θχ 2 k = e −k˜cθk˜cθ 1 1 − 2θ k/2 , holds for all θ &lt; 0. Setting θ = 1 2 (1 − 1 ˜ c ) we thus get P χ 2 k ≤ k˜ck˜c ≤ exp − k 2 (˜ c − 1 − log(˜ c)) .</formula><p>Thus if we let c(a, n) &lt; 1 be such that</p><formula xml:id="formula_75">a 2 · c(a, n) − 1 − log(c(a, n)) 2 = (2 + ) log(n),</formula><p>and write c := c(a, n) for simplicity, we have</p><formula xml:id="formula_76">P (Y i:j ≤ c(a − 1)) ≤ exp − a − 1 2 (c − 1 − log(c)) ≤ exp − a 4 (c − 1 − log(c)) = n −(2+) ,</formula><p>for a ≥ 2. A Bonferroni correction then gives P(E 3 ) &gt; 1 − n − . Next we note that</p><formula xml:id="formula_77">σ k η t k +1 + µ k+1 − µ k − σ k η t k √ σ k+1 σ k ∼ N µ k+1 − µ k √ σ k+1 σ k , σ 2 k+1 + σ 2 k σ k+1 σ k .</formula><p>Consequently, we have that:</p><formula xml:id="formula_78">P |σ k+1 η t k +1 + µ k+1 − µ k − σ k η t k | √ σ k+1 σ k ≤ n − ≤ 2σ k+1 σ k π(σ 2 k+1 + σ 2 k−1 ) n − ≤ 1 π n − .</formula><p>A Bonferroni correction then gives P(E 5 ) &gt; 1 − K/ √ πn − . Finally, we have:</p><formula xml:id="formula_79">x t − ¯ x t k :(t k +2) ∼    N 2µ k −2µ k+1 3 , 4σ 2 k +2σ 2 k+1 9 t = t k , N µ k+1 −µ k 3 , 2σ 2 k +5σ 2 k+1 9 t = t k + 1, t k + 2,</formula><p>which means that</p><formula xml:id="formula_80">(x t − ¯ x t k :(t k +2) ) 2 ≥ 4σ 2 k + 2σ 2 k+1 9 n − , t = t k , (x t − ¯ x t k :(t k +2) ) 2 ≥ 1σ 2 k + 5σ 2 k+1 9 n − , t = t k + 1, t k + 2,</formula><p>holds with probability exceeding 1 − 3n − . Adding up the three inequalities then gives</p><formula xml:id="formula_81">t k +2 t=t k (x t − ¯ x t k :(t k +2) ) 2 ≥ 12σ 2 k+1 + 6σ 2 k 9 n − ≥ 2σ 4/3 k+1 σ 2/3 k n − .</formula><p>By a similar argument,</p><formula xml:id="formula_82">t k +1 t=t k −1 (x t − ¯ x (t k −1):(t k +1) ) 2 ≥ 2σ 2/3 k+1 σ 4/3 k n −</formula><p>must also hold with probability 1 − 3n − . A Bonferroni correction then gives P(E 4 ) ≥ 1 − 6Kn − . This finishes our proof.</p><p>Lemma 3 There exists a constant˜Cconstant˜ constant˜C 1 such that Y i:j − a − a log(Y i:j /a) ≤ ˜ C 1 log(n) holds on E for all 1 ≤ i &lt; j ≤ n.</p><p>Proof of Lemma 3: Consider the function f (x) = x − a − a log(x/a). This function decreases monotonically on (0, a) and increases monotonically on (a, ∞). Since E 2 and E 3 bound Y i:j from above and below respectively we only have to show that Y i:j − a − a log(Y i:j /a) ≤ ˜ C 1 log(n) holds for the bounds in order to prove the lemma. Part 1: Upper bound: By E 2 there exist constants M and M such that Y i:j ≤ a+M a log(n)+M log(n). Substituting this upper bound for Y i:j gives:</p><formula xml:id="formula_83">Y i:j − a − a log Y i:j a ≤ M a log(n) + M log(n) − a log 1 + M a log(n) + M log(n) a . (4)</formula><p>Case 1: a ≤ log(n). In that case we can bound equation <ref type="formula">(4)</ref> by</p><formula xml:id="formula_84">M a log(n) + M log(n) ≤ (M + M ) log(n).</formula><p>Case 2: a ≥ log(n). We can use the fact that log(1 + x) ≥ x − x 2 , ∀x &gt; 0 to bound equation <ref type="formula">(4)</ref> by</p><formula xml:id="formula_85">(M a log(n) + M log(n)) 2 a ≤ (M + M ) 2 log(n).</formula><p>Part 2: Lower bound: E 3 implies that Y i:j ≥ c(a, n)(a − 1). Substituting this bound gives</p><formula xml:id="formula_86">Y i:j − a − a log Y i:j a ≤ a(c(a, n) − 1 − log(c(a, n)) − c − a log a − 1 a ≤ 4(4 + ) log(n) + a log a a − 1 ≤ 4(4 + ) log(n) + a a − 1 ≤ 4(4 + ) log(n) + 2.</formula><p>This finishes the proof.</p><p>Lemma 4 Let i, j be such that there exists some k such that t k−1 &lt; i &lt; j ≤ t k . The following holds given E :</p><formula xml:id="formula_87">0 ≤ C (x i:j ) − ˜ C (x i:j ) ≤ ˜ C 2 log(n).</formula><p>Proof of Lemma 4: This lemma bounds the reduction in cost we can obtain by using a mean and variance fitted to a segment rather than the true mean and variance of the segment. The left bound follows from the fact˜C fact˜ fact˜C (x i:j ) fits the mean and variance to minimise the log likelihood on the segment x i:j . The right bound follows from Lemma 3 and E 1 . Indeed,</p><formula xml:id="formula_88">C (x i:j ) − ˜ C (x i:j ) = (j − i + 1) log(σ 2 k ) + j t=i η 2 t − (j − i + 1) log σ 2 k Y i:j j − i + 1 + 1 = a ¯ η i:j 2 + Y i:j − a log Y i:j a − a ≤ ˜ C 1 + 4 + log(n),</formula><p>which finishes the proof.</p><p>Lemma 5 Let i, j be such that ∃k such that t k−1 = i &lt; j ≤ t k or t k−1 &lt; i &lt; j = t k + 1. The following then holds given E C (</p><formula xml:id="formula_89">x i:j ) − ˜ C (x i:j ) ≤ ˜ C 3 log(n)</formula><p>Proof of Lemma 5: This Lemma is very similar to Lemma 4, except that we slightly relax the constraint that all the data has to be located between two changepoints. This is needed because of the minimum segment length of two. We will prove this lemma for the case where t k−1 = i, the other case being very similar. We consider 3 cases:</p><p>Case 1: j = t k−1 + 1. We have that:</p><formula xml:id="formula_90">C (x i:j ) − ˜ C (x i:j ) = log(σ 2 k ) + log(σ 2 k−1 ) + η 2 t k−1 + η 2 t k−1 +1 − 2 log (x t k +1 − x t k ) 2 4 − 2 ≤ (8 + 2) log(n) − 2 log (x t k +1 − x t k ) 2 4σ k−1 σ k − 2 ≤ (8 + 4) log(n) + 2 log(4) − 2,</formula><p>where the first inequality follows from E 1 and the second from E 5 . Case 2: j = t k−1 + 2. We have:</p><formula xml:id="formula_91">C (x i:j ) − ˜ C (x i:j ) = 2 log(σ 2 k ) + log(σ 2 k−1 ) + t k−1 +2 t=t k−1 η 2 t − 3 log t k−1 +2 t=t k−1 (x t − ¯ x (t k−1 ):(t k−1 +2) ) 2 3 − 3 ≤ 2 log(σ 2 k ) + log(σ 2 k−1 ) + (12 + 3) log(n) − 3 log n − σ 4/3 k σ 2/3 k−1 3 − 3 = (12 + 6) log(n) + 3 log(3) − 3,</formula><p>where the inequality follows from E 1 and E 4 . Case 3: j &gt; t k−1 + 2. We have:</p><formula xml:id="formula_92">C (x i:j ) − ˜ C (x i:j ) ≤ C x i:(i+1) − ˜ C x i:(i+1) + C x (i+2):j − ˜ C x (i+2):j ≤ (8 + 4) log(n) + 2 log(4) − 2 + ˜ C 2 log(n),</formula><p>where the second inequality follows from case 1 and Lemma 4.</p><p>Lemma 6 Let a, b, c ∈ τ for some partition τ of x i,j such that ∃k such that t k−1 &lt; a &lt; b &lt; c ≤ t k . Then,</p><formula xml:id="formula_93">˜ C (x i:j , τ, β) − ˜ C (x i:j , τ −b , β) ≥ 3 4 β log(n) 1+δ ,</formula><p>where τ −b = τ \ {b} holds on E for large enough n.</p><p>Proof of Lemma 6: This lemma applies Lemma 4 to show that removing false positives reduces the overall cost.</p><formula xml:id="formula_94">˜ C (x i:j , τ, β) − ˜ C (x i:j , τ −b , β) = ˜ C x (a+1):b + ˜ C x (b+1):c − ˜ C x (a+1):c + β log(n) 1+δ ≥ C x (a+1):b + C x (b+1):c − C x (a+1):c + β log(n) 1+δ − 2 ˜ C 2 log(n) ≥ 3 4 β log(n) 1+δ ,</formula><p>for large enough n.</p><p>Lemma 7 For all α &gt; 0, there exists a constant˜κconstant˜ constant˜κ( k , α, δ, ,) decreasing in k such that˜Cthat˜ that˜C (</p><formula xml:id="formula_95">x i:j ) − (C (x i:t k ) + C x (t k +1):j ) ≥ α log(n) 1+δ holds on E if j − t k = t k + 1 − i ≥ ˜ κ( k , α, δ, ,) log(n) 1+δ and j ≤ t k+1 , i &gt; t k−1 for all n &gt; 2.</formula><p>Proof of Lemma 7 : This lemma shows that not having an estimated changepoint near a true changepoint leads to high costs. Let j − t k = t k + 1 − i = D. We have:</p><formula xml:id="formula_96">1 2D j t=i (x t − ¯ x i:j ) 2 = σ 2 k Y i:t k + σ 2 k+1 Y (t k +1):j 2D + 1 4 µ k + σ k ¯ η i:t k − µ k+1 − σ k+1 ¯ η (t k +1):j 2 .</formula><p>Now E 2 implies that</p><formula xml:id="formula_97">σ 2 k Y i:t k + σ 2 k+1 Y (t k +1):j 2D ≥ σ 2 k + σ 2 k+1 2D D − 1 − 2 (D − 1)(2 + ) log(n) = σ k σ k+1 1 + 2 σ,k 2 1 − 1 D − 2 (2 + ) log(n) D .</formula><p>Moreover,</p><formula xml:id="formula_98">1 4 µ k + σ k ¯ η i:t k − µ k+1 − σ k+1 ¯ η (t k +1):j 2 = 1 4 σ k σ k+1 µ k − µ k+1 √ σ k σ k+1 + σ k σ k+1 ¯ η i:t k − σ k+1 σ k ¯ η (t k +1):j 2 ≥ 1 4 σ k σ k+1 µ k − µ k+1 √ σ k σ k+1 µ k − µ k+1 √ σ k σ k+1 − 2 σ k σ k+1 ¯ η i:t k − σ k+1 σ k ¯ η (t k +1):j ≥ 1 4 σ k σ k+1 µ,k µ,k − 2 √ 4 + σ k σ k+1 + σ k+1 σ k log(n) D = σ k σ k+1 1 4 2 µ,k − 1 + 4 ( 2 σ,k + 4) 2 µ,k log(n) D ≥ σ k σ k+1 1 4 2 µ,k − 1 2 1 + 4 log(n) D 2 σ,k + 4 + 2 µ,k ,</formula><p>where the second inequality follows from E 1 and the third from the AM-GM inequality. Combining the above two bounds shows that,</p><formula xml:id="formula_99">1 2D j t=i (x t − ¯ x i:j ) 2 ≥ σ k σ k+1 1 + 2 σ,k 2 + 2 µ,k 4 1 − 1 D − 4 (2 + ) log(n) D .</formula><p>We can now use this to prove the Lemma. We have</p><formula xml:id="formula_100">˜ C (x i:j ) − (C (x i:t k ) + C x (t k +1):j ) ≥ 2D log 1 2D j t=i (x t − ¯ x i:j ) 2 + 2D − D log(σ 2 k ) − D log(σ 2 k+1 ) − Y i:j − 2D¯ η i:j = 2D log 1 2Dσ k σ k+1 j t=i (x t − ¯ x i:j ) 2 + 2D − Y i:j − 2D¯ η i:j .</formula><p>We note that E 1 and E 2 imply that</p><formula xml:id="formula_101">2D − Y i:j − 2D¯ η i:j ≥ 1 − 2 2(2 + )D log(n) − (4 + 2) log(n) − (8 + 2) log(n).</formula><p>Moreover,</p><formula xml:id="formula_102">2D log 1 2Dσ k σ k+1 j t=i (x t − ¯ x i:j ) 2 ≥ 2D log 1 + 2 σ,k 2 + 2 µ,k 4 + 2D log 1 − 1 D − 4 (2 + ) log(n) D . Ergo, ˜ C (x i:j ) − (C (x i:t k ) + C x (t k +1):j ) is bounded below by 2D log 1 + 2 k 2 + log 1 − 1 D − 4 (2 + ) log(n) D + 1 2D − 2(2 + ) log(n) D − (6 + 2) log(n) D .</formula><p>Noting that both terms in the product increase in D and k as well as in a and n if we set D = a log(n) 1+δ finishes our proof.</p><p>Lemma 8 There exists a constants˜Kconstants˜ constants˜K 8 , D 1 , and D 2 such that for large enough n</p><formula xml:id="formula_103">P |ˆµ|ˆµ − µ 0 | ≤ D 1 σ 0 log(n) n , ˆ σ 2 σ 2 0 − 1 ≤ D 2 log(n) n ≥ 1 − ˜ K 8 n −</formula><p>Proof of Lemma 8: Without loss of generality, we assume that µ 0 = 0 and σ 0 = 1. Sincê µ andˆσandˆ andˆσ only depend upon x (0.25n) ,x (0.5n) , and x (0.75n) it is sufficient to show that there exists a constant D 3 such that</p><formula xml:id="formula_104">P |x (cn) − q c | &lt; D 3 log(n) n ≥ 1 − n − ,</formula><p>where q c is the cth quantile of the normal, holds for c = 0.25, 0.5, 0.75. In order to do so, we first define y (i) to be the ith largest observation belonging to the typical distribution. We note that y (cn−m) &lt; x (cn) &lt; y (cn+m) , where m = O(K √ n) is the number of points belonging to one of the anomalous windows. Since q (cn±m)/(n−m) − q c = O(Kn − 1 2 ), it is sufficient to show that there exists a constant</p><formula xml:id="formula_105">D 4 such that P |y (a(n−m)) − q a | ≤ D 4 log(n) n ≥ 1 − n − for a = (cn ± m)/(n − m). We note that y (a(n−m)) ∼ Φ −1 U (a(n−m)),(n−m) ,</formula><p>where Φ is the CDF of the normal distribution and U s,t the sth largest of t i.i.d. U (0, 1) random variables. The following concentration inequality ( <ref type="bibr" target="#b25">[26]</ref>) applies to the uniform distribution</p><formula xml:id="formula_106">P √ n v Ur,n − r n &gt; t ≤ exp − t 2 3(1 + t v √ n) ,</formula><p>where v 2 = (r/n) (1 − r/n) ≤ 1/4 by the AMGM inequality. This means that the event</p><formula xml:id="formula_107">U a(n−m),(n−m) − a ≤ √ log(n) n</formula><p>for the six values of a which are of interest to us holds with probability at least</p><formula xml:id="formula_108">1 − 6 exp   − log(n) 3 4 + 3 log(n) n −1   ,</formula><p>by a Bonferroni correction, which is 1 − O(n − ). We note that this event implies that Φ(y a(n−m) ) − a = O log(n) n holds for all six a of interest, which will be confined to the interval [0.1, 0.9] for large enough n. Hence we must also have</p><formula xml:id="formula_109">Φ −1 (Φ(y a(n−m) )) − Φ −1 (a) = O log(n) n</formula><p>for large enough n. This finishes our proof.</p><p>Lemma 9 There exists a constant˜Cconstant˜ constant˜C 7 such that given E and E 7 and n large enough we have:</p><formula xml:id="formula_110">˜ C E (x 1:n , β, ˆ µ, ˆ σ) − C E (x 1:n , β, µ 0 , σ 0 ) ≤ ˜ C 7 log(n).</formula><p>Proof of Lemma 9: First of all we note that</p><formula xml:id="formula_111">C E (x 1:n , β, ˆ µ, ˆ σ) − C E (x 1:n , β, µ 0 , ˆ σ) = 1 ˆ σ 2 K+1 i=1 si+1 t=ei+1 (x t − ˆ µ) 2 − (x t − µ 0 ) 2 ≤ 1 ˆ σ 2 K+1 i=1 (s i+1 − e i )(ˆ µ − µ 0 ) 2 + 2σ 0 (s i+1 − e i )|¯ η (si+1+1):ei ||(ˆ µ − µ 0 )| ≤ 2 σ 2 0 n(ˆ µ − µ 0 ) 2 + 2 σ 0 |(ˆ µ − µ 0 )| K+1 i=1 (s i+1 − e i )(4 + ) log(n) ≤ 2D 2 1 log(n) + 2(2 + )(K + 1)D 1 log(n),</formula><p>where the second inequality follows from E 1 and the third from E 7 . Moreover,</p><formula xml:id="formula_112">C E (x 1:n , β, µ 0 , ˆ σ) − C E (x 1:n , β, µ 0 , σ 0 ) = K+1 i=1 si+1 t=ei+1 log(ˆ σ 2 ) − log(σ 2 0 ) + 1 ˆ σ 2 − 1 σ 2 0 (x t − µ 0 ) 2 = K+1 i=1 −(s i+1 − e i ) log σ 2 0 ˆ σ 2 + σ 2 0 ˆ σ 2 − 1 si+1 t=ei+1 η 2 t ≤ K+1 i=1 −(s i+1 − e i ) σ 2 0 ˆ σ 2 − 1 + O σ 2 0 ˆ σ 2 − 1 2 + σ 2 0 ˆ σ 2 − 1 Y (ei+1):(si+1) + (4 + ) log(n) ≤ K+1 i=1 σ 2 0 ˆ σ 2 − 1 Y (ei+1):(si+1) − (s i+1 − e i ) + O(log(n)) = O(K log(n)),</formula><p>where the first inequality follows from expanding log(x) around x = 1 and E 1 , while the second inequality uses E 7 and E 2 .</p><p>Lemma 10 There exists a constant˜Kconstant˜ constant˜K 8 such that</p><formula xml:id="formula_113">P(E 8 ) ≥ 1 − ˜ K 8 n − Proof of Lemma 10: Let k = k ± 1. Clearly, x t − µ k ∼ N (µ k − µ k , σ 2 k ). Consequently, P |x t − µ k | &lt; n −(2+) σ k ≤ 2n −(2+) σ k 1 2πσ 2 k = 2 π n −(2+) . A Bonferroni correction therefore gives P(E 8 ) &gt; 1 − 8 π n − .</formula><p>Lemma 11 There exists a constant˜Cconstant˜ constant˜C 2 such that if i, j are such that there exists some k such that t k−1 &lt; i ≤ j ≤ t k , then given E ∩ E 7 and n large enough C (x i:j ) − ˜ C (x i:j ) ≤ ˜ C 2 log(n). to also account for the newly added segments of length one.</p><p>Proof of Lemma 11: We have to consider two cases: Case 1: i &lt; j. The result holds by Lemma 4. Case 2: i = j, with the proxy for segments of length one. We have:</p><p>C (x i:j ) − ˜ C (x i:j ) = log(σ 2 k ) + η 2 i − log(˜ σ 2 ) −</p><formula xml:id="formula_114">(x i − ˜ µ) 2 ˜ σ 2 ≤ (4 + ) log(n) + log σ 2 k ˜ σ 2 − (x i − ˜ µ) 2 ˜ σ 2 ,</formula><p>where the inequality follows from E 1 . We now bound the above for all choices of˜µof˜ of˜µ and˜σand˜ and˜σ. First of all we consider the case |˜µ|˜µ − µ k | &lt; D 1 log(n)</p><formula xml:id="formula_115">n σ k and | ˜ σ 2 σ 2 k − 1| &lt; D 2 log(n)</formula><p>n . Then for large enough n:</p><formula xml:id="formula_116">log σ 2 k ˜ σ 2 − (x i − ˜ µ) 2 ˜ σ 2 ≤ log 1 + 2D 2 log(n) n ≤ 2D 2 log(n) n .</formula><p>Next we consider the cases |˜µ|˜µ−µ k | &lt; D 1 log(n) n σ k and˜σ and˜  for large enough n. This finishes the proof.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="9.2">Further Simulation Study Results</head><p>The ROC curves for weak and strong changes in variance as well as for weak and strong joint changes in mean and variance can be found in <ref type="figure" target="#fig_0">Figures 9, 10, 11</ref>, and 12. The ROC curves for all three types of collective anomalies in the presence of strong point anomalies can be found in <ref type="figure" target="#fig_0">Figures 13, 14</ref>, and 15. The precision of true positives when such point anomalies are present is compared in <ref type="figure" target="#fig_10">Figure 8</ref>. We note that CAPA is robust to such point anoamlies, unlike PELT and luminol.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="9.3">Application of CAPA to Further Stars</head><p>We applied the approach detailed in Section 6 to the light curves of five further stars with known exoplanets ( <ref type="bibr" target="#b19">[20]</ref>). <ref type="figure" target="#fig_0">Figure 16</ref> depicts the largest detected change in mean as measured by max k ( µ,k ) per period for the five stars. We found that the 20 periods exhibiting the largest change in mean correspond to integer fractions of the orbital period of a known exoplanet in all cases. We thus observed no false positives. The results are summarised in <ref type="figure" target="#fig_0">Figure 17</ref>. We note that not all planets appear in the 20 periods with largest change in mean. This is due to the fact that their signal is weaker than the resonance of the signal of larger planets. CAPA can nevertheless detect the transit signal of the missing planet at their orbital period, with the exception of Kepler 454-c. This planet however was discovered by a different method than the transit method.   <ref type="figure" target="#fig_0">Figure 17</ref>: Five stars orbited by known exoplanets and whether their period or an integer fraction thereof was in the 20 periods with strongest change in mean according to CAPA.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 :</head><label>1</label><figDesc>Figure 1: Light curve of Kepler 1132, obtained at approximately 30 minute intervals. Missing values are due to periods in which the star was not observed. Note the presence of a point anomaly on day 1550 and the fact that no transit signature is apparent to the eye either in the full data or in the zoom, despite the known presence of Kepler 1132-b, an exoplanet orbiting this star.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head></head><label></label><figDesc>type of anomaly giving the lowest cost 13: case 1 : Anom(m) ← [Anom(s), (s + 1, m)] 14: case 2 : Anom(m) ← Anom(m − 1) 15: case 3 : Anom(m) ← [Anom(m − 1), (m)] 16: end for Output The points and segments recorded in Anom(n)</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head></head><label></label><figDesc>distributed. In each anomalous segment the data is again normally distributed, with the means being i.i.d. N (0, a 2 ) distributed and standard deviations i.i.d. Γ(1/b, 1/b) distributed. We used 1. a = 1 and a = 10 for weak and strong changes in mean respectively 2. b = 1 and b = 10 for weak and strong changes in mean respectively</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Figure 2 :</head><label>2</label><figDesc>Figure 2: Data examples and ROC curves for weak changes in mean for CAPA (black), PELT (red), BreakoutDetection (green), and luminol (blue).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Figure 3 :</head><label>3</label><figDesc>Figure 3: Data examples and ROC curves for strong changes in mean for CAPA (black), PELT (red), BreakoutDetection (green), and luminol (blue).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Figure 4 :</head><label>4</label><figDesc>Figure 4: Precision of true positives measured in mean absolute distance for CAPA, PELT, luminol, and BreakoutDetection</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head>Figure 6 :</head><label>6</label><figDesc>Figure 6: CAPA applied to the light curve of Kepler 1132 preprocessed using different periods.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head>Figure 7 :</head><label>7</label><figDesc>Figure 7: The strongest change in mean, as measured by max k ( µ,k ), detected by CAPA for the lightcurve of Kepler 1132. All periods from 1 to 200 days at 0.01 day increment were examined</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_10"><head>Figure 8 :</head><label>8</label><figDesc>Figure 8: Precision of true positives measured in mean absolute distance for CAPA, PELT, luminol, and BreakoutDetection when strong poit anomalies are present</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_11"><head>Figure 9 :Figure 13 :Figure 14 :Figure 15 :Figure 16 :</head><label>913141516</label><figDesc>Figure 9: Data examples and ROC curves for weak changes in variance for CAPA (black), PELT (red), BreakoutDetection (green), and luminol (blue).</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" validated="false"><head>) .</head><label>.</label><figDesc></figDesc><table>Mean Variance Point anomalies CAPA PELT BreakoutDetection luminol 
+
+weak 
+-
+-
+1.79 
+1.50 
+3.40 
+9.91 
+weak 
+-
+10 
+1.72 
+2.27 
+3.75 
+10.70 
+strong 
+-
+-
+0.16 
+0.61 
+5.38 
+15.99 
+strong 
+-
+10 
+0.19 
+0.67 
+4.68 
+15.60 
+-
+weak 
+-
+1.41 
+1.43 
+4.60 
+9.87 
+-
+weak 
+10 
+1.31 
+1.89 
+4.49 
+10.76 
+-
+strong 
+-
+0.33 
+0.73 
+5.19 
+12.03 
+-
+strong 
+10 
+0.33 
+0.79 
+5.17 
+11.29 
+weak 
+weak 
+-
+1.16 
+1.30 
+4.00 
+11.40 
+weak 
+weak 
+10 
+1.22 
+1.63 
+4.00 
+11.30 
+strong 
+strong 
+-
+0.09 
+0.56 
+3.78 
+16.31 
+strong 
+strong 
+10 
+0.09 
+0.58 
+3.77 
+15.71 
+
+</table></figure>
+		</body>
+		<back>
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>log(n)</head><p>n , where k = k+1 or k = k−1. We have:</p><p>&lt; n 4 the above is bounded by 5 log(n) for large enough n. Otherwise we have:</p><p>Case 3: i = j, with the proxy for epidemic changes. We have:</p><p>by E 1 . We again bound the above for all choices of˜µof˜ of˜µ and˜σand˜ and˜σ. First of all we consider the case |˜µ|˜µ</p><p>n . Then, for large enough n − log˜σ</p><p>Next, we consider the cases |˜µ|˜µ − µ k | &lt; D 1 log(n)</p><p>n , where k = k + 1 or</p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title level="a" type="main">Evaluating stationarity via change-point alternatives with applications to fMRI data</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Aston</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Kirch</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Annals of Applied Statistics</title>
+		<imprint>
+			<biblScope unit="volume">6</biblScope>
+			<biblScope unit="page" from="1906" to="1948" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title level="a" type="main">Bayesian detection of abnormal segments in multiple time series</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Bardwell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Fearnhead</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Bayesian Analysis</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="page" from="193" to="218" />
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title level="a" type="main">LOF: Identifying density-based local outliers</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Breunig</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H.-P</forename><surname>Kriegel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">T</forename><surname>Ng</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Sander</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proceedings of the 2000 ACM Sigmod International Conference on Management of Data</title>
+		<meeting>the 2000 ACM Sigmod International Conference on Management of Data</meeting>
+		<imprint>
+			<date type="published" when="2000" />
+			<biblScope unit="page" from="93" to="104" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title level="a" type="main">Anomaly detection: A survey</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Chandola</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Banerjee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Kumar</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ACM computing surveys (CSUR)</title>
+		<imprint>
+			<biblScope unit="page">15</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title level="a" type="main">STL: A seasonal-trend decomposition procedure based on loess</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">B</forename><surname>Cleveland</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">S</forename><surname>Cleveland</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Terpenning</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Official Statistics</title>
+		<imprint>
+			<biblScope unit="volume">6</biblScope>
+			<biblScope unit="page">3</biblScope>
+			<date type="published" when="1990" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title level="a" type="main">Changepoint detection in the presence of outliers</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Fearnhead</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Rigaill</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the American Statistical Association</title>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Wild binary segmentation for multiple change-point detection</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Fryzlewicz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Annals of Statistics</title>
+		<imprint>
+			<biblScope unit="volume">42</biblScope>
+			<biblScope unit="page" from="2243" to="2281" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title level="a" type="main">Robust random cut forest based anomaly detection on streams</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Guha</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Mishra</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Roy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Schrijvers</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">International Conference on Machine Learning</title>
+		<imprint>
+			<date type="published" when="2016" />
+			<biblScope unit="page" from="2712" to="2721" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<monogr>
+		<title level="m" type="main">Robust Statistics -The Approach Based on Influence Functions</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><forename type="middle">R</forename><surname>Hampel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">M</forename><surname>Ronchetti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">J</forename><surname>Rousseeuw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">A</forename><surname>Stahel</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1986" />
+			<publisher>Wiley</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">An algorithm for optimal partitioning of data on an interval</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Jackson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">D</forename><surname>Scargle</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Barnes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Arabhi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Alt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Gioumousis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Gwin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Sangtrakulcharoen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Tan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">T</forename><surname>Tsai</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">IEEE Signal Processing Letters</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="page" from="105" to="108" />
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title level="a" type="main">Leveraging cloud data to mitigate user experience from breaking bad</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">A</forename><surname>James</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Kejariwal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">S</forename><surname>Matteson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">2016 IEEE International Conference on</title>
+		<imprint>
+			<publisher>IEEE</publisher>
+			<date type="published" when="2016" />
+			<biblScope unit="page" from="3499" to="3508" />
+		</imprint>
+	</monogr>
+	<note>Big Data (Big Data</note>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title level="a" type="main">Simultaneous discovery of rare and common segment variants</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><forename type="middle">J</forename><surname>Jeng</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">T</forename><surname>Cai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Li</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Biometrika</title>
+		<imprint>
+			<biblScope unit="volume">100</biblScope>
+			<biblScope unit="page" from="157" to="172" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<monogr>
+		<title level="m" type="main">Robust statistical methods with R</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Jurečková</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Picek</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2005" />
+			<publisher>CRC Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title level="a" type="main">changepoint: An R package for changepoint analysis</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Killick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Eckley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of statistical software</title>
+		<imprint>
+			<biblScope unit="volume">58</biblScope>
+			<biblScope unit="page" from="1" to="19" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title level="a" type="main">Optimal detection of changepoints with a linear computational cost</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Killick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Fearnhead</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">A</forename><surname>Eckley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the American Statistical Association</title>
+		<imprint>
+			<biblScope unit="volume">107</biblScope>
+			<biblScope unit="page" from="1590" to="1598" />
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">Adaptive estimation of a quadratic functional by model selection</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Laurent</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Massart</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Annals of Statistics</title>
+		<imprint>
+			<biblScope unit="page" from="1302" to="1338" />
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title level="a" type="main">The cusum test of homogeneity with an application in spontaneous abortion epidemiology</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Levin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Kline</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Statistics in Medicine</title>
+		<imprint>
+			<biblScope unit="volume">4</biblScope>
+			<biblScope unit="page" from="469" to="488" />
+			<date type="published" when="1985" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title level="a" type="main">A pairwise likelihood-based approach for changepoint detection in multivariate time series models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">F</forename><surname>Ma</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">Y</forename><surname>Yau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Biometrika</title>
+		<imprint>
+			<biblScope unit="volume">103</biblScope>
+			<biblScope unit="page" from="409" to="421" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<monogr>
+		<title level="m" type="main">luminol: Anomaly detection and correlation library</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Maheshwari</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Yang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Hou</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Li</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Liang</surname></persName>
+		</author>
+		<ptr target="https://github.com/linkedin/luminol" />
+		<imprint>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title level="a" type="main">False positive probabilities for all kepler objects of interest: 1284 newly validated planets and 428 likely false positives</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Morton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">T</forename><surname>Bryson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Coughlin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">F</forename><surname>Rowe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Ravichandran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">A</forename><surname>Petigura</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Haas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">M</forename><surname>Batalha</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal</title>
+		<imprint>
+			<biblScope unit="volume">822</biblScope>
+			<biblScope unit="page">86</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title level="a" type="main">Robust estimation for ARMA models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Muler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Pena</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">J</forename><surname>Yohai</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Annals of Statistics</title>
+		<imprint>
+			<biblScope unit="volume">37</biblScope>
+			<biblScope unit="page" from="816" to="840" />
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title level="a" type="main">Robust estimates for ARCH processes</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Muler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">J</forename><surname>Yohai</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Time Series Analysis</title>
+		<imprint>
+			<biblScope unit="volume">23</biblScope>
+			<biblScope unit="page" from="341" to="375" />
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title level="a" type="main">Robust estimates for GARCH models</title>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Statistical Planning and Inference</title>
+		<imprint>
+			<biblScope unit="volume">138</biblScope>
+			<biblScope unit="page" from="2918" to="2940" />
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<monogr>
+		<title level="m" type="main">Data validation time series file: Description of file format and content</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">E</forename><surname>Mullally</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title level="a" type="main">A review of novelty detection</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Pimentel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Clifton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Clifton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Tarassenko</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Signal Processing</title>
+		<imprint>
+			<biblScope unit="volume">99</biblScope>
+			<biblScope unit="page" from="215" to="249" />
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">Approximate distributions of order statistics: with applications to nonparametric statistics</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R.-D</forename><surname>Reiss</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Springer science &amp; business media</title>
+		<imprint>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title level="a" type="main">Change point estimation in multi-subject fMRI studies</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">F</forename><surname>Robinson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Wager</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Lindquist</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Neuroimage</title>
+		<imprint>
+			<biblScope unit="volume">49</biblScope>
+			<biblScope unit="page" from="1581" to="1592" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title level="a" type="main">Robust regression by means of S-estimators</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Rousseeuw</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">J</forename><surname>Yohai</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Robust and nonlinear time series analysis</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="1984" />
+			<biblScope unit="page" from="256" to="272" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title level="a" type="main">Multivariate estimation with high breakdown point</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">J</forename><surname>Rousseeuw</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Mathematical statistics and applications</title>
+		<imprint>
+			<date type="published" when="1985" />
+			<biblScope unit="volume">8</biblScope>
+			<biblScope unit="page" from="283" to="297" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title level="a" type="main">On the detection of satellites of extrasolar planets with the method of transits</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Sartoretti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Schneider</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astronomy and Astrophysics Supplement Series</title>
+		<imprint>
+			<biblScope unit="volume">134</biblScope>
+			<biblScope unit="page" from="553" to="560" />
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title level="a" type="main">Detecting simultaneous variant intervals in aligned sequences</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Siegmund</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Yakir</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">R</forename><surname>Zhang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Annals of Applied Statistics</title>
+		<imprint>
+			<biblScope unit="page" from="645" to="668" />
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title level="a" type="main">Markov monitoring with unknown states</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Smyth</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">IEEE Journal on Selected Areas in Communications</title>
+		<imprint>
+			<biblScope unit="volume">12</biblScope>
+			<biblScope unit="page" from="1600" to="1612" />
+			<date type="published" when="1994" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<monogr>
+		<title level="m" type="main">Proposal for a project of high-precision stellar radial velocity work. The Observatory</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Struve</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1952" />
+			<biblScope unit="volume">72</biblScope>
+			<biblScope unit="page" from="199" to="200" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title level="a" type="main">Tests for change-points with epidemic alternatives</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Q</forename><surname>Yao</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Biometrika</title>
+		<imprint>
+			<biblScope unit="volume">80</biblScope>
+			<biblScope unit="page" from="179" to="191" />
+			<date type="published" when="1993" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<analytic>
+		<title level="a" type="main">Estimating the number of change-points via schwarz&apos; criterion</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y.-C</forename><surname>Yao</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Statistics &amp; Probability Letters</title>
+		<imprint>
+			<biblScope unit="volume">6</biblScope>
+			<biblScope unit="page" from="181" to="189" />
+			<date type="published" when="1988" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title level="a" type="main">Detecting simultaneous changepoints in multiple sequences</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">R</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">O</forename><surname>Siegmund</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Ji</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">Z</forename><surname>Li</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Biometrika</title>
+		<imprint>
+			<biblScope unit="volume">97</biblScope>
+			<biblScope unit="page" from="631" to="645" />
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

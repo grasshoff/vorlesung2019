@@ -1,0 +1,777 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-04T16:04+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">New methods for large dynamical range problems in planetary formation</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2007">2007</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">S</forename><surname>Mcneil</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">School of Mathematical Sciences</orgName>
+								<orgName type="laboratory">Astronomy Unit</orgName>
+								<orgName type="institution">University of London</orgName>
+								<address>
+									<addrLine>Mile End Road</addrLine>
+									<postCode>E1 4NS</postCode>
+									<settlement>London</settlement>
+									<region>Queen Mary</region>
+									<country key="GB">UK</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P</forename><surname>Nelson</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">School of Mathematical Sciences</orgName>
+								<orgName type="laboratory">Astronomy Unit</orgName>
+								<orgName type="institution">University of London</orgName>
+								<address>
+									<addrLine>Mile End Road</addrLine>
+									<postCode>E1 4NS</postCode>
+									<settlement>London</settlement>
+									<region>Queen Mary</region>
+									<country key="GB">UK</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">New methods for large dynamical range problems in planetary formation</title>
+					</analytic>
+					<monogr>
+						<title level="j" type="main">Mon. Not. R. Astron. Soc</title>
+						<imprint>
+							<biblScope unit="volume">000</biblScope>
+							<biblScope unit="page" from="1" to="17"/>
+							<date type="published" when="2007">2007</date>
+						</imprint>
+					</monogr>
+					<note type="submission">Accepted 2008 October 19. Received 2008 April 1.</note>
+					<note>Printed 2 November 2018 (MN L A T E X style file v2.2)</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>methods: numerical -celestial mechanics -Solar system: general</keywords>
+			</textClass>
+			<abstract>
+				<p>Modern N-body techniques for planetary dynamics are generally based on sym-plectic algorithms specially adapted to the Kepler problem. These methods have proven very useful in studying planet formation, but typically require the timestep for all objects to be set to a small fraction of the orbital period of the innermost body. This computational expense can be prohibitive for even moderate particle number for many physically interesting scenarios, such as recent models of the formation of hot exoplanets, in which the semimajor axis of possible progenitors can vary by orders of magnitude. We present new methods which retain most of the benefits of the standard symplectic integrators but allow for radial zones with distinct timesteps. These approaches should make simulations of planetary accretion with large dynamical range tractable. As proof-of-concept we present preliminary science results from an implementation of the algorithm as applied to an oligarchic migration scenario for forming hot Neptunes.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">INTRODUCTION</head><p>Dynamical timescales in the solar system vary widely. For example, Mercury's orbital period is 0.24 yr, Pluto's is 250 yr, and comets in the Oort cloud can have periods of ∼ 10 Myr, for a difference of over seven orders of magnitude. The disparity in timescale increases if we also consider not merely orbital period but period at periapse, such as in Sun-grazing comets which can come within a few solar radii, or the orbits of moons and satellites. The age of our solar system is ∼ 4.6 Gyr, and relevant formation timescales are believed to be on the order of a few million years (for the accretion of giant planet cores) to tens of millions of years (for the formation of the Earth) to hundreds of millions of years (for possible late-stage rearrangement of the outer solar system, e.g. <ref type="bibr" target="#b21">Tsiganis et al. 2005</ref>).</p><p>The enormous number of orbits required presents a considerable challenge for numerical studies of planet formation. In N-body studies of galaxy formation, by contrast, the number of dynamical times is low, and therefore the emphasis has been on increasingly complex modelling of the physics and ever-larger numbers of particles, both of which are amenable to parallelization. Although multiprocessor codes can offer major benefits even for planetary simulations, the large number of timesteps limits the particle ⋆ E-mail: d.mcneil@qmul.ac.uk number to a regime where latency issues loom large. The planetary problem is simply, and inescapably, hard.</p><p>The difficulties are yet greater for studies of the formation of hot Neptunes, giant planets orbiting very close to the parent stars. These planets are unlikely to have formed in situ, suggesting that gas disc induced migration will play an important role. For example, GJ436b is a hot transiting Neptune ( <ref type="bibr" target="#b1">Butler et al. 2004</ref>) whose density is ∼ 1.69 g/cm <ref type="bibr">3</ref> (Torres 2007). This suggests it is a true Neptune analogue (i.e. an ice giant, not a small gas giant or a large, rocky superEarth), which raises the question of where its ice originated.</p><p>In the standard models of the minimum-mass solar nebula, the snow line beyond which ices can condense is ∼ 2.7 AU. Therefore one obvious toy scenario for the history of GJ436b is that the planet started its life in the outer regions of the disc, and then migrated in due to interactions with the gas, possibly growing en route.</p><p>At present, the most elegantly constructed general integrator for doing late-stage N-body studies of planet formation is SyMBA ( <ref type="bibr" target="#b5">Duncan et al. 1998</ref>), a Kepleradapted symplectic integrator capable of resolving close encounters, which is descended from the original methods of <ref type="bibr" target="#b28">Wisdom &amp; Holman (1991)</ref> and <ref type="bibr" target="#b10">Kinoshita et al. (1991)</ref>. There are several implementations of the algorithm and its variants available, including a parallel version which has been useful in studying terrestrial accretion <ref type="bibr" target="#b12">(McNeil et al. 2005</ref>), and so it would be natural to apply these codes imme-diately. Unfortunately, a direct treatment of the hot Neptune problem is completely beyond the reach of standard methods, at least at the usual resolution. The orbital period at 0.05 AU is ∼ 0.01 yr, 30 times smaller than at 0.5 AU (a respectable inner boundary for studies of the formation of the Earth). Since migration over several AU plays a role, we cannot concentrate on a narrow region (e.g. <ref type="bibr" target="#b11">Kokubo &amp; Ida 1998</ref>) but must build a more global model, requiring large numbers of particles. Furthermore, since the formation and migration timescales will be important and often comparable, some common tricks for speeding up simulations (such as increasing the collisional radius) may be dangerous.</p><p>These formation scenarios are of considerable interest, and are not easily studied using current numerical and computational technology; they are messy systems, with many non-Hamiltonian forces and events, and not clean celestial mechanics problems; and there seems to be a promising direction for improvement. We therefore seek to develop new integrators which will allow us to address these problems. Given the difficulties, we are willing to consider approximations which we would hesitate to use in other situations, such as a detailed study of long-term chaos in the outer solar system. We will instead sacrifice some precision while preserving reliability in the hopes of exploring otherwise inaccessible science: in this situation practicality beats purity.</p><p>Fortunately, the very feature which makes the problem so challenging -the wide dynamical range -opens up possibilities for new methods. SyMBA and its cousins use a common timestep for all (non-encountering) objects which is set by the minimum pericentric distance. This limitation can be worked around when objects only occasionally enter the innermost regions <ref type="bibr" target="#b9">(Levison &amp; Duncan 2000)</ref> but it reduces to using unacceptably slow Bulirsch-Stoer integration when there is always an object in the innermost regions, as we expect in our models. However, we note that for an inner edge of 0.05 AU, a timestep of ∼ 0.0005 yr would be necessary, but if the inner edge of the problem were 1 AU, a timestep of 0.05 yr would suffice. This suggests that using the common small timestep results in objects beyond 1 AU being 'over-integrated' by roughly a factor of 100. If we could somehow use the larger timestep for the outer objects, then since most particles in simulations of oligarchy tend to be in the outer regions (where formation times are longer), we might be able to recover something like the standard run times. Indeed, a decade and a half ago, <ref type="bibr" target="#b16">Saha &amp; Tremaine (1994)</ref> were already building mixed-variable integrators with different timesteps associated with each planet, so there is precedent.</p><p>Therefore we set out to construct a new multizone method using recent numerical technology which allowed for small timesteps in the inner regions and large timesteps in the outer regions. We had several desired properties:</p><p>(1) Symplecticity, or at least near-symplecticity, is highly desirable. By contrast, time-reversibility (in the absence of mergers and dissipational forces) is necessary, as many of the good conservation properties of symplectic integrators are inherited from their reversibility.</p><p>(2) SyMBA's underlying integrator step is very robust, especially at low eccentricities, and has extensive fieldtesting (both in Duncan and Levison's SWIFT and in John Chambers's MERCURY). An integrator which reduces to this proven approach for objects which are in the same zone is preferable.</p><p>(3) Correct close encounter handling is vital. Although we may be willing to accept a decrease in encounter accuracy in a few locations (such as at the zone boundaries), the vast majority of encounters must be treated using a method known to be reliable. More generally, force inaccuracies should be limited to distant interactions, as in fast force techniques such as treecodes.</p><p>(4) Any discontinuities caused by the existence of distinct timestep zones should be kept to a minimum, and at or below second order if possible.</p><p>By using existing techniques in the literature, we develop integrators which meet the above criteria, choosing at every branch point the simplest scheme which seems likely to work. We combine the Hamiltonian splitting of <ref type="bibr" target="#b5">Duncan et al. (1998)</ref> with a multistep approach inspired by <ref type="bibr" target="#b16">Saha &amp; Tremaine (1994)</ref>, use the transitioning approach of Chambers (1999) to preserve symplectic behaviour, and derive new transition functions to make the scheme sufficiently smooth.</p><p>In §2 we briefly review the use of symplectic methods in planetary dynamics. In §2.1 we introduce the Kepleradapted mixed-variable symplectic integrators; in §2.2 and §2.3 we explain methods for treating close encounters between planets and between a planet and the Sun, respectively; and in §2.4 we discuss integrators which allow individual timesteps. In §2.5 we construct the new integrators, and in §2.6 we develop appropriate transition functions. We presents tests of the method in §3 and a discussion in §4.</p><p>We conclude in §5.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">SYMPLECTIC METHODS FOR KEPLERIAN POTENTIALS</head><p>Geometric integrators are numerical integration methods which attempt to build the properties of the equations and their solutions into the integrators themselves, properties such as symmetries and their corresponding conserved quantities <ref type="bibr" target="#b30">(Yoshida 1993)</ref>. This matching of geometry between the problem and the solver can lead to improvements in accuracy and robustness, as well as dramatic increases in speed. Symplectic integrators are geometric integrators where the geometry of interest is Hamiltonian, and the conserved quantity is the natural area element, the Poincaré 2-form dp i ∧ dq i , where q and p are the usual generalized positions and momenta, respectively, with summation over particles i with mass mi.) A symplectic integrator can be constructed via operator methods or frequency maps; we restrict ourselves to operators. For some Hamiltonian H, if we divide it (arbitrarily but conveniently) into a kinetic term HT and a potential term HV,</p><formula xml:id="formula_0">H = HT + HV (1)</formula><p>we can approximate the evolution under H by a secondorder time-reversible drift-kick-drift 'leapfrog' scheme</p><formula xml:id="formula_1">H τ ≈ H τ /2 T H τ V H τ /2 T (2)</formula><p>where H τ X is the operator generated by the Hamiltonian term HX, and τ is the timestep. This integrator solves a nearby 'surrogate' Hamiltonian e H = H + Herr where O(Herr) = τ 2 , using 'solves' in the sense of physics and not mathematics. (Herr is a purely formal series which need not converge in general, and certainly need not converge at the large timesteps used in practice, but is well-approximated by its first few terms.)</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Wisdom-Holman method</head><p>The work of <ref type="bibr" target="#b28">Wisdom &amp; Holman (1991)</ref> and <ref type="bibr" target="#b10">Kinoshita et al. (1991)</ref> sparked a dramatic revolution in planetary integrations by specializing the general techniques of symplectic integration to the unique properties of Keplerian dynamics in the solar system. It is well known that the orbits of a system of small bodies around a large central mass are very nearly conic sections, and this Keplerian motion can be advanced (almost) analytically. This suggests that instead of dividing the Hamiltonian into kinetic and potential terms as in the standard leapfrog, we should divide it into a Keplerian term and a term corresponding to the perturbations between the planets:</p><formula xml:id="formula_2">H = HKep + Hint<label>(3)</label></formula><p>The difficulty arises in finding a canonical set of coordinates in which the N-body Hamiltonian takes this shape. <ref type="bibr" target="#b28">Wisdom &amp; Holman (1991)</ref> discovered that using Jacobi coordinates succeeds. In this coordinate system, the position and momentum of the jth object (of N planets, where the masses are given by the mj, and the Sun is j = 0) are given relative to the centre of mass of the inner bodies, i.e. those with index k &lt; j. They write</p><formula xml:id="formula_3">HKep = N X j=1 " |p ′ j · p ′ j | 2m ′ j − G mj m0 |q ′ j | «<label>(4)</label></formula><p>and</p><formula xml:id="formula_4">Hint = N X j=1 " Gmjm0 |q ′ j | − Gmjm0 q j0 « − N−1 X j=1 N X k=j+1 Gmjm k q jk (5)</formula><p>where the primed quantities are Jacobi coordinates and q jk = |q j − q k |. In the absence of close encounters, Hint ≪ HKep and the non-Keplerian perturbations on the orbits due to mutual interactions are small. We can construct a second-order integrator as before, where the new HKep drifts are 'rolls' along the Keplerian conic section, and the Hint kicks are the Cartesian perturbations between the planets; hence the name 'mixed-variable symplectic' (MVS; Saha &amp; Tremaine 1992) has been used for integrators of this type, as the integrations are in effect carried through in both Cartesian and Keplerian variables. This approximation to the orbit is vastly superior to the linear-path kinetic/potential decomposition, and the symplecticity provides robustness and stability. As a result, one can use much larger timesteps than would be otherwise permissible, making planetary simulations running for the age of the solar system feasible (e.g. <ref type="bibr" target="#b4">Duncan et al. 1995</ref>).</p><p>For a brief review of the history of various mapping methods in solar system dynamics, see ch. 9 of <ref type="bibr" target="#b14">Murray &amp; Dermott (1999)</ref>. <ref type="bibr" target="#b27">Wisdom (2006)</ref> also provides a useful review.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Close encounters between planets</head><p>Despite its many benefits for studies of well-separated planets for long timescales, the use of Jacobi coordinates in the MVS approach limits its applicability. Studies of planetesimal accretion, a highly chaotic and stochastic process, require the ability to handle radial reordering of objects and to resolve close encounters. In the Wisdom-Holman mapping, the coordinate frame depends upon a fixed ordering of the objects, and cannot be updated as the system changes without breaking symplecticity. There is also no natural way to treat encounters: first, by varying the timestep you lose the symplecticity of the integration as the composition of two symplectic steps need not be symplectic; and second, even if one could vary the timestep, the coupling between objects in the Jacobi scheme means that all external objects are also implicitly involved, so an encounter cannot be treated independently. We would prefer an integrator in which each planet was treated equivalently and which could adapt the timestep when planets strongly interact.</p><p>After some early experiments (e.g. <ref type="bibr" target="#b8">Levison &amp; Duncan 1994)</ref>, a superior solution to the problem was presented in <ref type="bibr">Duncan et al. (1998) (hereafter DLL98</ref>) which used an ingenious choice of coordinates to avoid the coupling between planets, a particular choice of Hamiltonian splitting to ensure that all planets were treated equally, and a clever decomposition of the potential into shells to allow effective changes in the timestep. The authors developed a 'democratic heliocentric' (DH) method , where 'democratic' means 'symmetric with respect to the labelling of the planets', and which avoids the particle entanglement of Jacobi coordinates. In these coordinates, one uses heliocentric positions but barycentric momenta. (Note that the same system is called 'mixed-centre' by Chambers 1999 and 'canonical heliocentric' by Wisdom 2006.) 1 To be explicit, from q and p they compute new conjugate coordinates Q and P , such that</p><formula xml:id="formula_5">Q i =  1 mtot P N j=0 mjq j i = 0 q i − q 0 i = 0<label>(6)</label></formula><p>and</p><formula xml:id="formula_6">P i = ( P N j=0 p j i = 0 p i − m i mtot P N j=0 p j i = 0<label>(7)</label></formula><p>This results in a new form for the Hamiltonian,</p><formula xml:id="formula_7">H(Q i , P i) = HSun + HKep + Hint<label>(8)</label></formula><p>where</p><formula xml:id="formula_8">HSun = 1 2m0 ˛ ˛ ˛ ˛ ˛ n X i=1 P i ˛ ˛ ˛ ˛ ˛ 2 ,<label>(9)</label></formula><formula xml:id="formula_9">HKep = n X i=1 " |P i| 2 2mi − Gmim0 |Q i | « ,<label>(10)</label></formula><formula xml:id="formula_10">Hint = − n−1 X i=1 n X j=i+1 Gmimj |Q i − Q j | .<label>(11)</label></formula><p>HSun generates a linear drift of particles' positions (taking its name from the fact it is determined by the barycentric momentum of the Sun), HKep corresponds to a pure Kepler orbit, and Hint, as before, is the term due to the interaction of the particles. Note that -unlike with the Wisdom-Holman mapping (eqs. 4 and 5) -an encounter between two particles is separable, in that the terms involving the positions and momenta of the two objects can be pulled out of HKep and Hint. (In contrast, HSun is not separable in this way; we return to this subject.)</p><p>As Wisdom (2006) notes, the same canonical heliocentric coordinate system was used in previous work <ref type="bibr" target="#b24">(Touma &amp; Wisdom 1993</ref>, with different Hamiltonian splittings. For example, <ref type="bibr" target="#b24">Touma &amp; Wisdom (1993)</ref> used the alternate splitting</p><formula xml:id="formula_11">H ′ Sun = 1 m0 n X 1i&lt;j P iP j<label>(12)</label></formula><formula xml:id="formula_12">H ′ Kep = n X i=1 " |P i| 2 2µi − Gmim0 |Q i | « ,<label>(13)</label></formula><p>where µ is the reduced mass. This splitting has the advantage that it preserves Kepler's semimajor axis-period relationship. However, the use of the reduced mass means that two objects with the same position and velocity but different masses will experience different Kepler drifts and different linear drifts, which can present difficulties for treating close encounters (DLL98, §4). In this sense the DLL98 splitting is more 'democratic', at the cost of being slightly less accurate for a given orbit. Accordingly, we will use 'canonical heliocentric' for the coordinate system itself, and reserve 'democratic heliocentric' for the specific three-term Hamiltonian splitting used in DLL98 and described by eq. 8. From this DH splitting, they construct a second-order integrator which will be the basic DH step. Following the conventional notation, let L be the operator generated by HSun (L for 'linear drift'), let K correspond to Hint (K for 'kick'), and let D correspond to HKep (D for 'drift'). Using this form, the system is advanced one timestep τ by applying</p><formula xml:id="formula_13">H τ ≈ L τ /2 K τ /2 D τ K τ /2 L τ /2<label>(14)</label></formula><p>As naive adaptive timestepping changes the surrogate Hamiltonian and thus breaks symplecticity, DLL98 develop a technique involving recursive subdivision of the timesteps along with decomposing the force into a series of shells around the particles, and associating each force shell with a different timestep. Similar approaches had been attempted previously in molecular dynamics <ref type="bibr" target="#b18">(Skeel &amp; Biesiadecki 1994)</ref> with limited success, but DLL98 realized that there were relevant smoothness constraints on the transition from shell to shell.</p><p>Starting from the basic DH step, we relabel K, D as K0, D0. We replace the D τ by a sequence of Mi smaller sub-</p><formula xml:id="formula_14">steps, [K τ /2M i i D τ /M i i K τ /2M i i ] M i</formula><p>where Ki is an interaction term to be defined, and then repeat the process indefinitely at higher index:</p><formula xml:id="formula_15">H ≈ L τ /2 K τ /2 0 D τ 0 K τ /2 0 L τ /2 ≈ L τ /2 K τ /2 0 [K τ /2M 1 1 D τ /M 1 1 K τ /2M 1 1 ] M 1 K τ /2 0 L τ /2 ≈ L τ /2 K τ /2 0 [K τ /2M 1 1 [K τ /2M 1 M 2 2 D τ /M 1 M 2 2 K τ /2M 1 M 2 2 ] M 2 K τ /2M 1 1 ] M 1 K τ /2 0 L τ /2 ≈ . . .<label>(15)</label></formula><p>Each of the above integrators, as well as the i → ∞ limit, has a fixed surrogate Hamiltonian; the timestep τ never changes. Since the Di terms commute with themselves, then if succeeding Ki terms are merely the identity operators the neighbouring Di terms reduce to one large drift. For example, if Ki = 0 for all i &gt; 0, then the integrator reduces to the basic DH step with timestep τ . However, if K2 were nonzero, then since Di and Ki do not commute, the reduction would not occur and the integrator would act on the smaller timestep. In this scheme, an infinite number of terms are always active, but need not actually be considered unless the intervening Ki terms are nonzero. The problem becomes finding a decomposition of the potential Hint generating the K terms K0, K1, K2, . . . which will (1) recover the standard DH step when no close encounters are occurring and the larger timestep τ suffices, i.e. K0 = K, and Ki = 0 for i &gt; 0; (2) always sum to the correct amount of force, i.e. P i Ki = K; and (3) do so in a sufficiently smooth fashion. To construct such a decomposition, DLL98 imagine a decreasing sequence of shell radii R1 &gt; R2 &gt; . . . with a corresponding decomposition of the potential into V1, V2, . . . where the magnitude of the potential terms V k smoothly decreases to zero outside the shell range. By studying the error Hamiltonian they find several necessary conditions on the decomposition relating to the smoothness of the transition of the potential from term to term.</p><p>The resulting algorithm SyMBA, combining the DH coordinate system with the recursively subdivided smoothlytransitioning zone operators, works remarkably well. Nevertheless, it is challenging to implement and difficult to test. For example, a correct version of the algorithm will often show worse energy and angular momentum conservation on a given encounter than a subtly incorrect one, requiring large test suites; and since the solution is very finely tuned to the planetary problem, off-the-shelf routines are of little use.</p><p>Chambers (1999) developed a much simpler though more expensive approach. Of the three major advances in SyMBA -DH coordinates, the smoothness conditions on motion between operators, and the recursive subdivision of the Hamiltonian -only the first two are strictly necessary to the resulting algorithm. The major benefit of the recursion is that it pushes the transitions entirely into the kick operators and preserves the ability to apply the drift operator merely by solving Kepler's equation, albeit at the cost of considerable complexity. If we surrender this requirement, however, then we can decompose the Hamiltonian into three terms</p><formula xml:id="formula_16">H = HSun + [F (i, j) Hi,j] + [(1 − F (i, j)) Hi,j + HKep] (16)</formula><p>where Hi,j is the component of Hint involving objects i and j, with implied summation over all i, j with i &lt; j. F (i, j) is a transition function which is 1 when the objects are distant and approaches 0 when they are undergoing an en-counter. As in the basic DH step (eq. 14), this decomposition gives rise to a five-operator step, but these are the only five terms to consider, unlike the much larger number of potentially active terms in eq. 15. It is true that whenever an encounter is occurring and F (i, j) could be nonzero then the interaction terms can no longer be advanced analytically, but they can still be numerically integrated to high precision using standard techniques such as Bulirsch-Stoer. Moreover, and this advantage should not be underestimated, testing that the above algorithm is implemented correctly is far more straightforward than testing SyMBA. Whenever the cost of the numerical integration due to encounters is a small fraction of the computation, the Chambers-style approach (although perhaps not as elegant as SyMBA itself) is likely preferable on pragmatic grounds. It should also be noted that despite the use of numerical integration to handle the transition-weighted terms in the Hamiltonian, the mapping itself remains symplectic; or as symplectic as any floating-point implementation of sufficient precision can be. (See Skeel 1999 for a general technique to recover symplecticity when using otherwise non-symplectic approximations.)</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.3">Close encounters with the Sun</head><p>In any case, both SyMBA and the Chambers variant have been successfully applied to many studies of the later stages of planet formation. Their chief weakness is that neither can easily deal with objects undergoing close encounters not with each other but with the Sun, such as high-eccentricity Sun-grazing comets. Unlike the case of mutual encounters in which the important terms are Hint and HKep, during a close solar passage HSun must be evaluated more frequently. Therefore, to resolve such orbits correctly, one must choose a timestep small enough to resolve the pericentre passage, and that timestep must be fixed for the entire integration, even if such encounters are very rare. To overcome this limitation, <ref type="bibr" target="#b9">Levison &amp; Duncan (2000)</ref> added a Chambers-style splitting on top of SyMBA (here we suppress the planetary encounter terms, which are handled as described before) and use</p><formula xml:id="formula_17">H τ = (1 − F ) H τ /2 Sun + H τ /2 int + (F HSun + HKep) τ + H τ /2 int + (1 − F ) H τ /2 Sun (17) H = (1 − F ) HSun + Hint + (F HSun + HKep) (18)</formula><p>where F is a transition function which is 0 when no object is near the Sun and 1 when any object is. In this scheme, when any object is undergoing a close solar approach, then the work of performing an integration step is pushed into the new Kepler step which is must be handled numerically.</p><p>The non-separability of HSun -i.e. the inability to isolate an individual object as in HKep -becomes a serious inconvenience here, as it requires the numerical integration of every object in the system even if only one object enters the inner zone. Nevertheless, as explained by <ref type="bibr" target="#b9">Levison &amp; Duncan (2000)</ref>, this approach provides the speed of SyMBA whenever the inner regions are empty and yet can successfully survive occasional interlopers (such as objects due to be ejected during violent periods in the formation process).</p><p>This method cannot be directly applied as a solution for the numerical challenge of hot exoplanet formation. If we set the inner boundary at a typical terrestrial-formation value like 0.5 AU, then there will usually be many, and almost always be some, protoplanets and planetesimals in the innermost region. This means that every particle's HKep will be numerically integrated on every step, and the speed benefits are lost. Moreover, if there are mutually-gravitating objects inside the inner boundary, then the situation is worse: the above integrator will evaluate the interactions between bodies not undergoing close encounters on the outer timestep τ , which may bear little relation to the dynamical times for the inner objects. This particular problem could be corrected by bringing Hint under the transition function F as well, but then we have merely recovered -in an impressively roundabout fashion -a Bulirsch-Stoer integrator.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.4">Individual timesteps</head><p>Recognizing that in an MVS integration of the solar system, one is taking hundreds of times more steps per Pluto orbit than would be necessary if not for the presence of the interior planets, <ref type="bibr" target="#b16">Saha &amp; Tremaine (1994)</ref> construct a leapfrog integrator with individual timesteps. They split HKep and Hint into N terms each, such that</p><formula xml:id="formula_18">HKep = N X i=1 HKep,i , Hint = N X i=1 Hint,i<label>(19)</label></formula><p>where HKep,i is the Kepler term for planet i (with objects labelled in increasing semimajor axis), and Hint,i is the interaction term between planet i and planets i + 1 through N . Translating into our notation, we use Di and Ki to refer to the operators as before, and assign a timestep τi to each planet, where the largest timestep τ = τN and τi+1/τi = Mi for Mi an integer. Starting with the Hamiltonian only involving the outermost planet (note that KN is the identity operator):</p><formula xml:id="formula_19">H τ ≈ D τ N /2 N K τ N N D τ N /2 N<label>(20)</label></formula><p>and recursively applying</p><formula xml:id="formula_20">K τ i → [D τ i−1 /2 i−1 K τ i−1 i−1 K τ i D τ i−1 /2 i−1 ] M i−1<label>(21)</label></formula><p>for i &gt; 1, one obtains an N-level integrator. More concretely, consider a two-planet case with timestep ratios of 1:3. The resulting integrator (after removing the K2 term which does nothing)</p><formula xml:id="formula_21">H τ ≈ D τ 2 /2 2 [D τ 1 /2 1 K τ 1 1 D τ 1 /2 1 ] 3 D τ 2 /2 2 (22)</formula><p>has a timestep of τ1 for the inner planet, and τ2 for the outer planet, as desired. Note that the integrator is time-reversible even though the objects are not synchronized with respect to D when the interaction term K1 is applied. (Also note that in practice one would combine neighbouring D1 terms.) It is important to recognize that the timesteps associated in this method are individual but not adaptive; they must be set at the start of the integration, and attach not to spatial zones but directly to objects. It is therefore unable to handle migrating objects, and as an MVS method inherits the previously mentioned weaknesses of Jacobi coordinates for our purposes. However, it demonstrates that asynchronous multi-stage integration in MVS-like contexts can be constructed.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.5">Constructing the new integrator</head><p>We now have the necessary ingredients to construct a symplectic integrator, Naoko ("New Adaptive Orthochronous Kepler Orbiter"), which is Kepler-adapted, close-encountering, and yet allows for zones with different timesteps. Recall the basic DH step:</p><formula xml:id="formula_22">H τ ≈ L τ /2 K τ /2 D τ K τ /2 L τ /2<label>(23)</label></formula><p>We will seek a generalization of this step for the multiple-zone case. We will define our timestep zones by dividing the system into radial shells such that an object's instantaneous heliocentric radius determines its zone assignment. (This definition is mentioned here for concreteness; other choices are possible. We motivate this particular choice in §2.6.) We label the zones using integer indices, starting at 0 for the innermost zone, and an integer subscript on an operator corresponds to the operator for that zone, in a sense which will be made explicit later. For example, D τ 0 advances all objects in zone 0 for a timestep τ under HKep but does nothing to objects in other zones: the commutator bracket <ref type="bibr">[Di, Dj ]</ref> = 0. Note that this differs from the <ref type="bibr" target="#b16">Saha &amp; Tremaine (1994)</ref> usage of subscripts to refer to planets.</p><p>To begin with, we defer consideration of interactions between the planets. Under this simplification, and starting with zone 1, eq. 23 becomes</p><formula xml:id="formula_23">H τ ≈ L τ /2 D τ 1 L τ /2<label>(24)</label></formula><p>The L terms cannot be divided into zones as HSun is not separable. Nevertheless, we can incorporate more zones by applying the individual-leapfrog approach of <ref type="bibr" target="#b16">Saha &amp; Tremaine (1994)</ref> and recursively subdividing the L steps using this expression. That is, we can write</p><formula xml:id="formula_24">L τ /2 → L τ /4 D τ /2 0 L τ /4<label>(25)</label></formula><p>resulting in</p><formula xml:id="formula_25">H τ ≈ h L τ /4M 0 D τ /2M 0 0 L τ /4M 0 i M 0 D τ 1 h L τ /4M 0 D τ /2M 0 0 L τ /4M 0 i M 0 (26)</formula><p>where M0 is an integer setting the number of zone 0 steps per zone 1 step. This integrator looks promising. In the absence of any objects in zone 1, this is merely 2M0 (kick-free) DH steps of size τ /2M0 next to each other, and in the absence of any objects in zone 0, the D0 operators do nothing and the L operators collapse, reducing to a DH step of size τ . There are 2M0 zone 0 drifts per zone 1 drift, so if we assume each drift takes equal time then if N1 &gt; 2M0N0, the zone 1 computation dominates. As long as N1 ≫ 2M0N0, then handling objects in the innermost zone -far from requiring a major decrease in system timestep as in the standard approach -is effectively free; and, importantly, they can be handled independently of the outer objects.</p><p>Despite appearances, the presence of the L terms on the smallest timescale does not remove this separability.</p><p>Although L must be formally applied with the innermost timestep, this does not mean that L must be computed at that frequency. Since D0 does not affect objects in zone 1, and L changes their positions but not their velocities, we need only determine their contribution to L at the beginning of the zone 0 substep, and we can delay actually moving them until the beginning of the zone 1 substep. Implementing a lazy-evaluation scheme is relatively simple. (Since L is so trivial to evaluate and apply, it is seldom a bottleneck, at least in the serial case. For parallel implementations, we find that lazy evaluation is vital, because otherwise the communication overhead involved produces enormous scaling difficulties. Potential implementors should bear this warning in mind when designing data structures.)</p><p>One can easily generalize to more zones. The three-zone case is the simplest integrator where the transition functions we will develop can be carried through to a larger number of zones, and therefore we will use it as our standard example. In a minor abuse of notation, define</p><formula xml:id="formula_26">S τ = L τ /2 D τ L τ /2 (note that unlike with L, D, and K, [S τ ] M = S M τ .)</formula><p>Then we have the two-zone integrator</p><formula xml:id="formula_27">H τ = h S τ /2M 0 0 i M 0 D τ 1 h S τ /2M 0 0 i M 0<label>(27)</label></formula><p>and the three-zone version</p><formula xml:id="formula_28">H τ = hh S τ /4M 0 M 1 0 i M 0 D τ /2M 1 1 h S τ /4M 0 M 1 0 i M 0 i M 1 D τ 2 hh S τ /4M 0 M 1 0 i M 0 D τ /2M 1 1 h S τ /4M 0 M 1 0 i M 0 i M 1<label>(28)</label></formula><p>where Mi sets the number of zone i substeps per zone i + 1 step. After one step, objects in all zones have been advanced the correct total time under each operator. Moreover, neglecting the influence of objects in other zones, each zone has experienced what is locally a standard DH step: objects in zone 0 took a timestep of τ /4M0M1; objects in zone 1 had a timestep of τ /2M1; and objects in zone 2 had a timestep of τ .</p><p>We must now choose where to place the force operators. To simplify the discussion, we set M0 = M1 = 1, and assume that the zones are separated such that τ , τ /2, and τ /4 are appropriate DH timesteps for all objects in the respective zones; recovering the general case is straightforward. The kick-free three-zone integrator is given by</p><formula xml:id="formula_29">H τ = L τ /8 D τ /4 0 L τ /8 D τ /2 1 L τ /8 D τ /4 0 L τ /8 D τ 2 L τ /8 D τ /4 0 L τ /8 D τ /2 1 L τ /8 D τ /4 0 L τ /8 (29)</formula><p>Let Kij be the kick operator between zones i and j. In order to treat close encounters using the Chambers splitting, we must have each Di surrounded by two Kii.</p><formula xml:id="formula_30">H τ = L τ /8 K τ /8 00 D τ /4 0 K τ /8 00 L τ /8 K τ /4 11 D τ /2 1 K τ /4 11 L τ /8 K τ /8 00 D τ /4 0 K τ /8 00 L τ /8 K τ /2 22 D τ 2 K τ /2 22 L τ /8 K τ /8 00 D τ /4 0 K τ /8 00 L τ /8 K τ /4 11 D τ /2 1 K τ /4 11 L τ /8 K τ /8 00 D τ /4 0 K τ /8 00 L τ /8<label>(30)</label></formula><p>This integrator does not incorporate interzone forces, but intrazone forces are evaluated on the appropriate timescale relative to the drift timescale for objects in that zone. One can therefore apply the Chambers-style encounter handling between the sets of KiiDiKii as described in section 2.2 and we recover the standard approach. (In some situations we have found the DKD operator splitting is superior, but for reasons involving implementation details we will restrict ourselves to discussing the KDK version.)</p><p>There are many possible arrangements for force communication between zones. We optimistically choose the scheme requiring the fewest force calculations, and update forces between zones i and j on the outermost zone's timestep. This choice results in</p><formula xml:id="formula_31">H τ = L τ /8 K τ /8 00 D τ /4 0 K τ /8 00 L τ /8 K τ /4 01 K τ /4 11 D τ /2 1 K τ /4 11 K τ /4 01 L τ /8 K τ /8 00 D τ /4 0 K τ /8 00 L τ /8 K τ /2 02 K τ /2 12 K τ /2 22 D τ 2 K τ /2 22 K τ /2 12 K τ /2 02 L τ /8 K τ /8 00 D τ /4 0 K τ /8 00 L τ /8 K τ /4 01 K τ /4 11 D τ /2 1 K τ /4 11 K τ /4 01 L τ /8 K τ /8 00 D τ /4 0 K τ /8 00 L τ /8<label>(31)</label></formula><p>This approach succeeds in separating the integration of zone i objects from zone j objects. Objects in zone 2 need only have drifts and kicks involving them evaluated on the timestep τ ; objects in zone 1 on τ /2; and zone 0 on τ /4; and as already discussed L is not a problem. Note that the above integrator was built to minimize the number of force operators, but one could evaluate the cross-zone kicks (K12, for example) more frequently if desired.</p><p>The above integration technique obeys Newton's third law regarding interparticle forces. Although forces between objects in different zones are computed less frequently than forces within a zone, whenever gravitational accelerations are computed between two bodies the accelerations are equal and opposite (even for close-encountering objects in a transition zone, to be discussed later) and they are immediately applied and turned into changes in velocity. No force lag or accumulation is involved.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.6">Transition functions</head><p>We recall that the key insight of DLL98 is that to preserve symplectic behaviour while effectively changing the integration step (and therefore the surrogate Hamiltonian) an object must experience a smooth transition from one integration regime to another. Roughly speaking, if an object's transition is sufficiently smooth, then instead of suddenly finding itself evolving under a different surrogate Hamiltonian, it believes it is merely in a different regime of the original Hamiltonian. Accordingly, we now return to the previously-deferred issue of choosing appropriate transition functions, which turns out to be the most challenging part of the problem.</p><p>Let f (x) be a switch function, a real-valued nondecreasing function defined on <ref type="bibr">[0,</ref><ref type="bibr">1]</ref> with f (0) = 0 and f (1) = 1. We take the extension outside this domain (equal to 0 below and 1 above) as given, under which convention f (x) = x is a switch. The simplest switch is a shifted step function:</p><formula xml:id="formula_32">fstep(x) =  0 x &lt; 1 1 x 1<label>(32)</label></formula><p>However, this leads to sudden movement of portions of the Hamiltonian from one term to another, and symplecticity is lost. DLL98 suggest</p><formula xml:id="formula_33">fDLL3(x) = 3x 2 − 2x 3<label>(33)</label></formula><p>as one of their switches, which has f ′ (x) = 0 at both endpoints, as well as the higher-order</p><formula xml:id="formula_34">fDLL7(x) = x 4 (35 − 84x + 70x 2 − 20x 3 )<label>(34)</label></formula><p>Chambers (1999) suggests</p><formula xml:id="formula_35">f Ch (x) = x 2 /(2x 2 − 2x + 1)<label>(35)</label></formula><p>as a useful compromise between smoothness and efficiency of evaluation. <ref type="bibr" target="#b14">Rauch &amp; Holman (1999)</ref> prefer</p><formula xml:id="formula_36">fRH(x) = 1 2 " 1 + tanh » 2x − 1 x(1 − x) -«<label>(36)</label></formula><p>for which all derivatives vanish at the endpoints. <ref type="figure" target="#fig_0">Figure 1</ref> shows the various functions. We will use the cubic polynomial switch fDLL3, but the construction is independent of this choice. (This issue is discussed further in §3.1.1.) To reduce clutter we define a rescaling function on the switch,</p><formula xml:id="formula_37">C(x, x0, x1) = fDLL " x − x0 x1 − x0 «<label>(37)</label></formula><p>and build our transition functions from this base. As described briefly in §2.5, we divide the system into zones based on instantaneous heliocentric radius r, and imagine a set of spherical shells around the Sun. Each zone has a transition region near the interior and exterior edge of the shell in which operators involving both adjacent zones will act on an object. Let Ri be the locations of the i zone boundaries and 2hi be the widths of the transition regions, as illustrated in <ref type="figure">figure 2</ref>.</p><p>An unfortunate consequence of this choice is that the resulting evolution of transiting objects under D is no longer analytically integrable. It is tempting to construct a transition function based not on r but on the osculating semimajor axis a, which is constant during D and can therefore be used (along with all other orbital elements save those  <ref type="figure">Figure 2</ref>. A sketch of the radial zone scheme.</p><p>such as the mean anomaly describing the position along the orbit) to build a weighted but integrable D. Indeed, experiments show that an a-based function can work for isolated objects in the transition region. However, doing so vastly complicates the treatment of close encounters, as two encountering objects must have similar instantaneous r but can have very different a: consider a high-e zone 0 object at apocentre meeting a high-e zone 1 object at pericentre. Under an r-based weighting scheme, the difference in their effective drift timestep is bounded by their physical radial separation which gets smaller as the encounter gets deeper, whereas under an a-based scheme the drift timestep experienced by the inner object could remain very different from that of the outer object, which is not a recipe for numerical stability. A function which smoothly changes dependence from r to a with changes in the encounter status may be possible, but in our view the potential benefits are outweighed by the resulting complexity. For the integrators presented here, such as that of eq. 31, there are three types of transitions we must consider: (1) those involving drifts; (2) those involving distant kicks; and (3) those involving close encounters. Each has its own peculiarities, and treating (2) and (3) simultaneously is rather awkward.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.6.1">Drift transitions</head><p>The drift transitions are the easiest to handle. We need a function which will yield (for example) the full D1 term for an object completely within zone 1, and likewise with D2 and an object in zone 2, but which will return smoothlyvarying intermediate values for objects inside the transition zones [R1 − h1, R1 + h1] and [R2 − h2, R2 + h2], and generally [R − i , R + i ] where R ± i ≡ Ri ± hi. (For simplicity we will restrict ourselves to considering symmetric functions, although since objects in inner zones will have higher velocities and different effective timesteps, it is possible that an asymmetric function could yield better results.) Such a function is given by</p><formula xml:id="formula_38">WD(r, i) = 8 &gt; &gt; &gt; &gt; &lt; &gt; &gt; &gt; &gt; : 0 r R − i C(r, R − i , R + i ) R − i r R + i 1 R + i r R − i+1 1 − C(r, R − i+1 , R + i+1 ) R − i+1 r R + i+1 0 R + i+1 r<label>(38)</label></formula><p>where r is the instantaneous heliocentric radius and i is the zone index. This is nothing more than a SyMBA-style transition applied to r instead of to the interplanet separation. Although in general each Ri can have an associated transition zone, in practice the boundary 'transitions' are slightly degenerate. Typically one would set the inner transition region, (R0, h0), and the outer transition region, here (R3, h3), well outside the radii of interest so that the sum of weights over all zones is equal to 1 for all integrated objects regardless of r. In practice we make R0 smaller than our inner edge (set by the physics of the problem or the numerics of our timestep), R3 larger than the outer edge, and let h0 and h3 be some arbitrary small distance. <ref type="figure">Figure 2</ref> sketches the resulting scheme, with three timestep zones and effectively two (not four) transition zones.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.6.2">Distant forces</head><p>Treating the forces is more difficult, as it involves not only the interacting bodies' two distinct orbital radii but the separations between them. We seek a function which will ensure the objects experience sufficient continuity in their forces as they move from zone to zone. We will first consider only distant forces (i.e. we imagine all forces are 'soft', requiring no special attention) and then correct to handle close encounters.</p><p>Consider an integrator with three zones, labelled i, j, and k from innermost to outermost, and two planets, with orbital radii r0 and r1. Let the objects start in the zone j.</p><p>Initially, all the weight should be in Kjj . If we keep r0 = r1 and move the pair together both inwards and outwards, we see that we need smooth transitions between Kii and Kjj as well as between Kjj and K kk . If we instead keep r0 constant while increasing r1, then as the second object crosses from j to k, then the Kjj weight must decrease and K jk must increase until r1 is fully within k and the K jk weight is 1. If we decrease r0 and increase r1, then when both objects are in the centre of the transition zones (i-j and j-k), we will need to spread the force out over four different terms: Kij , K jk , K ik , and Kjj . This can be achieved by symmetrizing WD:</p><formula xml:id="formula_39">W dist (r0, r1, i, j) = 8 &gt; &gt; &lt; &gt; &gt; : (WD(r0, i) WD(r1, j) + i = j WD(r1, i) WD(r0, j))/2 WD(r0, i) WD(r1, j) + i = j WD(r1, i) WD(r0, j)<label>(39)</label></formula></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.6.3">Close encounters</head><p>Now we must ensure that close encounters are correctly shared. This requires a transition function W cl which will move the force between two objects from the Kii term to the Di term as in the Chambers methods, resulting in a triplet of terms</p><formula xml:id="formula_40">» 1 2 W cl Kii - + [(1 − W cl )Kii + Di] + » 1 2 W cl Kii -<label>(40)</label></formula><p>eq. 16. We take</p><formula xml:id="formula_41">W cl = C(ds, dscrit/2, dscrit)<label>(41)</label></formula><p>where dscrit, after DLL98, is several times the sum of the Hill radii (with a possible additional dependence on orbital velocity; as Chambers has noted, what matters is ensuring you integrate through the transition.) Note that unlike the transition function recommended in Chambers (1999), W cl moves all of the encounter into the numerically-integrated term (1 − W cl )Kii + Di at separation ds = dscrit/2, not at ds = 0.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.6.4">Combining the transitions</head><p>Each of the three above transition functions -WD, which applies to the D operators; W dist , which applies to all Kij operators; and W cl , which applies between Kii operators -makes sense independently. The natural way to combine them would give (for example, suppressing indices on the transition functions):</p><formula xml:id="formula_42">(W dist K23) τ 3 /2 (W dist W cl K33) τ 3 /2 [W dist (1 − W cl )K33 + WDD33] τ 3 (W dist W cl K33) τ 3 /2 (W dist K23) τ 3 /2<label>(42)</label></formula><p>The above approach has a minor problem, however. Consider two objects undergoing an encounter in a transition zone (say, the i-j boundary.) The above functions will attempt to share force across three terms: Kii, Kjj , and the cross-term Kij. However, the integrator is only built to treat the encounter using the KiiDiKii and Kjj Dj Kjj substeps. Any force that the Kij operator is assigned is only sampled on the larger timestep, and if the two objects are both in the middle of the transition zone this can be as much as half the total force. This will result in a highly inaccurate integration.</p><p>How can this be repaired? In the case of an encounter, Kii and Kjj should share all the force:</p><formula xml:id="formula_43">Wnear(r0, r1, i, j) = 8 &lt; : (WD(r0, i) WD(r1, j) + i = j WD(r1, i) WD(r0, j))/2 0 i = j<label>(43)</label></formula><p>In the absence of encounters, the above method (eq. 42) should work. Therefore we define yet another transition function,</p><formula xml:id="formula_44">W shift = C(ds, dscrit, 2 dscrit)<label>(44)</label></formula><p>and use it to smoothly interpolate between the no-encounter case when all operators are involved and the encounter case when only the intrazone operators share the force. (Here we will require that objects cannot undergo mutual encounters unless they are in neighbouring zones. Removing this limitation is possible but unnecessary for our intended applications.) Combining the above, we write</p><formula xml:id="formula_45">WK(i, j) = W shift W dist + (1 − W shift )Wnear<label>(45)</label></formula><p>and replace instances of W dist with this encounter-corrected expression.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.7">Assembling the integrator</head><p>The final integrator is constructed by applying the drift transition function (eq. 38) and the kick transition function (eq. 45) to the multilevel step of eq. 31. The order of the substeps and the relationships between the τ l are determined by the recursive subdivision of eq. 21 (as in eq. 31).</p><p>For each substep of level l, the algorithm proceeds as follows:</p><p>(1) Do the linear drift: if l = 0, apply L0 for τ0/2. (2) Apply the distant forces between l and all interior levels: apply WK(i, l) W cl K il for all i l for τ l /2. (3) Drift (including possible encounters): apply the distant forces between l and all interior levels: apply</p><formula xml:id="formula_46">WK(l, l) (1 − W cl ) K ll + D l for τ l .</formula><p>(Note that any implementation would avoid doing this numerically when the kick term was known to be zero because the objects are too well-separated.) (4) Apply the distant forces between l and all interior levels: A moment's consideration confirms that as promised in §1, this is nothing more than the step subdivision of <ref type="bibr" target="#b16">Saha &amp; Tremaine (1994)</ref> applied to the Hamiltonian of DLL98 with the close encounter handling of Chambers (1999), with staggered force calculations, and some new transition functions incorporated to ensure smoothness.</p><formula xml:id="formula_47">apply WK(i, l) W cl K il for all i l for τ l /2.<label>(</label></formula><p>In practice, we do not use the above scheme directly, but instead use a 'lower-level' scheme (motivated in part by <ref type="bibr" target="#b14">Rauch &amp; Holman 1999</ref>) in which we do not apply the transitions between terms in the Hamiltonian but between the resulting ∂q/∂t and ∂p/∂t. That is, given two pieces of the Hamiltonian HA and HB and a transition function f = f (q) between them, instead of starting with the decomposition</p><formula xml:id="formula_48">h f HA i + h (1 − f )HA + HB i<label>(46)</label></formula><p>which produces</p><formula xml:id="formula_49">dq dt = ∂ ∂p (f HA) , dp dt = − ∂ ∂q (f HA) dq dt = ∂ ∂p ((1 − f )HA + HB) , dp dt = − ∂ ∂q ((1 − f )HA + HB)<label>(47)</label></formula><p>as the derivatives to be integrated, we write</p><formula xml:id="formula_50">dq dt = f ∂H A ∂p , dp dt = −f ∂H A ∂q dq dt = (1 − f ) ∂H A ∂p + HB , dp dt = −(1 − f ) ∂H A ∂q + HB<label>(48)</label></formula><p>and apply the transition directly between the derivatives themselves. This saves some computation (of the cross-terms H∂f /∂q, at least; the H∂f /∂p terms are all 0 because f is not a function of the momenta) and increases the effective smoothness of the transition for a fixed f because one does not lose a degree of smoothness passing from H to its derivatives. It might be objected that this means the resulting integration technique is no longer strictly symplectic, but in fact one can construct a Hamiltonian (admittedly somewhat artificial) for which an obviously symplectic integrator generates exactly this algorithm. However, even if this were not the case and we were to view the integrator as merely 'near-symplectic', it remains time-reversible and works well in practice, which agrees with the results of <ref type="bibr" target="#b14">Rauch &amp; Holman (1999)</ref> who applied the transition functions in their SyMBA-style decomposition to the forces and not the potential. Of course, one may work with the original Hamiltonian-level splitting if preferred. One easily overlooked issue which is only apparent when considering a global simulation is that in the SyMBA scheme the (effective) Hill radii -the Hill radii used in the close encounter criteria -are fixed at the start of the integration. This is necessary to ensure that the integration remains both symplectic and analytically soluble. However, in cases where there is considerable inward migration, an object will have an unnecessarily large close encounter criterion when it arrives at the inner portion of the disc. Similarly, an outward migrating object could miss encounters. The strict solution is to bring the Hill radius dependence of the close encounter weight function under the numerical integration; the lazy not-quite-symplectic solution is to update the effective Hill radii on some interval, at the risk of interfering with ongoing encounters. All things being equal, if the system is messy and the number of updates is low it is unlikely to make a statistically significant difference.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">TESTS OF THE METHOD</head><p>The algorithm was implemented using the existing codebase of miranda <ref type="bibr" target="#b13">(McNeil 2006</ref>) as a framework, and using a standard Bulirsch-Stoer routine to handle the numerically integrated terms in the Hamiltonian. Since the method reduces to the well-understood Chambers approach in the onezone limit, we will concentrate on testing the performance of the multiple-zone aspects of the code. We have confirmed by comparison with miranda in both SyMBA and BulirschStoer modes that the new code behaves as expected in the one-zone case. Unless otherwise specified, the numerical integration tolerances were set at 10 −16 (which in practice generates errors ∼ 10 −14 ). The radial-transition detection routine numerically integrates an object if its osculating orbit as determined on the outer step comes within 5% of the transition zone.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Single planet</head><p>Here we consider a two-zone integrator with outer timestep 0.05 yr and inner timestep 0.025 yr. First we set the transition zone from 0.9 to 1.1 AU. We place objects of masses ranging from 1 M ⊕ to 10000 M ⊕ at semimajor axes between 0.8 and 1.2 AU, and consider the resulting behaviour of the energy (in the one-planet case, a measure of the variation in semimajor axis). For objects which enter the transition region, the surrogate Hamiltonian under which the planet is moving contains terms from both the inner and outer zones. <ref type="figure">Figure 3</ref> shows three points for each of the five mass cases (1,10,100,1000, and 10000 M ⊕ ) at each initial semimajor axis: one for the basic DH integrator (eq. 14) with a timestep of 0.025 yr, one for Naoko, and one for the DH integrator with a timestep of 0.05 yr. The errors generally decrease with increasing semimajor axis: for a fixed timestep, at larger orbital radius there are more steps per orbit. As expected, for objects in the transition zone, the new code reports errors which smoothly interpolate between those of the smaller and larger DH runs, and become indistinguishable from the standard algorithm outside the transition region. In the 10000 M ⊕ runs -3% of the mass of the Sun -there are some slight deviations apparent at the edges of the transition region. The clean interpolation also breaks down at very low mass for a different reason: the integration error is dominated by the integration tolerance.  <ref type="figure">Figure 3</ref>. Energy error as function of semimajor axis and object mass; the DH runs for 0.025 and 0.05 yr timesteps are in green, the Naoko runs are in blue.  The situation is very similar for the eccentricities, as shown in <ref type="figure" target="#fig_2">figure 4</ref>. Again we see the new code interpolating between the 0.05 and 0.025 yr DH runs. This shows that at least in a sufficiently smooth case, integrating an isolated object on multiple timesteps need not introduce spurious energy or angular momentum behaviour. <ref type="figure" target="#fig_1">Figure 5</ref> shows the relative energy error as a function both of the timestep and the inner:outer timestep ratio, where the largest outer timestep used was 0.05 yr, for a 1 M ⊕ object at 1 AU with e = 0.1, with transition zone from 0.95-1.05 AU. As expected, the integrator behaves as a second-order algorithm. Increasing the ratio to take more inner steps per outer step improves the energy error very little beyond 4:1, as the maximum error is controlled by the outer step which is not changing. Although this condition is necessary, it is clearly insufficient. More realistic tests involve objects which repeatedly cross from the inner zone to the outer zone through the transition zone during the same orbit.</p><p>Without loss of generality we placed a 1 M ⊕ object in the centre of a transition zone at 1 AU, and varied both the eccentricity e and the relative transition zone half-width h, where h is defined so that the zone extends from a(1 − h) to a(1+h), in analogy with the eccentricity. The outer timestep was chosen to be 1/20th of the orbital period, the eccentricities were varied from 0.001 to 0.37 (the latter chosen because that corresponds to a perihelion for which 0.025 yr is 1/20th of the orbital period at that distance), and the half-width was varied from 0.01 to 0.50 AU. The resulting maximum relative energy error is shown in <ref type="figure" target="#fig_4">figure 6</ref> as a function of the e/h ratio; the contours correspond to constant e.</p><p>At small e/h -that is, when the transition zone is larger than or comparable to the radial excursion per orbit -the energy error is well-behaved for a fixed e, and is only weakly dependent on h. At e/h 10, there are many integrations which do not converge. Nonconvergence is easily recognized from the evolution of the semimajor axis or the eccentricity: the planet begins to migrate away from its original location until it finds a semistable configuration. Examples are given in <ref type="figure">figure 7</ref> for e ≃ 0.25. Not only does the transition need to be sufficiently smooth along an orbit, but for a run with a larger tolerance or a larger timestep, a wider transition zone may be required so that the numerical integrator can detect the transition (unless the code accepts hints about the location of difficulties in the integrand). . Maximum relative energy error as a function of transition width and eccentricity; the eccentricity increases between curves by a factor of 1.48.  <ref type="figure">Figure 7</ref>. Relative change in semimajor axis and eccentricity for various transition half-widths h at e ≃ 0.25; the three half-widths below did not converge.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.1">Varying the switch</head><p>We also explored the effects of alternate choices of transition function. We place a 1 M ⊕ object at 1 AU with e = 0.2, and a transition zone extending from 0.95 to 1.05 AU with, with outer timestep 0.05 yr and inner timestep 0.025 yr.</p><p>We then vary the switch over the six functions described in §2.6: the step function; the switch f(x) = x; the DLL98 cubic; the DLL98 septic; the Chambers switch; and the Rauch &amp; Holman switch. <ref type="figure" target="#fig_5">Figure 8</ref> shows the resulting relative en-  ergy errors: the behaviours for the convergent integrations continue for millions of orbits. The step function fails immediately: the object migrates outward in semimajor axis to ∼ 1.00456 AU over the first 2700 years and then stops, corresponding to a maximum relative energy error of ∼ 0.0046. The remaining integrations all succeeded, with fDLL3 showing the smallest energy error and fRH the largest. We have found this is typical. That the crude fX performs better than the smooth fRH can be understood by returning to <ref type="figure" target="#fig_0">figure 1</ref>: fRH is the smoothest function, but for a fixed transition width it is also the one with the narrowest effective transition (extending roughly from x=0.25 to x=0.75).</p><p>The execution times for the various switches (excluding the step function) were generally comparable -mostly agreeing within the scatter -except that the Rauch &amp; Holman switch was consistently the slowest, and fX the fastest. The slower speed of the RH switch is likely chiefly due to the evaluation of the trigonometric function. (Note that some versions of the common GCC C compiler will occasionally refuse to inline functions for obscure reasons, leading to strange profiling results.)</p><p>Thus we chose fDLL3 as the best compromise between efficiency of evaluation and energy conservation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Multiple planets</head><p>The above results are unsurprising, insofar as the use of smooth transitions to move portions of the Hamiltonian from one part of the step to another is familiar. Of more concern is whether the reduction in the number of force evaluations will lead to unacceptable resolution of the angular momentum exchange between planets in different zones. We will concentrate on the interactions which are likely to be the most sensitive to changes in sampling frequency, namely resonant interactions. Recall that we are willing to accept a cruder approximation to the dynamics than we would ordinarily do, as long as there are no clear integration failures. Since one of our interests is studying migration scenarios, in which resonances play a significant role, it is important to verify that such behaviour is not lost when using the multizone methods.</p><p>We will verify that resonant behaviour can persist when the objects are in different zones, when one object is in a transition zone, and when the objects migrate across a zone in resonance (coorbital or otherwise). In each simulation we have used the two-zone 0.05/0.025 yr 0.9-1.1 AU transition. To make comparisons with the behaviour of the DH integrator clearer we have disabled the encounter treatment for the following sections (until §3.2.7).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.1">2:1 mean motion resonance</head><p>We place two 2 M ⊕ objects on cold e ∼ 0.002, i ∼ 0 orbits in the 2:1 mean motion resonance in three configurations: (1) a1 = 0.63 AU, a2 = 1.00 AU, where the outermost object is in the middle of the transition region; (2) a1 = 0.76 AU, a2 = 1.20 AU, where neither object is in the transition zone but the objects are in different zones; and (3) a1 = 1.00 AU, a2 = 1.59 AU, where the innermost object is in the transition zone. (All semimajor axes are approximate; the initial configurations were found by introducing a slowly-decreasing dissipation into the DH algorithm.) The evolution of the resonance angles is plotted in <ref type="figure">figure 9</ref>. In all cases the resonance is preserved, and in the cases where one object was in a transition zone the agreement is excellent between the Naoko results and the results of a DH run with timestep 0.025 yr. In the second case -in which neither object is in a transition zone -the libration is considerably larger in the Naoko run. This is not surprising: in the absence of dissipation the resonance is quite sensitive to the initial conditions, and case 2 has the greatest sudden change from DH to Naoko, as none of the force is being evaluated on the higher (inner) frequency. Even in this case, the introduced libration is comparable to the differences in width between different DH runs in which only the initial angles had been changed. For our purposes it is sufficient that the objects remain resonant, which they do.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.2">Co-orbitals</head><p>We place two objects -one 10 M ⊕ and one 1 M ⊕ -at 1.3 AU on (osculating) circular and coplanar objects with mean anomalies differing by 1.5 radians, and let them migrate inwards in the standard Hayashi minimum mass solar nebula (MMSN) disc model <ref type="bibr" target="#b7">(Hayashi 1981)</ref> with surface density ≃ 1700 g/cm 2 (r/AU) −1.5 .) The migration was driven by a prescription for type I gas migration <ref type="bibr" target="#b19">Tanaka et al. (2002)</ref>, in which the motion is produced by the asymmetry between the torques generated by the interior and exterior wakes of the body <ref type="bibr" target="#b6">(Goldreich &amp; Tremaine 1980;</ref><ref type="bibr" target="#b26">Ward 1986</ref>). (The difference in mass between the two test objects is to ensure that the lower-mass planet is being carried along by the resonance and not merely migrating in tandem.) <ref type="figure" target="#fig_0">Figure 10</ref> shows the evolution of the semimajor axis and the resonant  <ref type="figure">Figure 9</ref>. Evolution of resonance angles for pairs of objects in 2:1 mean motion resonance under both DH (green) and Naoko (blue) integrators. The three cases correspond to a 1 , a 2 = (0.63 AU, 1.00 AU), (0.76 AU, 1.20 AU), and (1.00 AU, 1.59 AU).  angle for both the DH and Naoko integrators. Even when the pair crosses the transition zone, the trajectories are barely distinguishable. It may seem counterintuitive that the algorithm performs near-perfectly on coorbital resonances which depend sensitively on the local potential and considerably worse on distant resonances which might be expected to be more forgiving of sampling errors. However, the method's errors compared with the the standard DH algorithm all involve relative differences, and in the case of co-orbital objects on near-circular objects, these are minimal.  <ref type="figure" target="#fig_0">Figure 11</ref>. Semimajor axis and resonance angle for pair of objects in 3:2 resonance crossing transition zone (the shaded area) for DH (green) and Naoko (blue) integrators.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.3">Transition crossing</head><p>A more rigorous test comes from seeing whether resonance can be maintained when the objects are under differentand varying -terms in the Hamiltonian. We place a 10 M ⊕ planet at 1.40 AU and a 20 M ⊕ planet at 1.85 AU, just outside the 3:2 resonance at ∼ 1.83AU, and turn on type I migration in the MMSN for them both. The results are shown in <ref type="figure" target="#fig_0">fig. 11</ref>. The 20 M ⊕ planet migrates faster than the 10 M ⊕ planet and catches up to the resonance within the first ∼ 1000 yrs. The evolution under DH of 0.025 yr and Naoko with 0.025/0.050 yr is almost identical until the inner object enters the transition zone; that Naoko is using a timestep twice as large makes little difference. Even after the objects enter the transition region, the planets remain in the 3:2, and the libration width is comparable between the two runs.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.4">Transition crossing: varying timestep ratios</head><p>It is of interest to see how the maintenance of the resonance varies as the inner:outer timestep ratio is varied. We place terms in the Hamiltonian. We place a 1 M ⊕ planet at 0.77 AU and a 10 M ⊕ planet at 1.23 AU, just outside the 2:1 resonance, and again turn on MMSN type I migration. We fix the outer timestep at 0.05 yr, and change the number of inner steps per outer step, while keeping the transition zone from 0.90 AU to 1.10 AU in each run. <ref type="figure" target="#fig_0">Figure 12</ref> shows the resulting evolution of the resonance angle. The use of multiple timescales for the forces introduces spurious libration spikes (with corresponding behaviour in the eccentricities), with the libration width during the spikes generally increasing with the timestep ratio. However, in all cases, from 2:1 through 96:1, the integration error failed to break the resonance during the transition, and the pair returned to the correct trajectory after the outer object passed through the transition region.  <ref type="figure" target="#fig_0">Figure 12</ref>. Evolution of resonance angle for 2:1 pair crossing a transition region as the inner:outer ratio is varied; the thin line is the reference single-timestep behaviour</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.5">Transition crossing: effect of force frequency</head><p>As mentioned in §2.5, although we have chosen to evaluate the forces on the outermost timestep, one can vary this frequency. We repeat the test of the previous section but with the forces always evaluated on the inner timestep (and accordingly with no need for any transition function applied to the kick operators), in which the only active transitions involve the timestep on which the object is being drifted. The resulting evolution of the resonance angle is shown in <ref type="figure" target="#fig_0">figure 13</ref>. We see that using the fixed high-frequency forces results in a considerable qualitative improvement, although the multiple timescales used for the Kepler drift still generate libration spikes. This serves to bound the likely improvement we can imagine by increasing the force frequency, which is very costly. Recall that the formation scenarios we seek to study using the new method involve large particle numbers where the execution time is dominated by the force calculation -a quite different regime from the solar system modelling of <ref type="bibr" target="#b16">Saha &amp; Tremaine (1994)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.6">Convergence</head><p>It is important to recognize that by changing the time sampling as we have done, we are unavoidably changing the dynamics of the system. Since the outer timestep remains fixed as we increase the inner timestep, and with it some fraction of the force evaluation, we are modifying the effective interaction between the inner and outer objects. For example, we consider a pair of 1 M ⊕ objects near a nominal 2:1 resonance at ∼ 0.79 AU and 1.25 AU and vary the timestep and inner:outer ratio. The original outer timestep was 0.05 yr. <ref type="figure" target="#fig_0">Figure 14</ref> shows the resulting change in eccentricity evolution for the inner object as both the inner:outer timestep ratio and the outer timestep are varied (the outer object shows similar behaviour.) As the ratio is increased in the top section of the <ref type="figure">figure -i</ref>  <ref type="figure" target="#fig_0">Figure 13</ref>. Evolution of resonance angle for 2:1 pair crossing for different transition region as the inner:outer ratio is varied; the heavier line corresponds to the high frequency force evaluation, and the lighter line to the standard low frequency evaluation of <ref type="figure" target="#fig_0">figure 12</ref>.</p><p>is decreased -the eccentricity evolution does converge, but it does not converge to the correct trajectory, although the relative differences in this case are not large. For a fixed timestep ratio, of course, as the outer timestep is decreased, the evolution converges as it should.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.7">Close encounters</head><p>As mentioned previously, when two objects are in the same zone the close encounters are treated as in the Chambers algorithm, and we disallow encounters between objects which are not in neighbouring zones. Since it is known that accurate resolution of close encounters is quite sensitive to the effective Hamiltonian under which it is being integrated (DLL98, §4), it is reasonable to expect poor behaviour for objects undergoing close encounters in a transition region where it is undergoing drifts of different duration. A decrease in accuracy may be tolerable at these few locations in a simulation, but the objects cannot suffer dramatic instabilities.</p><p>We use the 0.9-1.1 AU, dt=0.05 yr/0.025 yr transition. To generate frequently-encountering systems, we placed a 5 M ⊕ planet at 1.00 AU, in the middle of the transition region, on a circular orbit and a protoplanet of 0.1 M ⊕ at 1.5 AU with e = 0.333 on a coplanar orbit, set all angles to 0 and varied only the mean anomaly from 0 to 2π. After removing runs in which the smaller body did not undergo an encounter, would have suffered a potential merger, or (in one case) became sufficiently eccentric that it escaped the integration region, 16 runs remained. The relative change in the energy and the Tisserand parameter <ref type="figure" target="#fig_0">figure 15</ref>.  <ref type="figure" target="#fig_0">Figure 14</ref>. Eccentricity evolution for inner object in nearresonant pair described in §3.2.6 for various timesteps and inner:outer timestep ratios; the system does not converge to the true path as the ratio is increased but does as the timestep is decreased.</p><formula xml:id="formula_51">T = 1/2a + p a(1 − e 2 ) (Murray &amp; Dermott 1999 §3.4) is plotted in</formula><p>vert to the standard non-encountering behaviour. For comparison, the equivalent RMS maximum changes for our reference SyMBA implementation with timestep 0.025 yr -with mergers disallowed, to make the integration even more difficult -were ∼ 3 · 10 −6 and ∼ 0.003 for E and T, respectively. It is clear that the repeated close encounters in the transition zone cause a considerable decrease in accuracy, especially in the energy, but the error growth should be tolerable. The Bulirsch-Stoer numerical integrator we use often fails, and reports its failure, at high precision for very close encounters. This is typically not a problem in practice, as the separations at which the integrator fails are usually much smaller than the distances at which we would merge the two bodies, but is an issue for small-radius dynamical problems. The same failure mode exists when no transition zones are involved and the symplectic algorithm is one resembling that of Chambers.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Full example: short-period Neptunes</head><p>As a case study, we consider the problem of forming shortperiod Neptunes, which are particularly mysterious. It is clear they did not form at the small orbital radii at which they are currently found, and so it is likely they have migrated in from further out. However, their masses -10M ⊕ and higher -are unexpected. They are large enough that the timescale for type I migration to drag them into the Sun is considerably shorter than the formation timescale, but too small for some plausible mechanisms for suppressing type I migration to be effective (such as the opening of a gap in the disc at the transition to type II migration.)</p><p>There are two main scenarios present in the literature  for forming these objects. The first, due to <ref type="bibr" target="#b0">Alibert et al. (2006)</ref>, concentrates on sophisticated gas physics and follows the evolution of effectively isolated cores through the disc as they grow via planetesimal accretion and migrate, and finally have their atmospheric mass reduced after arriving in the short-period region by evaporation. The second, due to <ref type="bibr" target="#b20">Terquem &amp; Papaloizou (2007)</ref>, takes a more traditional Nbody approach, and follows the evolution of a small number of large embryos in the inner region. Neither of these are easy to reconcile with the standard oligarchic growth model for core formation <ref type="bibr" target="#b11">(Kokubo &amp; Ida 1998)</ref>: the first requires core formation to be suppressed everywhere in the disc except at a few special locations, and the second uses initial conditions for the mass distribution which it is difficult to recover selfconsistently from earlier stages of oligarchic evolution. It is of considerable interest whether the standard model can generate anything resembling the observed planets -if it cannot, then we have strong evidence that we are missing important physics -and the new method can address this question. We will merely sketch the application here; forthcoming work will describe our results in more detail. We apply the two-stage approach of <ref type="bibr" target="#b12">McNeil et al. (2005)</ref>, which was based on that of <ref type="bibr" target="#b22">Thommes et al. (2003)</ref>, using semianalytic approximations of oligarchic evolution to treat the early evolution of the disc and then generating an N-body realization when the number of N-body particles needed drops to practical levels. We consider various disc models (all resembling the minimum mass model of <ref type="bibr" target="#b7">Hayashi 1981)</ref> and different migration efficiencies.</p><p>An example of a low-resolution run is shown in <ref type="figure" target="#fig_0">figure  16</ref> which employed 21 embryos and 212 planetesimals. The semianalytic model was run to 1 Myr for a disc with surface density proportional to r −0.5 of ∼ 3 times the standard Hayashi mass without a snow line, with nominal type I migration and aerodynamic drag (for a 1 km planetesimal size), where the e-folding time for the decay of the gas disc was 0.5 Myr. A section of the system ranging from 1.0 AU to 5.1 AU was then evolved under the new N-body code until the gas was mostly absent. As a consequence of the semianalytic model predicting that the innermost part of the disc had gone to oligarchic completion, the embryos inside of 2.0 AU migrate inwards smoothly in tandem: there is nothing to perturb them. This results in 10.3 M ⊕ of embryo material inside of 1 AU when the gas vanishes in an apparently stable configuration. Further out, the system is still undergoing chaotic evolution. In a more realistic situation, in which there were still planetesimals around in the inner regions to perturb the embryos, they might merge, producing larger planets; or, if they merge too early, they could migrate into the Sun. <ref type="figure" target="#fig_0">Figure 17</ref> presents examples of the kinds of interior configurations our toy simulations produce; all are plotted at t=3.25 Myr. Typical results include failures in which no or almost no mass is left in the interior region (S2, S5, S7, S9); cases where the total mass is interesting from the perspective of hot Neptune formation but the embryo mass is spread out over a large number of embryos instead of being concentrated in one or two objects (S4, S8); and cases where the total mass is appealing and there are only two embryos of multiple Earth masses (S1, S3, S6) but where too much of the mass is locked up in planetesimals, possibly as a consequence of the low resolution. (Planetesimals do not self-interact in these simulations.) Even these crude simulations are useful to estimate whether the conditions are appropriate for larger integrations. We will present results from higher resolution simulations in a forthcoming publication.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">DISCUSSION</head><p>The observed behaviour of the method (including on tests not presented above) is compatible with the principles that (1) parts of the Hamiltonian can be moved between operators with different timesteps if the transition is sufficiently smooth, (2) reversibility is more important than accuracy for secular energy conservation, and (3) decreased time resolution is not catastrophic for dynamics on much longer timescales. We emphasize that we do not claim, and have not shown, that the integrators are in any sense optimal. (Some evidence suggests that a drift-kick-drift splitting can be preferable to the kick-drift-kick splitting used here, for example; see <ref type="bibr" target="#b29">Wisdom et al. 1996</ref>.) To use a loose analogy from the history of close encounter treatment, this approach probably lies somewhere between the hybrid methods of <ref type="bibr" target="#b8">Levison &amp; Duncan (1994)</ref> and the mature methods of DLL98. As always, one must bear the approximations being used in mind -small effects can accumulate to cause dramatic changes on secular timescales in ways not always easy to predict. The approximations used here have the virtue of being different from those used previously. Given the decrease in force accuracy involved, it may be best to think of the use of these methods as one would a reversible, Kepler-adapted treecode: useful for studying certain formation problems, and generally informative in a statistical sense, but inappropriate for cases where detailed dynamics are important. Potential users are advised to think carefully about whether the approximations are suited for their problems, as there are far more ways for an integration to fail in time <ref type="bibr">[Myr]</ref> semimajor axis <ref type="bibr">[</ref> the multi-zone case than there are in standard SyMBA-style integrators.</p><p>There are several potential applications and directions for generalization we have not considered here. As discussed in section 2.3, <ref type="bibr" target="#b9">Levison &amp; Duncan (2000)</ref> modified the Chambers approach to handle objects which occasionally require very small timesteps, at the price of integrating the entire system numerically when such an approach occurs. The new method succeeds in decoupling such objects, and so may be practical in some cases for which their method is inapplicable (such as when ejections of low-mass objects are common). It may also be useful in studying planet formation in close binaries, for which some symplectic methods for dealing with these systems already exist ( <ref type="bibr" target="#b3">Chambers et al. 2002)</ref>. <ref type="bibr" target="#b16">Saha &amp; Tremaine (1994)</ref> develop 'symplectic interpolation' methods to improve the accuracy of their integrator, by using a symplectic prediction of the effects of HKep to better synchronize the force calculations. This would probably work here as well, in a formal sense, but it is unlikely to provide dramatic improvements, and the errors in energy and angular momentum conservation introduced by the method should be tolerable for most formation problems as they stand.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 .</head><label>1</label><figDesc>Figure 1. Various candidate switch functions, discussed in §2.6.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>5 )</head><label>5</label><figDesc>Do the linear drift: if l = 0, apply L0 for τ0/2.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 4 .</head><label>4</label><figDesc>Figure 4. Maximum eccentricity as function of semimajor axis and object mass. Most of the 1 M ⊕ runs are not plotted, as their maximum e was 0.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 5 .</head><label>5</label><figDesc>Figure 5. Maximum relative energy error as function of timestep and inner:outer timestep ratio for a 1 M ⊕ object at 1 AU with e = 0.1, with transition zone from 0.95-1.05 AU.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Figure 6</head><label>6</label><figDesc>Figure 6. Maximum relative energy error as a function of transition width and eccentricity; the eccentricity increases between curves by a factor of 1.48.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Figure 8 .</head><label>8</label><figDesc>Figure 8. Maximum relative energy error for single planet at 1 AU, e=0.2, with transition zone 0.95-1.05 AU, for various switch functions.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Figure 10 .</head><label>10</label><figDesc>Figure 10. Semimajor axis and resonance angle for coorbital migration pair crossing transition zone (the shaded area) for DH (green) and Naoko (blue) integrators.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Figure 15 .</head><label>15</label><figDesc>Figure 15. Energy conservation and variation of Tisserand parameter during close encounters described in §3.2.7.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head>Figure 16 .</head><label>16</label><figDesc>Figure 16. Embryo evolution with time for a simulation of a disc 3 times the minimum mass with Σ ∝ r −0.5 , with disc dissipation e-folding time of 0.5 Myr. For each embryo lines corresponding to semimajor axis, perihelion distance, and aphelion distance are drawn.</figDesc></figure>
+
+			<note place="foot" n="1"> The temptation to suggest yet another name is resisted only with difficulty.</note>
+		</body>
+		<back>
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">CONCLUSIONS</head><p>We have presented a new integration method which preserves most of the speed and conservation properties of standard close-encountering symplectic integrators for planetary dynamics, but introduces radial zones between which the drift and force evaluation timesteps can vary. This allows for a new tradeoff between the accuracy of the integration and the speed, one which is inappropriate for precise dynamical studies but may be of use for investigating other scenarios. We expect it to be useful for approximate N-body modelling of planetary formation problems where (1) there is a wide range of orbital velocities, (2) the majority of the material needing particle representation is in the regions with longer orbital periods, and (3) the system remains sufficiently cold that the transition regions between radial zones can be kept reasonably small. Migration scenarios of the formation of hot exoplanets satisfy all these constraints, and we are currently exploring such applications.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>ACKNOWLEDGMENTS</head><p>DSM thanks Martin Duncan and Paul Wiegert for useful discussions, and thank the anonymous referee for a careful review. The authors gratefully acknowledge the support of SFTC grant PP/D002265/1. The simulations presented in this paper were performed using the QMUL HPC facilities.</p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Alibert</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Ast. &amp;Astrophys</title>
+		<imprint>
+			<biblScope unit="volume">455</biblScope>
+			<biblScope unit="page">25</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P</forename><surname>Butler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">S</forename><surname>Vogt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Marcy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Fischer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Wright</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Henry</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Laughlin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Lissauer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Ap. J</title>
+		<imprint>
+			<biblScope unit="volume">617</biblScope>
+			<biblScope unit="page">580</biblScope>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">E</forename><surname>Chambers</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Mon. Not. R. Astr. Soc</title>
+		<imprint>
+			<biblScope unit="volume">304</biblScope>
+			<biblScope unit="page">793</biblScope>
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">E</forename><surname>Chambers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">V</forename><surname>Quintana</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Duncan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Lissauer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">123</biblScope>
+			<biblScope unit="page">2884</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Duncan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">F</forename><surname>Levison</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">M</forename><surname>Budd</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">110</biblScope>
+			<biblScope unit="page">3073</biblScope>
+			<date type="published" when="1995" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Duncan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">F</forename><surname>Levison</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">H</forename><surname>Lee</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">116</biblScope>
+			<biblScope unit="page">2067</biblScope>
+			<date type="published" when="1998" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Goldreich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Tremaine</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Ap. J</title>
+		<imprint>
+			<biblScope unit="volume">241</biblScope>
+			<biblScope unit="page">425</biblScope>
+			<date type="published" when="1980" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Hayashi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Progress of Theoretical Physics Supplement</title>
+		<imprint>
+			<biblScope unit="volume">70</biblScope>
+			<biblScope unit="page">35</biblScope>
+			<date type="published" when="1981" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">F</forename><surname>Levison</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Duncan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Icarus</title>
+		<imprint>
+			<biblScope unit="volume">108</biblScope>
+			<biblScope unit="page">18</biblScope>
+			<date type="published" when="1994" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">F</forename><surname>Levison</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Duncan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">120</biblScope>
+			<biblScope unit="page">2117</biblScope>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Kinoshita</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Yoshida</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Nakai</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Celestial Mechanics and Dynamical Astronomy</title>
+		<imprint>
+			<biblScope unit="volume">50</biblScope>
+			<biblScope unit="page">59</biblScope>
+			<date type="published" when="1991" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Kokubo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Ida</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Icarus</title>
+		<imprint>
+			<biblScope unit="volume">131</biblScope>
+			<biblScope unit="page">171</biblScope>
+			<date type="published" when="1998" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Mcneil</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Duncan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">F</forename><surname>Levison</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">130</biblScope>
+			<biblScope unit="page">288</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Mcneil</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+	<note>Ph.D. thesis</note>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">D</forename><surname>Murray</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">F</forename><surname>Dermott</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">P</forename><surname>Rauch</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Holman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Solar System Dynamics</title>
+		<meeting><address><addrLine>Cambridge</addrLine></address></meeting>
+		<imprint>
+			<publisher>Cambridge University Press</publisher>
+			<date type="published" when="1999" />
+			<biblScope unit="volume">117</biblScope>
+			<biblScope unit="page">1087</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Saha</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Tremaine</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">104</biblScope>
+			<biblScope unit="page">1633</biblScope>
+			<date type="published" when="1992" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Saha</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Tremaine</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">108</biblScope>
+			<date type="published" when="1962" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">D</forename><surname>Skeel</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Appl. Numer. Math</title>
+		<imprint>
+			<biblScope unit="volume">29</biblScope>
+			<biblScope unit="page">3</biblScope>
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">D</forename><surname>Skeel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Biesiadecki</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Ann. Numer. Math</title>
+		<imprint>
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page">191</biblScope>
+			<date type="published" when="1994" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Tanaka</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Takeuchi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">R</forename><surname>Ward</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Ap. J</title>
+		<imprint>
+			<biblScope unit="volume">565</biblScope>
+			<biblScope unit="page">1257</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Terquem</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">C B</forename><surname>Papaloizou</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Ap. J</title>
+		<imprint>
+			<biblScope unit="volume">654</biblScope>
+			<biblScope unit="page">1110</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Tsiganis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Gomes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Morbidelli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">F</forename><surname>Levison</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">435</biblScope>
+			<biblScope unit="page">459</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">W</forename><surname>Thommes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Duncan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">F</forename><surname>Levison</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Icarus</title>
+		<imprint>
+			<biblScope unit="volume">161</biblScope>
+			<biblScope unit="page">431</biblScope>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Torres</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Ap. J. Lett</title>
+		<imprint>
+			<biblScope unit="volume">671</biblScope>
+			<biblScope unit="page">65</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Touma</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Wisdom</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">259</biblScope>
+			<biblScope unit="page">1294</biblScope>
+			<date type="published" when="1993" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Touma</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Wisdom</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">107</biblScope>
+			<biblScope unit="page">1189</biblScope>
+			<date type="published" when="1994" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">R</forename><surname>Ward</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Icarus</title>
+		<imprint>
+			<biblScope unit="volume">67</biblScope>
+			<biblScope unit="page">164</biblScope>
+			<date type="published" when="1986" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Wisdom</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">131</biblScope>
+			<biblScope unit="page">2294</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Wisdom</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Holman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">102</biblScope>
+			<biblScope unit="page">1528</biblScope>
+			<date type="published" when="1991" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Wisdom</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Holman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Touma</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Fields Institute Communications</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="page">217</biblScope>
+			<date type="published" when="1996" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Yoshida</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Celest. Mech</title>
+		<imprint>
+			<biblScope unit="volume">304</biblScope>
+			<biblScope unit="page">27</biblScope>
+			<date type="published" when="1993" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

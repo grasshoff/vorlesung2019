@@ -1,0 +1,1626 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-11T13:19+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">THE EXOPLANET SIMPLE ORBIT FITTING TOOLBOX (EXOSOFT): AN OPEN-SOURCE TOOL FOR EFFICIENT FITTING OF ASTROMETRIC AND RADIAL VELOCITY DATA</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2017-11-13">November 13, 2017 November 13, 2017</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Kyle</forename><surname>Mede</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Timothy</forename><forename type="middle">D</forename><surname>Brandt</surname></persName>
+						</author>
+						<title level="a" type="main">THE EXOPLANET SIMPLE ORBIT FITTING TOOLBOX (EXOSOFT): AN OPEN-SOURCE TOOL FOR EFFICIENT FITTING OF ASTROMETRIC AND RADIAL VELOCITY DATA</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2017-11-13">November 13, 2017 November 13, 2017</date>
+						</imprint>
+					</monogr>
+					<idno type="DOI">10.5281/zenodo.259500</idno>
+					<note>Draft version Preprint typeset using L A T E X style emulateapj v. 08/22/09 Draft version</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>Subject headings: astrometry -brown dwarfs -methods: statistical -planetary systems -techniques: high angular resolution -techniques: radial velocities</keywords>
+			</textClass>
+			<abstract>
+				<p>We present the Exoplanet Simple Orbit Fitting Toolbox (ExoSOFT), a new, open-source suite to fit the orbital elements of planetary or stellar mass companions to any combination of radial velocity and astrometric data. To explore the parameter space of Keplerian models, ExoSOFT may be operated with its own multi-stage sampling approach, or interfaced with third-party tools such as emcee. In addition, ExoSOFT is packaged with a collection of post-processing tools to analyze and summarize the results. Although only a few systems have been observed with both the radial velocity and direct imaging techniques, this number will increase thanks to upcoming spacecraft and ground based surveys. Providing both forms of data enables simultaneous fitting that can help break degeneracies in the orbital elements that arise when only one data type is available. The dynamical mass estimates this approach can produce are important when investigating the formation mechanisms and subsequent evolution of substellar companions. ExoSOFT was verified through fitting to artificial data and was implemented using the Python and Cython programming languages; available for public download at https://github.com/kylemede/ExoSOFT under the GNU General Public License v3.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">INTRODUCTION Substellar companions exist in a wide array of masses and orbital configurations. Confirmed companions</head> <ref type="bibr">456</ref> <p>have orbital separations ranging from 0.0044AU to 2500AU (for PSR 179-14 ( <ref type="bibr" target="#b5">Bailes et al. 2011</ref>) and WD 0806-661B b ( <ref type="bibr" target="#b54">Rodriguez et al. 2011</ref>) respectively), and masses as low as 0.022M ⊕ (PSR B1257+12 <ref type="bibr" target="#b67">(Wolszczan 1994)</ref>). This broad spectrum has highlighted the somewhat arbitrary nature of mass-based categorizations. The canonical definition of a star is an object with sufficient core pressures for stable hydrogen burning, or a minimum mass of ∼ 73 − 89M J depending on metallicity <ref type="bibr" target="#b14">(Chabrier &amp; Baraffe 2000;</ref><ref type="bibr" target="#b31">Grossman et al. 1974)</ref>. Bodies sufficiently massive to fuse deuterium, but not hydrogen, with masses from ∼13-80M J , are referred to as brown dwarfs; objects of even lower mass are called planets. Deuterium burning has a negligible effect on a brown dwarf's evolution; a more physically interesting distinction between brown dwarfs and planets might be their mechanism of formation ( <ref type="bibr" target="#b15">Chabrier et al. 2014</ref>).</p><p>Formation mechanisms are thought to be broken up into two general regimes: large objects form like stars, from the 'top down', while planets grow from the 'bottom up'. Stellar mass companions are believed to form early on through the cooling and contraction of a fragment of the primary's protostellar cloud, or slightly later from a fragment of its protoplanetary disk <ref type="bibr" target="#b43">(Kuiper 1951;</ref><ref type="bibr" target="#b12">Cameron 1978;</ref><ref type="bibr" target="#b10">Boss 1997;</ref><ref type="bibr" target="#b8">Boley 2009;</ref><ref type="bibr" target="#b64">Vorobyov 2013)</ref>. Giant planets are thought to form when a rocky planet becomes sufficiently massive to accrete gas directly from the circumstellar disk <ref type="bibr" target="#b56">(Safronov &amp; Zvjagina 1969;</ref><ref type="bibr">Gol- dreich &amp; Ward 1973;</ref><ref type="bibr" target="#b50">Mizuno 1980;</ref><ref type="bibr" target="#b53">Pollack et al. 1996)</ref>. Direct collapse and core accretion operate over different, though likely overlapping, mass and separation regimes ( <ref type="bibr" target="#b51">Mordasini et al. 2012;</ref><ref type="bibr" target="#b7">Bate et al. 2003</ref>; Bate 2009); they may also produce different distributions of eccentricity. Observational studies at these overlapping mass regimes would benefit from the precise and accurate planet masses obtained by fitting their dynamics.</p><p>Planets exist with a wide range of properties and their current orbits hold clues to their formation and evolutionary past. Unfortunately, no single observing technique can provide data sufficient to fully model a companion's orbit and constrain all six of its orbital elements. Two of those commonly applied for detecting substellar companions are the radial velocity method and highcontrast direct imaging. Partial solutions to the orbit can be achieved by fitting the measured radial velocity or astrometry. While the full set of orbital elements may be obtained by fitting both simultaneously for a single object. Solutions found in this manner are capable of measuring the companion's dynamical mass, rather than the m 2 sin(i) value estimated with the RV method alone. Thus, the sin(i) degeneracy may be broken, enabling separate constraints on the inclination and companion mass. However, no general open-source tools to perform joint RV and astrometric data fitting currently exist.</p><p>Of the nearly 2000 confirmed exoplanets 7 , ∼600 were found through radial velocity measurements and ∼40 with direct imaging, although none have data of both forms. While a small number of objects with simultaneous coverage and estimated dynamical masses exist, they are all in the low-mass star and high mass brown dwarf range (i.e. <ref type="bibr" target="#b17">Crepp et al. 2012a</ref><ref type="bibr">Crepp et al. ,b, 2013a</ref><ref type="bibr">Crepp et al. ,b, 2014</ref><ref type="bibr" target="#b55">Ryu et al. 2016</ref>, also: J. <ref type="bibr">Hagelberg et al. 2016, in preparation)</ref>. Given the uncertainties in the atmospheric models of exoplanets and low-mass brown dwarfs, and the variety of orbital evolution scenarios, accurate dynamical mass values are important. The advancements in ground-and spacebased instrumentation will further populate the lists of known low mass companions observed with both techniques. With Gaia precisely measuring acceleration in the plane of the sky for ∼10 9 stars, it is expected to lead to the discovery of thousands of planets astrometrically. In addition, high-dispersion spectrographs such as IRD ( <ref type="bibr" target="#b59">Tamura et al. 2012</ref>), CRIRES ( <ref type="bibr">Käufl et al. 2008</ref>) and SPIRou ( <ref type="bibr" target="#b3">Artigau et al. 2011</ref>), will measure the radial velocity of low-mass stars with poor or no orbital coverage from previous instruments. For those systems with separations and predicted contrasts detectable with next generation integral field spectrographs, including CHARIS ( <ref type="bibr" target="#b52">Peters et al. 2012a</ref>), SPHERE ( <ref type="bibr" target="#b16">Claudi et al. 2006</ref>), and GPI ( <ref type="bibr" target="#b45">Macintosh et al. 2014</ref>), follow-up observations can help investigate their atmospheres. The higher sensitivities of all these instruments and spacecraft will increase the number of known companions and expand the overlap range of those detectable in both the radial velocity and astrometric data.</p><p>In this paper we introduce a new, open-source software package, ExoSOFT, for performing joint fitting of a system's orbital elements. We have organized the paper as follows. Section 2 covers the joint 3-dimensional model used, the background on fitting models of this kind and the approach ExoSOFT utilizes in Section 3, and the implementation and verification of its capabilities for a synthetic example system in Section 4.</p><p>ExoSOFT is available for public download from GitHub 8 under the GNU General Public License v3, and has also been placed on the Python Package Index 9 for simple installation. The release version of the codebase used to produced the results in Section 4.2 has been archived on Zenodo 10 .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">MODELING THE ORBIT</head><p>The classical solution to the two-body problem in Newtonian gravity is given by using Kepler's laws; six parameters are needed to fully describe the orbits (eg. <ref type="bibr" target="#b34">Heintz (1978)</ref>). We implement this approach adding some intermediate parameters to facilitate the calculation and comparison to measured radial velocity and astrometry. Our full set of parameters is given in the top section of <ref type="table" target="#tab_0">Table 1</ref>; these are used to calculate the additional parameters in its lower section.</p><p>The predicted radial velocity and astrometry values, to be compared to the measured data for epoch t, are calculated in the following way. The equations for the projected line-of-sight velocity, or radial velocity v, and projected locations in the plane of the sky, the astrometry, both require the anomalies M , E and θ. Thus, the anomalies are determined first, followed by v, ending with the Thiele-Innes equations to get relative right ascension, ∆α and declination, ∆δ.</p><p>The Eccentric Anomaly E and True Anomaly θ are  </p><formula xml:id="formula_0">P (t − T o )<label>(1)</label></formula><p>and its relation to E through Kepler's equation is</p><formula xml:id="formula_1">M = E − e × sin(E),<label>(2)</label></formula><p>where e is the eccentricity. We solve Equation (2) with Newton's method and use the resulting value to calculate θ following</p><formula xml:id="formula_2">θ = cos −1 cos(E) − e 1 − e × cos(E)<label>(3)</label></formula><p>and</p><formula xml:id="formula_3">θ = θ E ≤ π 2π − θ E &gt; π .<label>(4)</label></formula><p>Equations <ref type="formula" target="#formula_1">(2)</ref>-(4) provide the two key time dependent values, E and θ.</p><p>The radial velocity as measured for the primary due to the companion's motion is</p><formula xml:id="formula_4">v(t) = K 1 [cos(θ(t) + ω 1 ) + e cos(ω 1 )] + γ<label>(5)</label></formula><p>where ω 1 is the Argument of Periapsis for the primary, γ is the instrument velocity offset and the semi amplitude of the primary (K 1 ) is</p><formula xml:id="formula_5">K 1 = 2πG P 1/3 m 2 sin(i) (m tot ) 2/3 1 √ 1 − e 2<label>(6)</label></formula><p>with m 2 being the companion's mass, m tot the total mass of both objects and P the period. When only radial velocity data are available, Equation <ref type="formula" target="#formula_5">(6)</ref> shows that the companion's mass and inclination cannot be independently constrained. The Thiele-Innes method is a standard approach to compute the predicted astrometric values given a set of input orbital elements (Thiele 1883; Van den Bos 1932), using a set of intermediate quantities</p><formula xml:id="formula_6">A = a tot [cos(Ω 2 ) cos(ω 2 ) − sin(Ω 2 ) sin(ω 2 ) cos(i)] (7) B = a tot [sin(Ω 2 ) cos(ω 2 ) + cos(Ω 2 ) sin(ω 2 ) cos(i)] (8) F = a tot [− cos(Ω 2 ) sin(ω 2 ) − sin(Ω 2 ) cos(ω 2 ) cos(i)] (9) G = a tot [− sin(Ω 2 ) sin(ω 2 ) + cos(Ω 2 ) cos(ω 2 ) cos(i)] .<label>(10)</label></formula><p>These equations are in the form that is standard in the field <ref type="bibr" target="#b34">(Heintz 1978;</ref><ref type="bibr" target="#b0">Aitken 1935)</ref>. In Equations <ref type="formula">(7)</ref>- <ref type="formula" target="#formula_0">(10)</ref>, the total semi-major axis of the apparent ellipse (a tot ) is calculated with Kepler's third law,</p><formula xml:id="formula_7">a tot = P 2 Gm tot 4π 2 1/3 (11)</formula><p>with G in Equation <ref type="formula" target="#formula_0">(11)</ref> being Newton's gravitational constant. Equations <ref type="formula">(7)</ref>- <ref type="formula" target="#formula_0">(10)</ref> give the relative location of the secondary with respect to the primary in the plane of the sky. The matching relative right ascension ∆α and declination ∆δ for comparison to the data are found with</p><formula xml:id="formula_8">∆δ = AX(t) + F Y (t) (12) ∆α = BX(t) + GY (t)<label>(13)</label></formula><p>given</p><formula xml:id="formula_9">X(t) = cos(E(t)) − e (14) Y (t) = 1 − e 2 sin(E(t)).<label>(15)</label></formula><p>The orbits of the two bodies m 1 and m 2 have matching values for all the orbital elements except Ω and ω. To convert between them, the relations ω 1 = ω 2 + π and Ω 1 = Ω 2 + π are used. For all cases, we assume the measured astrometry to be the relative positions of the two bodies tracing out an apparent ellipse on the sky, which reduces to the orbit of the companion when m 1 m 2 .</p><p>The equations in this section calculate a set of observables (v, ∆α, and ∆δ) that we then compare to the corresponding measurements.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">MODEL FITTING</head><p>3.1. Method Model fitting can be broken down into two main tasks: solving for a set of parameters approaching those with the maximum likelihood, and estimating their uncertainties. In a Bayesian framework the full set of information is contained within the posterior probability distribution of the model parameters, p(Model|Data). <ref type="bibr">Ford (2005</ref><ref type="bibr" target="#b26">) &amp; Ford (2006</ref> discuss the use of Bayesian inference to solve for this distribution in the case of fitting observations of exoplanets to Keplerian models; for details beyond those given here, we refer the reader to those papers.</p><p>The posterior probability distribution, p(Model|Data), is computed using Bayes' theorem,</p><formula xml:id="formula_10">p(Model|Data) ∝ p(Data|Model)p(Model).<label>(16)</label></formula><p>Here p(Data|Model) is the likelihood of the model parameters, L (Model), and p(Model) is the prior probability of the parameters based on previous knowledge. Assuming that the errors in the observed data are independent and Gaussian distributed, the likelihood can be expressed in terms of the usual χ 2 :</p><formula xml:id="formula_11">L (Model) = p(Data|Model) ∝ exp − χ 2 2 (17)</formula><p>with χ 2 being a sum over data points i,</p><formula xml:id="formula_12">χ 2 = i (Model i − Data i ) 2 σ 2 i (18)</formula><p>The posterior probability distribution can then be computed by finding the value of L (Model)p(Model) for all possible parameter combinations and integrating. Due to the high dimensionality of Keplerian models though, the parameter space is large, making this bruteforce approach computationally problematic. A variety of routines exist for sufficiently sampling the posterior without calculating its value everywhere. In Section 3.2 we will discuss the approaches used in ExoSOFT, particularly that of Markov Chain Monte Carlo, along with the specific priors for each of the model parameters.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">MCMC</head><p>Forming the posterior distributions can be achieved by integrating Bayes' theorem over the model's parameter space. Depending on the form of the likelihood function and the dimensionality of the model space, evaluating this integral directly or through 'shotgun' Monte Carlo can prove computationally impractical. One alternative is to draw statistically dependent samples with Markov Chain Monte Carlo (MCMC) ( <ref type="bibr" target="#b44">Liu 2008)</ref>. A Markov Chain is a sequence of points satisfying the dependency defined by the Markov property: each point in the chain is a function only of its immediate predecessor with no memory of the chain history. MCMC guarantees convergence to the posterior probability distributions in the limit of a large number of steps. A widely used algorithm to form such chains is that of Metropolis-Hastings, originally detailed in <ref type="bibr" target="#b49">Metropolis et al. (1953)</ref> and further generalized by <ref type="bibr" target="#b32">Hastings (1970)</ref>. Unfortunately, the convergence rate is typically impossible to compute; we discuss convergence in more detail in Section 3.3.</p><p>There are multiple approaches to sampling the posterior distributions of the Keplerian model in Section 2 with ExoSOFT. One is to use a built-in MCMC sampler based on the Metropolis-Hastings algorithm. This implements the standard form of the rejection function,</p><formula xml:id="formula_13">r (ξ, ξ j+1 ) = min 1, L (ξ j+1 ) L (ξ j ) p (ξ j+1 ) p (ξ j ) ,<label>(19)</label></formula><p>where ξ j+1 is a step, a set of parameters; with this, the likelihood is L = L (Model j ) = L (ξ j ), and the prior probability is p = p (Model) = p (ξ j ). The proposed steps are drawn from normal distributions of fixed width in each parameter centered on the current step. Following the Gaussian error assumption in Section 3.1, the likelihood ratio is</p><formula xml:id="formula_14">L (ξ j+1 ) L (ξ j ) = exp − χ 2 ξj+1 − χ 2 ξj 2 .<label>(20)</label></formula><p>ExoSOFT also provides L and p in a format that easily interfaces with MCMC packages like emcee <ref type="bibr" target="#b27">(Foreman- Mackey et al. 2013</ref>), using the combined function ln (L (ξ)) + ln (p (ξ)). As such, emcee has been made a dependency of ExoSOFT and can be selected for use with a flag in the settings file. We chose prior probabilities, or 'priors', for each parameter with simplicity in mind. These should only be considered as suggestions, and may be easily changed in the ExoSOFT settings files to suite the user's preferences or to take into account the results of more recent work. The complete set of parameters in our full joint analysis are (m 1 ,m 2 ,,P ,i,e,T o ,Ω,ω,γ). Independent of their distribution, the priors are all given wide boundary limits, each available for change within the settings. Those of Ω and ω are drawn without limits, but the stored values are then shifted into <ref type="bibr">[0,2π]</ref>.</p><p>For m 1 , the prior can be represented by the Initial Mass Function (IMF) or Present Day Mass Function (PDMF). <ref type="bibr" target="#b13">Chabrier (2003)</ref> found functional forms of these for a range of stellar populations, including those of the galactic disk. For m 2 however, particularly for stellar binaries, the IMF may be a poor approximation to the companion mass function (CMF); that of <ref type="bibr" target="#b48">Metchev &amp; Hillenbrand (2009)</ref> might be more appropriate. More recent investigations (e.g. <ref type="bibr" target="#b11">Brandt et al. 2014</ref>) were consistent with <ref type="bibr" target="#b48">Metchev &amp; Hillenbrand (2009)</ref> down to a few Jupiter masses. PDMF and IMF can be found in <ref type="table" target="#tab_0">Table 1</ref> of <ref type="bibr" target="#b13">Chabrier (2003)</ref>, and that of the CMF in Equation <ref type="formula">(8)</ref> of <ref type="bibr" target="#b48">Metchev &amp; Hillenbrand (2009)</ref>. By default we use the PDMF for the primary and CMF for the companion, with the IMF being an option also available to the user for either body.</p><p>The prior for the parallax () may be derived from the assumption that stars are uniformly distributed in space. For nearby objects, within a few 100 pc, this prior is</p><formula xml:id="formula_15">p () ∝ 1 4 .<label>(21)</label></formula><p>In cases where high S/N distance measurements are available, this information can be included with a Gaussian prior with center and width equal to its distance and error, respectively. These two components would then be multiplied to form a combined prior for the parallax. For distant objects, over a few hundred pc, the assumption of uniform stellar distribution is invalid. Low signal-to-noise measurements of the parallax, in combination with Equation (21), would lead to unrealistically large distances. ExoSOFT currently requires accurately measured parallaxes. In practice, these are available for nearby bright stars from Hipparcos (van <ref type="bibr" target="#b63">Leeuwen 2007)</ref>, and the sample of objects with well-measured parallaxes will soon expand dramatically thanks to Gaia. The adopted prior for the period is a power-law, p (P ) ∝ P γ . Radial velocity surveys favor γ ≈ −0.7 ( <ref type="bibr" target="#b22">Cumming et al. 2008</ref>), while γ = −1 gives equal numbers per logarithmic period.</p><p>We assume systems to be randomly oriented with p (i) ∝ sin(i).</p><p>Following the results of investigations into the eccentricity distributions of low-mass companions (e.g. <ref type="bibr" target="#b65">Wang &amp; Ford 2011;</ref><ref type="bibr" target="#b58">Shen &amp; Turner 2008;</ref><ref type="bibr" target="#b40">Kipping 2013;</ref><ref type="bibr" target="#b41">Kipping &amp; Sandford 2016;</ref><ref type="bibr" target="#b36">Hogg et al. 2010;</ref><ref type="bibr" target="#b57">Shabram et al. 2016;</ref><ref type="bibr" target="#b23">Duquennoy &amp; Mayor 1991;</ref><ref type="bibr" target="#b38">Juri´cJuri´c &amp; Tremaine 2008;</ref><ref type="bibr">Cum- ming et al. 2008</ref>), ExoSOFT offers multiple priors for the eccentricity. Currently, these include: uniform, Rayleigh, Rayleigh+Exponential, Beta, p(e) = 2e for companions with (P &gt;1000 days), and that of <ref type="bibr" target="#b58">Shen &amp; Turner (2008)</ref>. Additional priors can be added and modified manually by the user. This can be accomplished by placing a customized version of the priors module in the user's current working directory.</p><p>The remainder of the parameters, (T 0 , Ω, ω, γ), have been given uniform priors.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3.">Tuning MCMC</head><p>Given an infinitely long Markov chain, convergence to the posterior probability distributions is guaranteed. In practice when trying to integrate Bayes' theorem for a particular model, one of the primary goals is to minimize the number of samples necessary to achieve sufficient convergence. Therefore, before performing MCMC, a metric to measure its convergence is required along with steps to optimize the convergence rate.</p><p>It is difficult to determine if a Markov Chain has converged to the posterior probability distribution. From a given set of parameter values, there is no guarantee that the likelihood function will smoothly increase towards the global maximum of the posterior. In cases with complicated likelihood topography, there might be many places where a chain could become stuck. Chains started near a local maximum could falsely appear to have converged or take a long time to diffuse into other regions. For this reason, the specific starting position of a Markov chain, and any following samples drawn far from the likelihood peaks, must be removed to avoid any disproportionalities in the posterior distributions they might induce. This initial period is referred to as the 'burn-in'. While the exact number of steps involved is not clearly defined, <ref type="bibr" target="#b60">Tegmark et al. (2004)</ref> took it to be over when the likelihood in a particular chain was equal to the median likelihood of all chains combined.</p><p>The rate at which a Markov chain explores the posteriors is related to the width, or σ, of each parameter's proposal distribution . For large σ, proposed steps tend to lie far from the current one and in a region where they are unlikely to be accepted. By contrast, a small σ would lead to a high rate of acceptance, but a slow rate at which the posteriors are explored. <ref type="bibr" target="#b28">Gelman et al. (1996)</ref> showed that the highest diffusion speed of a one dimensional model was achieved when the probability of accepting a proposed step was 0.441. They tested a variety of multi-dimensional models concluding that an acceptance rate of ∼25% is suitable for higher dimensional models and ∼50% for those with only 1 or 2 dimensions.</p><p>With a Markov sampling scheme the dependence between neighboring samples can dramatically reduce the number of effectively independent steps taken. Unfortunately, prior to running a Markov chain, there are no direct methods to predict how many independent steps will be taken over a certain number of samples. Instead, following the completion of all Markov chains, a common practice is to estimate if enough steps were taken using either the Gelman-Rubin statistic <ref type="bibr" target="#b29">(Gelman &amp; Rubin 1992)</ref>, or the integrated autocorrelation time <ref type="bibr" target="#b30">(Goodman &amp; Weare 2010)</ref>. As discussed in Foreman- <ref type="bibr" target="#b27">Mackey et al. (2013)</ref> and <ref type="bibr" target="#b30">Goodman &amp; Weare (2010)</ref>, the integrated au-tocorrelation time can be represented by</p><formula xml:id="formula_16">τ = 1 + 2 ∞ T =1 C (T ) C (0) ,<label>(22)</label></formula><p>where T is the time lag necessary for covariance between samples, C(T ), to go to zero, ensuring their independence. With this, the number of effectively independent steps in a Markov chain of length L c is ∼ L c /τ .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">IMPLEMENTATION AND VERIFICATION</head><p>In this section we describe how the model discussed in Section 2 and types of parameter space exploration in Section 3 are implemented. The bulk of the code was written in the Python programming language, with the more computationally expensive model in Cython. Implementing the model in this way makes it run 5-30 times faster than the same code written purely in Python. ExoSOFT can be found for public download at https://github.com/kylemede/ExoSOFT.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.1.">Simulation Stages</head><p>ExoSOFT offers four of its own algorithms for exploring the parameter space, each for a different task: standard 'shotgun' Monte Carlo, Simulated Annealing, Sigma Tuning and MCMC. It is also ready to be interfaced with third-party sampling tools.</p><p>As discussed in Section 3.2, standard Monte Carlo is suitable for models with few free parameters, or when the likelihood function is not strongly peaked. In such cases, it could in fact sample the posterior probability distributions significantly faster than MCMC. With each sample being completely independent, it can also be useful for getting an idea of where the regions of minimum χ 2 lie.</p><p>In cases where standard Monte Carlo is inefficient, Markov sampling techniques are suggested. To minimize the burn-in, suitable starting positions for the Markov chains are found using Simulated Annealing. As discussed in <ref type="bibr" target="#b42">Kirkpatrick et al. (1983)</ref>, Simulated Annealing also makes use of the Metropolis-Hastings algorithm with an additional 'temperature' factor in the likelihoods ratio, modifying this ratio in the rejection function to</p><formula xml:id="formula_17">L (ξ j+1 ) L (ξ j ) 1/T = exp − χ 2 ξj+1 − χ 2 ξj 2T .<label>(23)</label></formula><p>At high temperatures Equation <ref type="formula" target="#formula_1">(23)</ref> is temperature dominated, and likely to accept even unfavorable steps, thereby mitigating any local topographical bumps encountered. A cooling scheme started at a sufficiently high temperature ( 100) explores a large portion of the parameter space and is slowly 'annealed' towards the parameter set with the global maximum likelihood. In our implementation, the chains are repeatedly heated and cooled, each time from a lower starting temperature, while maintaining a list of the samples with the highest likelihoods achieved so far. We stop this process when the fits have all converged to a single set of parameter peaks in the posterior probability distributions.</p><p>After finding an initial set of parameters, ExoSOFT can sample the posterior probability distributions with either MCMC or the affine-invariant ensemble sampler built into emcee <ref type="bibr" target="#b27">(Foreman-Mackey et al. 2013</ref>). When using MCMC, we first apply a version of the MetropolisHastings algorithm to determine the appropriate widths for each proposal distribution. Periodically the acceptance rates are calculated, typically after ∼200 samples per varied parameter, and the fixed σ values of the normal proposal distributions for each parameter incremented accordingly until stable acceptance rates between 25-35% are reached; this process is occasionally referred to as Sigma Tuning. In contrast to the earlier Simulated Annealing and later MCMC stages, Sigma Tuning only requires a single chain and has been implemented in such a way that it automatically completes once the acceptance rates stabilize. In cases where the observational data is sparse, or parameters highly correlated, the use of an ensemble sampler has been proven to increase the sampling efficiency <ref type="bibr" target="#b27">(Foreman-Mackey et al. 2013;</ref><ref type="bibr">Good- man &amp; Weare 2010)</ref>. Thus, our recommended approach is to utilize the starting position produced by Simulated Annealing to initialize the walkers of the affineinvariant ensemble sampler built into emcee <ref type="bibr" target="#b27">(Foreman- Mackey et al. 2013</ref>).</p><p>The solutions for determining a set of initial parameters and tuning the proposal distribution widths lend themselves well to integration with other third-party sampling tools, including PyMC ( <ref type="bibr" target="#b25">Fonnesbeck et al. 2015</ref>) and <ref type="bibr">PyMultiNest (Feroz et al. 2009</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.2.">Verification</head><p>Our model was verified with synthetic data produced using an independent Keplerian tool built upon the PyAstronomy package 11 . The observable values had their errors realized from Gaussian distributions, using a percentage of each observable's absolute mean as the distribution widths. Such synthetic data were produced for various systems spanning the range of exoplanets and binary star systems observed to date to ensure ExoSOFT's ability to fit any system of interest.</p><p>For demonstration purposes, the approximate orbital elements of Jupiter were used assuming a host star at a distance of 20 pc, or a parallax of 50 mas, with the orbital plane inclined by 45 • to Earth's line-of-sight. A variety of measurement errors were assumed for the same orbital elements to show the convergence of the resulting posterior distributions with improving data quality; the errors indicated are a percentage of each observable parameter's absolute mean value. a total [AU] <ref type="figure">Fig. 1</ref>.-The convergence of ExoSOFT's marginalized posterior probability distributions to noisy synthetic data. The observational errors in astrometry and radial velocity are assumed to be a percentage of the absolute mean value for each observable (∆δ, ∆α, v). We draw a realization of the noise for each measurement from a normalized Gaussian of given width. The lines shown are for 10, 5 and 1% errors, corresponding to the colors green, blue and red. The assumed true values are indicated with black vertical lines. <ref type="figure">Figure 1</ref> shows the marginalized posteriors using realizations of 10%, 5% and 1% Gaussian noise on the measured parallax, radial velocity, and angular separation. The 68% confidence regions shrink by a factor of ∼10 from the 10% to 1% cases, shown as the green and red lines in <ref type="figure">Figure 1</ref> respectively. The posterior distributions of T 0 and ω (not shown) have larger widths and decrease faster with improving data quality; this is an artifact of our choice of a nearly circular orbit. In all of the hypothetical Jupiter demonstration cases, ExoSOFT used a uniform prior for e, appropriate for planets. This was implemented by drawing ω and e simultaneously according to the parametrization from <ref type="bibr" target="#b1">Albrecht et al. (2012)</ref>. <ref type="figure">Figure 2</ref> shows the resulting marginalized posteriors for one realization of 5% measurement errors; <ref type="table" target="#tab_1">Table 2</ref> provides a complete summary of the fit values. The covariance between a subset of the orbital elements is represented in a corner plot in <ref type="figure">Figure 4</ref>. Here the relationship between the masses and semi-major axis can be seen, arising from Kepler's third law in Equation (11) being directly included in the model equations.</p><p>The best sample, defined as the set of stored parameters with the highest likelihood, has χ 2 = 46.9 for 35 degrees of freedom (25 epochs of radial velocity data, 10 epochs of astrometry in RA and Dec, and 10 fitted parameters), for a reduced χ 2 = 1.34. <ref type="figure" target="#fig_3">Figure 3</ref> shows the orbit for the best sample plotted atop the noisy astrometry and radial velocity data. The residuals, as expected, scatter about the best sample's orbit and typically lie ∼1σ away.</p><p>The joint model given in Section 2 mutually constrains the parameters P , m tot , ω * , i, e and T 0 , where ω * represents the value for either body following the relation ω 1 = ω 2 + π. The other parameters (γ, m 2 , Ω 2 , ) are constrained by a single observation type, or in the form of a combined parameter, as is the case for m tot = m 1 +m 2 . We performed the final fitting with the affine-invariant ensemble sampler of emcee and investigated the mixing and convergence of each parameter using the integrated autocorrelation time, discussed in Section 3.3 and represented in Equation <ref type="formula" target="#formula_1">(22)</ref>. The least convergent parameter in all three error realizations was T 0 , with a total of 5 × 10 6 samples distributed over 1000 walkers, its τ was 690 for the 5% case. This slow convergence is an artifact of our choice of a nearly circular orbit (the definition of T 0 is arbitrary for a circular orbit) and is much less pronounced for more eccentric systems.</p><p>While this test case is at the edge of current instruments' sensitivity, the ∼0. 2 separation is within the expected limits of upcoming instruments like CHARIS <ref type="bibr">(Pe- ters et al. 2012b</ref>), SPHERE ( <ref type="bibr" target="#b16">Claudi et al. 2006</ref>) and GPI ( <ref type="bibr" target="#b45">Macintosh et al. 2014</ref>). However, even with the improved contrast ratios expected at these separations, this hypothetical planetary system would need to be dramatically younger than Jupiter for detection through direct imaging techniques. The uncertainties in m 1 and m 2 also depend on the precision of the measured parallax, though this is already better than 1% for many bright, nearby stars (van Leeuwen 2007) and will further improve with the forthcoming Gaia data release.</p><p>An example of ExoSOFT applied to real data can be found in Hee <ref type="bibr">lminiak et al. (2016)</ref>. In that paper we introduce the first direct imaging detections of the companion to V450 And, solve for its joint orbital solution and compare the resulting dynamical masses to those from stellar model fits based on the photometry.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">CONCLUSION</head><p>We have presented ExoSOFT, a toolbox for the Keplerian orbital analysis of exoplanets and binary star systems. It is free to compile, open source, fits any combination of astrometric and radial velocity data, and offers four of its own parameter space exploration techniques, along with an integration of the affine-invariant ensemble sampler in emcee <ref type="bibr" target="#b27">(Foreman-Mackey et al. 2013</ref>). Our suggestion is to first use Simulated Annealing to find a set of parameters near the global maximum likelihood. This can then be followed by Sigma Tuning and MCMC to optimize and fill out the posterior probability distributions. When data is sparse or parameters highly correlated, we instead recommend emcee to increase sampling efficiency. ExoSOFT is packaged together with a set of post-processing and plotting routines to summarize the results. Verifications were performed by fitting noisy synthetic data produced with an independent Keplerian model for a variety of systems ranging the entire parameter space. Examples of its use on real data include Hee <ref type="bibr">lminiak et al. (2016)</ref>, for the V450 And system, and the τ Boo AB binary in <ref type="bibr" target="#b47">Mede &amp; Brandt (2014)</ref>.</p><p>Simultaneous fitting to both radial velocity and astrometric data helps to break the degeneracies in Keplerian model parameters. The dynamical mass estimates of the a total [AU] <ref type="figure">Fig. 2</ref>.-Marginalized posterior probability distributions for a subset of the parameters fit during verification with synthetic data of a Jupiter analogue with a 5% realization of the errors in radial velocity and astrometry, at distance of 20 pc and inclination of 45 • . The darker blue represents the 68% regions of confidence around the medians, with the lighter being that of 95% confidence. As expected, the vertical black lines representing the true values fall within our 68% confidence regions. companion and the well-constrained values of the other orbital elements found in this way are important clues to substellar formation and evolution. The companion's mass and age may be used to place constraints on the input parameters of atmospheric models for brown dwarf and low mass stars. The initial conditions of substellar objects remain uncertain, with theoretical predictions ranging from hot-start to cold-start scenarios <ref type="bibr" target="#b46">(Marley et al. 2007</ref>). Mass, eccentricity and separation are also important to help distinguish between the variety of dynamical evolution possibilities in multi-planet systems.</p><p>Recent surveys aiming at the high-end range of substellar mass companions ( <ref type="bibr" target="#b66">Wilson et al. 2016</ref>) and at the lower end ( <ref type="bibr" target="#b33">Hebrard et al. 2016)</ref> show how the capabilities of new instruments are expanding the range of companions detectable with the radial velocity method. Complementary to these, observations of HR 8799 with SPHERE and GPI (eg. <ref type="bibr" target="#b68">Zurlo et al. 2016;</ref><ref type="bibr" target="#b9">Bonnefoy et al. 2016;</ref><ref type="bibr" target="#b2">Apai et al. 2016;</ref><ref type="bibr" target="#b37">Ingraham et al. 2014</ref>) highlight the improved astrometric and characterization capabilities with next generation integral field spectrographs. Combining ground based facilities with the Gaia spacecraft will broaden not only the mass range, but also the number of objects simultaneously observed with both radial velocity and direct imaging techniques. With its capacity to simultaneously fit both of these data types, effectively explore the parameter space, and with its post-processing and plotting tools, ExoSOFT is well-suited to constrain the orbits of newly discovered systems. <ref type="figure">Fig. 4</ref>.-Corner plot for a subset of the parameters fit during verification with synthetic data of a Jupiter analogue with a 5% realization of the errors in radial velocity and astrometry, at distance of 20 pc and inclination of 45 • . The solid blue lines represent the true values. The covariance between the masses and total semi-major axis seen here arises from the direct use of Kepler's third law in our model discussed in Section 2.</p><p>the Exoplanet Exploration Program.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>8</head><label></label><figDesc>https://github.com/kylemede/ExoSOFT 9 https://pypi.python.org/pypi/ExoSOFT 10 http://doi.org/10.5281/zenodo.259500</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Fig. 3 .</head><label>3</label><figDesc>Fig. 3.-The orbit for the best sample plotted atop the synthetic astrometry (left) and radial velocity data (right) of our Jupiter analogue test case with a 5% realization of the errors. In the astrometry fit the solid green line represents the projected semi-major axis and the dash-dot the line of nodes. The red dots represent the predicted location and radial velocity values at the time of each observation.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" validated="true"><head>TABLE 1 Model Parameters</head><label>1</label><figDesc></figDesc><table>Symbol 
+Parameter 
+
+
+Parallax 
+P 
+Orbital period 
+m 1 
+Mass of the primary star 
+m 2 
+Mass of the companion 
+Ω 
+Longitude of the Ascending Node 
+ω 
+Argument of Periapsis 
+i 
+Inclination 
+e 
+Eccentricity 
+To 
+Time of Last Periapsis 
+γ 
+Instrument velocity offset 
+mtot 
+Total mass (m 1 + m 2 ) 
+atot 
+Total semi-major axis (a 1 + a 2 ) 
+θ 
+True Anomaly 
+E 
+Eccentric Anomaly 
+M 
+Mean Anomaly 
+K 
+Radial Velocity Semi Amplitude 
+
+found starting from the Mean Anomaly M 
+
+M = 
+2π 
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" validated="true"><head>TABLE 2 Synthetic Jupiter Fit Results</head><label>2</label><figDesc></figDesc><table>Parameter Synthetic Best-Sample Median 1σ Range 
+
+m 1 [M ] 
+1 
+0.87 
+0.93 
+0.13 
+m 2 [M J ] 
+1 
+0.942 
+0.985 
+0.094 
+[mas] 
+50 
+51.4 
+50.3 
+2.3 
+Ω 2 [ • ] 
+100.6 
+101.4 
+101.7 
+1.1 
+e 
+0.048 
+0.051 
+0.042 
+0.014 
+T 0 [MJD] 
+50639 
+50670 
+50660 
+140 
+P [Yrs] 
+11.9 
+11.94 
+12.05 
+0.18 
+i [ • ] 
+45 
+43.7 
+44.2 
+2.2 
+ω 2 [ • ] 
+14.8 
+17 
+16 
+12 
+atot [AU] 
+5.21 
+4.98 
+5.13 
+0.25 
+γ [m/s] 
+0 
+0.03 
+-0.06 
+0.16 
+χ 2 (ν) 
+46.9 (35) 
+
+</table></figure>
+
+			<note place="foot" n="11"> Found at https://github.com/sczesla/PyAstronomy</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<monogr>
+		<title level="m" type="main">The binary stars</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">G</forename><surname>Aitken</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1935" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Albrecht</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">N</forename><surname>Winn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P</forename><surname>Butler</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">744</biblScope>
+			<biblScope unit="page">189</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Apai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Kasper</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Skemer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">820</biblScope>
+			<biblScope unit="page">40</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">´</forename><forename type="middle">E</forename><surname>Artigau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-F</forename><surname>Donati</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Delfosse</surname></persName>
+		</author>
+		<title level="m">Astronomical Society of the Pacific Conference Series</title>
+		<imprint>
+			<date type="published" when="2011" />
+			<biblScope unit="volume">448</biblScope>
+			<biblScope unit="page">16</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<monogr>
+				<title level="m">Stellar Systems, and the Sun</title>
+		<editor>C. Johns-Krull, M. K. Browning, &amp; A. A. West</editor>
+		<imprint>
+			<biblScope unit="page">771</biblScope>
+		</imprint>
+		<respStmt>
+			<orgName>Cambridge Workshop on Cool Stars</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Bailes</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">D</forename><surname>Bates</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Bhalerao</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">333</biblScope>
+			<biblScope unit="page">1717</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Bate</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">392</biblScope>
+			<biblScope unit="page">590</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Bate</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><forename type="middle">A</forename><surname>Bonnell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Bromm</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">339</biblScope>
+			<biblScope unit="page">577</biblScope>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">C</forename><surname>Boley</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">695</biblScope>
+			<biblScope unit="page">53</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Bonnefoy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Zurlo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Baudino</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">587</biblScope>
+			<biblScope unit="page">58</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">P</forename><surname>Boss</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">276</biblScope>
+			<biblScope unit="page">1836</biblScope>
+			<date type="published" when="1997" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Brandt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">W</forename><surname>Mcelwain</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">L</forename><surname>Turner</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">794</biblScope>
+			<biblScope unit="page">159</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">G W</forename><surname>Cameron</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Moon and Planets</title>
+		<imprint>
+			<biblScope unit="volume">18</biblScope>
+			<biblScope unit="page">5</biblScope>
+			<date type="published" when="1978" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Chabrier</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">115</biblScope>
+			<biblScope unit="page">763</biblScope>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Chabrier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Baraffe</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ARA&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">38</biblScope>
+			<biblScope unit="page">337</biblScope>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Chabrier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Johansen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Janson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Rafikov</surname></persName>
+		</author>
+		<title level="m">Protostars and Planets VI</title>
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="page">619</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">U</forename><surname>Claudi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Turatto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Antichi</surname></persName>
+		</author>
+		<title level="m">Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</title>
+		<imprint>
+			<date type="published" when="2006" />
+			<biblScope unit="volume">6269</biblScope>
+			<biblScope unit="page">62692</biblScope>
+		</imprint>
+	</monogr>
+	<note>Proc. SPIE</note>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Crepp</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Fischer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">751</biblScope>
+			<biblScope unit="page">97</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Crepp</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Howard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">781</biblScope>
+			<biblScope unit="page">29</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Crepp</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Howard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">761</biblScope>
+			<biblScope unit="page">39</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Crepp</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Howard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">771</biblScope>
+			<biblScope unit="page">46</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Crepp</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Howard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">774</biblScope>
+			<biblScope unit="page">1</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Cumming</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P</forename><surname>Butler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Marcy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">120</biblScope>
+			<biblScope unit="page">531</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Duquennoy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Mayor</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">248</biblScope>
+			<biblScope unit="page">485</biblScope>
+			<date type="published" when="1991" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Feroz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">P</forename><surname>Hobson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Bridges</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">398</biblScope>
+			<biblScope unit="page">1601</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title level="a" type="main">PyMC: Bayesian Stochastic Modelling in Python</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Fonnesbeck</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Patil</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Huard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Salvatier</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astrophysics Source Code Library Ford, E. B</title>
+		<imprint>
+			<biblScope unit="volume">129</biblScope>
+			<biblScope unit="page">1706</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+	<note>AJ</note>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Ford</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">642</biblScope>
+			<biblScope unit="page">505</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Goodman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">125</biblScope>
+			<biblScope unit="page">306</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gelman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Roberts</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Gilks</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Bayesian Statistics</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="page">599</biblScope>
+			<date type="published" when="1996" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Gelman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">B</forename><surname>Rubin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Goldreich</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">R</forename><surname>Ward</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Statist. Sci</title>
+		<imprint>
+			<biblScope unit="volume">7</biblScope>
+			<biblScope unit="page">1051</biblScope>
+			<date type="published" when="1973" />
+		</imprint>
+	</monogr>
+	<note>ApJ</note>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Goodman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Weare</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Communications in applied mathematics and computational science</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="page">65</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">S</forename><surname>Grossman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Hays</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">C</forename><surname>Graboske</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Jr</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">30</biblScope>
+			<biblScope unit="page">95</biblScope>
+			<date type="published" when="1974" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Hastings</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Biometrika</title>
+		<imprint>
+			<biblScope unit="volume">57</biblScope>
+			<biblScope unit="page">97</biblScope>
+			<date type="published" when="1970" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Hebrard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Arnold</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Forveille</surname></persName>
+		</author>
+		<idno>1602.04622</idno>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<monogr>
+		<title level="m" type="main">Double stars, Geophysics and astrophysics monographs</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Heintz</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1978" />
+			<publisher>D. Reidel Pub., Co</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">G</forename><surname>Hee Lminiak</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Kuzuhara</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Mede</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">832</biblScope>
+			<biblScope unit="page">33</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">D</forename><surname>Myers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Bovy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">725</biblScope>
+			<biblScope unit="page">2166</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Ingraham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Marley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Saumon</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">794</biblScope>
+			<biblScope unit="page">15</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Juri´cjuri´c</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Tremaine</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">686</biblScope>
+			<biblScope unit="page">603</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title level="a" type="main">Ground-based and Airborne Instrumentation for</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">U</forename><surname>Käufl</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Amico</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Ballester</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proc. SPIE</title>
+		<meeting>SPIE</meeting>
+		<imprint>
+			<date type="published" when="2008" />
+			<biblScope unit="volume">7014</biblScope>
+			<biblScope unit="page">70140</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Kipping</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">434</biblScope>
+			<biblScope unit="page">51</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">M</forename><surname>Kipping</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Sandford</surname></persName>
+		</author>
+		<idno>1603.05662</idno>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Kirkpatrick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">D</forename><surname>Gelatt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">P</forename><surname>Vecchi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">220</biblScope>
+			<biblScope unit="page">671</biblScope>
+			<date type="published" when="1983" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">P</forename><surname>Kuiper</surname></persName>
+		</author>
+		<title level="m">Proceedings of the National Academy of Science</title>
+		<meeting>the National Academy of Science</meeting>
+		<imprint>
+			<date type="published" when="1951" />
+			<biblScope unit="volume">37</biblScope>
+			<biblScope unit="page">1</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">S</forename><surname>Liu</surname></persName>
+		</author>
+		<title level="m">Monte Carlo Strategies in Scientific Computing</title>
+		<imprint>
+			<publisher>Springer</publisher>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+	<note>Corrected ed.</note>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">A</forename><surname>Macintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Anthony</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Atwood</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proc. SPIE</title>
+		<meeting>SPIE</meeting>
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="volume">9148</biblScope>
+			<biblScope unit="page">91480</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Marley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Fortney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Hubickyj</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Bodenheimer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Lissauer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">655</biblScope>
+			<biblScope unit="page">541</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Mede</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D. ; C</forename><surname>Brandt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">&amp;amp;</forename><forename type="middle">J R</forename><surname>Matthews</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Graham</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">IAU Symposium</title>
+		<imprint>
+			<date type="published" when="2014" />
+			<biblScope unit="volume">299</biblScope>
+			<biblScope unit="page">52</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">A</forename><surname>Metchev</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">A</forename><surname>Hillenbrand</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">181</biblScope>
+			<biblScope unit="page">62</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Metropolis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Rosenbluth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">N</forename><surname>Rosenbluth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">H</forename><surname>Teller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Teller</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">J. Chem. Phys</title>
+		<imprint>
+			<biblScope unit="volume">21</biblScope>
+			<biblScope unit="page">1087</biblScope>
+			<date type="published" when="1953" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Mizuno</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Progress of Theoretical Physics</title>
+		<imprint>
+			<biblScope unit="volume">64</biblScope>
+			<biblScope unit="page">544</biblScope>
+			<date type="published" when="1980" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Mordasini</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Alibert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Benz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Klahr</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Henning</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">541</biblScope>
+			<biblScope unit="page">97</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b52">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Peters</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Groff</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">J</forename><surname>Kasdin</surname></persName>
+		</author>
+		<title level="m">Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series Peters</title>
+		<imprint>
+			<date type="published" when="2012" />
+			<biblScope unit="volume">8446</biblScope>
+			<biblScope unit="page">7</biblScope>
+		</imprint>
+	</monogr>
+	<note>Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</note>
+</biblStruct>
+
+<biblStruct xml:id="b53">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">B</forename><surname>Pollack</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Hubickyj</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Bodenheimer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Icarus</title>
+		<imprint>
+			<biblScope unit="volume">124</biblScope>
+			<biblScope unit="page">62</biblScope>
+			<date type="published" when="1996" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b54">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">R</forename><surname>Rodriguez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Zuckerman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Melis</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Song</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">732</biblScope>
+			<biblScope unit="page">29</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b55">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Ryu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Sato</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Kuzuhara</surname></persName>
+		</author>
+		<idno>1603.02017</idno>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b56">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><forename type="middle">S</forename><surname>Safronov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">V</forename><surname>Zvjagina</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Icarus</title>
+		<imprint>
+			<biblScope unit="volume">10</biblScope>
+			<biblScope unit="page">109</biblScope>
+			<date type="published" when="1969" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b57">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Shabram</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B.-O</forename><surname>Demory</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Cisewski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Ford</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Rogers</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">820</biblScope>
+			<biblScope unit="page">93</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b58">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Shen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">L</forename><surname>Turner</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">685</biblScope>
+			<biblScope unit="page">553</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b59">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Tamura</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Suto</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Nishikawa</surname></persName>
+		</author>
+		<title level="m">Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</title>
+		<imprint>
+			<date type="published" when="2012" />
+			<biblScope unit="volume">8446</biblScope>
+			<biblScope unit="page">1</biblScope>
+		</imprint>
+	</monogr>
+	<note>Society of Photo-Optical Instrumentation Engineers (SPIE) Conference Series</note>
+</biblStruct>
+
+<biblStruct xml:id="b60">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Tegmark</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Strauss</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Blanton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Phys. Rev. D</title>
+		<imprint>
+			<biblScope unit="volume">69</biblScope>
+			<biblScope unit="page">103501</biblScope>
+			<date type="published" when="2004" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b61">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Thiele</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astronomische Nachrichten</title>
+		<imprint>
+			<biblScope unit="volume">104</biblScope>
+			<biblScope unit="page">225</biblScope>
+			<date type="published" when="1883" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b62">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">H</forename><surname>Van Den Bos</surname></persName>
+		</author>
+		<title level="m">Circular of the Union Observatory Johannesburg</title>
+		<imprint>
+			<date type="published" when="1932" />
+			<biblScope unit="volume">86</biblScope>
+			<biblScope unit="page">261</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b63">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Van Leeuwen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">474</biblScope>
+			<biblScope unit="page">653</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b64">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">I</forename><surname>Vorobyov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">552</biblScope>
+			<biblScope unit="page">129</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b65">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Ford</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">418</biblScope>
+			<biblScope unit="page">1822</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b66">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">A</forename><surname>Wilson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Hébrard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">C</forename><surname>Santos</surname></persName>
+		</author>
+		<idno>1602.02749</idno>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b67">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Wolszczan</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">264</biblScope>
+			<biblScope unit="page">538</biblScope>
+			<date type="published" when="1994" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b68">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Zurlo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vigan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Galicher</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">587</biblScope>
+			<biblScope unit="page">57</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

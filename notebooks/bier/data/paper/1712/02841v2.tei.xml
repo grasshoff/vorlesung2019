@@ -1,0 +1,1592 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2019-01-22T13:41+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Supervised detection of exoplanets in high-contrast imaging sequences</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2017-12-14">December 14, 2017</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">A</forename><surname>Gomez Gonzalez</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">STAR Institute</orgName>
+								<orgName type="institution" key="instit2">Université de Liège</orgName>
+								<address>
+									<addrLine>Allée du Six Août 19c</addrLine>
+									<postCode>B-4000</postCode>
+									<settlement>Liège</settlement>
+									<country key="BE">Belgium</country>
+								</address>
+							</affiliation>
+							<affiliation key="aff1">
+								<orgName type="institution" key="instit1">Université Grenoble Alpes</orgName>
+								<orgName type="institution" key="instit2">IPAG</orgName>
+								<address>
+									<postCode>F-38000</postCode>
+									<settlement>Grenoble</settlement>
+									<country key="FR">France</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Absil</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">STAR Institute</orgName>
+								<orgName type="institution" key="instit2">Université de Liège</orgName>
+								<address>
+									<addrLine>Allée du Six Août 19c</addrLine>
+									<postCode>B-4000</postCode>
+									<settlement>Liège</settlement>
+									<country key="BE">Belgium</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">Van</forename><surname>Droogenbroeck</surname></persName>
+							<affiliation key="aff2">
+								<orgName type="institution" key="instit1">Montefiore Institute</orgName>
+								<orgName type="institution" key="instit2">Université de Liège</orgName>
+								<address>
+									<postCode>B-4000</postCode>
+									<settlement>Liège</settlement>
+									<country key="BE">Belgium</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">Supervised detection of exoplanets in high-contrast imaging sequences</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2017-12-14">December 14, 2017</date>
+						</imprint>
+					</monogr>
+					<note type="submission">Received ; accepted</note>
+					<note>Astronomy &amp; Astrophysics manuscript no. paper c ESO 2017</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>Methods: data analysis -Techniques: high angular resolution -Techniques: image processing -Planetary systems - Planets and satellites: detection</keywords>
+			</textClass>
+			<abstract>
+				<p>Context. Post-processing algorithms play a key role in pushing the detection limits of high-contrast imaging (HCI) instruments. State-of-the-art image processing approaches for HCI enable the production of science-ready images relying on unsupervised learning techniques, such as low-rank approximations, for generating a model PSF and subtracting the residual starlight and speckle noise. Aims. In order to maximize the detection rate of HCI instruments and survey campaigns, advanced algorithms with higher sensitivities to faint companions are needed, especially for the speckle-dominated innermost region of the images. Methods. We propose a reformulation of the exoplanet detection task (for ADI sequences) that builds on well-established machine learning techniques to take HCI post-processing from an unsupervised to a supervised learning context. In this new framework, we present algorithmic solutions using two different discriminative models: SODIRF (random forests) and SODINN (neural networks). We test these algorithms on real ADI datasets from VLT/NACO and VLT/SPHERE HCI instruments. We then assess their performances by injecting fake companions and using receiver operating characteristic analysis. This is done in comparison with state-of-the-art ADI algorithms, such as ADI principal component analysis (ADI-PCA). Results. This study shows the improved sensitivity vs specificity trade-off of the proposed supervised detection approach. At the diffraction limit, SODINN improves the true positive rate by a factor ranging from ∼2 to ∼10 (depending on the dataset and angular separation) with respect to ADI-PCA when working at the same false positive level. Conclusions. The proposed supervised detection framework outperforms state-of-the-art techniques in the task of discriminating planet signal from speckles. In addition, it offers the possibility of reprocessing existing HCI databases to maximize their scientific return and potentially improve the demographics of directly imaged exoplanets.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>In the last decade, direct imaging of exoplanets has become a reality thanks to advances in optimized wavefront control (for a review see <ref type="bibr" target="#b44">Milli et al. 2016</ref>), specialized coronagraphs <ref type="bibr" target="#b48">(Rouan et al. 2000;</ref><ref type="bibr" target="#b56">Spergel &amp; Kasdin 2001;</ref><ref type="bibr" target="#b53">Soummer 2005;</ref><ref type="bibr" target="#b42">Mawet et al. 2005;</ref><ref type="bibr" target="#b28">Kenworthy et al. 2007</ref>), innovative observing techniques <ref type="bibr" target="#b55">(Sparks &amp; Ford 2002;</ref><ref type="bibr" target="#b37">Marois et al. 2006</ref>) and dedicated post-processing algorithms ( <ref type="bibr" target="#b32">Lafrenière et al. 2007;</ref><ref type="bibr">Mug- nier et al. 2009;</ref><ref type="bibr" target="#b2">Amara &amp; Quanz 2012;</ref><ref type="bibr" target="#b54">Soummer et al. 2012</ref>; Gomez <ref type="bibr" target="#b19">Gonzalez et al. 2016</ref>). Direct observations of exoplanets provide a powerful complement to indirect detection techniques. They enable the exploration (thanks to their high sensitivity to wide orbits) of different regions of the parameter space, the study of planetary system dynamics, and photometric and spectroscopic characterization of companions. The consensus, after more than ten years of high-contrast imaging, is that massive planets, such as those of HR8799 ( <ref type="bibr" target="#b38">Marois et al. 2008</ref><ref type="bibr" target="#b39">Marois et al. , 2010</ref>, are rare at wide separations. A meta-analysis of 384 stars conducted by <ref type="bibr" target="#b8">Bowler (2016)</ref> concluded that about 1% of them 1 has giant planets at separations between 10 and 1000 AU. On the other hand, from indirect methods, we know that super-Earths F.R.S.-FNRS Research Associate 1 0.8 +1.0 −0.6 % occurrence rate. and rocky planets are much more common than giant planets. For this reason, the development of new image processing techniques is of key importance for maximizing the scientific return of existing first and second generation high-contrast imaging (HCI) instruments, especially at small separations from the host star. Indeed, the amount of available archival HCI data has increased rapidly with the advent of second generation instruments, such as the Spectro-Polarimetric High-contrast Exoplanet REsearch (VLT/SPHERE, <ref type="bibr" target="#b6">Beuzit et al. 2008</ref>) and Gemini Planet Imager (GPI, <ref type="bibr" target="#b22">Graham et al. 2007</ref>). However, the adoption of the latest developments in data management and machine learning in the HCI community has been slow, compared to fields such as computer vision, biology, and medical sciences.</p><p>The computational power and data storage increase in the last decade has enabled the emergence of data-driven discovery methods in sciences <ref type="bibr" target="#b3">(Ball &amp; Brunner 2010)</ref>, in parallel to the popularization of machine learning and data science fields of study. Data-driven models are especially important in HCI, if we consider the sheer amount of data that modern highcontrast imaging instruments are producing. Machine learning techniques have proven to be useful in a variety of astronomical applications over the last decade. Artificial neural networks are an algorithmic approach proposed a few decades ago in the machine learning community, which is inspired by our under- A&amp;A proofs: manuscript no. paper standing of the biology and structure of the brain. Only recently, with graphics processing unit (GPU) computing going mainstream, larger amounts of data, and the use of deep architectures (with increased number of layers and neurons), deep learning has led to breakthroughs in the most challenging areas of machine learning ( <ref type="bibr" target="#b21">Goodfellow et al. 2016</ref>). In particular, it has produced impressive results in fields dealing with perceptual data, such as computer vision and language understanding, removing the necessity of hand-crafted features ( <ref type="bibr" target="#b60">Xie et al. 2017)</ref>. Although neural networks have been used in astronomy since the early nineties ( <ref type="bibr" target="#b47">Odewahn et al. 1992;</ref><ref type="bibr" target="#b5">Bertin &amp; Arnouts 1996;</ref><ref type="bibr">Tagli- aferri et al. 2003)</ref>, the use of deep learning has started to spread only in the last couple of years. Convolutional neural networks (CNN, <ref type="bibr" target="#b35">LeCun et al. 1989;</ref><ref type="bibr" target="#b31">Krizhevsky et al. 2012</ref>) are becoming more and more common for image-related tasks, such as galaxy morphology prediction ( <ref type="bibr" target="#b14">Dieleman et al. 2015</ref>), astronomical image reconstruction <ref type="bibr" target="#b17">(Flamary 2016)</ref>, photometric redshift prediction <ref type="bibr" target="#b27">(Hoyle 2016)</ref>, and star-galaxy classification <ref type="bibr">(Kim &amp; Brun- ner 2017)</ref>. Other deep neural network architectures, such as autoencoders and generative adversarial networks, have been used for feature-learning in spectral energy distributions of galaxies <ref type="bibr" target="#b18">(Frontera-Pons et al. 2017</ref>) and for image reconstruction as an alternative to conventional deconvolution techniques ( <ref type="bibr">Schawin- ski et al. 2017</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.1.">State-of-the-art image processing techniques for HCI</head><p>A typical HCI planet hunter pipeline includes the production of a science-ready final image, where potential exoplanets are flagged by visual inspection aided by the computation of a signal-to-noise (S/N) metric. In this study, we adopt the S/N definition of <ref type="bibr" target="#b41">Mawet et al. (2014)</ref> which addresses the small sample statistics effect at small separations. In the case of angular differential imaging (ADI, <ref type="bibr" target="#b37">Marois et al. 2006</ref>) data, the generation of a final image usually relies on differential imaging post-processing techniques. The purpose of these techniques is to reduce the image dynamic range, by modeling and subtracting the contribution from the high-flux pixels belonging to the residual starlight and from the quasi-static speckle noise. This procedure, also called model PSF subtraction 2 , produces residual final images where, unfortunately, part of the companion signal is lost due to it being fitted in the model PSF (companion self-subtraction). Among the model PSF subtraction techniques, we count LOCI ( <ref type="bibr" target="#b32">Lafrenière et al. 2007</ref>), principal component analysis (PCA) based algorithms ( <ref type="bibr" target="#b54">Soummer et al. 2012;</ref><ref type="bibr" target="#b2">Amara &amp; Quanz 2012)</ref>, and LLSG (Gomez <ref type="bibr" target="#b19">Gonzalez et al. 2016</ref>). All these approaches use different types of low-rank approximation to generate a model PSF. A different approach is taken by ANDROMEDA ( <ref type="bibr" target="#b45">Mugnier et al. 2009;</ref><ref type="bibr" target="#b11">Cantalloube et al. 2015</ref>), which employs maximum likelihood estimation on residual images obtained by pairwise subtraction within the ADI sequence.</p><p>The exoplanet detection problem is critical as it triggers all subsequent steps, such as the determination of position, flux and other astrophysical parameters (characterization) of potential companions. The task of detecting potential companions with model PSF subtraction techniques lacks automation. It boils down to the visual identification of patches of pixels sharing the same properties, such as bright regions on the images, and resembling the instrumental PSF. Therefore, the detectability of significant blobs by visual inspection is limited by human perception biases. This process is aided by the computation of the S/N metric, but computing S/N maps is ultimately upper bounded by the performance of the chosen model PSF subtraction technique. Moreover, the S/N metric does not deal with the truthfulness of potential companions. Other approaches to detecting blobs such as the Laplacian of Gaussian and the matched filtering ( <ref type="bibr" target="#b49">Ruffio et al. 2017</ref>) suffer from the same problem. For a review of general purpose source detection techniques on astronomical images, see <ref type="bibr" target="#b40">Masias et al. (2012)</ref>.</p><p>Advanced approaches with higher sensitivities to dim companions are needed, especially for the speckle-dominated innermost region of the images. Such approaches must address the issues of the visual vetting and S/N map computations by producing per-pixel likelihoods or probabilities of companion presence for a given ADI sequence. The maximum likelihood approach of ANDROMEDA, while a step in this direction, has not been thoroughly benchmarked against state-of-the-art approaches. Comparative contrast curves show its performance to be at the same level as full-frame ADI-PCA ( <ref type="bibr" target="#b11">Cantalloube et al. 2015)</ref>.</p><p>A different approach to detecting exoplanets through HCI is the use of discriminative models, as it has been proposed by <ref type="bibr">Fer- gus et al. (2014)</ref> for the case of multiple-channel SDI data. The DS4 algorithm, an extension of the S4 algorithm, adopts a discriminative approach based on support vector machines trained on a labeled dataset. This dataset is composed of negative samples taken directly from the input data and positive samples generated by injecting synthetic companions. Unfortunately, there is no publication describing the details of this algorithm or robustly assessing its performance (see the discussion section of <ref type="bibr" target="#b16">Fergus et al. (2014)</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.2.">From unsupervised to supervised learning</head><p>Differential imaging post-processing approaches rely on unsupervised learning techniques, such as low-rank approximations, to enable the production of final residual images. The detection ability of these techniques depends on a variety of factors, including the number of frames in the sequence, the total range of field rotation, the distance of a companion to its parent star, the companion flux with respect to the star, and the aggressiveness of the differential imaging subtraction approach.</p><p>Our approach here consists in a reformulation of the exoplanet detection task as a supervised binary classification problem. Supervised learning uses a considerable amount of labeled data (or ground truth) in order to train a discriminative model and produce predictions. Depending on the model used, two algorithms are proposed: SODIRF, which stands for Supervised exOplanet detection via Direct Imaging with Random Forests, and SODINN, which stands for Supervised exOplanet detection via Direct Imaging with deep Neural Networks.</p><p>The first stage or our method addresses the challenge of generating a large labeled dataset from a single ADI image sequence. As we show in Sec. 2 this procedure relies on the injection of synthetic companions and a technique called data augmentation, which is widely used in deep learning. Once our model is trained on this labeled dataset, it can be applied to the input ADI sequence for evaluation without risk of overfitting 3 . </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="0">1</head><p>Convolutional LSTM layer kernel=(3x3), filters=40</p><p>Convolutional LSTM layer kernel=(2x2), filters=80</p><p>Dense layer units=128</p><p>Output dense layer units=1  The fact that SODIRF and SODINN can be trained on a labeled dataset created from a given ADI sequence means that these models are fine-tuned to each ADI sequence <ref type="bibr" target="#b9">(Braham &amp; Van Droogenbroeck 2016)</ref>. We have tested SODIRF and SODINN on coronagraphic ADI sequences from different instruments. To validate our results, we focus on two datasets (one of them with a known companion) that are very different in terms of their characteristics. The first dataset, an L band VLT/NACO sequence on β Pic ( <ref type="bibr" target="#b1">Absil et al. 2013</ref>) and its companion ( <ref type="bibr" target="#b33">Lagrange et al. 2010</ref>), consists of 612 frames with 8 sec of effective integration time, and has a total field rotation of 83 degrees. This β Pic dataset is described in <ref type="bibr" target="#b1">Absil et al. (2013)</ref> along with the pre-processing procedures applied to generate the calibrated cube (or reduced image sequence) that we used here. The second dataset is a VLT/SPHERE sequence on V471 Tau ( <ref type="bibr" target="#b24">Hardy et al. 2015</ref>) acquired with the Infra-Red Dual-band Imaging and Spectroscopy (IRDIS, <ref type="bibr" target="#b15">Dohlen et al. 2008</ref>) subsystem. It consists of two sequences (in the H2 and H3 bands 4 ) with 50 frames, each one with 64 sec of integration time, and a total field rotation of 30 degrees. The pre-processing steps applied to the V471 Tau dataset are described in <ref type="bibr" target="#b24">Hardy et al. (2015)</ref>. Throughout this study, and for simplicity, we assume that (1×)FWHM = 1λ/D = 4 pxs. This paper is organized as follows. In Sec. 2, we describe our labeled data generation strategy for ADI datasets. Section 3 describes the two proposed classification approaches using ranmemorizes the labeled training data limiting the prediction ability on new data samples. <ref type="bibr">4</ref> The SPHERE/IRDIS instrument provides dual-band imaging thanks to the use of a beam splitter located downstream the coronagraphic mask. dom forests and deep neural networks. Section 4 explains the prediction stage of our supervised detection approach. Section 5 presents our performance assessment study using signal detection metrics for comparing SODIRF and SODINN to state-ofthe-art HCI algorithms, and Sec. 6 presents the conclusions.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Generation of a labeled dataset</head><p>The generation of a labeled dataset requires a transformation of the ADI image sequence that suits better a supervised learning problem and enables us to create examples of two distinguishable classes: one representing the companion signal and the other the speckles and background areas. Therefore, we work on patches, instead of full frames, in order to get a different view of the image sequence. This choice is motivated by the fact that the exoplanet's signal spatial scale is small compared to the frame size, and that it facilitates the creation of a large labeled dataset even from a single ADI sequence, as explained hereafter.</p><p>Working with 2D patches directly from a pre-processed ADI sequence does not facilitate the generation of two distinguishable classes. This is mainly due to the high dynamic range caused by the presence of residual starlight. Our initial tests using 2D patches were not successful and this motivated the use of a different view of the data. Our labeled dataset is composed of 3D residual patches, at several Singular Value Decomposition (SVD) approximation levels, hereafter referred to as Multi-level Low-rank Approximation Residual (MLAR) samples. They can be understood as computing annulus-wise PCA residual patches at different numbers of principal components (PC). Working with these MLAR patches, we replace the ADI temporal information with the patch evolution as a function of the approximation level.</p><p>Article number, page 3 of 13 A&amp;A proofs: manuscript no. paper</p><p>The MLAR samples are built in the following way. Consider a matrix M ∈ R n×p whose rows contain the pixels inside a centered annulus of a given width. n is the number of frames in the ADI sequence and p is the number of pixels in the given annulus. Recall that singular value decomposition (SVD) is a matrix factorization such that:</p><formula xml:id="formula_0">M = UΣV T = n i=1 σ i u i v T i ,<label>(1)</label></formula><p>where the vectors u i and v i are the left and right singular vectors, and σ i the singular values of M. SVD is involved in several least-squares problems, such as finding the best low-rank approximation of M in the least-squares sense, i.e.,</p><formula xml:id="formula_1">argmin X M − X 2 F ,<label>(2)</label></formula><p>where · 2 F denotes the Frobenius norm. By keeping k right singular vectors, we form a low-dimensional subspace B capturing most of the variance of M. The residuals are obtained by subtracting from M its projection onto B:</p><formula xml:id="formula_2">R = M − MB T B.<label>(3)</label></formula><p>This residual matrix is later reshaped to the image space, derotated and median combined as the usual ADI workflow dictates. In general, the larger the value of k, the better the reconstruction and the smaller residuals (with less energy or standard deviation). Instead of choosing one single k value for estimating the lowrank approximation of M and obtaining a single residual flux image (which is the goal of PCA-based approaches), we choose multiple k values sampling different levels of reconstruction. The MLAR patches are obtained by cropping square patches, of odd size and about twice the size of the FWHM, from the sequence of final residual frames obtained for different k. Defining the values of k relies on the cumulative explained variance ratio (CEVR). LetˆMLetˆ LetˆM be the matrix M, from which its temporal mean has been subtracted, andˆσandˆ andˆσ i the singular values ofˆMofˆ ofˆM. The explained variance ratio for the k th singular vector is defined as:</p><formula xml:id="formula_3">( ˆ σ k 2 /n) i ˆ σ i 2 ,<label>(4)</label></formula><p>where i goes from one to min(n, p). It measures the variance explained by each singular vector and the CEVR measures the cumulative explained variance up to the k th singular vector. Sensible values for k lie within the interval from 0.5 to 0.99 CEVR (for one example, see left panel of <ref type="figure" target="#fig_2">Fig. 2</ref>), but depend on each particular dataset. The number of steps in this interval can be tuned, although the general rule is that more steps in the MLAR patches lead to more expressive samples that generally lead to higher classification power and a better discriminative model. In our tests, with 8 to 20 approximation levels, we could train models with outstanding accuracy. By using this data transformation, we are able to generate MLAR samples from our two classes, one containing the signature of a companion (positive class c + ) and the other representing the background and speckle diversity (negative class c − ). Each sample has an associated label y ∈ {c − , c + }.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">Generation of the C + MLAR samples</head><p>The creation of the positive class relies on injecting an off-axis PSF template, a procedure accepted within the HCI community for generating synthetic data and assessing the sensitivity limits of image processing algorithms and instruments. The PSF template is usually obtained from observations of the same star during the same observing run and without a coronagraph. The injection consists in the addition of such PSF template (on each frame of the sequence) at a given location with a random brightness from a predefined interval. This interval must be carefully chosen to avoid class overlap, which occurs when a same MLAR sample (or very similar) appears as a valid example of both classes. This can happen when the lower bound of our brightness interval (or planet to star contrast) is too low, in which case the signature of the companion signal is hardly distinguishable from the one of the background polluted with quasi-static speckles. Sensible lower and upper bounds can be estimated in a datadriven fashion by injecting fake companions and measuring their S/N in residual frames obtained through classical ADI median subtraction. Fluxes leading to S/Ns in the interval <ref type="bibr">[1,</ref><ref type="bibr">3]</ref> are usually good for our purpose (see right panel of <ref type="figure" target="#fig_2">Fig. 2</ref>). These flux intervals are defined in an annulus-wise fashion and are therefore related to the radial flux profile of the images.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.">Generation of the C − MLAR samples</head><p>The generation of the samples from the negative class, representing everything but the signal of companions (the background and speckles), relies on the exploitation of the rotation associated to an ADI sequence and common machine learning data augmentation techniques <ref type="bibr">5</ref> . The generation of a large number of negative samples faces two main difficulties. First, the fact that with a single ADI image sequence, we obtain a single realization of the residual noise (in a PCA-based differential imaging context). Second, the number of patches we can grab from a given 1×FWHM annulus is orders of magnitude smaller than the number of samples that are needed in the labeled dataset. If we feed these samples to a classifier, it would quickly memorize them, and that would produce strong overfitting (especially in the case of a deep neural network). Our dedicated data augmentation process addresses these issues and can be summarized by the following steps:</p><p>1. We randomly grab MLAR patches (as explained at the beginning of Sec. 2) centered on up to ten percent of the pixels in a given annulus. Optionally, a chosen region (circular aperture) of the ADI frame sequence can be masked to conceal a known, true companion. The corresponding patches are then ignored. 2. We flip the sign of the parallactic angles when derotating the residual images (after reshaping to image space the residuals obtained in Eq. 3) to obtain final median combined images that preserve the noise correlation and keep the same statistical properties, while blurring any astrophysical signal. We grab all the available MLAR patches from the given annulus. 3. We randomly pick groups of three samples from the two previous subsets and average them to produce new samples. 4. Finally, we perform random rotations and small shifts of the MLAR samples obtained in the previous three steps to create even more diversity. The same rotation angle and shift is applied to all the slices of a given MLAR sample.</p><p>In the end, the C + MLAR samples contain the signature of the injected companions and the C − MLAR samples contain augmented samples without companion signal. Thanks to this strategy, we avoid showing the samples from the original ADI sequence to our classifiers, thus reducing model overfitting. Note that the pixel values in each slice of the MLAR sample are normalized in the interval <ref type="bibr">[0,</ref><ref type="bibr">1]</ref>, bringing all the labeled dataset to the same value range. In panels (a) and (b) of <ref type="figure" target="#fig_3">Fig. 3</ref>, we show a few examples of the resulting MLAR samples composing our labeled data set. The patch size was set to seven pixels. The MLAR positive samples shown in panel (b) clearly illustrate the exoplanet PSF morphological distortion introduced by differential imaging post-processing, as a function of the aggressiveness (analogous to the number of PCs used in a PCA-based postprocessing approach). This is related to the well-known problem in HCI of companion self-subtraction. The PSFs of the companions clearly degrade as the CEVR increases (they eventually vanish when k is close to min(n, p)), which affects the positions of the PSF centroids.</p><p>We use the VIP Python library (Gomez <ref type="bibr" target="#b20">Gonzalez et al. 2017</ref>) for low-level image operations and the generation of labeled datasets. The calculations for producing the MLAR samples are done on CPU in a parallelized way and the SVD computations use the randomized SVD algorithm proposed by <ref type="bibr" target="#b23">Halko et al. (2011)</ref> to decrease the computation time. We use the above described procedure to generate a balanced labeled dataset of several hundreds of thousands MLAR samples (with the same amount of c − and c + samples). Here again the general rule is that more samples are better for the discriminative power of our models. A thorough analysis of the influence of the labeled dataset size on the performance of our discriminative models has yet to be performed.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Discriminative model</head><p>The fact that the footprint of a companion in the MLAR patches is different from the one of a speckle or a background area enables the formulation of the exoplanet detection as a binary classification task. The role of the discriminative model, in the proposed supervised detection framework, is to disentangle the exoplanet signal signature c + from the background and speckle pattern c − . The classifier achieves this by learning a mapping from the input MLAR samples to their corresponding labels. Once the model is trained, it is able to make predictionsˆypredictionsˆ predictionsˆy ∈ {c − , c + } on new samples. The probabilistic classifiers we discuss in this study assign to each sample a confidence score of class membership, which we call probability hereafter, from which we obtain a class prediction by applying a threshold of 0.5. In the following Sections, we propose two ways of approaching the classification step, one using random forests (SODIRF) and a more sophisticated one using deep neural networks (SODINN). In Sec. 5 we focus on the confidence scores provided by SODIRF/SODINN and explore different probability thresholds using signal detection theory metrics suited for performance assessment of binary probabilistic classifiers.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Random forest based approach</head><p>A random forest <ref type="bibr" target="#b10">(Breiman 2001</ref>) is a type of ensemble learning model. Ensemble methods rely on the introduction of random perturbations into the learning procedure (of the mapping function) in order to produce several different models from a single labeled dataset, and the combination of the predictions of those models to form the prediction of the ensemble. In particular, a random forest fits a multitude of decision trees on various bootstrap sub-samples of the labeled dataset, and performs averaging of their probabilistic predictions to improve the predictive accuracy of the model (by reducing the variance of the ensemble if compared to single decision tree). A detailed description of the random forest algorithm is beyond the scope of this paper. For details we refer the reader to <ref type="bibr" target="#b36">Louppe (2014)</ref>. In the case of SODIRF, we must create a 2D matrix of samples versus features (the pixels of each MLAR sample) suitable for training the random forest classifier. This feature matrix is constructed by vectorizing the MLAR samples and stacking them in a matrix. SODIRF is implemented using the scikit-learn Python machine learning library. This implementation of a random forest combines the decision tree classifiers by averaging their probabilistic prediction. SODIRF uses 100 fully developed trees to form the ensemble model and a simple train-test splitting proceArticle number, page 5 of 13 A&amp;A proofs: manuscript no. paper dure for the training stage. The random forest model achieves a good test accuracy (over 99.5%).</p><p>Random forests can be efficiently trained on CPUs, in just a few minutes, exploiting modern multi-processor architectures, unlike deep neural networks (such as deep CNNs), which require last generation GPUs and more computing time to be trained. The models differ not only in terms of the computational cost but also in terms of performance, as we show in Sec. 5.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">Deep neural network based approach</head><p>Deep learning is a particular subfield of machine learning that relies on the use of successive layers of representations, enabling the creation of models with high levels of abstraction. Deep neural networks are a particular kind of artificial neural network architecture that learn these layered representations by stacking many layers of neurons one after the other. CNNs are a type of deep learning model for processing data having a grid-like topology (e.g. images), and are almost universally used in computer vision. CNNs are also employed for processing time series and 3D input data. On the other hand, recurrent neural networks (RNN, <ref type="bibr" target="#b50">Rumelhart et al. 1986</ref>) are a powerful type of neural network particularly designed for sequence modeling. Long-short term memory (LSTM, Hochreiter &amp; Schmidhuber 1997) networks are a kind of RNN widely used in machine translation, large-vocabulary speech recognition, and text-to-speech synthesis, thanks to its ability of learning long term dependencies.</p><p>SODINN makes use of deep neural networks to exploit the 3D structure of the MLAR samples. We have explored two different types of networks suited for learning spatio-temporal (3D) dependencies: 3D convolutional networks ( <ref type="bibr" target="#b59">Tran et al. 2015</ref>) and convolutional LSTM networks ( <ref type="bibr" target="#b52">Shi et al. 2015</ref>). By using these network architectures, we can directly feed the model with the MLAR samples thereby preserving their 3D structure, as opposed to SODIRF. In order to find a model with the best sensitivity vs specificity trade-off, we have performed a manual search to explore combinations of the two architectures and different hyperparameters. We obtain the best results with convolutional LSTM layers, combining convolutional and LSTM architectures, and we choose it for building SODINN's classification model.</p><p>As shown in <ref type="figure" target="#fig_0">Fig. 1, SODINN</ref>'s classifier architecture consists of two convolutional LSTM layers, the first with 40 filters of size 3×3 and the second with 80 filters of size 2×2. Each convolutional LSTM layer is followed by a max pooling layer ( <ref type="bibr" target="#b7">Boureau et al. 2010</ref>) which aggregates the activations of neighboring units by computing the maximum of 2×2×2 3D patches. The network follows with a fully connected layer featuring 128 hidden units. A rectified linear unit (ReLU, Nair &amp; Hinton 2010) activation (non-linearity) is applied to the output of the dense layer and a dropout ( <ref type="bibr" target="#b25">Hinton et al. 2012;</ref><ref type="bibr" target="#b57">Srivastava et al. 2014</ref>) regularization is applied to the resulting activations. Finally, the output layer of the network is a sigmoid unit. The network weights (2.5 × 10 5 to 1 × 10 6 learnable parameters depending on the size of the FWHM) are initialized randomly using a Xavier uniform initializer and are learned by back-propagation with a binary cross-entropy cost function:</p><formula xml:id="formula_4">L = − n (y n ln(ˆ y n ) + (1 − y n ) ln(1 − ˆ y n )),<label>(5)</label></formula><p>where y n is the true label of the n th MLAR sample andˆyandˆ andˆy n = p(c + | MLAR sample) is the probability that the n th MLAR sample belongs to the positive class. The architecture of the neural network is not dataset dependent.</p><p>The labeled data is divided into train, test (ten percent of the initial labeled samples), and validation sets. The optimization of deep networks, with a large number of parameters, is accomplished with mini-batch stochastic gradient descent. It works by drawing a random batch from the training set, performing a forward pass (running it through the network) to obtain predictionsˆy predictionsˆ predictionsˆy, computing the loss score on this batch, and the gradient of the loss with regard to the parameters of the network (which is called a backward pass). The parameters or weights are then changed in the direction opposite to the gradient (Chollet 2017). The aim of this process is to lower the loss on the batch by a small step, also called learning rate. The whole process of learning the weights (that minimize the loss) is made possible by the fact that neural networks are chains of differentiable tensor operations. Therefore it is possible to use the backpropagation method, by applying the chain rule of derivation to find the gradient function mapping the current parameters and current batch of data to a gradient value.</p><p>We adopt the Adam optimization strategy <ref type="bibr" target="#b30">(Kingma &amp; Ba 2014)</ref>, which extends classical stochastic gradient descent and computes individual adaptive learning rates for different parameters from estimates of first and second moments of the gradients. We use a step size of 0.003 and mini-batches of 64 training samples. We include an early stopping condition monitoring the validation loss. Usually, our model is trained with 15 epochs (passes of the stochastic gradient descent optimizer through the whole train set) reaching 99.9% validation accuracy. SODINN's neural network classifier is implemented using the highly modular and minimalist Keras library ( <ref type="bibr" target="#b12">Chollet et al. 2015</ref>) using its Tensorflow ( <ref type="bibr" target="#b0">Abadi et al. 2015</ref>) backend. The model is trained on a NVIDIA DGX-1 system using one of its eight P100 cards in about one hour. Training such network is possible on any computer with a dedicated last generation GPU, such as a NVIDIA TitanX. Almost the same runtime is achieved when training the model on a much cheaper GTX 1080 Ti card installed on a conventional server.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Prediction stage</head><p>Once the models are trained, they are applied to the input data cube. First, we perform the same transformations (same CEVR intervals) to the input ADI sequence to obtain MLAR patches centered on each one of the pixels of the frame. The discriminative model then classifies these MLAR patches, assigning a probability of membership to the positive class, p(ˆ y = c + | MLAR sample). For SODINN, the prediction stage is just a forward pass of a given test sample through the trained deep neural network to produce an output probability. In our supervised framework, grabbing MLAR patches for each pixel of the frame, enables the estimation of a class probability in a detection map. This map is then thresholded at a desired level of c + class probability. The probability and binary maps are the outputs of both SODIRF and SODINN, as exemplified in <ref type="figure" target="#fig_4">Fig. 4</ref> for the VLT/NACO dataset. We can see how the binary maps clearly reveal the presence of β Pic b, without false positives, for this probability threshold.</p><p>For comparison, in a differential imaging PCA-based approach, one would tune the number of PCs that works best for a companion at a given radial distance and obtain a residual flux image. This trial and error process leads to a single realization (using one k value) of the residuals, which is then visually inspected to identify companions or is turned into a S/N map. In the case of our supervised detection method, the predicted probability (or detection criterion) is evaluated independently for each pixel on the frame and does not suffer from the small sample statistics issue or, for that matter, human perception biases. This is a huge improvement compared to differential imaging where the S/N metric requires to take into account the annulus-wise noise at the separation of a given test resolution element. In order to test the validity of our training procedure, we injected faint fake companions in the ADI sequence used to generate the labeled dataset, without masking the injected companions, to simulate the situation when we face a new dataset with real unknown exoplanets. Afterwards, we checked whether the trained models were able to detect these pre-existing companions. In this test, the injected companions could be recovered with a high success rate, which demonstrates that our approach prevents overfitting at the labeled dataset generation stage. Therefore, we conclude that our framework can be safely applied to new ADI datasets and the performance assessment shown in Sec. 5 is fair. We would like to emphasize that having access to multiple datasets taken with the same instrument (survey data), would enable training a more general model and would depend less strongly on the proposed data augmentation procedure.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">Performance assessment</head><p>Testing on known companions is a first sanity check for any exoplanet detection algorithm. Next step is to proceed with testing the performance (detection capacity) of our trained models by injecting fake companions. In this section, we focus on SODINN. Using the V471 Tau VLT/SPHERE dataset, a challenging ADI sequence with few frames and mild rotation, we inject four companions (using the input off-axis PSF), at angular separations ranging from one to five λ/D, as indicated in <ref type="table" target="#tab_2">Table 1</ref> and illustrated in panel (a) of <ref type="figure" target="#fig_5">Fig 5 (</ref>which shows three realizations of an ADI-PCA residual frame with two, four and eight PCs sub- tracted). The first, third and fourth companions are pretty much at the level of the speckle noise at their corresponding separations. The shapes of their PSFs are hard to distinguish from surrounding noise and the S/N values are small. The quoted S/N in panel (b) of <ref type="figure" target="#fig_5">Fig. 5</ref> is the best mean S/N, in a 1×FWHM aperture centered at the injection positions, obtained after optimizing the number of PCs (shown in <ref type="table" target="#tab_2">Table 1</ref>). Only the second companion has a S/N over five, which is due to the fact that it was purposely injected on top of a bright speckle. The visual inspection would not be definitive for such a companion. As shown in panel (c) of <ref type="figure" target="#fig_5">Fig. 5</ref>, SODINN outperforms the full-frame ADI-PCA approach by recovering the four companions at a high (99%) probability without any false positive.</p><p>Tests with known and injected companions are the first attempts to measure the performance of our supervised detection method. Unfortunately, it is not possible to judge the performance of a detection algorithm based on a few realizations of such tests. Following Gomez <ref type="bibr" target="#b19">Gonzalez et al. (2016)</ref>, we use a robust signal detection theory tool for assessing the performance of our exoplanet detection algorithms: the receiver operating characteristic (ROC) curve. This curve is a graphical plot used for assessing the performance of classifiers (see Appendix A for a more detailed discussion). In general, ROC curves allow us to study the performance of a binary classifier system in a true positive rate (TPR = p(ˆ y = c + | y = c + )) -false positive rate (FPR = 1 − p(ˆ y = c − | y = c − )) space, as a detection threshold τ varies. In other words, they can assess the TPR (also called sensitivity) and the FPR at the same time. <ref type="figure" target="#fig_6">In Fig. 6</ref>, we illustrate the task of a binary classifier in a signal detection context and the effect of choosing a detection threshold. By varying this threshold, we can adjust the FPR that we are willing to accept for a specific sensitivity. A ROC curve shows how good is our classification algorithm for separating the two classes, an ability inherent to the classifier. HCI as a signal detection problem seeks to simultaneously maximize the sensitivity to companions and minimize the number of false detections (FPR).</p><p>In this study, we choose to build our ROC curves in a TPR (percentage of detected fake companions) vs mean per-frame false positives, instead of a TPR vs FPR space. The total number of false positives is counted on the whole detection map, and is averaged for each τ. This reflects better the goal of a planet hunter and facilitates interpretation of the performance simulations. The ROC curves are built separately for different annuli with a tuned uniform flux distribution for the injection of fake companions. Having ROC curves for different separations from the star better illustrates the algorithm performance at different noise regimes. When interpreting the results, it is important to compare the ROC curves for different algorithms to each other, for a given annulus, considering that the TPR depends on the brightness of the injected companions, while the mean per-frame false positives does not (see panels (b) and (c) of <ref type="figure" target="#fig_0">Fig. A.1)</ref>. It is also important to examine the shape of the curves. For instance, it is preferable to have a steeper curve, which means that such algorithm does better in minimizing the number of FP while it increases its sensitivity.</p><p>Article number, page 7 of 13 A&amp;A proofs: manuscript no. paper  <ref type="table" target="#tab_2">Table 1</ref>) in the V471 Tau VLT/SPHERE ADI sequence. The locations of the injections are shown with white circles on the ADI-PCA residual images. Panel (a) shows three ADI-PCA final frames with with two, four and eight PCs subtracted. Panel (b) shows cropped frames centered on the injected companions after optimizing the number of PCs (as shown in <ref type="table" target="#tab_2">Table 1</ref>) to maximize the S/N of each companion. SODINN's probability and binary maps clearly reveal the four planets (without false positives at 99% probability) as seen in panel (c). Panel (d) shows the MLAR patches, used at the prediction stage, centered on each one of the injected companions. We compare SODINN and SODIRF to classical ADI median subtraction, full-frame ADI-PCA and LLSG on both the VLT/NACO β Pic dataset and the VLT/SPHERE V471 Tau dataset. As mentioned earlier, differential imaging approaches (unsupervised learning), i.e. ADI median subtraction, ADI-PCA and LLSG, do not generate a prediction (probability) but rather a residual image to look at. We obtain detection maps for these approaches by building S/N maps and thresholding them at several values of τ. For each injection of a fake companion, a new data cube is built and processed with each of the five algorithms. In the case of the VLT/SPHERE V471 Tau dataset, the labeled datasets used for training SODIRF/SODINN are produced using both H2 and H3 SPHERE/IRDIS image sequences, while the prediction step is performed on the H3 band sequence only. The discriminative models are trained once for the ROC curve analysis. The number of PCs for ADI-PCA and the rank parameter for LLSG are set to two PCs (0.7 CEVR) for the V471 Tau sequence and to nine PCs (0.9 CEVR) for the β Pic one. They are optimized in order to have the best possible ROC curves for ADI-PCA at the considered separations. No other hyperparameters were tuned. S/N maps were built for the resulting residual frames and thresholded at different values of τ: 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5. For SODINN and SODIRF, we thresholded the probability map at several levels: 0.1, 0.  <ref type="table" target="#tab_3">Table 2</ref>. Reading the ROC curves presented here is straightforward: panel (a) of <ref type="figure" target="#fig_9">Fig. 7</ref> (annulus from one to two λ/D) shows that a blob, i.e. at least two active pixels inside a 3×3 pixels box centered at the position of the fake companion injection, sticks out above the detection threshold in 16%, 28%, ∼42%, ∼44% and ∼68% of the cases for ADI median subtraction, ADI-PCA, LLSG, SODIRF and SODINN respectively, and for an average of ∼0.8 false positives in the full-frame detection map. The ROC curves for different separations and two very different datasets (from different HCI instruments) consistently show SODINN's improved performance with respect to other approaches. SODIRF's sensitivity improves with the separation and starts to match the performance of SODINN. In Appendix A, we provide more details about the construction of the ROC curves for the assessment of exoplanet  detection algorithms. For instance, we show that hyperparameter tuning is important and the curves for ADI-PCA and LLSG could be slightly improved by searching the optimal number of PCs at each separation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">Conclusions</head><p>This study illustrates the potential of machine learning in HCI for the task of exoplanet detection. We present a novel paradigm for detecting point-like companions in ADI sequences by reformulating HCI post-processing as a supervised learning problem, building on well-established machine learning techniques. Instead of relying on unsupervised learning techniques, as most of the state-of-the-art ADI post-processing algorithms do, we generate labeled datasets (MLAR samples) and train discriminative models that classify each pixel of the image, assigning a probability of containing planetary signal. We present two approaches that differ in the type of discriminative model used: SODIRF and SODINN. The former employs a random forest classifier while the latter features a more advanced deep neural network model, which exploits better the structure of the labeled MLAR samples.</p><p>In order to assess the detection capabilities of our approaches, we perform a ROC analysis comparing both SODINN and SODIRF to ADI median subtraction, ADI-PCA and LLSG techniques. The performances of both algorithms are beyond what ADI-PCA and ADI median subtraction can offer. SODIRF can be considered as a computationally cheap alternative to the deep neural network approach of SODINN, whose performance lies in a separate zone of the ROC space. From one to two λ/D, SODINN improves the TPR by a factor of ∼2 and ∼10, for two different datasets, with respect to ADI-PCA and LLSG when working at the same false positive level. Moreover, the improvement in discriminating planet signal from speckles holds in the case of a challenging ADI sequence, with mild rotation and few frames, from a last-generation HCI instrument -VLT/SPHERE (see Appendix A for a deeper discussion of the ROC curves performance assessment). The fact that these models are versatile and can be fine-tuned to each specific ADI sequence opens great possibilities of re-processing existing databases, from first-and second-generation HCI instruments, to maximize their scientific return.</p><p>Although in this study we only addressed single ADI datasets, our framework's true potential is in the context of surveys, where the data from different observations could be used to generate a larger and more diverse labeled datasets. This would enable more efficient and general deep neural network models for SODINN. The exploitation of SODINN for surveys will be the focus of a future study. Other interesting venues of future research are the inclusion of the companion brightness into the model, the extension to other HCI observing techniques (beyond ADI), and the use of generative neural networks for complementing the data augmentation process.</p><p>The simultaneous increase in sensitivity, which translates in deeper detection limits (the ability to detect companions at higher contrasts), and reduction of the per-image false positives clearly indicate that our supervised approach SODINN is a very powerful HCI exoplanet detection technique. Considering that ADI remains the most common HCI observing strategy and the large reservoirs of archival data, SODINN could potentially improve the demographics of directly imaged exoplanets at all separations, including those in the inner vicinity (1-2 λ/D) of their parent stars where ADI signal self-subtraction and speckle noise are the strongest.   <ref type="table" target="#tab_3">Table 2</ref>. The labels denote the detection thresholds: S/N for ADI median subtraction, ADI-PCA and LLSG, and probabilities for SODIRF and SODINN.</p><p>1. An on-sky dataset is chosen. Any high-S/N or known companion is removed, e.g. using the negative fake companion technique ( <ref type="bibr" target="#b33">Lagrange et al. 2010;</ref><ref type="bibr" target="#b37">Marois et al. 2006</ref>; Gomez <ref type="bibr" target="#b20">Gonzalez et al. 2017</ref>). 2. A separation from the star (1×FWHM annulus) and a planet to star contrast interval (the brightness of the injected companions) are selected. A list of τ thresholds is also defined. 3. A large enough number of data cubes are built with a single injected companion at the selected separation and within the chosen contrast interval. When choosing a dataset, we must subtract known and high-S/N existing companions, based on visual vetting performed on a model PSF-subtracted residual image. As shown in this study, the PSF subtraction methods combined with visual vetting and S/N metrics are far from obtaining 100% probability of finding companions and therefore obtaining an empty dataset. Nevertheless, the only choice is to assume the sequence is empty, or free of astrophysical exoplanetary signal, and flag any potential companion as a false positive in the following steps of the ROC curve generation procedure. In the last step, averaging the number of false positives (instead of assuming a static noise realization per (a) (b) (c) <ref type="figure" target="#fig_0">Fig. A.1</ref>. This exemplifies the pitfalls of comparative studies using ROC curves, and how easy it is to obtain wrong relative performances and present unfair conclusions. These ROC curves are built for the same dataset and separation from the star. Panels (a) and (b) show ROC curves when changing the algorithms hyper-parameters: the number of PCs for ADI-PCA and the rank of LLSG. In (a) a more aggressive value is used with respect to (b). The performance of ADI-PCA and LLSG is worst when too aggressive hyper-parameters are used. Notice how their curves move upward in panel (b) with respect to ADI median subtraction, SODIRF and SODINN curves. Panel (c) is generated injecting fainter companions with respect to panel (b). A higher planet to star contrast interval is a more sensible choice for highlighting the relative sensitivity of the studied algorithms. τ) addresses small fluctuations in this value, caused by the interaction of an injected companion with the false positives at the same separation (which biases the S/N).</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Fig. 1 .</head><label>1</label><figDesc>Fig. 1. The three stages of our supervised detection framework. Panel (a) illustrates the labeled data generation step. The ADI sequence and off-axis PSF template are examples of VLT/SPHERE data. Panel (b) illustrates the model training step for the case of SODINN. SODIRF uses a random forest classifier instead of a deep neural network. Panel (c) concerns the evaluation of the trained model on the original cube and shows the schematic representation of the output detection map.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 1 shows</head><label>1</label><figDesc>Figure 1 shows a diagram of our novel framework for the case of SODINN. The fact that SODIRF and SODINN can be trained on a labeled dataset created from a given ADI sequence means that these models are fine-tuned to each ADI sequence (Braham &amp; Van Droogenbroeck 2016). We have tested SODIRF and SODINN on coronagraphic ADI sequences from different instruments. To validate our results, we focus on two datasets (one of them with a known companion) that are very different in terms of their characteristics. The first dataset, an L band VLT/NACO sequence on β Pic (Absil et al. 2013) and its companion (Lagrange et al. 2010), consists of 612 frames with 8 sec of effective integration time, and has a total field rotation of 83 degrees. This β Pic dataset is described in Absil et al. (2013) along with the pre-processing procedures applied to generate the calibrated cube (or reduced image sequence) that we used here. The second dataset is a VLT/SPHERE sequence on V471 Tau (Hardy et al. 2015) acquired with the Infra-Red Dual-band Imaging and Spectroscopy (IRDIS, Dohlen et al. 2008) subsystem. It consists of two sequences (in the H2 and H3 bands 4 ) with 50 frames, each one with 64 sec of integration time, and a total field rotation of 30 degrees. The pre-processing steps applied to the V471 Tau dataset are described in Hardy et al. (2015). Throughout this study, and for simplicity, we assume that (1×)FWHM = 1λ/D = 4 pxs. This paper is organized as follows. In Sec. 2, we describe our labeled data generation strategy for ADI datasets. Section 3 describes the two proposed classification approaches using ran-</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Fig. 2 .</head><label>2</label><figDesc>Fig. 2. Generation of a labeled dataset. The left panel illustrates the procedure for determining the approximation levels and shows the cumulative explained variance ratio as defined by Eq. 4. The vertical dotted line is located at the maximum number (16) of singular vectors used in this case. The right panel illustrates the determination of flux intervals and shows the median S/N of injected companions, in an ADI-median subtracted residual frame, as a function of the scaling factor. The red dots denote the lower and upper bounds of the companion injections for generating MLAR samples of the positive class.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Fig. 3 .</head><label>3</label><figDesc>Fig. 3. MLAR samples from the positive and negative classes obtained with up to 16 singular vectors. The CEVR for these MLAR samples are shown in Fig. 2. (a) Each row corresponds to a random MLAR sample from the negative class (background and speckles). (b) Each row corresponds to a MLAR sample from the positive class (exoplanet signal). The positive samples are shown, from top to bottom, with increasing flux. Every slice of the MLAR sample is normalized in the interval [0,1].</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Fig. 4 .</head><label>4</label><figDesc>Fig. 4. SODIRF and SODINN outputs for the VLT/NACO β Pic dataset. Top panels show SODIRF's probability (left) and binary detection maps (right). Bottom panels correspond to SODINN's output. Both binary detection maps are obtained with a 99% probability threshold.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Fig. 5 .</head><label>5</label><figDesc>Fig. 5. Injection of four synthetic companions (parameters detailed in Table 1) in the V471 Tau VLT/SPHERE ADI sequence. The locations of the injections are shown with white circles on the ADI-PCA residual images. Panel (a) shows three ADI-PCA final frames with with two, four and eight PCs subtracted. Panel (b) shows cropped frames centered on the injected companions after optimizing the number of PCs (as shown in Table 1) to maximize the S/N of each companion. SODINN's probability and binary maps clearly reveal the four planets (without false positives at 99% probability) as seen in panel (c). Panel (d) shows the MLAR patches, used at the prediction stage, centered on each one of the injected companions.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_6"><head>Fig. 6 .</head><label>6</label><figDesc>Fig. 6. Behavior of a binary classifier in a signal detection theory context. By varying the detection threshold we can study the classifier's performance.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head></head><label></label><figDesc>2, 0.3, 0.4, 0.5, 0.59, 0.69, 0.79, 0.89, 0.99. Fig. A.2 illustrates one single realization of a companion injection, the generation of detection maps and the thresholding operation for three values of τ. When training SODIRF and SODINN, MLAR samples of 16 slices (in the in- terval 0.5-0.95 CEVR) are used for the V471 Tau dataset, and 20 slices (in the interval 0.46-0.98 CEVR) for the β Pic sequence. The ROC curves, built for three different annuli, are shown in Figs. 7 and 8. Brightnesses, contrasts and distances, for all the in- jected companions (100 for each annulus), are shown in</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head></head><label></label><figDesc>Gomez Gonzalez et al.: Supervised detection of exoplanets in high-contrast imaging sequences</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head>Fig. 7 .</head><label>7</label><figDesc>Fig. 7. ROC curves for the VLT/SPHERE V471 Tau dataset, comparing ADI median subtraction, ADI-PCA, LLSG, SODIRF and SODINN. The panels show ROC curves built for different separations: (a) 1-2 λ/D, (b) 2-3 λ/D and (c) 4-5 λ/D. The contrasts are shown in Table 2.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_10"><head>Fig. 8 .</head><label>8</label><figDesc>Fig. 8. Same as Fig. 7 for the VLT/NACO β Pic dataset. The contrasts are shown in Table 2. The labels denote the detection thresholds: S/N for ADI median subtraction, ADI-PCA and LLSG, and probabilities for SODIRF and SODINN.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_11"><head>4 .</head><label>4</label><figDesc>The data cubes are processed with each algorithm involved in the performance assessment/comparison. Panel (a) of Fig. A.2 shows the resulting residual flux frames for the model PSF subtraction approaches. Panel (b) shows the re- sulting probability maps of SODIRF and SODINN. S/N maps are produced from the residual flux frames (see panel (b) of Fig. A.2). 5. Binary maps are obtained by thresholding the S/N and prob- ability maps for different values of τ (see panels (c), (d) and (e) of Fig. A.2). For each detection map and for each τ, a true positive is counted if a blob is recovered at the injection lo- cation. False positives are other significant blobs at any other location in the detection map. 6. For each τ, the true positives and the number of false posi- tives are averaged.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_12"><head>Fig. A. 2 .</head><label>2</label><figDesc>Fig. A.2. Case of a single injection for building a ROC curve comparative analysis. Panel (a) groups the final residual frames for the model PSF subtraction approaches (ADI median subtraction, ADI-PCA and LLSG). Detection maps are shown in panel (b): S/N maps from the residual flux frames of panel (a) and probability maps of SODIRF and SODINN. Panels (c), (d) and (e) show the binary maps obtained from the thresholded S/N and probability maps of panel (b). The detected fake companion is shown with a blue circle on the binary maps. The detection state and the number of FPs are also shown next to each binary map. Notice that the number of FPs grows when τ is decreased and also that SODINN controls the number of FPs. A large number of these injections (with varying flux and position) need to be performed in order to build the ROC curves.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" validated="false"><head>C . A. Gomez Gonzalez et al.: Supervised detection of exoplanets in high-contrast imaging sequences</head><label>C</label><figDesc></figDesc><table>matrix 
+n x pannulus 
+
+SVD 
+low-rank 
+approximation 
+at k levels 
+
+k residuals, 
+reshaped 
+back to the 
+image 
+space 
+
+X : MLAR samples 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" validated="true"><head>Table 1 . Parameters for the fake companions (FC) of Fig. 5.</head><label>1</label><figDesc></figDesc><table>FC Separation 
+PA 
+Flux(ADUs) 
+Contrast 
+PCs 
+1 
+1.5 λ/D 
+170 • 
+9000 
+2.5 × 10 −4 
+8 
+2 
+1.75 λ/D 230 • 
+7000 
+1.9 × 10 −4 
+2 
+3 
+2.5 λ/D 
+0 • 
+1500 
+4.2 × 10 −5 
+9 
+4 
+5 λ/D 
+90 • 
+400 
+1.1 × 10 −5 
+4 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" validated="true"><head>Table 2 . Parameters used for the ROC curves of Figs. 7 and 8.</head><label>2</label><figDesc></figDesc><table>Panel Separation V471 Tau, flux(ADUs) 
+V471 Tau, contrast 
+β Pic, flux (ADUs) 
+β Pic, contrast 
+(a) 
+1-2 λ/D 
+U(3000,7000) 
+8.5 × 10 −5 to 1.9 × 10 −4 
+U(400,900) 
+5.2 × 10 −4 to 1.2 × 10 −3 
+(b) 
+2-3 λ/D 
+U(1000,5000) 
+2.9 × 10 −5 to 1.4 × 10 −4 
+U(50,450) 
+6.5 × 10 −5 to 5.9 × 10 −4 
+(c) 
+4-5 λ/D 
+U(250,650) 
+7.1 × 10 −6 to 1.8 × 10 −5 
+U(10,210) 
+1.3 × 10 −5 to 2.7 × 10 −4 
+
+</table></figure>
+
+			<note place="foot" n="2"> Here we define the model PSF as the algorithmically built image that we use with differential imaging techniques for subtracting the scattered starlight and speckle noise pattern in order to enhance the signal of disks and exoplanets.</note>
+
+			<note place="foot" n="3"> Model overfitting occurs when a machine learning algorithm models random noise in the labeled training data, limiting the prediction power on unseen new data (lack of generalization). For high-capacity models, such as deep neural networks, overfitting also occurs when the model Article number, page 2 of 13</note>
+
+			<note place="foot" n="5"> This refers to the process of creating synthetic data and adding these to the training set in order to make a machine learning model generalize better (see section 7.4 of Goodfellow et al. (2016)).</note>
+
+			<note place="foot">Article number, page 13 of 13</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+			</div>
+
+			<div type="annex">
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Appendix A: Construction of ROC curves</head><p>ROC curves are commonly used statistical tools for assessing the performance of binary classifiers. The planet detection task, where we are interested in evaluating the algorithm's sensitivity or ability to detect planets of varying contrast (brightness with respect to the star), can be seen as a binary classification. Therefore, ROC curves can be used for algorithms performance assessment in HCI ( <ref type="bibr" target="#b4">Barrett et al. 2006;</ref><ref type="bibr" target="#b34">Lawson et al. 2012</ref>). A ROC curve shows a classifier TPR-FPR trade-off as a function of a detection threshold τ.</p><p>It is important to understand that the relative ROC performance of two different algorithms changes due to several factors: the dataset used (which has a set of characteristics such as the total rotation range, integration time, total number of frames, weather condition, wavefront control system performance and coronagraphic solution), hyper-parameter tuning of each algorithm (as shown in <ref type="figure">Fig. A.1)</ref>, noise regime or separation from the star, and contrast of the injected companions (as shown in <ref type="figure">Fig. A.1)</ref>. There is no shortcut to avoiding the dependence on these factors, unless the metric makes strong assumptions about the data and noise distributions (which are rarely confirmed in practice). A data-driven approach to the calculation of ROC curves, using standardized datasets, is the most fair and reliable method for assessing the performance of HCI algorithms. The ROC curves shown in this work, for the case of a single ADI dataset, are generated in the following way:</p></div>			</div>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Abadi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Agarwal</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Barham</surname></persName>
+		</author>
+		<title level="m">TensorFlow: Large-Scale Machine Learning on Heterogeneous Systems, software available from tensorflow.org</title>
+		<imprint>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Absil</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Milli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Mawet</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">559</biblScope>
+			<biblScope unit="page">12</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Amara</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">P</forename><surname>Quanz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">427</biblScope>
+			<biblScope unit="page">948</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><forename type="middle">M</forename><surname>Ball</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Brunner</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">International Journal of Modern Physics D</title>
+		<imprint>
+			<biblScope unit="volume">19</biblScope>
+			<biblScope unit="page">1049</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">H</forename><surname>Barrett</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">J</forename><surname>Myers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Devaney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">C</forename><surname>Dainty</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Caucci</surname></persName>
+		</author>
+		<title level="m">Proc. SPIE</title>
+		<meeting>SPIE</meeting>
+		<imprint>
+			<date type="published" when="2006" />
+			<biblScope unit="volume">6272</biblScope>
+			<biblScope unit="page">1</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Bertin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Arnouts</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;AS</title>
+		<imprint>
+			<biblScope unit="volume">117</biblScope>
+			<biblScope unit="page">393</biblScope>
+			<date type="published" when="1996" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title level="a" type="main">Ground-based and Airborne Instrumentation for</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-L</forename><surname>Beuzit</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Feldt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Dohlen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proc. SPIE</title>
+		<meeting>SPIE</meeting>
+		<imprint>
+			<date type="published" when="2008" />
+			<biblScope unit="volume">7014</biblScope>
+			<biblScope unit="page">701418</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y.-L</forename><surname>Boureau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Ponce</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Lecun</surname></persName>
+		</author>
+		<editor>ICML, ed. J. Fürnkranz &amp; T. Joachims</editor>
+		<imprint>
+			<date type="published" when="2010" />
+			<publisher>Omnipress</publisher>
+			<biblScope unit="page" from="111" to="118" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">P</forename><surname>Bowler</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">128</biblScope>
+			<biblScope unit="page">102001</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Braham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Van Droogenbroeck</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">IWSSIP</title>
+		<imprint>
+			<biblScope unit="page" from="1" to="4" />
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Breiman</surname></persName>
+		</author>
+		<title level="m">Machine Learning</title>
+		<imprint>
+			<date type="published" when="2001" />
+			<biblScope unit="volume">45</biblScope>
+			<biblScope unit="page">5</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Cantalloube</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Mouillet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">M</forename><surname>Mugnier</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">582</biblScope>
+			<biblScope unit="page">89</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Chollet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Chollet</surname></persName>
+		</author>
+		<ptr target="https://github.com/fchollet/keras" />
+	</analytic>
+	<monogr>
+		<title level="m">Deep Learning with Python</title>
+		<imprint>
+			<publisher>Manning Publications Company</publisher>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Delacroix</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Absil</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Forsberg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">553</biblScope>
+			<biblScope unit="page">98</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Dieleman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">W</forename><surname>Willett</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Dambre</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">450</biblScope>
+			<biblScope unit="page">1441</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title level="a" type="main">Ground-based and Airborne Instrumentation for</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Dohlen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Langlois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Saisse</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Proc. SPIE</title>
+		<meeting>SPIE</meeting>
+		<imprint>
+			<date type="published" when="2008" />
+			<biblScope unit="volume">7014</biblScope>
+			<biblScope unit="page">70143</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Fergus</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Oppenheimer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Brenner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Pueyo</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">794</biblScope>
+			<biblScope unit="page">161</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Flamary</surname></persName>
+		</author>
+		<idno>CoRR, abs/1612.04526</idno>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Frontera-Pons</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Sureau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Bobin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Le</forename><surname>Floc&amp;apos;h</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename></persName>
+		</author>
+		<idno type="arXiv">arXiv:1705.05620</idno>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+<note type="report_type">ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">A</forename><surname>Gomez Gonzalez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Absil</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P.-A</forename><surname>Absil</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">589</biblScope>
+			<biblScope unit="page">54</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">A</forename><surname>Gomez Gonzalez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Wertz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Absil</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">154</biblScope>
+			<biblScope unit="page">7</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Goodfellow</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Bengio</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Courville</surname></persName>
+		</author>
+		<ptr target="http://www.deeplearningbook.org" />
+		<title level="m">Deep Learning</title>
+		<imprint>
+			<publisher>MIT Press</publisher>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">R</forename><surname>Graham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Macintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Doyon</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:0704.1454</idno>
+		<imprint>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+<note type="report_type">ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Halko</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P.-G</forename><surname>Martinsson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Tropp</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">SIAM Review</title>
+		<imprint>
+			<biblScope unit="volume">53</biblScope>
+			<biblScope unit="page">217</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Hardy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">R</forename><surname>Schreiber</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">G</forename><surname>Parsons</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">800</biblScope>
+			<biblScope unit="page">24</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">E</forename><surname>Hinton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Srivastava</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Krizhevsky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Sutskever</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Salakhutdinov</surname></persName>
+		</author>
+		<idno>abs/1207.0580</idno>
+		<imprint>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Hochreiter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Schmidhuber</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1997" />
+			<biblScope unit="volume">9</biblScope>
+			<biblScope unit="page">1735</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Hoyle</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astronomy and Computing</title>
+		<imprint>
+			<biblScope unit="volume">16</biblScope>
+			<biblScope unit="page">34</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">A</forename><surname>Kenworthy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Codona</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">M</forename><surname>Hinz</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">660</biblScope>
+			<biblScope unit="page">762</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Kim</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Brunner</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">464</biblScope>
+			<biblScope unit="page">4463</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">P</forename><surname>Kingma</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Ba</surname></persName>
+		</author>
+		<idno>abs/1412.6980</idno>
+		<imprint>
+			<date type="published" when="2014" />
+			<publisher>CoRR</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Krizhevsky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Sutskever</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">E</forename><surname>Hinton</surname></persName>
+		</author>
+		<title level="m">Advances in neural information processing systems</title>
+		<imprint>
+			<date type="published" when="2012" />
+			<biblScope unit="page" from="1097" to="1105" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lafrenière</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Doyon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Nadeau</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">É</forename><surname>Artigau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">660</biblScope>
+			<biblScope unit="page">770</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A.-M</forename><surname>Lagrange</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Bonnefoy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Chauvin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">329</biblScope>
+			<biblScope unit="page">57</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">R</forename><surname>Lawson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Poyneer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Barrett</surname></persName>
+		</author>
+		<title level="m">Proc. SPIE</title>
+		<meeting>SPIE</meeting>
+		<imprint>
+			<date type="published" when="2012" />
+			<biblScope unit="volume">8447</biblScope>
+			<biblScope unit="page">844722</biblScope>
+		</imprint>
+		<respStmt>
+			<orgName>Adaptive Optics Systems III</orgName>
+		</respStmt>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Lecun</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">D</forename><surname>Jackel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Boser</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">IEEE Communications Magazine</title>
+		<imprint>
+			<biblScope unit="volume">27</biblScope>
+			<biblScope unit="page">41</biblScope>
+			<date type="published" when="1989" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Louppe</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1407.7502</idno>
+		<imprint>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+<note type="report_type">ArXiv e-prints</note>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lafrenière</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Doyon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Macintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Nadeau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">641</biblScope>
+			<biblScope unit="page">556</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Macintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Barman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">322</biblScope>
+			<biblScope unit="page">1348</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Marois</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Zuckerman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Q</forename><forename type="middle">M</forename><surname>Konopacky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Macintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Barman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">468</biblScope>
+			<biblScope unit="page">1080</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Masias</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Freixenet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Lladó</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Peracaula</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">422</biblScope>
+			<biblScope unit="page">1674</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Mawet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Milli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Wahhaj</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">792</biblScope>
+			<biblScope unit="page">97</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Mawet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Riaud</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">O</forename><surname>Absil</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Surdej</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">633</biblScope>
+			<biblScope unit="page">1191</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Mawet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Serabyn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Stapelfeldt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Crepp</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">702</biblScope>
+			<biblScope unit="page">47</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Milli</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Mawet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Mouillet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Kasper</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">H</forename><surname>Girard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astronomy at High Angular Resolution</title>
+		<imprint>
+			<biblScope unit="volume">439</biblScope>
+			<biblScope unit="page">17</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">M</forename><surname>Mugnier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Cornia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-F</forename><surname>Sauvage</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the Optical Society of America A</title>
+		<imprint>
+			<biblScope unit="volume">26</biblScope>
+			<biblScope unit="page">1326</biblScope>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Nair</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">E</forename><surname>Hinton</surname></persName>
+		</author>
+		<editor>ICML, ed. J. Fürnkranz &amp; T. Joachims</editor>
+		<imprint>
+			<date type="published" when="2010" />
+			<publisher>Omnipress</publisher>
+			<biblScope unit="page" from="807" to="814" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">C</forename><surname>Odewahn</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Stockwell</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">L</forename><surname>Pennington</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">M</forename><surname>Humphreys</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">A</forename><surname>Zumach</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">103</biblScope>
+			<biblScope unit="page">318</biblScope>
+			<date type="published" when="1992" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Rouan</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Riaud</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Boccaletti</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Clénet</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Labeyrie</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">112</biblScope>
+			<biblScope unit="page">1479</biblScope>
+			<date type="published" when="2000" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J.-B</forename><surname>Ruffio</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Macintosh</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Wang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">842</biblScope>
+			<biblScope unit="page">14</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">E</forename><surname>Rumelhart</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">E</forename><surname>Hinton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Williams</surname></persName>
+		</author>
+		<title level="m">Parallel Distributed Processing</title>
+		<editor>D. E. Rumelhart &amp; J. L. Mcclelland</editor>
+		<imprint>
+			<publisher>MIT Press</publisher>
+			<date type="published" when="1986" />
+			<biblScope unit="volume">1</biblScope>
+			<biblScope unit="page" from="318" to="362" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Schawinski</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Fowler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">K</forename><surname>Santhanam</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">467</biblScope>
+			<biblScope unit="page">110</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b52">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Shi</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Z</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Wang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">NIPS</title>
+		<imprint>
+			<biblScope unit="page" from="802" to="810" />
+			<date type="published" when="2015" />
+			<publisher>MIT Press</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b53">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Soummer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">618</biblScope>
+			<biblScope unit="page">161</biblScope>
+			<date type="published" when="2005" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b54">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Soummer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Pueyo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Larkin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">755</biblScope>
+			<biblScope unit="page">28</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b55">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">B</forename><surname>Sparks</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">C</forename><surname>Ford</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">578</biblScope>
+			<biblScope unit="page">543</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b56">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Spergel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Kasdin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Bulletin of the American Astronomical Society</title>
+		<imprint>
+			<biblScope unit="volume">33</biblScope>
+			<biblScope unit="page">1431</biblScope>
+			<date type="published" when="2001" />
+			<publisher>American Astronomical Society Meeting Abstracts</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b57">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Srivastava</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">E</forename><surname>Hinton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Krizhevsky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">I</forename><surname>Sutskever</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Salakhutdinov</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Machine Learning Research</title>
+		<imprint>
+			<biblScope unit="volume">15</biblScope>
+			<biblScope unit="page">1929</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b58">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Tagliaferri</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Longo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Milano</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Network Analysis of Complex Scientific Data: Astronomy and Geosciences</title>
+		<imprint>
+			<biblScope unit="volume">16</biblScope>
+			<date type="published" when="2003" />
+		</imprint>
+	</monogr>
+	<note>Neural Networks</note>
+</biblStruct>
+
+<biblStruct xml:id="b59">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Tran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">D</forename><surname>Bourdev</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Fergus</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Torresani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Paluri</surname></persName>
+		</author>
+		<title level="m">ICCV</title>
+		<imprint>
+			<publisher>IEEE Computer Society</publisher>
+			<date type="published" when="2015" />
+			<biblScope unit="page" from="4489" to="4497" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b60">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Xie</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Zhang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Bai</surname></persName>
+		</author>
+		<idno>ID 1320780</idno>
+	</analytic>
+	<monogr>
+		<title level="j">Applied Comp. Int. Soft Computing</title>
+		<imprint>
+			<biblScope unit="volume">2017</biblScope>
+			<biblScope unit="page">13</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

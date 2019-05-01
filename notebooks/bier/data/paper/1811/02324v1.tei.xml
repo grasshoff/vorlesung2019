@@ -1,0 +1,1393 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2019-01-22T13:28+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">PREDICTING EXOPLANETS MASS AND RADIUS: A NONPARAMETRIC APPROACH</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Bo</forename><surname>Ning</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="department">Department of Statistics and Data Science</orgName>
+								<orgName type="institution">Yale University</orgName>
+								<address>
+									<addrLine>24 Hillhouse Ave</addrLine>
+									<postCode>06511</postCode>
+									<settlement>New Haven</settlement>
+									<region>CT</region>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Angie</forename><surname>Wolfgang</surname></persName>
+							<affiliation key="aff1">
+								<orgName type="department">Department of Astronomy and Astrophysics</orgName>
+								<orgName type="institution">Pennsylvania State University</orgName>
+								<address>
+									<postCode>16802</postCode>
+									<settlement>University Park</settlement>
+									<region>PA</region>
+								</address>
+							</affiliation>
+							<affiliation key="aff2">
+								<orgName type="department">Center for Exoplanets and Habitable Worlds</orgName>
+								<orgName type="institution">The Pennsylvania State University</orgName>
+								<address>
+									<addrLine>525 Davey Laboratory</addrLine>
+									<postCode>16802</postCode>
+									<settlement>University Park</settlement>
+									<region>PA</region>
+									<country key="US">USA</country>
+								</address>
+							</affiliation>
+							<affiliation key="aff3">
+								<orgName type="institution">NSF Astronomy &amp; Astrophysics Postdoctoral Fellow</orgName>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Sujit</forename><surname>Ghosh</surname></persName>
+							<affiliation key="aff4">
+								<orgName type="department">Department of Statistcs</orgName>
+								<orgName type="institution">North Carolina State University</orgName>
+								<address>
+									<addrLine>2311 Stinson Dr</addrLine>
+									<postCode>27695</postCode>
+									<settlement>Raleigh</settlement>
+									<region>NC</region>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">PREDICTING EXOPLANETS MASS AND RADIUS: A NONPARAMETRIC APPROACH</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+					<note type="submission">Submitted to the Astrophysical Journal</note>
+					<note>Preprint typeset using L A T E X style AASTeX6 v. 1.0</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>planets and satellites: composition -methods: statistical</keywords>
+			</textClass>
+			<abstract>
+				<p>A fundamental endeavor in exoplanetary research is to characterize the bulk compositions of planets via measurements of their masses and radii. With future sample sizes of hundreds of planets to come from TESS and PLATO, we develop a statistical method that can flexibly yet robustly characterize these compositions empirically, via the exoplanet M-R relation. Although the M-R relation has been explored in many prior works, they mostly use a power-law model, with assumptions that are not flexible enough to capture important features in current and future M-R diagrams. To address these shortcomings, a nonparametric approach is developed using a sequence of Bernstein polynomials. We demonstrate the benefit of taking the nonparametric approach by benchmarking our findings with previous work and showing that a power-law can only reasonably describe the M-R relation of the smallest planets and that the intrinsic scatter can change non-monotonically with different values of a radius. We then apply this method to a larger dataset, consisting of all the Kepler observations in the NASA Exoplanet Archive. Our nonparametric approach provides a tool to estimate the M-R relation by incorporating heteroskedastic measurement errors into the model. As more observations will be obtained in the near future, this approach can be used with the provided R code to analyze a larger dataset for a better understanding of the M-R relation.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">INTRODUCTION</head><p>An exoplanet's mass and radius can constrain its bulk composition when models of planetary internal structures are fit to these observed properties (e.g. <ref type="bibr">Valen- cia et al. 2007;</ref><ref type="bibr" target="#b46">Seager et al. 2007;</ref><ref type="bibr">Fortney et al. 2007a;</ref><ref type="bibr" target="#b44">Rogers et al. 2011;</ref><ref type="bibr" target="#b30">Lopez &amp; Fortney 2014</ref>). Measuring many planets' masses and radii can therefore illuminate: 1) the range of exoplanet compositions produced by planet formation and evolution processes; and 2) how these compositions trend with planet and stellar properties of interest, such as planet mass, orbital period, host star mass, and host star metallicity. The existence and nature of these trends, along with the amount of astrophysical scatter around them, provides observational constraints on planet formation theory (e.g. <ref type="bibr" target="#b22">Ida &amp; Lin 2010;</ref><ref type="bibr" target="#b7">Dawson et al. 2015</ref>; <ref type="bibr" target="#b31">Lopez &amp; Rice 2016;</ref><ref type="bibr" target="#b39">Owen &amp; Wu 2017)</ref>.</p><p>The population distributions of these mass and rabo.ning@yale.edu; akw5014@psu.edu; sujit.ghosh@ncsu.edu dius measurements therefore contain valuable information about the range of planetary compositions. To obtain the population distributions is particularly necessary for the thousands of super-Earth-and sub-Neptunesized planets discovered by the Kepler mission <ref type="bibr">(Cough- lin et al. 2016)</ref>, as this population is not represented in our own Solar System. Initially population studies of small, low-mass planets focused on the marginal mass ( <ref type="bibr" target="#b19">Howard et al. 2010;</ref><ref type="bibr" target="#b34">Mayor et al. 2011</ref>) or marginal radius <ref type="bibr" target="#b58">(Youdin 2011;</ref><ref type="bibr" target="#b20">Howard et al. 2012;</ref><ref type="bibr" target="#b13">Fressin et al. 2013;</ref><ref type="bibr" target="#b40">Petigura et al. 2013</ref>; Dressing &amp; Charbonneau 2013) distributions; this was driven in part by the difficulty in obtaining a sample of planets which both transited their host stars and were suitable to precision radial velocity (RV) follow-up. This changed once the Kepler follow-up program published mass estimates for their chosen subset of Kepler candidates ( <ref type="bibr" target="#b33">Marcy et al. 2014</ref>). Recent analysis of Kepler planets' transit timing variations have also produced robust mass determinations for dozens of multiple-planet systems <ref type="bibr" target="#b24">(Jontof-Hutter et al. 2016;</ref><ref type="bibr" target="#b32">MacDonald et al. 2016;</ref><ref type="bibr" target="#b35">Mills et al. 2016;</ref><ref type="bibr" target="#b18">Hadden &amp; Lithwick 2017)</ref>. How-ever, mass measurements for the majority of individual Kepler planet candidates are still unavailable. As a result, the mass-radius (M-R) relations estimated based on the existing mass and radius measurements provides a useful tool for astronomers to predict masses based on observed radii for those planets which only have radius measurements.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.1.">Previous work on mass-radius relations</head><p>There have been several M-R relations proposed in the exoplanet literature; all of them assume that exoplanet masses and radii follow a power-law:</p><p>• Lissauer et al. (2011) fit a relation to Earth and Saturn and obtained M = R 2.06 , where M and R are in Earth units.</p><p>• <ref type="bibr" target="#b57">Wu &amp; Lithwick (2013)</ref> calculated the masses of 22 planet pairs based on the amplitudes of their sinusoidal transit timing variations (TTVs) and found that M = 3R.</p><p>• <ref type="bibr" target="#b53">Weiss &amp; Marcy (2014)</ref> used the 42 planets chosen by the Kepler team to be followed up with radial velocity measurements ( <ref type="bibr" target="#b33">Marcy et al. 2014</ref>) and found the power law is M = 2.69R 0.93 for planets with 1.5 &lt; R &lt; 4 R ⊕ .</p><p>• <ref type="bibr">Hadden &amp; Lithwick (2014)</ref> revisited the M-R relation for 56 low-eccentricity TTV planets and fit M = 14.9(R/3R ⊕ ) 0.65 to them.</p><p>• <ref type="bibr" target="#b56">Wolfgang et al. (2016)</ref> (hereafter denoted as WRF16) selected planets with radii &lt; 8 R ⊕ from the NASA Exoplanet Archive (up to the date 1/30/2015) and found two different power-law relations: M = 2.7R 1.3 for &lt; 4 R ⊕ planets and M = 1.6R 1.8 for &lt; 8R ⊕ planets. Unlike the earlier results, which used basic least squares regression, WRF16 built a hierarchical Bayesian model that incorporated observational measurement uncertainty, the intrinsic, astrophysical scatter of planet masses, and non-detections and upper limits.</p><p>• Mills &amp; Mazeh (2017) fit power laws to various subsets of exoplanet masses and radii, testing for differences between RV and TTV M-R relations in two different period bins.</p><p>• <ref type="bibr" target="#b4">Chen &amp; Kipping (2017)</ref> built on the hierarchical Bayesian model from WRF16 to fit a continuous broken power-law model across a much larger range of masses and radii. They found that a foursegment M-R relation best described their data, with Terran, Neptunian, Jovian, and Stellar regions. They fit a different power-law and intrinsic scatter to each segment.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.2.">Moving to a nonparametric approach</head><p>The power-law model is simple to fit to exoplanet masses and radii and its parameters are easy to interpret. However, there are several reasons to move beyond it. First, we already know that a single power-law relation will not be able to describe the M-R relation for the entire population, as degeneracy pressure causes the radius-mass relation to flatten out around a Jupiter mass. <ref type="bibr" target="#b4">Chen &amp; Kipping (2017)</ref> addressed this by assuming a broken power-law with multiple segments. As soon as one expands the space of models beyond those with a handful of parameters, it is useful to consider more flexible nonparametric models as well <ref type="bibr">1</ref> . Indeed, there is no particular reason to believe that exoplanet masses and radii should follow power-laws as a population, since the processes that dominate planet formation for small rocky planets are different than those that dominate the formation of gas giants. Furthermore, we do not expect the distribution of masses at a given radius to be Gaussian, as was assumed by <ref type="bibr">WRF16 and Chen &amp; Kipping (2017)</ref>, or even symmetric. There is already evidence from the hierarchical modeling checking performed by WRF16 that a Gaussian distribution does not completely reproduce the observed exoplanet masses and radii.</p><p>Moving forward, we adopt a nonparametric approach that allows us to relax these assumptions. There are many benefits of using nonparametric models, including:</p><p>1. They can take on variety of shapes to fit the data, which can be advantageous for making predictions that are less model-dependent. Therefore, there is no need to impose abrupt breaks for modeling M-R relations across a wide range of sizes.</p><p>2. They can model the joint distribution of mass and radius, and thus provide a self-consistent way to predict both mass from radius and radius from mass over the entire exoplanet mass and radius range.</p><p>3. Eventually we want to understand masses and radii as a function of many other star and planet properties like stellar mass, metallicity, orbital period, planet multiplicity, even eccentricity. We do not have clear guidance from theory about the functional form of the dependence in these addi-1 We note that "nonparametric" is a bit of a misnomer: nonparametric models still do have parameters. In our case, these parameters are the degree d and the weights w kl in Eqn 7. What makes nonparametric models different than parametric ones is that the dimension of the parameters (in this case d) is allowed to vary with sample size, which allows for much greater flexibility to adapt to complex shapes.</p><p>tional dimensions, and so we should not expect the mass-radius-X distribution to follow a power law.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">THE MODEL</head><p>There are at least two ways to model the exoplanet mass-radius relation. The first is to approach it as a regression problem. When one performs regression, such as using ordinary least squares (OLS) to fit a line to data, the goal is to illuminate the relationship between an independent variable and another quantity that depends on it-the dependent variable. For exoplanets, we are indeed concerned with how mass and radius are related, as it illuminates how planet compositions change as a function of the planet's size or mass. However, it is not so clear which is the independent variable and which is the dependent variable. From a theoretical point of view, mass is the more fundamental property and so should be the independent variable 2 . On the other hand, the small fraction of Kepler planets that only have mass measurements creates a practical need to convert Kepler radii to masses (or in other words, to predict masses from radii), which requires radius to be the independent variable.</p><p>Moreover, there are non-negligible measurement uncertainties associated with both mass and radius. OLS regression, which ignores the uncertainties on the independent variable, will consistently underestimate the slope of the regression line when there are uncertainties in both variables (see <ref type="bibr" target="#b23">Isobe et al. 1990</ref>). This occurs because OLS only minimizes the distance between the points and the line in the vertical direction, which overcorrects for the additional vertical distance introduced by uncertainties in the dependent variable (for lines with slope = 0, the horizontal scatter produced by uncertainties in the dependent variable will also produce some additional vertical scatter around the line). As a result, the OLS line which fits mass to radius will not be the inverse of the line which fits radius to mass. This is a problem if our goal is to estimate the underlying fundamental relationship between radius and mass.</p><p>As our goal in this paper is to provide mass predictions from measured radii as well as radius predictions from mass, we decide to approach the problem differently. WRF16 already showed that a simple regression line, i.e. a one-to-one function which deterministically maps radius to mass, is an insufficient description of the existing data: there exists an intrinsic, astrophysical scatter in the mass-radius relation. Therefore, we also want this approach to allow for a distribution of masses at any one radius. We can express this distribution as g(m|r), the conditional probability distribution of mass given radius, i.e. a function describing the probability of a planet having a certain mass when its radius takes a specific value 3 . Through the definition of conditional probability, every conditional probability distribution can be expressed as a ratio of the joint probability distribution g(m, r) to the marginal probability distribution of the variable on which the conditioning occurs (g(r)):</p><formula xml:id="formula_0">g(m|r) = g(m, r) g(r) = g(m, r) g(m, r)dm<label>(1)</label></formula><p>Likewise,</p><formula xml:id="formula_1">g(r|m) = g(m, r) g(m) = g(m, r) g(m, r)dr<label>(2)</label></formula><p>Therefore, to get both conditional distributions we need only to model the joint distribution: the probability of a planet having a certain mass and a certain radius. It is this joint distribution that we define in §2.1 and fit to our data in §2.2. For the rest of the paper, we will use g(m, r) to discuss general properties of joint mass, radius distributions. We will use f (m, r) to refer to our specific formulation of the joint mass, radius distribution as given by Eqn 7.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1.">The Bernstein polynomials model</head><p>Our nonparametric model for the joint probability distribution of mass and radius is a bivariate distribution that consists of a tensor product of sequence of locationscaled and transformed beta densities which can also be viewed as Bernstein polynomials. Each marginal distribution can be expressed as a linear combination of Bernstein polynomials (BPs), leading to mixture of beta densities. When normalized, BPs have the same functional form as beta distributions (see Eqn 3). For a visual representation of Bernstein Polynomials, see <ref type="figure" target="#fig_7">Fig- ure A1</ref>, where we plot BPs as a function of their degree (denoted by k or l in Eqn 7).</p><p>The properties of BPs and a discussion of their advantages over other choices for basis functions are described in Appendix A. In addition, we note that we do not use Gaussian process regression, which is a popular nonparametric prediction method in exoplanet science, for a number of reasons. First, a joint density estimation approach is more appropriate for our purposes than a regression approach, as argued above. Second, the marginal distribution of the M-R is not in general normally distributed, as we demonstrate in Section 5. Third, fitting a mixture of Gaussians to describe the joint density would involve three free parameters per component (mixture weight, mean, and variance) rather than the one free parameter per component that we use here (the mixture weight). Fourth, a mixture of Gaussians produces an identifiability problem, wherein different components can be interchangeable, that is not present in the Bernstein polynomial model due to the ordered nature of the different terms (see Eqn 7 and the figures in Appendix A for how the Bernstein polynomial terms, i.e. the different β k for a given d, are distinguishable from each other).</p><p>Before introducing our model, we first define some mathematical notations that will be used throughout the paper. Let M obs i and R obs i be the reported mass and radius measurements for i-th planet in our dataset, and σ obs Mi and σ obs Ri be the reported standard deviations for their measurement errors. We denote M i and R i as the true mass and radius for i-th planet that would have been observed if there were no measurement errors. We denote their joint distribution as f (m, r), and the M-R relation as the conditional distribution f (m|r). We let M obs stand for a vector containing the observations (M obs 1 , . . . , M obs n ); similarly, R obs , σ obs M and σ obs R stand for the set of their respective observations. We let N (µ, σ) stand for a normal distribution with mean µ and standard deviation σ, and denote the probability density of a Beta distribution with shape parameters i and d − i + 1 by</p><formula xml:id="formula_2">β id (a) = d d − 1 i − 1 a i−1 (1 − a) d−i ,<label>(3)</label></formula><p>where 0 ≤ a ≤ 1, and d &gt; 0 is an integer that relates to the degree of a Bernstein polynomial. Our hierarchical model can be written as follows:</p><formula xml:id="formula_3">M obs i ind ∼ N (M i , σ obs Mi ),<label>(4)</label></formula><formula xml:id="formula_4">R obs i ind ∼ N (R i , σ obs Ri ),<label>(5)</label></formula><formula xml:id="formula_5">(M i , R i ) iid ∼ f (m, r|w, d, d ),<label>(6)</label></formula><p>where the symbol ind ∼ stands for "independently distributed as", and the symbol iid ∼ stands for "identically and independently distributed as". Let w = (w 11 , . . . , w dd ) be a set of weights which describe how much each corresponding term in the following series contribute to the overall joint distribution f (m, r):</p><formula xml:id="formula_6">f (m, r|w, d, d ) = d k=1 d l=1 w kl β kd ( m−M M −M ) M − M β ld ( r−R R−R ) R − R .<label>(7)</label></formula><p>To ensure that Eqn 7 remains a probability distribution, i.e. that it integrates to 1, we impose the constraint d k=1 d l=1 w kl = 1 and that w kl ≥ 0 for all values of k and l. The notations M , M , R and R are used to denote the lower and upper bounds, respectively, for mass and radius. The values of the upper and lower bounds can be determined by a set of observed values of masses and radii; for example, one could choose the lower mass bound to be the minimum (M obs i −σ obs Mi /n) in the dataset, and the upper mass bound to be the maximum (M obs i + σ obs Mi /n). The bounds could also be set as the minimum and maximum mass and radius theoretically expected for an exoplanet. For regions with no observations, the BP model reverts to the overall mean of the whole function; this happens when the values of M , M , R and R are chosen to be far away from the nearest observations (see discussion in §B.1).</p><p>Note that Eqns 4-6 form a multi-level model, in that the measurement process is modeled as a separate random process from the underlying true distribution of exoplanet masses and radii. It therefore has a similar hierarchical structure as the hierarchical Bayesian models defined in <ref type="bibr">WRF16 and Chen &amp; Kipping (2017)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2.">Model inference</head><p>Although the model may look complex at the first glance, the inference is relatively straightforward. There are only two types of unknown parameters in the model, the weights w and the degrees d and d . Once d and d are determined using the method we will describe below, the two parameters i and d − i + 1 in each beta distribution (see Eqn 3) are also determined. This is advantageous compared to other mixture models; for example, a mixture of Gaussians would require that each mean and standard deviation of component distribution be estimated by the data. Moreover, it avoids the common identifiability issues created by label switching within the mixture of Gaussians. Another advantage of our mixture of beta distributions is that parameter space (which is a simplex) is a bounded convex set, which helps to guarantee the existence of the optimally estimated parameters. Here we take a maximum likelihood approach to estimate the parameters by explicitly deriving the likelihood using one-dimensional numerical integration.</p><p>The likelihood function of the model 4-6 can be written as,</p><formula xml:id="formula_7">1 σ obs Ri N R obs i − r σ obs Ri β ld ( r−R R−R ) R − R dr,</formula><p>and c i = (c 11,i , . . . , c dd ,i ) to simplify the expression. Then for given values d and d , we find an estimator of w which maximizes the log-likelihood,</p><formula xml:id="formula_8">maximize: log L = n i=1 log(c T i w),</formula><p>subject to:</p><formula xml:id="formula_9">d k=1 d l=1 w kl = 1, w kl ≥ 0, for all k = 1, . . . , d, l = 1, . . . , d .<label>(9)</label></formula><p>The above problem is a convex optimization problem which can be readily solved using any standard numerical optimization methods. For our applications, we have used the R package Rsolnp to solve the above optimization problem. Now we discuss how we choose d and d , which act as tuning parameters relative to the smoothness of the underlying density function. We first choose a set of candidate values for d and d , such as 2, 3, . . . , n/ log(n), where n is the sample size (i.e. number of exoplanets). We use 10-fold cross validation to choose the optimal value of degrees d and d from those candidate values. To conduct the 10-fold cross validation, we separate the dataset randomly into 10 disjoint subsets with equal sizes. Then we leave out the s-th subset, denoted by D s (s = 1, . . . , 10) and use the remaining 9 subsets of data to estimate the parameters. Doing this for each D s in turn results in 10 estimated sets of weights, ˆ w (s) based all observations i / ∈ D s . We plug in eachˆweachˆ eachˆw (s) along with the corresponding data that was used to estimate each set of weights to obtain an estimated value for the log-likelihood. Mathematically, we are calculating the following quantity,</p><formula xml:id="formula_10">log L pred = 10 s=1 i / ∈Ds log(c T i ˆ w (s) )</formula><p>for different possible values of d and d . The optimum degrees for the BP model are then the d and d which give the largest value of − log L pred . Besides using the cross-validation method, other popular methods such as AIC (Akaike information criterion) and BIC (Bayesian information criterion) are also possible when data samples are abundant. When the sample size is relatively small, both methods will under-select the degrees, as in the example provided in <ref type="bibr" target="#b49">Turnbull &amp; Ghosh (2014)</ref>. This is the reason why we choose to use the 10-fold cross validation method.</p><p>The model may require d and d to be large, and thus the number of weights which need to be estimated is also large. In such a situation, one may be concerned whether we have enough data to estimate the weights. Fortunately, a majority of the estimated weights turns out to be numerically zero, due to the fact that parameter space is a simplex and therefore convex. This drastically reduces the number of effective parameters in our model. For example, mass predictions computed using the largest 25 weights of the fit performed in §5 are indistinguishable from predictions produced using the full set of weights, to the 3rd or 4th decimal in log(M ).</p><p>Once we obtainedˆdobtainedˆ obtainedˆd, ˆ d andˆwandˆ andˆw, the estimated values of d, d and w, the M-R relation can be derived following Eqn 1:</p><formula xml:id="formula_11">f (m|r, ˆ w, ˆ d, ˆ d ) = f (m, r|ˆwr|ˆ r|ˆw, ˆ d, ˆ d ) M M f (m, r|ˆwr|ˆ r|ˆw, ˆ d, ˆ d )dm = f (m, r|ˆwr|ˆ r|ˆw, ˆ d, ˆ d ) f (r|ˆwr|ˆ r|ˆw, ˆ d, ˆ d ) ,<label>(10)</label></formula><p>where</p><formula xml:id="formula_12">f (r|ˆwr|ˆ r|ˆw, ˆ d, ˆ d ) = ˆ d k=1ˆd k=1ˆ k=1ˆd l=1ˆw l=1ˆ l=1ˆw kl β l ˆ d r−R R−R (R − R) .</formula><p>From Eqn 10, mean, variance and prediction intervals can be obtained analytically.</p><p>As noted in §2.1, we could also estimate our nonparametric model from a Bayesian framework by assigning priors to the parameters w, d and d . For example we can assign a Dirichlet prior to the weights as follows:</p><formula xml:id="formula_13">π(w 11 , w 12 . . . , w dd ) ∼ Dir(α 11 , α 12 , . . . , α dd ),</formula><p>where d k=1 d l=1 α kl = 1, and assign a Poisson or uniform prior for d and d respectively. The inference can be carried out using a Markov chain Monte Carlo algorithm (MCMC) (i.e. Petrone 1999a,b). However, initial investigations into this approach indicated that the MCMC algorithm would take a much longer time to run. As a result, we employ a maximum likelihood method rather than a Bayesian method in this paper.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">DATA</head><p>We apply the Bernstein polynomial model to obtain the M-R relations from two datasets. The first dataset is taken from WRF16 to enable a direct comparison between their parametric mass-radius relation and our nonparametric one (this comparison is illustrated in <ref type="figure">Fig- ure 1)</ref>. Specifically, we use their extended radial velocity dataset, denoted in WRF16 as "RV only, &lt; 8R ⊕ " and which consists of all planets in their <ref type="table">Table 2</ref> except those labeled "c". In this work we also exclude the planets whose mass measurements are only upper limits, as the R package we use to find the maximum likelihood estimates of the weights w does not allow censored data. The results from this benchmark dataset (N = 60) are presented in §4.</p><p>The second dataset consists of all planets with an assigned Kepler name, whose mass measurements originated from either radial velocities (RV) or from N-body dynamical fits to transit timing variations (TTVs). We note that TTV planets could have astrophysically different densities; however, we see that the inclusion of high-quality TTV masses in the current manuscript as a reasonable decision, both because prior work has made the same decision <ref type="bibr">(Weiss &amp; Marcy 2014 and WRF16)</ref> and because a dataset that contains both TTV and RV masses better represents the full range of densities that an M-R relation would need to reproduce. We obtained this information from the NASA Exoplanet Archive ( <ref type="bibr" target="#b0">Akeson et al. 2013</ref>) on June 5, 2017; for this dataset we also excluded planets with only upper limits reported on their masses. With these restrictions, our Kepler -only dataset consists of 127 planets with robust mass measurements; the results from this science dataset are presented in §5.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Discussion of selection effects</head><p>We choose to restrict our science dataset (results presented in §5) to Kepler planets in an effort to minimize the influence of survey selection effects. Selection effects manifest in two ways for the mass-radius relation:</p><p>1. The probability of detecting a planet is a nonconstant function of either their mass (for RV detection) or radius (for transit detection), with smaller or less massive planets being more difficult to detect.</p><p>2. The probability that a known planet has its radius (for RV detections) or its mass (for transit detections) measured by follow-up observations is a complicated, often unpublished function of the planet's discovery mass/radius, the predicted radius/mass, and the host star's brightness, spectral type, activity indicators, sky position, etc.</p><p>These two selection effects impact the inferred massradius relation in different ways. The first affects the relative amount of data at large vs. small radii (or at high vs. low mass). Correcting for this effect becomes important when one's scientific goal is a joint mass, radius probability distribution g(m, r) that reflects the underlying, true distribution of exoplanet masses and radii. For example, if one tried to use the data from the Exoplanet Archive as-is with no correction for detection completeness, they would incorrectly conclude that ∼ 1.1R Jupiter and ∼ 1M Jupiter is the most probable mass and radius for an exoplanet, as more Jupiter-sized planets have had their masses measured than smaller planets. We already know that this potential conclusion to be incorrect: the numerous occurrence rate studies which use Kepler data to correct for variable detection efficiency across the full range of planet radii (e.g. most recently Foreman- <ref type="bibr" target="#b9">Mackey et al. 2014;</ref><ref type="bibr" target="#b14">Fulton et al. 2017;</ref><ref type="bibr" target="#b21">Hsu et al. 2018</ref>) have shown that smaller planets are much more prevalent than Jupiter-sized ones. Therefore, if one wishes to understand the probability of an exoplanet existing with a specific mass and radius (i.e. characterize g(m, r)), they must account for the different surveys' detection completeness.</p><p>Fortunately, this is not the goal of this work. We are scientifically interested in g(m|r), the conditional distribution which gives us the M-R relation. In going from g(m, r) to g(m|r), we marginalize over r, which divides out the completeness correction in that dimension. With this correction disappearing from the equation for g(m|r), we can safely ignore the effect of the selection bias due to detectability of different radii planet. (see Eqn 1). This leaves only the second concern for our mass predictions: how transiting planets are selected for RV follow-up.</p><p>To address this concern, one needs to know how planets were chosen for follow-up. To date, no RV follow-up group has published their selection function in a quantitative way that would allow us to incorporate it into an analysis like this. Furthermore, given that the target list often evolves as RV data are acquired, this selection function is probably intractable to calculate for the current dataset. Progress is being made toward this end by designing RV follow-up campaigns that have definable selection functions (i.e., <ref type="bibr" target="#b3">Burt et al. 2018 and</ref><ref type="bibr" target="#b38">Montet 2018)</ref>, but for the current dataset this remains practically out of reach. No other papers on the M-R relation has incorporated corrections for completeness or selection effects into their analysis. We follow this precedent, acknowledging that is a clear area for future work, and choose to focus instead on the novel development of a nonparametric analysis. Mass−Radius Relations <ref type="figure">Figure 1</ref>. Two M-R relations are plotted. The blue line is the mean power-law M-R relation estimated by WRF16; the shaded region is the central 68% of the predicted masses, showing the distribution of the mass predictions around the mean relation. The dark blue line along with its shaded region is our nonparametric mean M-R relation and the 68% prediction regions estimated using the Bernstein polynomial model. Comparing the parametric M-R with the nonparametric M-R, the means of the M-R relations noticeably differ in certain radius regimes. The parametric model is optimistic with the assumption that mass and radius follow an increasing power-law relation even in the region where observations are few and poorly constrain the relation. The nonparametric M-R method is more adaptive to the observed data. The red lines denote physical restrictions for planet masses. Data points are displayed in the background with their measurement errors.</p><p>As we look to apply our nonparametric method to a wider range of exoplanet masses and radii than considered by WRF16, it is nonetheless prudent to benchmark our results to their results.</p><p>The parametric power-law M-R relation obtained by WRF16 is plotted in <ref type="figure">Figure 1</ref>. Quantitatively, it is m|r ∼ N (1.6r 1.8 , 2.9) for &lt; 8R ⊕ , which assumes that the M-R relation follows a normal distribution.</p><p>In <ref type="figure">Figure 1</ref>, we also plot the mean and 68% prediction intervals of M-R relation estimated using the proposed nonparametric method (the grey region). Based on the 10-fold cross-validation method, the values forˆdforˆ forˆd andˆdandˆ andˆd are chosen to be 50 and 20, respectively. Physically motivated boundaries for any M-R relations are denoted by the red lines. Those boundaries are calculated based on the constraint that 0 &lt; M i ≤ M i,pureFe , i = 1, . . . , n, where M i,pureFe is calculated using <ref type="bibr">Fortney et al. (2007a,b)</ref>'s rock-iron internal structure models,</p><formula xml:id="formula_14">log(M i,pureFe ) = −b ± b 2 − 4a(c − R i ) 2a ,</formula><p>with a = 0.0975, b = 0.4938, and c = 0.7932.</p><p>Here we shall digress from the discussion to introduce three different uncertainty regions which we will mention in the article: Bayesian credible intervals, prediction intervals and bootstrap confidence intervals. The Bayesian credible intervals are obtained using a Bayesian method. WRF16 obtains their Bayesian credible intervals from sample draws of the posterior distributions. For the nonparametric model used in this article, the uncertainty regions are called the prediction intervals because they are obtained from the prediction distribution of either radius given mass or mass given radius. To be more explicit, the prediction intervals are obtained from the distribution f (m|r, ˆ w,</p><formula xml:id="formula_15">ˆ d, ˆ d ), wherê</formula><p>w is the maximum likelihood estimator (MLE) of w. The prediction intervals do not account for variations on parametersˆw parametersˆ parametersˆw, ˆ d andˆdandˆ andˆd themselves. To account for the variation of the parameters in the model, we use the bootstrap method. The bootstrap method is conducted by resampling (with replacement) the observations N times (here, we take N = 100). For each resampling, we obtainˆdobtainˆ obtainˆd, ˆ d andˆwandˆ andˆw. Then the bootstrap confidence intervals are obtained by plugging in N sets of these estimated values into the M-R relation function one-by-one and identifying the 16% and 84% quantiles of the mean relation over those N realizations. Note that the Bayesian credible intervals, the prediction intervals and the bootstrap confidence intervals not only have different interpretations, but also are derived from different models-the Bayesian credible intervals are obtained from WRF16's Bayesian hierarchical power-law model, the other two intervals are obtained from our nonparametric model. Due to these differences, we will not compare those intervals. Instead, we focus on comparing the mean M-R relations from each method. Now, let's go back to the discussion on <ref type="figure">Figure 1</ref>. At the first glimpse, a distinct feature of this plot from the nonparametric M-R relation is that the uncertainty region is quite large for R &gt; 5R ⊕ compared to the region obtained from the parametric M-R relation. This is because there are only a few observations in that region, and the measurement error for each observation is relatively large. One may worry that the estimated mean M-R relation may be misleading in this context. However, we view this as a strength of using the nonparametric model for at least two reasons: first, there is no concrete theory to support that the population-level relationship between mass and radius follows a power-law, and so the parametric M-R relation may be too optimistic with its precision in regions with little data. Second, from Figure 2, the constant variance assumed by the power-law model, even in the &gt; 5R ⊕ regime, may not reasonable. The variance estimated using our nonparametric model behaves more as expected: the variance is smaller in the &lt; 5R ⊕ region where the observations are abundant, and it becomes larger in the &gt; 5R ⊕ region.</p><p>In <ref type="figure" target="#fig_0">Figure 2</ref>, we also plot the uncertainty regions for the estimated intrinsic scatter from the two models, i.e. the 16% and 84% Bayesian credible intervals using the parametric model, and 16% and 84% bootstrap confidence intervals using the nonparametric model. Again, we would like to point out that the intrinsic scatter estimated by the nonparametric model is clearly not a constant. In fact, WRF16 also believed that the intrinsic scatter may change as planets increase the size. However, they only modeled the intrinsic scatter as a linear function of radius, and this model was not flexible enough to capture the true behavior: they found that the posterior distribution of the slope of that linear function included zero, and thus concluded that the intrinsic scatter was a constant with radius.</p><p>The normal assumption in the parametric model is also disfavored by observations. From <ref type="figure">Figure 1</ref>, the prediction intervals obtained from the nonparametric model suggests that the conditional distribution of mass given radius is not always normally distributed as there are regions where those intervals are not symmetric around the mean. When WRF16 checked the normal assumption after fitting their model, they also found evidence that this assumption does not hold. In this section, we repeat our nonparametric M-R relation analysis using all robustly measured Kepler observations provided in the NASA Exoplanet Archive, as described in §3. Since we consider a larger range of planet masses and radii, we will display the M-R relation in log scale and perform our analysis on log m and log r, rather than m and r. Note that the M-R relation in the original scale of masses and radii can be obtained by applying the Jacobian method to the joint distribution of log m and log r.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.">THE JOINT EXOPLANET MASS-RADIUS DISTRIBUTION</head><p>Similar to Eqns 4-7, the joint distribution for log m and log r is,</p><formula xml:id="formula_16">f ( log m, log r|w, d, d ) = d k=1 d l=1</formula><p>w kl β kd ( log m−log M log M −log M )β ld ( log r−log R log R−log R ) (log M − log M )(log R − log R) .</p><p>Inferring the parameters w, d, d for this model is similar the inference performed for the previous model.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1.">M-R relation of the full Kepler dataset</head><p>The M-R relation is the conditional distribution of logscaled mass given log-scaled radius, derived from Eqn 1: With a more flexible model, we see that the transitions between superEarths, Neptunes, and Jupiters are not sharply defined, yet there appears to be three contiguous regions between which the M-R relation changes: 0.8R⊕ ≤ r 5R⊕, 5R⊕ r 11R⊕ and 11R⊕. The dark blue curve is the mean M-R relation and the darker shaded area is the uncertainty region between the 16% and 84% predictive intervals. The light blue band is the the uncertainty region between the bootstrap 16% and 84% confidence intervals and shows large uncertainty in the region where data is absent (radius &lt; 1 R⊕). Data points are displayed in the background with their measurement errors.</p><p>f (log m| log r, w,</p><formula xml:id="formula_18">d, d ) = f (log m, log r|w, d, d ) f (log r|w, d, d ) ,<label>(12)</label></formula><p>with f (log m, log r|w, d, d ) is in (11) and</p><formula xml:id="formula_19">f (log r|w, d, d ) = d k=1 d l=1</formula><p>w kl β ld ( log r−log R log R−log R ) log R − log R .</p><p>We use 10-fold cross-validation (see §2.2) to select d (corresponding to mass) and d (corresponding to radius), and find thatˆdthatˆ thatˆd = 55 andˆdandˆ andˆd = 50. After we obtainˆdobtainˆ obtainˆd andˆdandˆ andˆd , we then plug in their values to estimate w using the MLE method. Because the values ofˆdofˆ ofˆd andˆd andˆ andˆd may change under different realizations of the random number generator, we repeat the 10-fold cross-validation method five times to assess its stability, each time using a different random seed. We found that four out of five times, the cross-validation gives the same choices for d and d with the dissenting realization suggesting a slightly larger number forˆdforˆ forˆd. Thus we decide to usêusê d = 55 andˆdandˆ andˆd = 50 to estimate the M-R relation. After we obtainˆdobtainˆ obtainˆd, ˆ d andˆwandˆ andˆw, we derive the prediction distribution of the M-R relation and employ the bootstrap method described in §4 to obtain the bootstrap confidence intervals for the mean.</p><p>We plot the mean along with the prediction intervals and the bootstrap confidence intervals in <ref type="figure" target="#fig_1">Figure  3</ref>. In the plot, the gray region represents the 16% and 84% prediction intervals and the blue region represents the 16% and 84% bootstrap confidence intervals for the mean. The black line represents the estimated M-R relation. From the plot, we see that the M-R relation below 0.8R ⊕ is unexpectedly similar to a step function. This is because there is only one isolated data point in that region, which the model tries to connect with the nearby points via smooth polynomials. Fortunately, we see that the bootstrap confidence intervals in this region are very wide, indicating that the M-R relation is not well understood in this region, and that more data is needed.</p><p>The M-R relations can be roughly split into three parts: 0.8R ⊕ ≤ r 5R ⊕ , 5R ⊕ r 11R ⊕ and 11R ⊕ . In the region between 0.8R ⊕ and 5R ⊕ , the bootstrap confidence intervals narrow as data points become abundant for larger radii, which suggests the M-R relation is more accurate. The almost linear relation suggests that the power-law relation may not be a misleading assumption in this radius regime. Transitioning from the 5R ⊕ region to the 11R ⊕ region, the number of observations decreases and we observe both the predic-   <ref type="figure">Figure 4</ref>. The intrinsic scatter of the M-R relation, in log scale (left) and linear mass scale (right). Mathematically, the intrinsic scatter is the estimated standard deviation of f (log m| log r). We note the behavior of the intrinsic scatter in the three regions visually identified in <ref type="figure" target="#fig_1">Fig 3:</ref> for 0.8R⊕ ≤ r 5R⊕ the intrinsic scatter is increasing; for 5R⊕ r 11R⊕ it starts to decline; and for 11R⊕ it is nonlinear. In the figure, the dark blue curve is the estimated standard deviation of the M-R relation and the shaded area is the uncertainty region between the 16% and 84% bootstrap confidence intervals.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="0.6">1 2 3 4 5 7 10 15 20 30</head><p>tion intervals and bootstrap confidence intervals become slightly wider. In the region &gt; 11R ⊕ the M-R relation is more flat or even decreases as radius becomes larger. These findings are consistent with well-known features of the M-R relation (see discussion in §6.1). <ref type="figure">Figure 4</ref> shows how the intrinsic scatter changes as a function of radius; because the intrinsic scatter is defined as the standard deviation of f (log m| log r) (see Eqn 12), the intrinsic scatter is technically in units of log m. We plot this on the left and original scale on the right for a more intuitive comparison. Starting at the smallest radii, we see that the bootstrap confidence intervals are quite wide. This reflects the fact that there is only one data point below ∼ 0.8R ⊕ , and so the intrinsic scatter is quite uncertain in this regime. In the region between 0.8R ⊕ and 5R ⊕ , the intrinsic scatter is an increasing function with radius. The increasing pattern becomes more obvious in the right plot. This finding is consistent with the result shown in <ref type="figure" target="#fig_0">Figure 2</ref>, even though two results are based on different datasets. With more data points to constrain this region, we see that the size of the intrinsic scatter in <ref type="figure">Figure 4</ref> is smaller than it in <ref type="figure" target="#fig_0">Figure 2</ref>. In the &gt; 5R ⊕ region, the intrinsic scatter behaves nonlinearly. It decreases first then increases at radii dominated by inflated Jupiters. As discussed in §6.1, the M-R relation is difficult to interpret in the Jupiter regime because degeneracy pressure creates a vertical line in this space that is not well captured by the conditional. See the R-M relation in <ref type="figure">Fig 6 for a</ref> clearer picture of the model's behavior in the Jupiter regime.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2.">Mass predictions for given radii</head><p>In <ref type="figure">Figure 5</ref>, we plot five conditional densities for mass given radius at different radius values: 1R ⊕ , 3R ⊕ , 5R ⊕ , 10R ⊕ , and 15R ⊕ . These curves represent the mass predictions for planets at those radii, i.e. the probability of a planet of that size having a certain mass. The shaded regions represent the uncertainty in that distribution and correspond to the 68% bootstrap confidence regions. While these distributions look roughly Gaussian in log scale, when transformed to a linear scale all the densities are skewed to the right. The two densities within the region &gt; 5R ⊕ are more skewed than the rest. Thus no matter the the size of the planets, the intrinsic scatter is definitely not Gaussian in linear scale, as was assumed by WRF16. The lognormal intrinsic scatter assumed by <ref type="bibr" target="#b4">Chen &amp; Kipping (2017)</ref> is more appropriate for mass given radius, although it fails to capture the low-mass tail corresponding to super-puffy planets at 7 − 10 R ⊕ and &lt; 30 M ⊕ .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.3.">The radius-mass (R-M) relation</head><p>As we are modeling the joint distribution of mass and radius (in log scale), the radius-mass relation (R-M relation) can also be derived easily. From Eqn 2, the conditional distribution for log r given log m is f (log r| log m, w,</p><formula xml:id="formula_20">d, d ) = f (log m, log r|w, d, d ) f (log m|w, d, d ) ,<label>(13)</label></formula><p>with f (log m, log r|w, d, d ) in (11) and</p><formula xml:id="formula_21">f (log m|w, d, d ) = d k=1 d l=1 w kl β ld ( log m−log M log M −log M ) log M − log M .</formula><p>After we plug inˆdinˆ inˆd, ˆ d andˆwandˆ andˆw, we plot this relation along with the prediction intervals and bootstrap confidence Mass (M Earth ) <ref type="figure">Figure 5</ref>. The conditional distributions for mass given radius, i.e. the mass predictions that our model produces for planets at 1R⊕, 3R⊕, 5R⊕, 10R⊕, and 15R⊕. In the plotted log scale, these predictive mass distributions are roughly Gaussian, but in linear scale are skewed to the right. The larger radius is, the more skewed the distribution. For each curve, the shaded region corresponds to the uncertainty in the distribution, i.e. the 16% and 84% bootstrap confidence intervals. intervals in <ref type="figure">Figure 6</ref>. Note that the R-M relation is not a simple flip of the M-R relation around the 1:1 line; this is due to the fact that the M-R relation is actually a distribution that is asymmetric around a mean relation that is not a straight line. The R-M relation is highly uncertain for &lt; 0.8M ⊕ due to the single isolated data point in that region; this is reflected in the wide bootstrap confidence intervals. The bootstrap confidence intervals narrow as mass increases, reflecting higher certainty in the mean relation given the data. This mean R-M relation is an increasing function up to 100 M ⊕ ; above that the R-M relation becomes flatter due to degeneracy pressure.</p><p>We also plot the 68% bootstrap confidence intervals for each of the conditional distributions for 1, 10, 50, 100 and 500 M ⊕ . Almost all the densities are skewed to the right, especially when the displayed log scale is transformed to linear scale. In the 0.8M ⊕ ≤ m ≤ 10 2 M ⊕ region, the three densities look quite different, indicating rapid change in the radius distribution from 1 to 50 M ⊕ .</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.4.">Predicting K2 planets</head><p>In this section, we apply the estimated M-R relation to predict masses of K2 planets given their radius. The  <ref type="figure">Figure 6</ref>. The nonparametric estimation of the R-M relation; note that this is not simply the inverse of the M-R relation. The dark blue line is the mean R-M relation and the gray area is the 16% and 84% prediction intervals. The light blue area is the uncertainty region between 16% and 84% bootstrap confidence intervals.</p><p>K2 planets data are obtained from the NASA Exoplanet Archive on June 5, 2017. In <ref type="figure">Figure 8</ref>, we first plot the prediction intervals from the M-R relation for all radii, then plot the K2 planets on top of the band. We see The conditional distributions for radii given masses at 1, 10, 50, 100, 500 M⊕. As in <ref type="figure">Figure 5</ref>, the shaded region corresponds to the uncertainty in the predictive distributions, i.e. the 16% and 84% bootstrap confidence intervals. These predictive distributions are more skewed than those for mass given radius. Predicting K2 planets <ref type="figure">Figure 8</ref>. The masses of K2 planets with radii &lt; 10R⊕ are biased. The shaded area is the same as that shown in <ref type="figure" target="#fig_1">Figure  3</ref>; it is the uncertainty region between 16% and 84% prediction intervals of the M-R relation estimated using Kepler data. K2 planets' masses and radii are plotted in red with their measurement errors.</p><p>that for many of the planets with R &lt; 10R ⊕ , the prediction intervals do not cover their masses. However, for planets with R &gt; 10R ⊕ , the prediction intervals do span the masses for all the planets. This suggests that there is a significant bias for K2 planets. One explanation for this is that the most massive planets reach a high mass detection significance threshold first, and so are published first. <ref type="bibr" target="#b3">Burt et al. (2018)</ref> discusses this bias and its implication for population mass-radius analyses in detail.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.">IMPLICATIONS FOR EXOPLANET COMPOSITIONS</head><p>The nonparametric M-R relation that we have fit to the full Kepler dataset yields several astrophysical results. Below we discuss them in details.</p><p>6.1. Assessing "well-understood" M-R features A crucial test of any method is how well it reproduces features that are well established by multiple studies using different techniques. To this end, we emphasize that our relation is not just the average line, but also the predictive distribution around the line. We also note that our goal was not to reproduce prior mass-radius relations, as one of our motivations for applying a nonparametric method was to assess how well the features identified in more parametric models persist when the strong assumptions in those models are relaxed.</p><p>To start with, our nonparametric M-R relation reproduces the well-established result that more massive planets 10 2 M ⊕ are on average larger (see <ref type="figure" target="#fig_1">Figure 3</ref>). This result is not a surprise: more massive planets are expected to form earlier in the protoplanetary disk lifetime and thus should able to accrete more gas-rich material, which quickly increases the planets' radii. Indeed, all M-R relations in the literature (see §1.1) show that mass (or radius) is an increasing function of radius (or mass) in the sub-Jupiter regime. However, above about half the mass of Jupiter, degeneracy pressure begins to noticeably affect the radii of hydrogen-dominated bodies <ref type="bibr" target="#b59">(Zapolsky &amp; Salpeter 1969)</ref>, and the R-M relation should flatten out. Our nonparametric approach readily reproduces this result (see <ref type="figure">Figure 6</ref>).</p><p>The electron degeneracy pressure would manifest as a vertical line in the M-R relation of <ref type="figure" target="#fig_1">Figure 3</ref>; when taking the marginal of the joint mass-radius distribution to produce the f (m|r) (mass given radius) conditional distribution, vertical features like this are collapsed, with their extent represented as the probability distribution at that radius. <ref type="figure" target="#fig_5">Figure 7</ref> displays these probability distributions, and shows that there is some probability of more massive planets at 10 and 15R ⊕ . In fact, the difference between f (m|r) and f (r|m) in the Jupiter regime is an argument for why a two-way M-R relation is necessary: there are some features that are easier to capture one way than the other.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.2.">Location of transition points</head><p>Identifying transitions in the exoplanet mass-radius relation is important for our physical understanding of the types of planets which exist, based on their compositions.</p><p>No sharp transitions are visible in <ref type="figure" target="#fig_1">Figure 3</ref>. Nevertheless, there appears to be at least three segments to the M-R relation: 5R ⊕ , ∼ 5 to ∼ 11R ⊕ , and 11R ⊕ radii, which roughly corresponds to sub-Neptunes, subSaturns, and Jupiters. A comparison of <ref type="figure" target="#fig_1">Figure 3</ref>, the M-R relation, to <ref type="figure">Figure 6</ref>, the R-M relation, shows that there is uncertainty in the sub-Neptune to sub-Saturn transition point. This is because we relax the assumption that the distribution around the average relation is symmetric and constant within a segment, as is assumed by <ref type="bibr">WRF16 and Chen &amp; Kipping (2017)</ref> via both studies' use of a Gaussian distribution to characterize the intrinsic scatter term. With this restriction lifted, the average mass given radius is no longer the inverse of the average radius given mass, as the conditionals shown in these two plots are produced by marginalizing over a joint mass and radius distribution that is asymmetric. When the joint distribution is much wider in one dimension than it is in the other, as is the case around 4-7R ⊕ , then the conditionals can look quite different. A relatively large spread in radii for planets with 3-10M ⊕ falls adjacent to a small spread in radii for planets around 30M ⊕ ; this is what causes ambiguity in identifying a transition from Neptunes to Saturns.</p><p>Upon visual inspection, it is also clear that there are not currently enough mass measurements of extrasolar planets ≤ 2R ⊕ to justify a super-Earth transition point. This result is at odds with some previously published results on the M-R relation, for example <ref type="bibr" target="#b53">Weiss &amp; Marcy (2014)</ref>, <ref type="bibr" target="#b45">Rogers (2015)</ref>, <ref type="bibr" target="#b4">Chen &amp; Kipping (2017)</ref> and <ref type="bibr">Ful- ton et al. (2017)</ref>. In below, we shall discuss each of their works one by one.</p><p>Weiss &amp; Marcy (2014) fixed the transition point at 1.5R ⊕ based on visual inspection of the density vs. radius plane. When their dataset is plotted with the reported error bars, it becomes apparent that there is little empirical evidence for a transition at 1.5R ⊕ given the size of the density or mass error bars for the smallest planets. Indeed, one could draw a straight line through the mass and radius points and have it fit the data just as well as the chosen relation with the transition.</p><p>To our best knowledge, Rogers (2015) provided the strongest evidence of a transition in the M,R plane among all four of these studies. This paper parameterized the transition as the radius below which 100% of planets must be rocky (that is, their masses are greater than the minimum mass of a rocky planet at that size). This study tested both a step function for the fraction of planets that are rocky and a more gradual transition; given the size of the error bars, a step function was sufficient to describe this dataset. While useful in its physical interpretation, this parametrization does not guarantee that there is a visible kink or transition in the M-R relation. Indeed, no such kink is visible in their dataset, displayed in their <ref type="figure">Figure 1</ref>. This is because the Rogers parameterization of the transition tests for the absence of planets in one region of M,R parameter space (that of very low-mass planets in the &lt; 1.5R ⊕ radius regime); if their absence does not sufficiently alter the average M-R relation, then it will not produce a kink in the M-R plane. Considering the very large measurement uncertainties in this very small planet regime, it is indeed the case that the absence of these planets doesn't significantly shift the average M-R relation to produce a kink. <ref type="bibr" target="#b14">Fulton et al. (2017)</ref> looked only at the marginal radius distribution. There is no guarantee that the bimodality they see in the radius distribution will produce a kink, or a transition, in the M-R plane. Indeed, the transition is likely gradual with a period dependence. Additional follow-up to measure masses for a larger sample of these small planets is needed before a claim of a Fulton-like gap or transition in the M-R plane is warranted.</p><p>The tension between the existence of a super-Earth transition in <ref type="bibr" target="#b4">Chen &amp; Kipping (2017)</ref> and our lack of one arises from the fact that we do not include the minor Solar System bodies in our dataset. It is not unreasonable to expect that the compositions of mainly refractory bodies in other planetary systems will be similar to those in ours. However, including this data without inflating the uncertainties to match those we obtain for extrasolar systems leads to misleadingly tight constraints for ∼ 1M ⊕ planets. Indeed, there is only one planet between 1 and 3M ⊕ in their dataset, so most of the information about the "Terran" transition point comes from extrapolating up from Solar System minor bodies and extrapolating down from Neptunes, rather from measurements at the transition point itself. We choose a less Solar System-constrained approach to characterize the distribution of compositions in the 1-3R ⊕ regime, choosing instead to develop a flexible method that can best let the extrasolar data speak for itself as more super-Earths are discovered and followed up by TESS.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.3.">Intrinsic dispersion</head><p>The intrinsic dispersion in mass given radius slightly increases from 1 to 5 R ⊕ (see <ref type="figure">Figure 4</ref>), but varies much more in radius given mass (see the width of the gray region in <ref type="figure">Figure 6</ref>. This indicates that planet compositions in the 3-10M ⊕ range exhibit more diversity than others, and that planets with 1-5R ⊕ fall into a relatively narrow range of masses. The large spread in radius over a narrow mass regime could have a number of physical interpretations: perhaps these super-Earths/subNeptunes fall at a transition point where scaled-up terrestrial planet formation co-exists with scaled-down gaseous planet formation. Perhaps planet evolution is particularly dramatic in this mass regime; photoevaporation has been shown to be important for such lowdensity low-mass planets (e.g. <ref type="bibr" target="#b31">Lopez &amp; Rice 2016;</ref><ref type="bibr" target="#b39">Owen &amp; Wu 2017</ref>).</p><p>In either case, it would be useful to search for multiple populations in this region of the M-R diagram, to test if the bimodal marginal radius distribution unearthed by <ref type="bibr" target="#b14">Fulton et al. (2017)</ref> and verified by <ref type="bibr" target="#b21">Hsu et al. (2018)</ref> extends to the joint radius and mass space. While there is not currently evidence for a bimodal mass and radius distribution, our approach of calculating the M-R and R-M relations by first estimating the joint distribution is capable of finding and quantifying such bimodalities. Before the joint distribution can be interpreted as an astrophysical result, however, both selection effects discussed in §3.1 would need to be incorporated into the density estimation.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.4.">Predictive distributions</head><p>Given the current dataset, a lognormal distribution is a reasonable approximation for the conditional distribution of mass given radius, in most radius regimes (see <ref type="figure">Figure 5</ref>). On the other hand, there is significant skewness in the conditional distributions for log scaled radius given log scaled mass (see <ref type="figure" target="#fig_5">Figure 7</ref>). This result demonstrates that adopting the more flexible model was warranted, and that different mass regimes have different composition distributions. In particular, the superpuffy planets found by TTV analyses are visible as the skewed tail in the 10M ⊕ conditional distribution.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6.5.">Implications for TESS</head><p>As seen in <ref type="figure">Figure 5</ref>, mass predictions are the best constrained for planets at 3R ⊕ : the conditional distribution for mass at 3R ⊕ is the most robust to the bootstrapping scheme we used to measure the uncertainty in these distributions. As a result, RV follow-up of TESS will yield the most scientific return for 1-2R ⊕ planets and above ∼ 4R ⊕ where there are intrinsically fewer planets.</p><p>While few Kepler target stars were sufficiently bright to enable follow-up, a larger proportion of K2 planethosting stars are. One would hope that these brighter stars would enable more mass detections of smaller planets, yet we see in <ref type="figure">Figure 8</ref> that there is significant bias in the K2 planets planetary masses, especially for the planets with ≤ 7R ⊕ radii. This serves as a word of warning for those who aim to perform mass-radius analyses with TESS data: to build robust M-R relations, all mass measurements, even upper limits, must be published and incorporated into the analysis (see <ref type="bibr" target="#b3">Burt et al. (2018)</ref> for an in-depth study of this effect). In addition, the second type of selection effect described in §3 must be quantified and published as part of major radial velocity follow-up programs.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7.">CONCLUSION</head><p>In this paper we provide a nonparametric approach, using the Bernstein polynomial model, to estimate the M-R relation. We applied this approach to analyze two datasets.</p><p>The first dataset is from WRF16, which we use to benchmark our results. First, we found that the M-R relations estimated using the parametric model and the nonparametric model are similar for &lt; 5R ⊕ planets. However, the two relations differ for &gt; 5R ⊕ , in that the prediction intervals of the M-R relation obtained from the nonparametric model are wider from a model that assumed a power-law M-R relation. We also found that the conditional distribution of mass given radius is not always normally distributed. Last, we found that the intrinsic scatter is not a constant function with radius, increasing weakly up to 5R ⊕ .</p><p>We applied the Bernstein polynomial model to study the joint exoplanet mass and radius distribution using all Kepler planets with measured masses. We found that there are at least three distinct M-R relations for planets with radii 5R ⊕ , 5R ⊕ &lt; r &lt; 11R ⊕ and &gt; 11R ⊕ . We also studied the relationship between the intrinsic scatter and the radius. We also found that the intrinsic scatter is a weakly increasing function with radius up to ∼ 5R ⊕ and becomes nonlinear beyond that. Furthermore, we found that the conditional distribution of mass given radius is reasonably approximated by a lognormal distribution, which skews to the right in m, but is nearly symmetric in log m. Last, we studied the R-M relation and applied the estimated M-R relation to predict K2 planets. We found that the bias for K2 planet masses, especially for those with &lt; 10R ⊕ , is large.</p><p>A major contribution of this study is that our method provides a tool to explore a wider range of fits by incorporating heteroscedastic measurement errors. Our method provides a new direction for studying the M-R relation when more mass and radius measurements are obtained with future missions like TESS and PLATO. To enable these future studies, we have placed the input datasets and the R code which we use to fit the weights, find the optimal number of degrees, and plot the figures in this paper, at the following website: https://github.com/Bo-Ning/Predictingexoplanet-mass-and-radius-relationship.</p><p>In the future, the model itself can be extended by adding incident flux as a third variable for a better understanding of the M-R relation (see <ref type="bibr">Thorngren &amp; Fort- ney (2017)</ref> and <ref type="bibr" target="#b47">Sestovic, Demory &amp; Queloz (2018)</ref> for examples of flux-dependent M-R analysis in the Jupiter regime). It is likely that a mass-radius-flux (M-R-F) relation would better describe planets in all mass regimes, given the importance of photoevaporation for low-mass planets. Given the rich and growing literature on the subject, this is an area where significant progress can be made, with the right tools. As we have demonstrated in this paper, a nonparametric approach provides such a tool: it can yield numerous astrophysical insights and model the data with minimal assumptions, making it a promising option for future mass-radius analyses.</p><p>The first draft was completed when the first author was a Ph.D. student in Department of Statistics at North Carolina State University, Raleigh, North Carolina, U.S.A..</p><p>The authors thank the Statistical and Applied Mathematical Sciences Institute (SAMSI) for bringing the authors together and providing space and funding for continued collaborations. The authors also thank Tom Loredo and Eric Ford for their valuable suggestions on this work while it was in development at SAMSI, Eric Ford for providing detailed revisions on the first version of the manuscript, Shubham Kanodia and Gudmundur Stefansson for their work in translating the R code into Python, and Matthias Yang He and Eric Ford for their work in testing the number of effective nonzero weights while translating the code into Julia. Furthermore, the authors thank two referees who provided valuable suggestions to improve the paper. This material was based upon work partially supported by the National Science Foundation under <ref type="bibr">Grant DMS-1127914</ref>  </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>Facilities: NASA Exoplanet Archive</head><p>Software: R and python APPENDIX A. BERNSTEIN POLYNOMIALS AND THEIR PROPERTIES Bernstein Polynomials (BPs) have a long history in mathematics and statistics since its original publication <ref type="bibr">(Bern- stein, 1912)</ref>. Readers interested in knowing more about the use and origins of BPs in various scientific fields will find the article by Farouki (2012) very comprehensive and informative. Here we present a brief overview of the main properties and motivations of choosing BPs over other basis functions, such as splines or kernel methods. Given a continuous function f (u) defined on the unit interval <ref type="bibr">[0,</ref><ref type="bibr">1]</ref>, the BP of degree d corresponding to the function f is defined as</p><formula xml:id="formula_22">B d (u; f ) = d k=0 f k d d k u k (1 − u) d−k for d = 1, 2, . . . ,</formula><p>where</p><formula xml:id="formula_23">B d (x, f ) is a polynomial of degree at most d. It was shown by Bernstein that B d (·, f ) − f (·) ∞ ≡ sup u∈[0,1] |B d (u, f ) − f (u)| → 0 as d → ∞,</formula><p>which constructively demonstrates that a continuous function on a closed interval can be uniformly approximated by a polynomial. <ref type="figure" target="#fig_7">Figure A1</ref> provides plots of the basis function(s) with d = 1, 2, 3, 5, 10, 20. The result extends to more than one dimension by taking the tensor product of the univariate BPs. In this article we have used suitable transformations to approximate a bivariate density function defined on the unit square <ref type="bibr">[0,</ref><ref type="bibr">1]</ref> 2 . In a statistical density estimation problem, we would not know the density function f and we thus work with θ k = f k d for k = 0, 1, . . . , d and estimate the parameter vector (θ 0 , θ 1 , . . . , θ d ) using likelihood and other standard statistical methods. The prime motivation for using BPs for estimating densities is that it not only enjoys many of the similar asymptotic properties as some of the other popular density estimation methods do (such as those based on kernels and B-splines), but it also has good asymptotic properties near boundaries. Its connection to a mixture of Beta densities is described in <ref type="bibr">Tenbusch (1994)</ref>. <ref type="bibr" target="#b1">Babu &amp; Chaubey (2006)</ref> provides much of the asymptotic properties of the BPs in multi-dimensions and show that densities can be estimated based on dependent sequence of multivariate random variables. Moreover, it has been shown that BPs can also be used to make inference when the density or regression functions are subject to shape constraints (see <ref type="bibr" target="#b49">Turnbull &amp; Ghosh 2014;</ref><ref type="bibr" target="#b52">Wang &amp; Ghosh 2012</ref>). The Bernstein polynomials model requires specifying an upper bound and a lower bound for both mass and radius. Although in theory one could choose the upper bound and the lower bound to be any values, in practice setting the upper bounds and the lower bounds to different values will cause the results to be different from the results in <ref type="figure">Figure  1</ref> and <ref type="figure" target="#fig_1">Figure 3</ref>. In particular, when there are no data in a region, the Bernstein polynomials model will fit a smooth line toward the overall mean. This happens when the upper bound is chosen to be too large. To illustrate this, we offer <ref type="figure" target="#fig_0">Fig B2 as a comparison to Figure 1</ref>.</p><p>In <ref type="figure" target="#fig_0">Figure B2</ref>, we set the upper bound of masses to be 8R ⊕ , which is the same value used in WFR16's paper, instead of 6.7R ⊕ . One can immediately tell that the region between 6.7R ⊕ and 8R ⊕ has a downward trend. This is because the overall mean of the dataset's planet masses is smaller than the mass at 6.7R ⊕ , which is where the last observation lies. Because the model tends toward the overall mean when there is no data, a downward trend is produced. This trend might not provide a correct astrophysical interpretation of the M-R relation in this region, and so we strongly caution against extrapolating this nonparametric relation. That said, the prediction intervals are very wide in this region, which suggests that there is significant variability in the mean relation, which would be rectified with more observations. B.2. On choosing the degrees d and d .</p><p>Choosing the degrees d and d is somewhat computationally expensive due to the cross-validation method's searching for the optimal d and d from a large number of potential values. To decrease the computation time, one can force d = d . We adopt this approach to choose d and then re-estimate the parameters in the model. <ref type="figure" target="#fig_0">Figure B2</ref> and <ref type="figure" target="#fig_1">Figure  B3</ref>   <ref type="figure" target="#fig_0">Figure B2</ref>. Plot of the M-R relation with its prediction intervals when R is chosen to be 8R⊕ instead of 6.7R⊕ (as in <ref type="figure">Figure  1</ref>). Comparing with <ref type="figure">Figure 1</ref>, the two M-R relations are similar in the region where R ≤ 6R⊕, where a large amount of data is available. The current plot shows a downward trend for the M-R relation when R &gt; 6R⊕ because where there is no data the model fits a line smoothly to the overall mean. The large prediction intervals show that this downward trend is highly uncertain. We note that in this plot, ˆ d = ˆ d = 35, which was selected based on the cross-validation method described in §2.2.</p><p>too much.  σ M = 20M Earth , σ R = 1R Earth <ref type="figure">Figure C4</ref>. The performance of our nonparametric M-R relation as assessed with simulated data: only for the largest measurement uncertainties does the inferred M-R relation deviate from the truth. Each simulation consists of 100 datasets, and each of those contain 100 data points; all 10,000 simulated planets are plotted as small light blue points, with the larger dark blue points identifying those from one randomly chosen dataset, to show the typical planet-to-planet variation in any individual dataset. The different panels were generated with different measurement uncertainties; these are denoted above each panel in units of Earth mass and Earth radii. For each panel, the black dashed line is the "true" M-R relation that we use to generate the individual dataset (see text for details). The red lines illustrate the variability produced by fitting our model to each of the 100 different datasets: the solid red line denotes the mean of the most probable mass values (at each radius) across all 100 model fits (i.e. the mean of the 100 model fit means), and the dashed red lines denote the 16% and 84% confidence intervals of this most probable mass value (i.e. the standard error of the 100 model fit means).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head>C. A SIMULATION STUDY</head><p>To check how missing values and measurement errors could affect the estimation result, we conduct several simulation studies. We simulate data from a power-law relation and use the Bernstein polynomial model to estimate that function, as we are interested in comparing the M-R relations estimated under different settings.</p><p>In this simulation study, we define the "true" M-R relation as follows: r ∼ U(0, 8), which stands for the uniform distribution between 0R ⊕ and 8R ⊕ , and m ∼ N (1.6r 1.8 , 1), i.e. the extended M-R relation found by WRF16 but with a smaller intrinsic scatter. We then perform a series of simulations where we generate 100 datasets, each of which has 100 observations. What varies between the different simulations are the measurement errors: we choose the measurement errors on radii as 0.4, 1, 3 R ⊕ and on masses as 5, 20, 35 M ⊕ .</p><p>We fit each dataset to the model, choosing the degrees using the same 10-fold cross validation scheme that is described in §2.2. As the measurement uncertainty increases, the observed data smear out the underlying M-R Missing value <ref type="figure">Figure C5</ref>. The performance of our nonparametric method when the radius measurements are not distributed uniformly over 0 &lt; r &lt; 8 R⊕: the M-R relation defaults to a flat line where there is missing data. The points and lines here show the same information as in <ref type="figure">Figure C4</ref>.</p><p>relation. Information about the M-R relation is lost in this process, and so a less complex nonparametric model is required to fit the data. This is reflected in a lower degree being recommended by our cross-validation scheme: for the original simulated dataset with no measurement errors, d = 90, while d = 40, 7, 5 for the three datasets with consecutively larger measurement errors.</p><p>In the following figures, we plot the estimated M-R relation (red line) along with the true M-R relation (black line) and the 16% and 84% confidence intervals. We also plot all 100 simulated datasets in light blue in the background and highlight one dataset from them in dark blue.</p><p>To summarize our findings, the first subplot in <ref type="figure">Figure C4</ref> suggests the nonparametric model did a good job estimating the M-R relation when the data is generated from the "true" model. When data have measurement errors, the quality of estimated M-R relation depends on the magnitude of measurement errors for a fixed sample size. The larger the measurement errors are, the worse the estimated M-R relations and the larger the confidence intervals. We also found that the true mean M-R relation is contained in the confidence intervals regardless of how large the measurement errors are.</p><p>We also run a simulation study for a dataset with missing observations in some regions (non-uniform sampling). <ref type="figure">Figure C5</ref> presents the estimation result when the data between 4.5 R ⊕ and 5R ⊕ are removed. Comparing to the first subplot in <ref type="figure">Figure C4</ref>, the M-R relation is different in the region where the data are missing. The model is trying to find the optimal polynomials to estimate the M-R relation. The polynomials may not necessarily to be linear, thus in the region with no data points, the M-R relation can be nonlinear. When there are missing values, Bernstein polynomials impute missing values by taking mean from the nearest region where data are presented. Thus the mean M-R relation is lower than the true relation on the left side of missing data region and higher than the true relation on the right side. While the mean M-R relation may depart from the true relation in the missing data region, the confidence intervals contains the true M-R relation, which does not rule out the possibility of obtaining the true relation. This gives us confidence in applying our model to real Kepler and K2 data that have non-uniform sampling.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 2 .</head><label>2</label><figDesc>Figure 2. The intrinsic scatter is the estimated standard deviation (s.d.) for f (m|r). The parametric model (cyan) is under-fitting the M-R relation, thus has a smaller estimation for the s.d. compared to the nonparametric model (dark blue). The nonparametric model suggests that the intrinsic scatter is not a constant along with radii. In this figure, the dark blue line plots the mean s.d. across all bootstrapped realizations estimated by the nonparametric method, and the corresponding shaded region denotes the bootstrap 16% and 84% confidence intervals. The cyan line denotes the posterior median of the intrinsic scatter term in the parametric model; the associated shaded area denote the 16% and 84% quantiles of the posterior samples for that parameter.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 3 .</head><label>3</label><figDesc>Figure 3. Nonparametric M-R relation of Kepler data. With a more flexible model, we see that the transitions between superEarths, Neptunes, and Jupiters are not sharply defined, yet there appears to be three contiguous regions between which the M-R relation changes: 0.8R⊕ ≤ r 5R⊕, 5R⊕ r 11R⊕ and 11R⊕. The dark blue curve is the mean M-R relation and the darker shaded area is the uncertainty region between the 16% and 84% predictive intervals. The light blue band is the the uncertainty region between the bootstrap 16% and 84% confidence intervals and shows large uncertainty in the region where data is absent (radius &lt; 1 R⊕). Data points are displayed in the background with their measurement errors.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Figure 7 .</head><label>7</label><figDesc>Figure 7.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_7"><head>Figure A1 .</head><label>A1</label><figDesc>Figure A1. Plot of Bernstein polynomial basic functions, as a function of degree (i.e. the number of terms in the polynomial series); compare to Eqn 3. Note that the independent variable, i.e. the x-axis, must be rescaled to be between 0 and 1. See §B.1 for a discussion of this.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_8"><head></head><label></label><figDesc>are the results produced by choosing d = d . The cross-validation method chooses d = d = 35 for the first dataset and d = d = 55 for the second. Comparing these two figures to Figures 1 and 3 respectively, the results do not vary</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_9"><head>Figure B3 .</head><label>B3</label><figDesc>Figure B3. Plot of the M-R relation with its prediction intervals estimated from the Kepler data. We chosê d = ˆ d = 55, where the values of d and d are selected based on the cross-validation method discussed in §2.2. Comparing with Figure 3, the two M-R relations are similar.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" validated="false"><head>to the Statisti- cal and Applied Mathematical Sciences Institute. AW acknowledges support from the National Science Foun- dation Astronomy &amp; Astrophysics Postdoctoral Fellow</head><label></label><figDesc></figDesc><table>-
+ship program under Award No. 1501440. The Center 
+for Exoplanets and Habitable Worlds is supported by 
+the Pennsylvania State University, the Eberly College 
+of Science, and the Pennsylvania Space Grant Consor-
+tium. This research has made use of the NASA Exo-
+planet Archive, which is operated by the California In-
+stitute of Technology, under contract with the National 
+Aeronautics and Space Administration under the Exo-
+planet Exploration Program. This paper includes data 
+collected by the Kepler mission. Funding for the Ke-
+pler mission is provided by the NASA Science Mission 
+directorate. 
+
+</table></figure>
+
+			<note place="foot" n="2"> That said, some physical processes which affect exoplanet compositions, such as photoevaporation, depend on both mass and radius.</note>
+
+			<note place="foot" n="3"> WRF16 modeled g(m|r) as a normal distribution but provided some evidence that this assumption was too restrictive; this evidence is partly what has motivated us to adopt a nonparametric approach in this paper.</note>
+
+			<note place="foot" n="4">. BENCHMARKING TO WRF16</note>
+		</body>
+		<back>
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">L</forename><surname>Akeson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">X</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Ciardi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">125</biblScope>
+			<biblScope unit="page">989</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">J</forename><surname>Babu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><forename type="middle">P</forename><surname>Chaubey</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Statistics and Probability Letters</title>
+		<imprint>
+			<biblScope unit="volume">76</biblScope>
+			<biblScope unit="page">959</biblScope>
+			<date type="published" when="2006" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">J</forename><surname>Babu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">J</forename><surname>Canty</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><forename type="middle">P</forename><surname>Chaubey</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Statistical Planning and Inference</title>
+		<imprint>
+			<biblScope unit="volume">105</biblScope>
+			<biblScope unit="page">377</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Burt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">P</forename><surname>Holden</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Wolfgang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">G</forename><surname>Bouma</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1810.06569</idno>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Chen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Kipping</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">834</biblScope>
+			<biblScope unit="page">17</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">L</forename><surname>Coughlin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Mullally</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">E</forename><surname>Thompson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">224</biblScope>
+			<biblScope unit="page">12</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Cumming</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P</forename><surname>Butler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Marcy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">120</biblScope>
+			<biblScope unit="page">531</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">I</forename><surname>Dawson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Chiang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Lee</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">453</biblScope>
+			<biblScope unit="page">1471</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">D</forename><surname>Dressing</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">767</biblScope>
+			<biblScope unit="page">95</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><forename type="middle">D</forename><surname>Morton</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">795</biblScope>
+			<biblScope unit="page">64</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Wolfgang</forename><surname>Ning</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Ghosh</surname></persName>
+		</author>
+		<imprint/>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Fortney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Marley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Barnes</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">659</biblScope>
+			<biblScope unit="page">1661</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Fortney</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">S</forename><surname>Marley</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Barnes</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">668</biblScope>
+			<biblScope unit="page">1267</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">F</forename><surname>Fressin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Torres</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Charbonneau</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">766</biblScope>
+			<biblScope unit="page">81</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">J</forename><surname>Fulton</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">A</forename><surname>Petigura</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Howard</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1703.10375</idno>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">T</forename><surname>Farouki</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Computer Aided Geometric Design</title>
+		<imprint>
+			<biblScope unit="volume">29</biblScope>
+			<biblScope unit="page">379</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b16">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">J</forename><surname>Green</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Biometrika</title>
+		<imprint>
+			<biblScope unit="volume">82</biblScope>
+			<biblScope unit="page">711</biblScope>
+			<date type="published" when="1995" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b17">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Hastie</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Tibshirani</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">H</forename><surname>Friedman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Physics and Astronomy</title>
+		<imprint>
+			<biblScope unit="volume">787</biblScope>
+			<biblScope unit="page">80</biblScope>
+			<date type="published" when="2001" />
+			<publisher>Springer</publisher>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b18">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Hadden</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Lithwick</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">154</biblScope>
+			<biblScope unit="page">5</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b19">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Howard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Marcy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Johnson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<imprint>
+			<biblScope unit="volume">330</biblScope>
+			<biblScope unit="page">653</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b20">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Howard</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Marcy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">T</forename><surname>Bryson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">201</biblScope>
+			<biblScope unit="page">15</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b21">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">C</forename><surname>Hsu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Ford</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Ragozzine</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">C</forename><surname>Morehead</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1803.10787</idno>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b22">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Ida</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">N C</forename><surname>Lin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">719</biblScope>
+			<biblScope unit="page">810</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b23">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Isobe</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">D</forename><surname>Feigelson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">G</forename><surname>Akritas</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">J</forename><surname>Babu</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">364</biblScope>
+			<biblScope unit="page">104</biblScope>
+			<date type="published" when="1990" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b24">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Jontof-Hutter</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Ford</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">F</forename><surname>Rowe</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">820</biblScope>
+			<biblScope unit="page">39</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b25">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">C</forename><surname>Kelly</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">665</biblScope>
+			<biblScope unit="page">1489</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b26">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><surname>Kruijer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><surname>Van Der</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Vaart</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of Statistical Planning and Inference</title>
+		<imprint>
+			<biblScope unit="volume">138</biblScope>
+			<date type="published" when="1981" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b27">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Leblanc</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Annals of the Institute of Statistical Mathematics</title>
+		<imprint>
+			<biblScope unit="volume">919</biblScope>
+			<biblScope unit="page">64</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b28">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">J</forename><surname>Lee</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Chiang</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">811</biblScope>
+			<biblScope unit="page">41</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b29">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Lissauer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Ragozzine</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">C</forename><surname>Fabrycky</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">197</biblScope>
+			<biblScope unit="issue">8</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b30">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">D</forename><surname>Lopez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Fortney</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">792</biblScope>
+			<biblScope unit="page">1</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b31">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">D</forename><surname>Lopez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Rice</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1610.09390</idno>
+		<imprint>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b32">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">G</forename><surname>Macdonald</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Ragozzine</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">C</forename><surname>Fabrycky</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">AJ</title>
+		<imprint>
+			<biblScope unit="volume">152</biblScope>
+			<biblScope unit="page">105</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b33">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Marcy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Isaacson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Howard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJS</title>
+		<imprint>
+			<biblScope unit="volume">210</biblScope>
+			<biblScope unit="page">20</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b34">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Mayor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Marmier</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Lovis</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1109.2497</idno>
+		<imprint>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b35">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">M</forename><surname>Mills</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">C</forename><surname>Fabrycky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Migaszewski</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">533</biblScope>
+			<biblScope unit="page">509</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b36">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">M</forename><surname>Mills</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Mazeh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJL</title>
+		<imprint>
+			<biblScope unit="volume">839</biblScope>
+			<biblScope unit="page">8</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b37">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Mordasini</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Alibert</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Georgy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">547</biblScope>
+			<biblScope unit="page">112</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b38">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Montet</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">2</biblScope>
+			<biblScope unit="page">28</biblScope>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b39">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">E</forename><surname>Owen</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Wu</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1705.10810</idno>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b40">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">A</forename><surname>Petigura</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Marcy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">W</forename><surname>Howard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">770</biblScope>
+			<biblScope unit="page">69</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b41">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Petrone</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Scandinavian Journal of Statistics</title>
+		<imprint>
+			<biblScope unit="volume">26</biblScope>
+			<biblScope unit="page">373</biblScope>
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b42">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Petrone</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Canadian Journal of Statistics</title>
+		<imprint>
+			<biblScope unit="volume">27</biblScope>
+			<biblScope unit="page">105</biblScope>
+			<date type="published" when="1999" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b43">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Petrone</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Wasserman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Journal of the Royal Statistical Society, Series B</title>
+		<imprint>
+			<biblScope unit="volume">64</biblScope>
+			<biblScope unit="page">79</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b44">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">A</forename><surname>Rogers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Bodenheimer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Lissauer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Seager</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">738</biblScope>
+			<biblScope unit="page">59</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b45">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">A</forename><surname>Rogers</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">801</biblScope>
+			<biblScope unit="page">41</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b46">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Seager</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Kuchner</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">A</forename><surname>Hier-Majumder</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Militzer</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">669</biblScope>
+			<biblScope unit="page">1279</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b47">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Sestovic</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B.-O</forename><surname>Demory</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Queloz</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1804.03075</idno>
+		<imprint>
+			<date type="published" when="2018" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b48">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Tenbusch</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Metrika</title>
+		<imprint>
+			<biblScope unit="volume">41</biblScope>
+			<biblScope unit="page">233</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b49">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">C</forename><surname>Turnbull</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">K</forename><surname>Ghosh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Computational Statistics &amp; Data Analysis</title>
+		<imprint>
+			<biblScope unit="volume">72</biblScope>
+			<biblScope unit="page">13</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b50">
+	<monogr>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">P</forename><surname>Thorngren</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">J</forename><surname>Fortney</surname></persName>
+		</author>
+		<idno type="arXiv">arXiv:1709.04539</idno>
+		<imprint>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b51">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Valencia</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">D</forename><surname>Sasselov</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">J</forename><surname>Connell</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">665</biblScope>
+			<biblScope unit="page">1413</biblScope>
+			<date type="published" when="2007" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b52">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Wang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">K</forename><surname>Ghosh</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Computational Statistics &amp; Data Analysis</title>
+		<imprint>
+			<biblScope unit="volume">56</biblScope>
+			<biblScope unit="page">2729</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b53">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">M</forename><surname>Weiss</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Marcy</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJL</title>
+		<imprint>
+			<biblScope unit="volume">783</biblScope>
+			<biblScope unit="issue">WM14</biblScope>
+			<biblScope unit="page">6</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b54">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">W</forename><surname>Xie</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">The Astrophysical Journal Supplement Series</title>
+		<imprint>
+			<biblScope unit="volume">210</biblScope>
+			<biblScope unit="page">25</biblScope>
+			<date type="published" when="2014" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b55">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Wolfgang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Lopez</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">806</biblScope>
+			<biblScope unit="page">183</biblScope>
+			<date type="published" when="2015" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b56">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Wolfgang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">A</forename><surname>Rogers</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">B</forename><surname>Ford</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">825</biblScope>
+			<biblScope unit="issue">WRF16</biblScope>
+			<biblScope unit="page">19</biblScope>
+			<date type="published" when="2016" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b57">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Wu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Lithwick</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">772</biblScope>
+			<biblScope unit="page">74</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b58">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">N</forename><surname>Youdin</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">742</biblScope>
+			<biblScope unit="page">38</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b59">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">S</forename><surname>Zapolsky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><forename type="middle">E</forename><surname>Salpeter</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">158</biblScope>
+			<biblScope unit="page">809</biblScope>
+			<date type="published" when="1969" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

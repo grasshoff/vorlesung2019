@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-11T13:19+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">Asteroseismic Stellar Modelling with AIMS</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Mikkel</forename><forename type="middle">N</forename><surname>Lund</surname></persName>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Daniel</forename><forename type="middle">R</forename><surname>Reese</surname></persName>
+						</author>
+						<title level="a" type="main">Asteroseismic Stellar Modelling with AIMS</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date/>
+						</imprint>
+					</monogr>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<abstract>
+				<p>The goal of AIMS (Asteroseismic Inference on a Massive Scale) is to estimate stellar parameters and credible intervals/error bars in a Bayesian manner from a set of asteroseismic frequency data and so-called classical constraints. To achieve reliable parameter estimates and computational efficiency, it searches through a grid of pre-computed models using an MCMC algorithm-interpolation within the grid of models is performed by first tessellating the grid using a Delaunay triangulation and then doing a linear barycentric interpolation on matching simplexes. Inputs for the modelling consist of individual frequencies from peak-bagging, which can be complemented with classical spectroscopic constraints. AIMS is mostly written in Python with a modular structure to facilitate contributions from the community. Only a few computationally intensive parts have been rewritten in Fortran in order to speed up calculations.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">Introduction</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2">Getting started</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.1">Prerequisites and downloads for the tutorial</head><p>The following will be needed to run the examples in this tutorial:</p><p>• Python modules. The following Python modules and utilities are needed by AIMS: emcee, corner, dill, Scipy, Numpy, f2py, Matplotlib. The last four are included in most distributions.</p><p>• A grid of models. AIMS works by comparing observational data to a grid of precomputed models. The tutorial website provides two binary grids (data mesa and data cestam), which will be used for finding model fits to a set of observed stars, as well as a folder containing a non-binary subset of one of the grids, which we shall use when trying to generate a binary grid. When "unpacked" by AIMS, some of the grids take up a lot of live memory 1 (RAM). Accordingly, a "light" version of the CESTAM grid, data cestam reduced, has been provided.</p><p>• File(s) with observational data. The tutorial website provides files with observational data for three stars (Stars 1-3). The mode frequencies were obtained from peak-bagging of Kepler data for the so-called LEGACY project ( <ref type="bibr" target="#b7">Lund et al. 2017</ref>). Spectroscopic data were obtained from the Stellar Parameters Classification tool (SPC; <ref type="bibr" target="#b1">Buchhave et al. 2012</ref>).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.2">Downloading and installing AIMS</head><p>The latest version of the AIMS package, currently version 1.2, can be downloaded from the following site: http://bison.ph.bham.ac.uk/spaceinn/aims/ version1.2/index.html. This file is unpacked as follows:</p><p>1 t a r −z x v f AIMS . t g z</p><p>The AIMS program itself is contained within the AIMS folder. As mentioned earlier, the latest version of AIMS contains some Fortran subroutines which need to be compiled before running AIMS. This is done via the f2py program. A Makefile has been provided for convenience. Please edit the Makefile by inserting the appropriate Fortran compiler and compilation options. Then run the following command:</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">make</head><p>This will produce a file called aims fortran.so which can be used by AIMS.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3">Running AIMS: model fit</head><p>We shall first consider running AIMS with the goal of optimising the fit to a given set of observational constraints, such as mode frequencies, ratios, and spectroscopic parameters. In Sect. 5 we will look into testing the interpolation scheme in AIMS. <ref type="figure" target="#fig_0">Figure 1</ref>.1 of the overview document 2 provides a simple schematic flowchart with the basic working components of AIMS.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1">Setting up the configuration file</head><p>Before running the AIMS program, a binary file with the grid must first be createdwe will come to this in Sect. 4. Assuming in the mean time that has been done, the most important concern is to set up the configuration file: AIMS configure.py.</p><p>Most parameters in the configuration file are well documented and should be self-explanatory -for instance, you can choose which asteroseismic parameters to fit 3 (individual frequencies, ratios, or average asteroseismic parameters), the name of the binary grid to use, which parameters should be output from the optimisation, control parameters for the MCMC, which grid parameters to use in the optimisation and which priors to set on these etc.</p><p>Two parameters are of special relevance:</p><p>• write data should be set to False (see Sect. 4 for when this should be True).</p><p>• test interpolation should be set to False (see Sect. 5 for when this should be True).</p><p>It is also very important to put the correct values for the grid params and user params parameters. These values will depend on the binary grid being used. They are provided on the tutorial website and can also be obtained with the analyse grid.py utility 4 , which should be run in the AIMS folder.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2">Observational constraints</head><p>The file with observational constraints follows a very similar format to the one used with the Asteroseismic Modeling Portal 5 (AMP), apart from a few minor differences <ref type="bibr">6</ref> . This format is described as follows:</p><p>• Characters following a "#" are ignored, and the ordering of the lines is unimportant.</p><p>• A set of lines, one per individual mode, describe the asteroseismic observables. If the keyword read n is set to True, then four columns should be given, namely, the degree of the mode (l), the radial order (n), the frequency in cyclic µHz ( f ), and its associated error bar (δ f ). If read n is False, then only l, f , and δ f should be given. Note that in AIMS, even if you choose to work with frequency combinations such as ratios, the asteroseismic inputs are still individual frequencies -AIMS will use these to calculate the frequency combinations, associated error bars, and correlations.</p><p>• Optionally, non-asteroseismic constraints may be included in addition to the asteroseismic observables. The first column must consist of a character or a keyword, e.g., "T or Teff" (T eff ), "L or Luminosity" (L/L ), "R or Radius"</p><formula xml:id="formula_0">(R/R ), "M, Fe H or M H" ([M/H])</formula><p>, "g or log g" (log g), or "Rho" (ρ). This is followed by a central value and an error.</p><p>• If a non-asteroseismic constraint is included, e.g., "Teff 5777 50", then it is assumed that this parameter follows a Gaussian distribution. Alternatively, you may explicitly define the distribution to be used, e.g., "Teff Uniform 5727 5837" meaning a uniform distribution from 5727 to 5837 K. You can adopt either a "Uniform", "Gaussian" (the default), or "Truncated gaussian" probability distribution.</p><p>• The average asteroseismic parameters ν max ("numax") and ∆ ν ("Dnu") can also be supplied here as a constraint 7 .</p><p>The following gives an example of how the constraints file may look like:</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1">0 8 4 7 . 6 3 5 7 6 4 3 5 0 . 7 6 0 7 5 8 0 4 3 7 2 9 0 4 . 6 7 4 9 6 7 6 0 . 8 2 7 8 7 4 3 5 9 4 4 3 3 2 9 5 4 . 8 5 6 8 9 3 2 6 0 . 7 5 6 6 9 0 7 5 8 6 9 4 0 9 6 8 . 8 9 5 7 0 3 4 0 . 2 2 2 0 9 0 4 7 8 9 9</head><p>5 . . . 6 T 6120 80 <ref type="bibr">7</ref> Fe H −0.06 0 . 1 2 8 numax 2763 100</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.3">Running AIMS</head><p>Once the grid and configuration file are set up, one simply runs the program as follows:</p><p>1 . / AIMS . py o b s e r v a t i o n a l c o n s t r a i n t s f i l e AIMS will then import the Python configuration file, AIMS configure.py, so make sure you do not modify the name of this file. Output generated from AIMS will then be saved to a run folder with the same name as your constraints file, so give your constraints file a sensible name so that you can distinguish the results from several runs for the same star. The variable output dir in AIMS configure.py specifies the path to the root folder which contains all of the run folders.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.4">Understanding the results</head><p>The results from AIMS are obtained from the posterior distributions of the MCMC run on the model grid, as illustrated in the right panel of <ref type="figure" target="#fig_0">Fig. 1</ref>. In AIMS configure.py, you can define the set of stellar parameters for which you want an output, as well as which plots to create. For computational reasons, such parameters are only calculated for a subset of the MCMC samples, except for those parameters actively used in the MCMC optimisation. Accordingly, AIMS produces two files with the samples: samples.txt with all of the MCMC samples but only the parameters involved in the optimisation, and samples big.txt with a subset of the samples but all of the stellar parameters. The corresponding files results.txt and results big.txt provide summary statistics for the above samples, namely, the distribution averages and standard deviations, along with correlations between different model parameters. The samples files may, of course, be used to extract different summary statistics (e.g., median or mode) for the parameters. The file best MCMC model.txt gives the stellar parameters and computed mode frequencies for the best model from the MCMC, whereas best grid model.txt gives the best model from the initial grid search used to initialise the MCMC (i.e., prior to interpolation within the grid). The left panel of <ref type="figure" target="#fig_0">Fig. 1</ref> shows thé echelle diagram produced from the observations and from the best MCMC model.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4">Creating your own binary grid files with AIMS</head><p>To compute a binary grid file, you first need to calculate a grid of models with your favourite stellar evolution code, as well as oscillation modes for each model. Information for each model should then be entered into a "model list" file. The first line of this file should contain a prefix which is typically the root folder of the grid of models and, optionally, a postfix giving the end part of the filenames with   the mode frequencies, the default value being ".freq". The following lines then contain multiple columns with the information for each model in the grid. Below we show an example of a model list file (see column description in <ref type="table" target="#tab_1">Table 1</ref> . 0 1 7 5 6 . y0 . 2 6 / 2 m1 . 6 . z0 . 0 1 7 5 6 . y0 . 2 6 n 2 0 2 6 . FGONG 3 . 1 8 2 7 2 E+33 9 . 4 1 1 6 3 1 E+11 2 . 6 8 9 5 0 4 E+35 0 . 0 1 7 5 6 0 . 7 2 2 4 4 2 . 4 0 2 8 4 8 E+03 4 5 4 3 . 3 8 6 9 6 3 m1 . 6 . z0 . 0 1 7 5 6 . y0 . 2 6 n 2 0 9 3 . FGONG 3 . 1 8 2 7 2 E+33 9 . 6 4 5 1 7 3 E+11 2 . 8 1 1 1 0 5 E+35 0 . 0 1 7 5 6 0 . 7 2 2 4 4 2 . 4 0 2 9 2 0 E+03 4 5 3 7 . 9 3 6 0 1 4 m1 . 6 . z0 . 0 1 7 5 6 . y0 . 2 6 n 1 9 8 6 . FGONG 3 . 1 8 2 7 2 E+33 9 . 0 1 0 6 6 3 E+11 2 . 5 1 3 5 5 8 E+35 0 . 0 1 7 5 6 0 . 7 2 2 4 4 2 . 4 0 2 8 2 5 E+03 4 5 6 5 . 4 9 6 0 5 5 m1 . 6 . z0 . 0 1 7 5 6 . y0 . 2 6 n 1 5 7 5 . FGONG 3 . 1 8 2 7 2 E+33 1 . 1 6 6 0 6 4 E+12 3 . 7 4 5 0 6 2 E+35 0 . 0 1</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="7">5 6 0 . 2 2 4 4 2 . 4 0 2 6 0 E+03 4 4 3 4 . 0 1 8 9 6</head><p>The prefix plus each model name in the first column, plus the postfix gives the name of a file that contains the oscillation parameters of the model. These files can come in one of two formats, as specified by the mode format variable in AIMS configure.py. One of the formats is a Fortran binary format known as the "grand summary" file from the ADIPLS 8 code <ref type="bibr" target="#b2">(Christensen-Dalsgaard 2008)</ref> and is described on pages 32-33 of the ADIPLS documentation 9 . The other format is a text format (described below) and which is what is used in this tutorial.</p><p>The text version of the oscillation parameter files begins with a one-line header followed by five columns which correspond to l, n, frequency, dfreq var, and mode inertia. Note that the dfreq var column is currently discarded, as are frequencies above the estimated cut-off frequency times the value of the cutoff variable in AIMS configure.py.</p><p>To generate a binary grid you should specify to following relevant parameters in AIMS configure.py:</p><p>• write data should be set to True.</p><p>• list grid gives the filename of the model list file (see above).</p><p>• binary grid gives the filename of the binary file that will be generated. If write data is set to False, this is the binary grid that will be loaded.</p><p>• grid params specifies the parameters relevant to the grid you want to generate (excluding age, which will be dealt with separately). It is extremely important that each set of values for these parameters corresponds to a unique evolutionary track, since AIMS reconstructs these tracks based on these values. For instance, if mass and Z are the parameters which describe your grid, then pairs of values such as (mass = 1 M , Z = 0.02) should correspond to a unique track.</p><p>• user params specifies supplementary parameters which describe your grid.</p><p>This variable should contain a pair of strings for each supplementary parameter.</p><p>The first string should give the parameter's name <ref type="bibr">10</ref> . The second string should be a nice L A T E Xversion of the name to be used in plot titles.</p><p>• npositive should be set to True if you only want to save n ≥ 0 modes (i.e., acoustic modes) in the binary file.</p><p>• cutoff: frequencies above this value times the estimated cut-off frequency (as based on a scaling law) will be discarded. For example, if cutoff=1.1 then only frequencies below 1.1ν c are kept.</p><p>• agsm cutoff: this only applies to binary "grand summary" files from ADIPLS. If set to True, then only frequencies for which icase=10010 (i.e., which are below the cut-off frequency when using an isothermal boundary condition) are kept.</p><p>The binary file is then simply generated by running:</p><p>1 . / AIMS . py 8 http://astro.phys.au.dk/ ˜ jcd/adipack.n/ 9 http://astro.phys.au.dk/ ˜ jcd/adipack.n/notes/adiab_prog.ps.gz <ref type="bibr">10</ref> The names "Xs" and "Zs" should be used for the surface hydrogen and metallicity content, as some of the functions in AIMS specifically look for these variables. </p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5">Testing interpolation accuracy</head></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.1">Calculating interpolation errors</head><p>Since AIMS works by interpolating in a pre-computed grid of stellar models, it also includes a way of testing the accuracy of the interpolation. To test the interpolation you should specify to following options in AIMS configure.py:</p><p>• write data should be set to False.</p><p>• test interpolation should be set to True.</p><p>• interpolation file gives the name of the binary file that will contain the output of the test. The results saved in this file can then be plotted using plot interpolation test.py.</p><p>The interpolation test is then simply run as:</p><p>1 . / AIMS . py</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.2">Various interpolation errors</head><p>There are two basic components to model interpolation in AIMS, each of which contributes to interpolation error:</p><p>• Age interpolation: this is interpolation along a given evolutionary track.</p><p>• Track interpolation: this is interpolation as a function of the other model parameters, such as mass, metallicity, mixing length parameter, or whatever parameters are relevant to your grid.</p><p>The first type of interpolation is dealt with through a simple linear interpolation between two adjacent models on the evolutionary track. The second uses Delaunay tessellation before calculating linear barycentric weights. For a more detailed description of interpolation in AIMS, we refer the reader to chapter 4 of the overview document 2 .</p><p>The interpolation tests carried out in AIMS allow the user to estimate the error from both types of interpolation. For the age interpolation, we number the models on a given evolutionary track, starting at n = 0. As schematically illustrated in <ref type="figure" target="#fig_2">Fig. 2</ref>, the age interpolation tests involve combining models n − n incr and n + n incr , and seeing how well the interpolated frequencies reproduce the frequencies of model n. This test is carried out throughout the entire track except for the n incr models at either end. <ref type="figure" target="#fig_2">Figure 2</ref> schematically illustrates these interpolation tests for n incr = 2. AIMS carries out tests for n incr = 1 and 2 in order to assess the impact of the time step on the age interpolation.</p><p>Testing track interpolation (see <ref type="figure" target="#fig_3">Figs. 3 and 4</ref>) is more complicated because it is based on a Delaunay tessellation. The approach used in AIMS involves randomly selecting half of the evolutionary tracks, creating a new tessellation from these, and using this to interpolate to the remaining tracks. <ref type="figure">Figure 4</ref> illustrates such a partitioning of the evolutionary tracks.</p><p>When comparing frequencies from an interpolated model with those from the original model, AIMS calculates different types of error bars. First of all, separate error bars are obtained for radial (l = 0) and for non-radial modes. These are further subdivided into the following categories:</p><p>• the maximum error;</p><p>• a root-mean square (RMS) error;</p><p>• an RMS error only based on the modes between 0.8ν max and 1.2ν max , where ν max is the frequency at maximum power (this is obtained from the models via a scaling relation).</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="5.3">Analysing the results</head><p>The results in the generated interpolation file can be visualised with plot interpolation test.py by running: 1 p l o t i n t e r p o l a t i o n t e s t . py i n t e r p o l a t i o n f i l e</p><p>Currently, this program only works for 3D model grids (including the age dimension). Running this program will generate a series of plots that can be used to assess the errors introduced by the interpolation. The first 9 plots are 3D plots which show various errors as a function of the grid parameters, excluding age. These plots come in groups of three: the first two plots in a group show age interpolation errors for n incr = 1 and 2, and the third shows track interpolation errors. The groups of plots correspond to the following: • Plots 1-3: Maximum interpolation errors for radial modes as a function of stellar parameters. For each model along a track, the maximum error is obtained. Then the maximum along the entire track is calculated.</p><p>• Plots 4-6: Average interpolation errors for radial modes as a function of stellar parameters. The RMS average is calculated along the entire track. <ref type="figure" target="#fig_3">Figure 3</ref> shows such a plot for track interpolation errors.</p><p>• Plots 7-9: Average interpolation errors for radial modes restricted to the interval 0.8ν max to 1.2ν max as a function of stellar parameters. The RMS average is calculated along the entire track.</p><p>These plots are displayed in individual windows. Thanks to Python's interactive capabilities, it is possible to rotate the plots and to zoom in or out. Two additional 2D interactive plots display the positions of the evolutionary tracks in the stellar parameter space. The first of these shows all of the evolutionary tracks as blue dots. Clicking on a blue dot opens up a new window with two new plots which show how the age interpolation errors, for both radial and non-radial modes, vary as a function of stellar age. The second plot shows a partitioning of the evolutionary tracks used in the track interpolation tests as described above. An example of such a plot is shown in the left panel of <ref type="figure">Fig. 4</ref>. Clicking on a blue dot on this plot opens up a new window with two new plots with track interpolation errors as a function of age, like the ones shown in the right panel of <ref type="figure">Fig. 4</ref>.</p><p>More information on the individual plotting functions can be found in the comments within the plot interpolation test.py file as well as at the following <ref type="bibr">website</ref>  <ref type="figure">Fig. 4</ref> Testing interpolation accuracy. Left: Interactive plot with the positions of the evolutionary tracks in parameter space. The yellow dots correspond to the tracks with which a new tessellation is created, as represented by the connecting lines. The blue dots represent tracks where the interpolation is tested. Right: Clicking on a blue dot produces plots with the track interpolation errors as a function of stellar age.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="6">Recommended reading</head><p>For more information on the use of Bayesian inference in model optimisation, we recommend <ref type="bibr" target="#b0">Bazot et al. (2012)</ref> and <ref type="bibr" target="#b6">Gruberbauer et al. (2013)</ref>. For details on the affine-invariant MCMC optimisation scheme used (emcee), we refer the reader to <ref type="bibr" target="#b5">Goodman &amp; Weare (2010)</ref> and <ref type="bibr" target="#b3">Foreman-Mackey et al. (2013)</ref>. For details on asteroseismic grid-based analysis in general, we refer to <ref type="bibr">Gai et al. (e.g., 2011</ref>).</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Fig. 1</head><label>1</label><figDesc>Fig. 1 Example of output plots from an AIMS run. Left: ´ Echelle diagram for the best MCMC model showing the observed frequencies, theoretical frequencies, and surface-corrected theoretical frequencies. Right: Triangle plot with correlation maps between different stellar parameters for the MCMC samples. The blue lines indicate the results obtained from the initial full-grid search.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head></head><label></label><figDesc>): 1 / home / d r e e s e / m o d e l s i n v e r s i o n s / G r i d 6 8 1 9 / m1 . 6 . ovh0 . 0 . ovhe0 . 0 0 . z0</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Fig. 2</head><label>2</label><figDesc>Fig. 2 Schematic plot showing how the age interpolation tests are calculated for nincr=2. Successive models along the track are not necessarily equally spaced in age.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Fig. 3</head><label>3</label><figDesc>Fig. 3 Average track interpolation errors for radial modes as a function of stellar parameters.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" validated="true"><head>Table 1 Columns in "model list" file</head><label>1</label><figDesc></figDesc><table>Column # 
+1 
+2 
+3 
+4 
+5 6 
+7 
+8 
+9, 10 . . . 
+
+Parameter Model name Mass Rad. Lum. 
+Z 0 X 0 Age T eff user params 
+
+Unit 
+. . . 
+g 
+cm g cm 2 s −3 . . . . . . Myr K 
+. . . 
+
+</table></figure>
+
+			<note place="foot">Mikkel N. Lund and Daniel R. Reese</note>
+
+			<note place="foot" n="1"> In some cases, this problem can further be compounded by the use of parallelisation, which is activated by setting parallel=True in AIMS configure.py.</note>
+
+			<note place="foot" n="2"> http://bison.ph.bham.ac.uk/spaceinn/aims/version1.2/_downloads/ Overview.pdf 3 The user should be careful not to choose a set of asteroseismic parameters which are redundant, as this would lead to a singular covariance matrix and poor numerical results. 4 http://bison.ph.bham.ac.uk/spaceinn/aims/tutorial/download/ analyse_grid.py</note>
+
+			<note place="foot" n="5"> See https://amp.phys.au.dk/guide/fileformat. 6 See http://bison.ph.bham.ac.uk/spaceinn/aims/version1.2/formats. html#format-of-a-file-with-observational-constraints. 7 We note that this is not the preferred way of supplying ∆ ν, as it does not correctly take into account correlations with other asteroseismic constraints. A better approach is to introduce the large separation via the seismic constraints variable in AIMS configure.py.</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Bazot</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Bourguignon</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Christensen-Dalsgaard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">427</biblScope>
+			<biblScope unit="page">1847</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">A</forename><surname>Buchhave</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Latham</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Johansen</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Nature</title>
+		<imprint>
+			<biblScope unit="volume">486</biblScope>
+			<biblScope unit="page">375</biblScope>
+			<date type="published" when="2012" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Christensen-Dalsgaard</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Ap&amp;SS</title>
+		<imprint>
+			<biblScope unit="volume">316</biblScope>
+			<biblScope unit="page">113</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Foreman-Mackey</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">W</forename><surname>Hogg</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Lang</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Goodman</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">PASP</title>
+		<imprint>
+			<biblScope unit="volume">125</biblScope>
+			<biblScope unit="page">306</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">N</forename><surname>Gai</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Basu</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">J</forename><surname>Chaplin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">Y</forename><surname>Elsworth</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">730</biblScope>
+			<biblScope unit="page">63</biblScope>
+			<date type="published" when="2011" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Goodman</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Weare</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Comm. App. Math. Comp. Sci</title>
+		<imprint>
+			<biblScope unit="volume">5</biblScope>
+			<biblScope unit="page">65</biblScope>
+			<date type="published" when="2010" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Gruberbauer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">B</forename><surname>Guenther</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><surname>Macleod</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">T</forename><surname>Kallinger</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">MNRAS</title>
+		<imprint>
+			<biblScope unit="volume">435</biblScope>
+			<biblScope unit="page">242</biblScope>
+			<date type="published" when="2013" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">N</forename><surname>Lund</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">V</forename><surname>Silva Aguirre</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">R</forename><surname>Davies</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="volume">835</biblScope>
+			<biblScope unit="page">172</biblScope>
+			<date type="published" when="2017" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>

@@ -1,0 +1,746 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:schemaLocation="http://www.tei-c.org/ns/1.0 /mnt/ResearchCloud/Projects/ExoPlanets/notebooks/grobid/grobid-0.5.2/grobid-home/schemas/xsd/Grobid.xsd"
+ xmlns:xlink="http://www.w3.org/1999/xlink">
+	<teiHeader xml:lang="en">
+		<encodingDesc>
+			<appInfo>
+				<application version="0.5.2" ident="GROBID" when="2018-12-04T16:04+0000">
+					<ref target="https://github.com/kermitt2/grobid">GROBID - A machine learning software for extracting information from scholarly documents</ref>
+				</application>
+			</appInfo>
+		</encodingDesc>
+		<fileDesc>
+			<titleStmt>
+				<title level="a" type="main">A simple algorithm for optimization and model fitting: AGA (Asexual Genetic Algorithm)</title>
+			</titleStmt>
+			<publicationStmt>
+				<publisher/>
+				<availability status="unknown"><licence/></availability>
+				<date type="published" when="2009-05-22">22 May 2009 October 28, 2018</date>
+			</publicationStmt>
+			<sourceDesc>
+				<biblStruct>
+					<analytic>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Cantó</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Instituto de Astronomía</orgName>
+								<orgName type="institution" key="instit2">Universidad Nacional Autónoma de México</orgName>
+								<address>
+									<addrLine>Apdo. Postal 70-264, Ciudad Universitaria</addrLine>
+									<postCode>04510</postCode>
+									<settlement>Coyoacán</settlement>
+									<country key="MX">Mexico</country>
+								</address>
+							</affiliation>
+						</author>
+						<author role="corresp">
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Curiel</surname></persName>
+							<email>scuriel@astroscu.unam.mx</email>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Instituto de Astronomía</orgName>
+								<orgName type="institution" key="instit2">Universidad Nacional Autónoma de México</orgName>
+								<address>
+									<addrLine>Apdo. Postal 70-264, Ciudad Universitaria</addrLine>
+									<postCode>04510</postCode>
+									<settlement>Coyoacán</settlement>
+									<country key="MX">Mexico</country>
+								</address>
+							</affiliation>
+						</author>
+						<author>
+							<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Martínez-Gómez</surname></persName>
+							<affiliation key="aff0">
+								<orgName type="institution" key="instit1">Instituto de Astronomía</orgName>
+								<orgName type="institution" key="instit2">Universidad Nacional Autónoma de México</orgName>
+								<address>
+									<addrLine>Apdo. Postal 70-264, Ciudad Universitaria</addrLine>
+									<postCode>04510</postCode>
+									<settlement>Coyoacán</settlement>
+									<country key="MX">Mexico</country>
+								</address>
+							</affiliation>
+						</author>
+						<title level="a" type="main">A simple algorithm for optimization and model fitting: AGA (Asexual Genetic Algorithm)</title>
+					</analytic>
+					<monogr>
+						<imprint>
+							<date type="published" when="2009-05-22">22 May 2009 October 28, 2018</date>
+						</imprint>
+					</monogr>
+					<note type="submission">Received ; Accepted</note>
+					<note>Astronomy &amp; Astrophysics manuscript no. 1740ms c ESO 2018</note>
+				</biblStruct>
+			</sourceDesc>
+		</fileDesc>
+		<profileDesc>
+			<textClass>
+				<keywords>Methods:numerical-Stars-55 Cancri-Planets and Satellites:general-ISM:individual(L1448)</keywords>
+			</textClass>
+			<abstract>
+				<p>Context. Mathematical optimization can be used as a computational tool to obtain the optimal solution to a given problem in a systematic and efficient way. For example, in twice-differentiable functions and problems with no constraints, the optimization consists of finding the points where the gradient of the objective function is zero and using the Hessian matrix to classify the type of each point. Sometimes, however it is impossible to compute these derivatives and other type of techniques must be employed such as the steepest descent/ascent method and more sophisticated methods such as those based on the evolutionary algorithms. Aims. We present a simple algorithm based on the idea of genetic algorithms (GA) for optimization. We refer to this algorithm as AGA (Asexual Genetic Algorithm) and apply it to two kinds of problems: the maximization of a function where classical methods fail and model fitting in astronomy. For the latter case, we minimize the chi-square function to estimate the parameters in two examples: the orbits of exoplanets by taking a set of radial velocity data, and the spectral energy distribution (SED) observed towards a YSO (Young Stellar Object). Methods. The algorithm AGA may also be called genetic, although it differs from standard genetic algorithms in two main aspects: a) the initial population is not encoded, and b) the new generations are constructed by asexual reproduction. Results. Applying our algorithm in optimizing some complicated functions, we find the global maxima within a few iterations. For model fitting to the orbits of exoplanets and the SED of a YSO, we estimate the parameters and their associated errors.</p>
+			</abstract>
+		</profileDesc>
+	</teiHeader>
+	<text xml:lang="en">
+		<body>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="1.">Introduction</head><p>Mathematical optimization can be used as a computational tool in deriving the optimal solution for a given problem in a systematic and efficient way. The need to search for parameters that cause a function to be extremal occurs in many kinds of optimization. The optimization techniques fall in two groups: deterministic <ref type="bibr" target="#b10">(Horst and Tuy, 1990)</ref> and stochastic <ref type="bibr" target="#b9">(Guus, Boender and Romeijn ,1995)</ref>. In the first group, we have the classical methods that are useful in finding the optimum solution or unconstrained maxima or minima of continuous and twicedifferentiable functions. In this case, the optimization consists of identifying points where the gradient of the objective function is zero and using the Hessian matrix to classify the type of each point. For instance, if the Hessian matrix is positive definite, the point is a local minimum, if it is negative, the point is a local maximum, and if if indefinite, the point is some kind of saddle point. However, the classical methods have limited scope in practical applications since some involve objective functions that are not continuous and/or not differentiable. For these reasons, it is necessary to develop more advanced techniques that belong to the second group. Stochastic models rely on probabilistic approaches and have only weak theoretical guarantees of convergence to the global solution. Some of the most useful stochastic optimization techniques include: adaptive random search <ref type="bibr" target="#b2">(Brooks, 1958)</ref>, clustering methods <ref type="bibr">(Törn, 1973)</ref>, evoSend offprint requests to: E. Martínez-Gómez lutionary computation that includes genetic algorithms, evolutionary strategies and evolutionary programming <ref type="bibr" target="#b7">(Fogel, Owens and Walsh, 1966;</ref><ref type="bibr">Schwefel, 1995;</ref><ref type="bibr" target="#b8">Goldberg, 1989;</ref><ref type="bibr" target="#b13">McCall, 2005</ref>), simulated and quantum annealing <ref type="bibr" target="#b11">(Kirkpatrick, Gellatt and Vecchi, 1983)</ref>, and neural networks <ref type="bibr">(Bounds, 1987)</ref>.</p><p>We present a simple algorithm for optimization (finding the values of the variables that maximize a function) and model fitting (finding the values of the model parameters that fit a set of data most closely). The algorithm may be called genetic, although it differs from standard genetic algorithms <ref type="bibr" target="#b10">(Holland, 1975</ref>) in the way that new generations are constructed. Standard genetic algorithms involve sexual reproduction, that is, the reproduction by the union of male and female reproductive individuals. Instead, our algorithm uses asexual reproduction, in which offspring are produced by a single parent (as in the fission of bacterial cells).</p><p>The paper is organized as follows. In Sect. 2, we present and describe the main characteristics of our algorithm called AGA (Asexual Genetic Algorithm). In Sect. 3, we apply the algorithm to two kinds of problems: maximization of complicated mathematical functions and a model fitting procedure. In the latter group, we consider two examples taken from astronomy: a) the orbital fitting of exoplanets, and b) the model fitting of the Spectral Energy Distribution (SED) observed in a Young Stellar Object (YSO). In both cases, we minimize their corresponding chi-square function. In Sect. 4, we summarize and discuss the results for each case.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="2.">Description of the AGA (Asexual Genetic Algorithm)</head><p>We consider the problem of finding the absolute maxima of a real function of N variables i.e., identifying the values of the N variables (the coordinates of a point in the space of N dimensions) for which the function attains its maximum value. It is assumed that the absolute maximum is inside a bounded region V where the function is defined. Our algorithm proceeds in the following way (see also <ref type="figure" target="#fig_0">Fig.  1</ref>):</p><p>1. Construct a random initial population. The initial population is a set of N 0 randomly generated points (in the context of evolutionary algorithms, they are also called individuals) within the region V. 2. Calculate the fitness of each individual in the population. The fitness is calculated by evaluating the function at each point. 3. Select a subset of individuals with the highest fitness. Rank the points according to the value of the function, and choose a subset of N 1 points with the highest values of the function. 4. Construct a new population using the individuals in the subset. Generate N 2 random points within a previously selected vicinity E around each of the selected points. 5. Replace the source population with the new population. The new population is the set of (N 1 × N 2 ) + N 1 points that results from step 4 plus a clone of each parent. We may choose (as we did) N 1 and N 2 such that (N 1 × N 2 ) + N 1 = N 0 , keeping the size of the population N 0 unchanged for each generation. In this way, one can devise an iterative procedure. 6. If the stopping criteria (accuracy, maximum number of generations, etc.) have not been met, return to step 2.</p><p>It is clear that this presented algorithm in many aspects resembles standard genetic algorithms. The key difference is the way the new population is constructed: in this version, we propose an asexual reproduction with mutation in the sense that the offspring of a parent is a point randomly selected within a narrow neighborhood of the (single) parent point. Hence, the name for our algorithm is AGA, meaning Asexual Genetic Algorithm <ref type="figure" target="#fig_0">(Fig. 1)</ref>. We note that in the new generation we always include a clone of the parent, that is, we always keep the original seed points to be used for the next generation whenever the parents are more well suited than their offspring. For the vicinity E of each selected point, we used rectangular (hyper)boxes of decreasing size. The box around each point was centered on the point and had a side length 2∆ ij along direction i in the generation j. In particular, we take,</p><formula xml:id="formula_0">∆ i j = ∆ i 0 p j ,<label>(1)</label></formula><p>where 2∆ i0 is the initial length of the box along direction i, and p is a fixed numerical value less than unity (which can be called the "convergency factor"). In this way, the length of each box side decreases by a factor p in each generation. For instance, if we want the side length of the box to decrease by a factor 2 after 10 generations then,</p><formula xml:id="formula_1">p = 1 2 1 10 = 0.9330<label>(2)</label></formula><p>Decreasing the size of the vicinity E each generation is intended to achieve the highest possible accuracy for the position of the point at which the function attains its absolute maxima.</p><p>The speed with which the AGA finds a solution depends, of course, on the factor p; the lower the value of p, the faster the solution found. However, if p is too low, the sampling area around the points may decrease so fast that the AGA has no time to migrate to the true solution. On the other hand, if p is too high, many of the offspring will never reach the solution within the convergency criterion. As a consequence of this, the error in the solution will be high and in some cases, the solution will not be reached. The adequate value for p depends on the problem itself. The optimization of p can be achieved by trial and error. However, we have found that a value between 0.4 and 0.6 is adequate for all the tested problems.</p><p>An alternative way of choosing the box size consists of employing the standard deviation of the points contained in the subset N 1 along each dimension. In such a case, the length of the sides of the box naturally decreases as the algorithm converges. This method works quite efficiently for problems with a few dimensions. Interestingly, the length of the box size in this case decreases following a power law such as that in Eq. 1, with a moderately high values of p (between 0.5-0.8) for the first few generations, abruptly changing to a much lower values (0.2-0.3) for the rest of the generations.</p><p>In the case of problems with the large number of parameters to be estimated, we added an iterative method to the scheme presented above. This iterative method consisted of performing a series of runs (each one following the scheme shown in <ref type="figure" target="#fig_0">Fig. 1</ref>) in such a way that the resultant parameters of a run are taken as the initial "guess" for the next run. This procedure may be equivalent to performing a single run allowing for additional generations, but this is not the case. The key difference is that for each run in the iterative procedure, the sizes of the sampling boxes are reset to their initial values, i. e., each run starts searching for solution using boxes of the same size as those used in the first run but centered on improved initial values. We consider to have reached the optimal solution when the values of the parameters do not change considerably (within a tolerance limit) after several iterations, and the χ 2 is found to have reached a limiting value (see sect. 3.2.1 and <ref type="figure">Fig. 7</ref> for an example).</p><p>We find that this iterative strategy guarantees the convergence to the optimal solution, since it avoids the potential danger of using values of p that do not allow the AGA to drift (migrate) to the "true" solution within a single run. Problems that involve the finding of a large number of parameters are potentially subject to this risk, since each parameter may require a different value of p. Furthermore, problems with a large number of parameters become particularly difficult when the values of the different parameters differ by several orders of magnitude, as in the fitting of the orbits of exoplanets and the fitting of the SED of YSOs (see Examples 1 and 2 in Sect. 3). In this case, the iterative method has proven to be particularly useful; the solution usually improves considerably after several iterations.</p><p>In the following section, we describe some applications of AGA. We have divided the applications into two groups depending on the type of problem to solve: the maximization of complicated functions and model fitting in astronomy.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.">Applications of the AGA</head><p>We separate the optimization problems in two groups. In the first group, we consider functions of two variables where many classical optimization methods present formidable difficulties in finding the global maximum. In the second group, we show two typical examples of model fitting in astronomy that can be treated as minimization procedures. A new generation is constructed by an asexual reproduction (see text) which replaces the older one. If the stopping criteria are met, we stop. If not, we use these individuals as an initial population and start again.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.">Optimization of functions of two variables</head><p>There are many examples of functions that are not easy to optimize with classical techniques such as the simplex method, the gradient (or Newton-Raphson) method, the steepest ascent method <ref type="bibr" target="#b5">(Everitt, 1987)</ref>, among others. In such cases, the existence of many maxima (or minima) and the sharpness of the peaks can represent a serious problem. Because of this, the standard Genetic Algorithms or GA are successfully applied in searching for the optimal solution. We consider some typical examples treated by this technique, which are shown below.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.1.">Example 1</head><p>We consider the following function <ref type="bibr">(Charbonneau, 1995)</ref>:</p><formula xml:id="formula_2">f (x, y) = [16x (1 − x) y (1 − y) sin (nπx) sin (nπy)] 2 (3)</formula><p>where the variables x, y ∈ [0, 1] and n ∈ N − {0}. Identifying the global maximum of this function for large n is a difficult task because there are many local maxima that differ little in value but are separated by deep "valleys" in the two-dimensional landscape. Techniques such as the steepest ascent/descent and the conjugate gradient method are local methods that work well if f (x, y) is a smooth function that can be differentiated at least once and a single maximum exists in the domain under consideration.  <ref type="figure" target="#fig_1">Fig. 2</ref>, we show the solution to this problem (n = 9) by applying AGA after fixing the initial population size, number of parents, number of descendants, and convergency factor <ref type="table" target="#tab_0">(Table 1)</ref>. Our graphs have the same format as those presented by Charbonneau (1995) to facilitate their comparison.</p><p>In the first panel, we start with a population of N 0 = 100 individuals, i. e., a set formed by 100 random points representing the candidate solutions to the global maximum distributed more or less uniformly in parameter space. After 5 generations (second panel), a clustering at the second, third and fourth maxima is clearly apparent. After 10 generations, the solutions already cluster around the main maxima. At the 25th generation, we have reached the maximum in (x * , y * ) = (0.5, 0.5) with f (x * , y * ) = 1 with an accuracy of ∼ 10 −7 . We note that at the 25th generation all the 100 individuals have reached the maximum with at least this accuracy.</p><p>In the last panel, we show the evolution in the fittest "phenotype" with the number of generations as plotted for two sizes of the population, N 0 = 100 and N 0 = 400; in other words, we measure the deviation in the function value for the maxima points identified in each generation from the "true" maximum, that is, f (0.5 * , 0.5 * ) = 1. It is evident from <ref type="figure" target="#fig_1">Fig. 2</ref> that a larger size of the population causes the maximum to be reached in a lower number of generations.</p><p>In <ref type="figure" target="#fig_2">Fig. 3</ref>, we show the evolution in the global solution using AGA and the results obtained by Charbonneau (1995) using a traditional GA. In the first panel for both works, an initial population of 100 individuals is randomly selected. After 10 generations, all the individuals in our algorithm have clustered around the maxima; in contrast, the GA has started to form some clusters. In the third panel, after 20 generations, AGA has found the global maxima, while the GA continues to search among clusters for a global solution. In the fourth panel, the convergence to the global solution is shown for both works, our AGA having reached the solution in 25 generations with higher accuracy than the 90 generations employed by the GA. In the fifth panel, we finally can compare the evolution in the fittest phenotype for each generation, calculated to be 1 − f (x max , y max ). For AGA, these differences are much smaller than those obtained with the GA method, which indicates that our algorithm is more accurate than GA. However, we note that the solution presented in Charbonneau's work was limited by the number of digits used in the encoding scheme. The GA algorithm can also reach high levels of precision by changing the encoding, but at the cost of slower convergence, which would make the GA algorithm become even more computationally expensive than the AGA. The lower number of generations required by AGA to reach a global solution demonstrates that AGA is more efficient than the GA method. A solution to the model optimization problem based on the idea of the Asexual Genetic Algorithm. The first five panels show the elevation contours of constant f (Eq. 3 with n = 9) and the population distribution of candidate solutions (each one contains 100 points), starting with the initial random population (in the standard GA it is defined as the "genotype") in (a) and proceeding on through the 25th generation on (e). In the sixth panel, we show the evolution of the fittest "phenotype" assuming two sizes of the population, N 0 = 100 and N 0 = 400.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.1.2.">Example 2</head><p>The following example is proposed as a function test in the PIKAIA's user guide ( <ref type="bibr">Charbonneau and Knapp, 1995)</ref>. The problem consists of locating the global maximum of the function:</p><formula xml:id="formula_3">f (r) = f (x, y) = cos a (bπr) exp − r 2 2σ 2<label>(4)</label></formula><p>where a and b are known constants, r is the radial distance given by the expression r = (x − x 0 ) 2 + (y − y 0 ) 2 , σ is the width of the Gaussian and the position of the maximum peak is (x 0 , y 0 ). Observed from above, this function appears like concentric rings of similar widths and amplitudes (see <ref type="figure" target="#fig_3">Fig.4</ref>). The difficulty in finding the maximum peak of this function is that the area of the concentric rings is much larger than the area at the center containing the maximum peak (see <ref type="figure" target="#fig_3">Fig.4</ref>). This property ensures that most of the algorithms searching for the maximum peak fail because they usually become fixed inside in one of the rings and identify a local maximum instead. We experimented with different values of a, b, and σ 2 (a = 2, 4; b = 3, 9 and σ 2 = 1, 2, 4), as well as different centers (x 0 , y 0 ). In all cases, using AGA with the parameters shown in <ref type="table" target="#tab_0">Table 1</ref>, the "true" maximum peak was found in just a few steps, typically in less than 100 generations, and with an accuracy of 10 −6 . The results are summarized in <ref type="table" target="#tab_1">Table 2</ref>. Changing the position of the center did not substantially change the number of generations needed to reach the selected tolerance level. In the first panel we start with an initial population of 100 individuals and both algorithms start to search the global maxima. While the GA employs 90 generations to reach the solution, our AGA just requires 25 (fourth panels). The fifth panels show the evolution of the fittest phenotype with the number of generations for AGA (left) and GA (right). Note that indeed, AGA reaches an accuracy of ∼ 10 −8 in less that 30 generations while GA attains an accuracy of ∼ 10 −2 in 100 generations.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.">The parameter estimation problem in astronomical models</head><p>In the physical sciences, curve or model fitting is essentially an optimization problem. Giving a discrete set of N data points (x i , y i ) with associated measurement errors σ i , one seeks the best possible model (in other words, the closest fit) for these data using a specific form of the fitting function, y (x). This function has, in general, several adjustable parameters, whose values are obtained by minimizing a "merit function", which measures the agreement between the data and the model function y (x). We suppose that each data point y i has a measurement error that is independently random and distributed as a normal distribution about the "true" model with standard deviation σ i . The maximum likelihood estimate of the model parameters (c 1 , ..., c k ) is then obtained by minimizing the function,</p><formula xml:id="formula_4">χ 2 ≡ N i=1 y i − y (x i ; c 1 , .., c k ) σ i 2<label>(5)</label></formula><p>3.2.1. Evaluation of the error estimation</p><p>The experimental or observational data are subject to measurement error, thus it is desirable to estimate the parameters in the chosen model and their errors. In the straight-line-data fitting and the general linear least squares,we can compute the standard deviations or variances of individual parameters through simple analytic formulae <ref type="figure" target="#fig_0">(Press et al., 1996)</ref>. However, when we attempt to minimize a function such as Eq. 5, we have no expression for calculating the error in each parameter. A good approach to solve this problem consists of building "synthetic data sets". The procedure is to draw random numbers from appropriate distributions so as to mimic our clearest understanding of the underlying process and measurement errors in our apparatus. With these random selections, we compile data sets with exactly the same numbers of measured points and precisely the same values of all control or independent variables, as our true data set. In other words, when the experiment or observation cannot be repeated, we simulate the results we have obtained.</p><p>We compiled the synthetic data with the process illustrated in <ref type="figure" target="#fig_4">Fig. 5</ref> and from the following expression:</p><formula xml:id="formula_5">y ′ i = y i + σ i (2ξ − 1)<label>(6)</label></formula><p>where y ′ i represents the i-th data point of the new set, y i is the i-th data point of the original set, σ i is the error associated with the ith data point, and ξ is a random number within the interval <ref type="bibr">[0,</ref><ref type="bibr">1]</ref>. Using Eq. 6, we generated synthetic data sets with the original errors because they are related to the measurements. For each of these data sets, we found a corresponding set of parameters (see <ref type="figure" target="#fig_4">Fig. 5</ref>). Finally, we calculated the average values of each parameter and the corresponding standard deviation, as the estimates of the parameters and their associated errors, respectively. We applied this procedure to the following examples.  From the original set of measurements/observations, several synthetic data sets are constructed. This is achieved by adding to the dependant variable a random number whose absolute value is within the estimated errors of the original data. For each of these synthetic data sets, a set of fitted parameters is obtained. The average value of each parameter and the corresponding standard deviation are taken as estimates of the parameters and their associated errors.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.2.">Fitting the orbits of Extrasolar Giant Planets</head><p>We use the merit function given in Eq. 5 and the algorithm described in Sect. 2 to solve an interesting and challenging task in astronomy: curve or model fitting of data for the orbits of the extrasolar planets.</p><p>The first extrasolar planet was discovered in 1995 by <ref type="bibr" target="#b13">Mayor and Queloz (1995)</ref> and, according to The Extrasolar Planets Encyclopaedia 1 , until February 2009 there had been 342 candidates detected. Most of them (316) were revealed by radial velocity or astrometry of 269 host stars, that is, by Keplerian Doppler shifts in their host stars. Doppler detectability favors high masses and small orbits depending mainly on the present Doppler errors achievable with available instruments. In addition, the precision of the Doppler technique is probably about 3 m s -1 , owing to the intrinsic stability limit of stellar photospheres. This technique is sensitive to companions that induce reflex stellar velocities, K &gt; 10 m s −1 , and exhibit orbital periods ranging from a few days to several years, the maximum detectable orbital period being set by the time baseline of the Doppler observations. The remaining exoplanets were detected by other techniques: microlensing (8), imaging (11), and timing <ref type="bibr">(7)</ref>. For this example we only refer to the planets detected by radial velocity.</p><p>We now consider a system consisting of a central star of mass M * , surrounded by N p planets in bounded orbits. Assuming that the orbits are unperturbed Kepler orbits, the line-of-sight velocity of the star relative to the observer ( <ref type="bibr">Lee and Peale, 2003</ref>) is,</p><formula xml:id="formula_6">v * = v 0 + Np j=1 K j [cos (f j + ω j ) + e j cos ω j ]<label>(7)</label></formula><p>where e j is the eccentricity, ω j is the argument of the pericenter, f j is the true anomaly, K j is the velocity amplitude of planet j, and v 0 is the line-of-sight velocity of the center-of-mass relative to the observer. The true anomaly is related to time by means of Kepler's equation,</p><formula xml:id="formula_7">E − e j sin (E) = 2π T j (t − t 0j )<label>(8)</label></formula><p>and</p><formula xml:id="formula_8">tan f j 2 = 1 + e j 1 − e j tan E 2<label>(9)</label></formula><p>where T j and t 0j are the period and time, respectively, of pericenter passage for planet j. Thus, for each planet, there are 5 free parameters: e j , T j , t 0j , K j and ω j . Additionally, there is the systemic velocity v 0 . In total, we have (5 × N p ) + 1 free parameters, which are simultaneously fitted using AGA. When these basic parameters for each planet are known through model fitting, we can estimate the semi-major axes of the orbits, a j , and the masses of each planet, m j . To do this, we have to make other simplifying assumptions. For instance, in the simplest model of totally independent planets,</p><formula xml:id="formula_9">K j = 2πG T j 1 3 m j sin (i j ) (M * + m j ) 2 3 1 1 − e 2 j (10)</formula><p>from which we can determine either m j by assuming sin i j = 1 or m j sin i j by neglecting m j in front of the mass of the star, M * . We can then estimate a j using Kepler's third law,</p><formula xml:id="formula_10">T 2 j = 4π 2 a 3 j G (M * + m j )<label>(11)</label></formula><p>where G denotes the gravitational constant. We applied the AGA presented in Sect. 2 to the measured radial velocities of the main-sequence star 55 Cancri, published by <ref type="bibr" target="#b6">Fischer et al. (2008)</ref>.</p><p>The data set contains 250 measurements completed at the Lick Observatory from 1989 to 2007, and 70 measurements made at the Keck Observatory from 2002 to 2007 of the velocity of 55 Cancri. Data from Lick has measurement errors of ∼ 10 m s −1 <ref type="bibr">(1989)</ref><ref type="bibr">(1990)</ref><ref type="bibr">(1991)</ref><ref type="bibr">(1992)</ref><ref type="bibr">(1993)</ref><ref type="bibr">(1994)</ref> and 3-5 m s −1 <ref type="bibr">(1995)</ref><ref type="bibr">(1996)</ref><ref type="bibr">(1997)</ref><ref type="bibr">(1998)</ref><ref type="bibr">(1999)</ref><ref type="bibr">(2000)</ref><ref type="bibr">(2001)</ref><ref type="bibr">(2002)</ref><ref type="bibr">(2003)</ref><ref type="bibr">(2004)</ref><ref type="bibr">(2005)</ref><ref type="bibr">(2006)</ref><ref type="bibr">(2007)</ref>. Data from Keck has measurement errors of 3 m s −1 for data acquired prior to 2004 August and 1.0-1.5 m s −1 thereafter. The measured data have a maximum amplitude of ∼ 150 m s −1 and are of excellent signal-to-noise ratio. The orbital parameters were established by the detection of four planets in all Doppler measurements. To test a possible stellar systemic velocity remnant in the data, we added an additional parameter to the systemic velocity of the star obtaining a value of 17.28 m s −1 . We fitted the orbits of 1, 2, 3, and 4 planets to this data (see <ref type="figure" target="#fig_5">Fig.  6</ref>). This exercise shows that the fitting solution improves when considering the orbit of more planets. The rms of the residuals and the χ red , χ 2 red = χ 2 Npoints−Nparameters−1 values, improve from values of 33.5 and 9.72, respectively, when fitting the orbit of one planet, to values of 7.99 and 2.03, respectively, when fitting the orbit of four planets (see <ref type="table">Table 3</ref>). In general, the values of the rms, χ 2 red fits and the derived parameters compare well with those obtained by <ref type="bibr" target="#b6">Fischer et. al. (2008)</ref>. In <ref type="table" target="#tab_3">Tables 3 and 4</ref>, we summarize our results. <ref type="table">Table 3</ref>. Our values of the rms of the residuals and the χ 2 red fits for the orbital fitting problem using AGA. For comparison, in the last two columns we show their corresponding values obtained by <ref type="bibr" target="#b6">Fischer et al. (2008</ref> With the exceptions of the third and fourth planet fittings, our rms values are lower than those obtained by <ref type="bibr" target="#b6">Fischer et al. (2008)</ref>. Our χ 2 red values are however lower in all cases. From the parameters shown in <ref type="table" target="#tab_3">Table 4</ref> we were able to derive the mass of the planet, M P sin i (M J ), and the major semiaxis a (AU). For the four-planet fitting, we found ( <ref type="table" target="#tab_5">Table 5</ref>) that our values compare well with those reported by <ref type="bibr" target="#b6">Fischer et al. (2008)</ref> in their five-planet model. Except for the first planet, all the values for the major semiaxis have a standard error lower than those obtained in the Fischer's model. In the case of the mass of each planet, our values have smaller standard errors.</p><p>We included the iterative scheme discussed in sect. 2 in fitting the orbit of the planets. In <ref type="figure">Fig. 7</ref>, we show the value of the χ 2 red for the four-planet fit calculated after each run. In this case, we started with χ 2 red = 4.16 and after the 10th iterative run, the χ 2 red had diminished to 4.15, which means that we had not found the optimal solution. During the first iterative runs, we note that the value of χ 2 red decreased rapidly. After about 100 iterative runs, the χ 2 red had not changed significally and converged to a fixed value (there are only slight variations in the last decimals). At this point, we can be assured that the value of the parameters have been found. Finally, we estimated the errors in fitting the orbits of the four planets as described in sect. 3.2.1. We present the estimated errors in <ref type="table" target="#tab_3">Tables 4 and 5</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="3.2.3.">Fitting the spectral energy distribution (SED) for a YSO</head><p>A spectral energy distribution (SED) is a plot of flux, brightness or flux density versus frequency/wavelength of light. It is widely used to characterize astronomical sources i. e., to identify the type of source (star, galaxy, circumstellar disk) that produces these fluxes or brightness. Modelling the observed SEDs can help us to infer the temperature and size, among the other physical parameters of the source. As examples in radio astronomy, a SED with a negative spectral index ∼ −0.7 would indicate the presence of a synchrotron radiation source; in infrared astronomy, SEDs can be used to classify T-Tauri stars; in galactic astronomy, the analysis of the SEDs leads to the determination of the respective roles of the old and young stellar populations in dust-grain heating. For the reasons explained above, it is interesting to find the adequate model for an observed SED. We consider the observations reported by <ref type="bibr" target="#b4">Curiel et al. (2009)</ref> in the L1448 region. This cloud is part of the Perseus molecular cloud complex located at a distance of ∼ 300 pc. We are interested in fitting the observed SED for a couple of reasons: it contains an extremely young and highly collimated bipolar outflow ( <ref type="bibr" target="#b1">Bachiller et al. 1990</ref>) and seems to be a site of very recent star formation based on some  Our estimated values for the five parameters of the four exoplanets around 55 Cancri. The planets are listed in order of increasing orbital period, and the planet designations, b-e, correspond to the notation given by <ref type="bibr" target="#b12">Marcy et al. (2002)</ref> and <ref type="bibr" target="#b6">Fischer et al. (2008)</ref>. The value for the χ 2 red is also included.  observations ( <ref type="bibr" target="#b0">Anglada et al. 1989;</ref><ref type="bibr" target="#b3">Curiel et al. 1990;</ref><ref type="bibr" target="#b2">Barsony et al. 1998;</ref><ref type="bibr" target="#b8">Girart &amp; Acord 2001;</ref><ref type="bibr" target="#b14">Reipurth et al. 2002)</ref>.</p><formula xml:id="formula_11">Planet T (days) t0 (JD) e ω (deg) K1 (m s -1 ) p χ 2</formula><p>The data are taken from <ref type="bibr" target="#b4">Curiel et al. (2009)</ref>, who carried out a fit of the SED by assuming that there are three main components contributing to the flux at different wavelengths. Thus, the fitting function was given by the contribution of an optically free-free component and two grey bodies: <ref type="figure">Figure 7</ref>. Convergence of the χ 2 red value with the number of runs (do not confuse with the number of generations done within AGA). The curve shows how χ 2 red converges to a "limiting" value in the sense that the variations occur in the last decimals (vertical line). As the number of runs increases the value of χ 2 red diminishes which means that we have not reached the optimal solution. Only after about 100 runs the χ 2 red value has converged and at this point the parameters do not significally change after subsecuent runs.</p><formula xml:id="formula_12">S ν = c 1 ω c2 + c 3 1 − e −c4ω c 5 ω 3 e c6ω − 1 + c 7 1 − e −c8ω c 9 ω 3 e c10ω − 1</formula><p>(12) where ω ≡ ν ν0 is the frequency normalized to a reference frequency, ν 0 . The free parameters to be estimated, by the minimization of the chi-square (Eq. 5), are identified as c 1 , c 2 , ..., c 10 . They are defined in terms of their corresponding physical parameters as: c 1 ≡ F C is the flux of optically thin emission with a spectral index given by c 2 ≡ α, which corresponds to the free-free emission coming from a thermal jet;</p><formula xml:id="formula_13">c 3 = F 1 ≡ 2hΩν 3 0 c 2</formula><p>is a reference flux; c 4 ≡ τ 1 is the dust opacity evaluated at the reference frequency ν 0 ; c 5 ≡ β 1 is the dust emissivity index; and c 6 ≡ hν0 kT1 is related to the temperature. The last four parameters correspond to the emission originating in the first grey body (probably a molecular envelope). Finally, we propose that a second grey body exists that is a circumstellar disk surrounding the young protostar. Similarly, the parameters c 7 , c 8 , c 9 , and c 10 are related to the physical parameters of the second grey body. In the previous expressions, ν is the frequency at which the source is observed, h is the Planck's constant, Ω is the solid angle subtended by the source, c is the speed of light, τ is the optical depth at the frequency ν 0 for each component, β is the dust emissivity index for each component, and k is the Boltzmann's constant. We assumed the characteristic frequency of the source to be ν 0 = c λ7mm <ref type="bibr" target="#b4">(Curiel et. al., 2009)</ref>. <ref type="table" target="#tab_6">Table 6</ref> summarizes the values of the fitted parameters in the model described by Eq. 12 of the SED for a YSO in the L1448 region. <ref type="table" target="#tab_6">Table 6</ref> also includes the estimated errors in the fitted parameters, as described in sect. 3.3.1. <ref type="figure">Figure 8</ref> shows the observed data together with the best fit.  <ref type="figure">Figure 8</ref>. The Spectral Energy Distribution (SED) for a YSO in the L1448 region. The dots represent the observations and the bars their associated measurement errors. The straight line corresponds to the continuum flux, the dashed line is the first grey body, the dotted line is the second grey body and the solid line is the sum of the three contributions.</p><p>From <ref type="figure">Fig. 8</ref>, we can conclude that the fitted model with the parameters shown in <ref type="table" target="#tab_6">Table 6</ref> is adequate for explaining the observations of the YSO in the L1448 region. The fitted curve lies within the measurement error bars (except one point located at high frequencies) and the SED consists of a continuum component and the emission from two grey bodies. Further astrophysical implications of these results can be found in <ref type="bibr" target="#b4">Curiel et al. (2009)</ref>.</p></div>
+<div xmlns="http://www.tei-c.org/ns/1.0"><head n="4.">Summary and Conclusions</head><p>We have presented a simple algorithm based on the idea of genetic algorithms to optimize functions. Our algorithm differs from standard genetic algorithms mainly in mainly two respects: 1) we do not encode the initial information (that is, the initial set of possible solutions to the optimization problem) into a string of binary numbers and 2) we propose an asexual reproduction as a means of obtaining new "individuals" (or candidate solutions) for each generation.</p><p>We have then applied the algorithm in solving two types of optimization problems: 1) finding the global maximum in functions of two variables, where the typical techniques fail, and 2) parameter estimation in astronomy by the minimization of the chi-square. For the latter case, we considered two examples: fitting the orbits of extrasolar planets associated with the star 55 Cancri and fitting the SED of a YSO for the L1448 region.</p><p>We found that our algorithm has several advantages:</p><p>-It is easy to implement in any computer because it does not require an encoding/decoding routine, and the new generations are constructed by the asexual reproduction of a selected subset (with the highest fitness) of the previous population.</p><p>-The algorithm does not require the evaluation of standard genetic operations such as crossover and mutation. This is replaced by a set of sampling rules, which simplifies the creation of new generations and speeds up the finding of the best solution.</p><p>-When the initial "guess" is far from the solution, AGA is capable to migrate searching for the "true" optimal solution. The final solution is usually achieved after a few hundred generations, in some cases, even faster.</p><p>-In some difficult cases, such as the fitting of the orbits of several exoplanets and the fitting of the SED of YSOs (with several components), AGA finds the solution in a few hundred generations. In these cases, an iterative scheme (several runs of AGA using the solutions of one run as the initial "guess" of the next run) can help to improve finding the "true" solution. This is particularly useful when the variables have different orders of magnitude, which causes the different variables to not converge to the final solution at the same time.</p><p>-As a consequence of the previous points, AGA becomes computationally less expensive than the standard version (GA). The convergence of AGA is reached in just a few generations.</p><p>From the example of the orbital fitting for exoplanets around 55 Cancri, we can conclude that our algorithm gives parameters that compare well with those obtained by <ref type="bibr" target="#b6">Fischer et al. (2008)</ref>. <ref type="bibr" target="#b12">Marcy et al. (2002)</ref> also used the standard GA to obtain the parameters for a third planet, and they concluded that the GA fails to significally improve the χ 2 value. In the case of the SED for a YSO in the L1448 region, we find that the most adequate model contains the contribution of two grey bodies at high frequencies and free-free continuum emission, through a power law, at low frequencies.</p><p>Generally speaking the implementation of any kind of GA is advantageous in the sense that we do not have to compute any derivative of the selected fitness function allowing us to optimize functions with several local maxima points.</p><p>In this work, we have also implemented a method to estimate the error associated with each parameter based on the generation of "synthetic data sets". This method is easy to implement in any type of measured/observed data and constitutes a way of estimating the errors in the parameters when the minimization of the χ 2 is employed.</p></div><figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_0"><head>Figure 1 .</head><label>1</label><figDesc>Figure 1. Basic diagram for the implementation of the Asexual Genetic Algorithm (AGA). First we generate a random initial population. Then, we evaluate the fitness of each individual in this population and select those which have the highest fitness. A new generation is constructed by an asexual reproduction (see text) which replaces the older one. If the stopping criteria are met, we stop. If not, we use these individuals as an initial population and start again.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_1"><head>Figure 2 .</head><label>2</label><figDesc>Figure 2. A solution to the model optimization problem based on the idea of the Asexual Genetic Algorithm. The first five panels show the elevation contours of constant f (Eq. 3 with n = 9) and the population distribution of candidate solutions (each one contains 100 points), starting with the initial random population (in the standard GA it is defined as the "genotype") in (a) and proceeding on through the 25th generation on (e). In the sixth panel, we show the evolution of the fittest "phenotype" assuming two sizes of the population, N 0 = 100 and N 0 = 400.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_2"><head>Figure 3 .</head><label>3</label><figDesc>Figure 3. Comparison of our results with those obtained by Charbonneau (1995). We have maintained the same format and removed the curve of the evolution of the median-fitness individual in the fifth panel of Charbonneau's work to facilitate direct comparison. In the first panel we start with an initial population of 100 individuals and both algorithms start to search the global maxima. While the GA employs 90 generations to reach the solution, our AGA just requires 25 (fourth panels). The fifth panels show the evolution of the fittest phenotype with the number of generations for AGA (left) and GA (right). Note that indeed, AGA reaches an accuracy of ∼ 10 −8 in less that 30 generations while GA attains an accuracy of ∼ 10 −2 in 100 generations.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_3"><head>Figure 4 .</head><label>4</label><figDesc>Figure 4. Profile of the bi-dimensional positive cosine function. In the upper panels, we take a = 2, b = 3 and σ 2 = 2; in the lower panels, we take a = 4, b = 9 and σ 2 = 4. In both cases, the position of the maximum peak is (x, y) = (0.25, 0.25), where f (0.25, 0.25) = 1.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_4"><head>Figure 5 .</head><label>5</label><figDesc>Figure 5. From the original set of measurements/observations, several synthetic data sets are constructed. This is achieved by adding to the dependant variable a random number whose absolute value is within the estimated errors of the original data. For each of these synthetic data sets, a set of fitted parameters is obtained. The average value of each parameter and the corresponding standard deviation are taken as estimates of the parameters and their associated errors.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" xml:id="fig_5"><head>Figure 6 .</head><label>6</label><figDesc>Figure 6. The velocities and fits for each of the four planets are shown separately for clarity by subtracting the effects of the other planets. That is, for planet labelled b, planets c, d and e have been removed from the data using the parameters found in the simultaneous four-planet fitting. For planet labelled c we have removed planets b, d and e. For planet labelled d we have removed planets b, c and e. For planet labelled e we have removed planets b, c and d. We have added the fitted systemic velocity for the star, which value is 17.2826 m s -1 . The last panel (bottom and right) shows the residuals between the data and the model. The first (up and left) panel shows the raw data.</figDesc></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_0" validated="true"><head>Table 1 . Values of the initial parameters used in AGA for the four examples presented in this work.</head><label>1</label><figDesc></figDesc><table>❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ ❤ 
+
+Example 
+
+AGA's parameter 
+p 
+N1 N2 
+N0 
+
+Bi-dimensional functions (2) 
+0.6 
+10 
+9 
+100 
+20 
+19 400 
+Extrasolar planets 
+0.45 30 
+29 900 
+YSO 
+
+In </table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_1" validated="false"><head>Table 2 .</head><label>2</label><figDesc></figDesc><table>Values of the parameters a, b, and σ 2 assumed for 
+the function f (r) = cos a (bπr) exp 
+
+− r 2 
+
+2σ 2 
+
+
+and the number of 
+
+generations needed to reach an error tolerance of 10 −6 . 
+
+a b σ 2 Ngen 
+2 3 
+1 
+65 
+2 3 
+2 
+69 
+2 3 
+4 
+66 
+2 9 
+1 
+94 
+2 9 
+2 
+94 
+2 9 
+4 
+91 
+4 3 
+1 
+69 
+4 3 
+2 
+66 
+4 3 
+4 
+58 
+4 9 
+1 
+94 
+4 9 
+2 
+101 
+4 9 
+4 
+98 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_2" validated="false"><head>) .</head><label>.</label><figDesc></figDesc><table>Planet 
+
+1 
+
+This work 
+This work Fischer et al. Fischer et al. 
+rms (m s -1 ) 
+p 
+χ 2 
+
+red 
+
+rms (m s -1 ) 
+p 
+χ 2 
+
+red 
+
+b 
+33.5 
+9.72 
+39 
+10 
+b, c 
+10.69 
+3.38 
+11.28 
+3.42 
+b, c, d 
+9.69 
+2.49 
+8.62 
+2.50 
+b, c, d, e 
+7.99 
+2.03 
+7.87 
+2.12 
+1 The single-planet fitting was obtained in Marcy et al. (2002). 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_3" validated="false"><head>Table 4 .</head><label>4</label><figDesc></figDesc><table></table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_5" validated="false"><head>Table 5 .</head><label>5</label><figDesc></figDesc><table>Our derived values for the mass of the planet and the major semiaxis for the four-planet fitting. For comparison, we also 
+show the values obtained by Fischer et al. (2008) for their five-planet model, where we have removed the fifth body. 
+
+Planet 
+This work 
+This work 
+Fischer et al. 
+Fischer et al. 
+MP sin i (MJ) 
+a (AU) 
+MP sin i (MJ) 
+a (AU) 
+e 
+0.0361±0.0014 
+0.0383±0.0008 
+0.034±0.0036 0.038±1.0 × 10 −6 
+b 
+0.8285±0.0036 0.1148±1.0 × 10 −6 
+0.824±0.007 
+0.115±1.1 × 10 −6 
+c 
+0.1661±0.0035 0.2402±2.1 × 10 −5 
+0.169±0.008 
+0.240±4.5 × 10 −5 
+d 
+3.8201±0.0117 
+5.7705±0.0004 
+3.835±0.08 
+5.77±0.11 
+
+</table></figure>
+<figure xmlns="http://www.tei-c.org/ns/1.0" type="table" xml:id="tab_6" validated="true"><head>Table 6 . Estimated values for the ten parameters in the model of the SED for a YSO in the L1448 region.</head><label>6</label><figDesc></figDesc><table>Parameter 
+Value 
+p 
+χ 2 
+
+red 
+
+FC (mJy) 
+0.9295 ± 0.0330 
+
+1.9720 
+
+α 
+-0.0169 ± 0.0166 
+F1 (mJy) 
+1.7109± 0.1141 
+τ1 
+0.0728± 0.0062 
+β1 
+0.8999 ± 0.0575 
+T dust 1 (K) 
+75.7522 ± 0.5273 
+F2 (mJy) 
+0.0068 ± 0.0008 
+τ2 
+34.9140 ± 40.7209 
+β2 
+1.5992 ± 0.3254 
+T dust 2 (K) 330.8240 ± 1.2946 
+
+</table></figure>
+
+			<note place="foot" n="4"> J. Cantó, S. Curiel and E. Martínez-Gómez: A simple algorithm for optimization and model fitting</note>
+
+			<note place="foot" n="1"> http://exoplanet.eu/catalog</note>
+
+			<note place="foot" n="8"> J. Cantó, S. Curiel and E. Martínez-Gómez: A simple algorithm for optimization and model fitting</note>
+		</body>
+		<back>
+
+			<div type="acknowledgement">
+			</div>
+
+			<div type="references">
+
+				<listBibl>
+
+<biblStruct xml:id="b0">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Anglada</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">F</forename><surname>Rodríguez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Torrelles</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Estalella</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><forename type="middle">T P</forename><surname>Ho</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Cantó</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>López</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><surname>Verdes-Montenegro</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="page">208</biblScope>
+			<date type="published" when="1989" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b1">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Bachiller</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Martin-Pintado</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Tafalla</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Cernicharo</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Lazareff</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">A&amp;A</title>
+		<imprint>
+			<biblScope unit="volume">231</biblScope>
+			<biblScope unit="issue">1</biblScope>
+			<biblScope unit="page">174</biblScope>
+			<date type="published" when="1990" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b2">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Barsony</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Ward-Thompson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>André</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Linger</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">H</forename><surname>Brooks</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Astrophys. J</title>
+		<imprint>
+			<biblScope unit="volume">509</biblScope>
+			<biblScope unit="page">733</biblScope>
+			<date type="published" when="1958" />
+		</imprint>
+		<respStmt>
+			<orgName>NCAR Technical Note 418+IA (Boulder: National Center for Atmospheric Research</orgName>
+		</respStmt>
+	</monogr>
+	<note>Op. Res.. Suppl. Series, 101, 309. Charbonneau, P. &amp; Knapp, B. 1995, A User&apos;s guide to PIKAIA 1.0</note>
+</biblStruct>
+
+<biblStruct xml:id="b3">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Curiel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">C</forename><surname>Raymond</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Moran</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">F</forename><surname>Rodríguez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Cantó</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="page">85</biblScope>
+			<date type="published" when="1990" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b4">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Curiel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Girart</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Fernández-López</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Cantó</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">F</forename><surname>Rodríguez</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<date type="published" when="2009" />
+		</imprint>
+	</monogr>
+	<note>submitted</note>
+</biblStruct>
+
+<biblStruct xml:id="b5">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">S</forename><surname>Everitt</surname></persName>
+		</author>
+		<title level="m">Introduction to optimization methods and their application to statistics</title>
+		<meeting><address><addrLine>Ltd, UK</addrLine></address></meeting>
+		<imprint>
+			<publisher>Chapman &amp; Hall</publisher>
+			<date type="published" when="1987" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b6">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Fischer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Marcy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P</forename><surname>Butler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">S</forename><surname>Vogt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Laughlin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Henry</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Abouav</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">K</forename><forename type="middle">M G</forename><surname>Peek</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">T</forename><surname>Wright</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">A</forename><surname>Johnson</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Mccarthy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Isaacson</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="page">790</biblScope>
+			<date type="published" when="2008" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b7">
+	<monogr>
+		<title level="m" type="main">Artificial Intelligence through simulated evolution</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">J</forename><surname>Fogel</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><forename type="middle">J</forename><surname>Owens</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">J</forename><surname>Walsh</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1966" />
+			<publisher>Wiley &amp; Sons</publisher>
+			<pubPlace>New York</pubPlace>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b8">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M</forename><surname>Girart</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><forename type="middle">M P</forename><surname>Acord</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">E</forename><surname>Goldberg</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Genetic Algorithms in Search, Optimization and Machine Learning</title>
+		<meeting><address><addrLine>USA</addrLine></address></meeting>
+		<imprint>
+			<publisher>Addison Wesley Longman Publishing Co</publisher>
+			<date type="published" when="1989" />
+			<biblScope unit="volume">552</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b9">
+	<analytic>
+		<title level="a" type="main">Stochastic methods</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><surname>Guus</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">E</forename><surname>Boender</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><forename type="middle">E</forename><surname>Romeijn</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Handbook of global optimization</title>
+		<editor>R. Horst and P. M. Pardalos</editor>
+		<meeting><address><addrLine>Dordrecht, The Netherlands</addrLine></address></meeting>
+		<imprint>
+			<publisher>Kluwer Academic Publishers</publisher>
+			<date type="published" when="1995" />
+			<biblScope unit="page" from="829" to="869" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b10">
+	<monogr>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Holland</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><surname>Horst</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">H</forename><surname>Tuy</surname></persName>
+		</author>
+		<title level="m">Global optimization: Deterministic approaches</title>
+		<meeting><address><addrLine>Berlin</addrLine></address></meeting>
+		<imprint>
+			<publisher>Springer-Verlag</publisher>
+			<date type="published" when="1975" />
+		</imprint>
+	</monogr>
+	<note>Adaptation in Natural and Artificial Systems</note>
+</biblStruct>
+
+<biblStruct xml:id="b11">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><surname>Kirkpatrick</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">C</forename><forename type="middle">D</forename><surname>Gellatt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><forename type="middle">P</forename><surname>Vecchi</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">Science</title>
+		<editor>671. Lee, M. H. &amp; Peale, S. J.</editor>
+		<imprint>
+			<biblScope unit="volume">220</biblScope>
+			<biblScope unit="page">1201</biblScope>
+			<date type="published" when="1983" />
+		</imprint>
+	</monogr>
+	<note>ApJ</note>
+</biblStruct>
+
+<biblStruct xml:id="b12">
+	<analytic>
+		<title/>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Marcy</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">R</forename><forename type="middle">P</forename><surname>Butler</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><forename type="middle">A</forename><surname>Fischer</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Laughlin</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">S</forename><surname>Vogt</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><forename type="middle">W</forename><surname>Henry</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">P</forename><surname>Pourbaix</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="j">ApJ</title>
+		<imprint>
+			<biblScope unit="page">1375</biblScope>
+			<date type="published" when="2002" />
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b13">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Mccall</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">M</forename><surname>Mayor</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">D</forename><surname>Queloz</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">H</forename><surname>Press</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">S</forename><forename type="middle">A</forename><surname>Teukolsky</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">W</forename><forename type="middle">T</forename><surname>Vetterling</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><forename type="middle">P</forename><surname>Flannery</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Numerical recipes in Fortran 77</title>
+		<meeting><address><addrLine>UK</addrLine></address></meeting>
+		<imprint>
+			<publisher>Cambridge University Press</publisher>
+			<date type="published" when="1995" />
+			<biblScope unit="volume">184</biblScope>
+			<biblScope unit="page">205</biblScope>
+		</imprint>
+	</monogr>
+	<note>Nature</note>
+</biblStruct>
+
+<biblStruct xml:id="b14">
+	<analytic>
+				<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">B</forename><surname>Reipurth</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">L</forename><forename type="middle">F</forename><surname>Rodríguez</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">G</forename><surname>Anglada</surname></persName>
+		</author>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">J</forename><surname>Bally</surname></persName>
+		</author>
+	</analytic>
+	<monogr>
+		<title level="m">Evolution and optimum seeking</title>
+		<meeting><address><addrLine>New York</addrLine></address></meeting>
+		<imprint>
+			<publisher>Wiley &amp; Sons</publisher>
+			<date type="published" when="1045" />
+			<biblScope unit="volume">124</biblScope>
+		</imprint>
+	</monogr>
+</biblStruct>
+
+<biblStruct xml:id="b15">
+	<monogr>
+		<title level="m" type="main">Proceedings of computer simulation versus analytical solutions for business and economic models</title>
+		<author>
+			<persName xmlns="http://www.tei-c.org/ns/1.0"><forename type="first">A</forename><surname>Törn</surname></persName>
+		</author>
+		<imprint>
+			<date type="published" when="1973" />
+			<biblScope unit="page" from="191" to="206" />
+			<pubPlace>Gothenburg, Sweden</pubPlace>
+		</imprint>
+	</monogr>
+	<note>Global optimization as a combination of global and local search</note>
+</biblStruct>
+
+				</listBibl>
+			</div>
+		</back>
+	</text>
+</TEI>
